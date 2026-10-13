@@ -64,6 +64,14 @@
       "mathjson": "0.79",
       "mathjson_canonical": "0.79"
     },
+    "dec_250": {
+      "input": {
+        "latex": "2.50"
+      },
+      "latex_out": "2.50",
+      "mathjson": "2.5",
+      "mathjson_canonical": "2.5"
+    },
     "dec_inside": {
       "input": {
         "latex": "\\frac{0.5}{x}"
@@ -160,6 +168,14 @@
       "mathjson": "\"PositiveInfinity\"",
       "mathjson_canonical": "\"PositiveInfinity\""
     },
+    "lg_x": {
+      "input": {
+        "latex": "\\lg x"
+      },
+      "latex_out": "\\lg x",
+      "mathjson": "[\"Log\",\"x\",10]",
+      "mathjson_canonical": "[\"Log\",\"x\",10]"
+    },
     "ln_x": {
       "input": {
         "latex": "\\ln x"
@@ -176,6 +192,14 @@
       "mathjson": "[\"Ln\",[\"Power\",\"x\",2]]",
       "mathjson_canonical": "[\"Ln\",[\"Power\",\"x\",2]]"
     },
+    "log10_x": {
+      "input": {
+        "latex": "\\log_{10} x"
+      },
+      "latex_out": "\\log_{10} x",
+      "mathjson": "[\"Log\",\"x\"]",
+      "mathjson_canonical": "[\"Log\",\"x\"]"
+    },
     "log2_x": {
       "input": {
         "latex": "\\log_2 x"
@@ -191,6 +215,14 @@
       "latex_out": "\\log x",
       "mathjson": "[\"Log\",\"x\"]",
       "mathjson_canonical": "[\"Log\",\"x\"]"
+    },
+    "loge_x": {
+      "input": {
+        "latex": "\\log_{e} x"
+      },
+      "latex_out": "\\log_{e} x",
+      "mathjson": "[\"Log\",\"x\",\"e\"]",
+      "mathjson_canonical": "[\"Log\",\"x\",\"ExponentialE\"]"
     },
     "long_int": {
       "input": {
@@ -231,6 +263,14 @@
       "latex_out": "3",
       "mathjson": "3",
       "mathjson_canonical": "3"
+    },
+    "paren_sq": {
+      "input": {
+        "latex": "(x+1)^2"
+      },
+      "latex_out": "(x+1)^2",
+      "mathjson": "[\"Power\",[\"Delimiter\",[\"Add\",\"x\",1]],2]",
+      "mathjson_canonical": "[\"Power\",[\"Add\",\"x\",1],2]"
     },
     "pi_e": {
       "input": {
@@ -439,6 +479,7 @@
     }
   },
   "meta": {
+    "canonical_false_equals_form_raw": "true",
     "chromium": "156.0.8078.4",
     "compute_engine": "0.151.0",
     "mathlive": "0.111.1"

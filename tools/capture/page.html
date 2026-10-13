@@ -21,20 +21,20 @@
 
     window.capture = {
       ready: true,
-      versions: { mathlive: MathfieldElement.version, compute_engine: ce.constructor.version ?? null },
       setValue(latex) { mf.setValue(latex); },
       read() {
         const latex = mf.getValue();
-        const raw = ce.parse(latex, NONCANONICAL).json;
-        const canonical = ce.parse(latex).json;
+        // Parsing auto-declares symbols (e.g. f) in the engine, so each parse gets a fresh one.
+        const fresh = () => new ComputeEngine();
+        const raw = fresh().parse(latex, NONCANONICAL).json;
+        const canonical = fresh().parse(latex).json;
+        const alias = fresh().parse(latex, { canonical: false }).json;
         return {
           latex,
           mathjson: JSON.stringify(raw),
           mathjson_canonical: JSON.stringify(canonical),
+          alias_matches_raw: JSON.stringify(alias) === JSON.stringify(raw),
         };
-      },
-      probe(latex, options) {
-        return JSON.stringify(ce.parse(latex, options).json);
       },
     };
   </script>

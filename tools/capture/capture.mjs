@@ -2,7 +2,7 @@
 // Usage: npm run capture --prefix tools   (writes tests/fixtures/mathjson/captured.json)
 import { createServer } from 'node:http';
 import { readFile, writeFile } from 'node:fs/promises';
-import { dirname, extname, join, normalize, resolve } from 'node:path';
+import { dirname, extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
@@ -24,7 +24,7 @@ function startServer() {
     try {
       const path = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname));
       const file = join(toolsRoot, path.endsWith('/') ? `${path}index.html` : path);
-      if (!file.startsWith(toolsRoot)) throw new Error('outside root');
+      if (!file.startsWith(toolsRoot + sep)) throw new Error('outside root');
       const body = await readFile(file);
       res.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' });
       res.end(body);
@@ -58,6 +58,7 @@ try {
   page.on('pageerror', (e) => process.stderr.write(`[pageerror] ${e}\n`));
 
   const result = {};
+  let aliasMatchesRaw = true;
   for (const c of cases) {
     // A fresh page per case: MathLive keeps cursor/mode state across setValue calls.
     await page.goto(`http://127.0.0.1:${server.address().port}/capture/page.html`);
@@ -72,6 +73,8 @@ try {
       await page.evaluate((l) => window.capture.setValue(l), c.latex);
     }
     const r = await page.evaluate(() => window.capture.read());
+    aliasMatchesRaw = aliasMatchesRaw && r.alias_matches_raw;
+
     result[c.key] = {
       input,
       latex_out: r.latex,
@@ -85,6 +88,7 @@ try {
       mathlive: await readVersion('mathlive'),
       compute_engine: await readVersion('@cortex-js/compute-engine'),
       chromium: browser.version(),
+      canonical_false_equals_form_raw: String(aliasMatchesRaw),
     },
     cases: result,
   };
