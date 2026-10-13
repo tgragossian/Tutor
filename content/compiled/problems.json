@@ -95,9 +95,9 @@
       "difficulty": 2,
       "id": "adapted-c1-3.5-x2cosx",
       "misconceptions": [
-        "b: sign error, derivative of cos x taken as +sin x",
-        "c: derivative of a product taken as the product of the derivatives",
-        "d: cos x treated as a constant (second product-rule term dropped)"
+        "b  # sign error: derivative of cos x taken as +sin x",
+        "c  # derivative of a product taken as the product of the derivatives",
+        "d  # cos x treated as a constant (second product-rule term dropped)"
       ],
       "review": {
         "date": "",

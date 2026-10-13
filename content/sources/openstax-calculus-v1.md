@@ -5,7 +5,8 @@
 ## Book
 
 - **Title:** Calculus Volume 1
-- **Authors:** Gilbert Strang and Edwin "Jed" Herman- **Publisher:** OpenStax, Houston, Texas
+- **Authors:** Gilbert Strang and Edwin "Jed" Herman
+- **Publisher:** OpenStax, Houston, Texas
 - **Edition:** the edition published 30 March 2016, per the book's citation page (web version read on 2026-10-13)
 - **Base URL:** https://openstax.org/books/calculus-volume-1/pages/1-introduction
 - **Answer key used for checks:** https://openstax.org/books/calculus-volume-1/pages/chapter-3

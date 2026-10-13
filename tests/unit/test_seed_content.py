@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from mathtutor.content.loader import load_bundle
-from mathtutor.content.schema import Domain, ExpressionAnswer
+from mathtutor.content.schema import Decimals, Domain, ExpressionAnswer, NumericAnswer
 
 ROOT = Path(__file__).resolve().parents[2]
 CONTENT = load_bundle(ROOT / "content" / "compiled" / "problems.json")
@@ -36,6 +36,18 @@ def test_some_domain_is_not_all_reals() -> None:
 
 def test_some_problem_has_misconceptions() -> None:
     assert any(p.misconceptions for p in PROBLEMS)
+
+
+def test_declared_domains_and_precision_are_pinned() -> None:
+    by_id = {p.id: p for p in PROBLEMS}
+    for pid, point in [("openstax-c1-3.3-111", "-1"), ("openstax-c1-3.3-115", "0")]:
+        answer = by_id[pid].answer
+        assert isinstance(answer, ExpressionAnswer), pid
+        assert list(answer.domain.intervals) == [("-inf", "inf", "open", "open")], pid
+        assert answer.domain.exclude == [point], pid
+    numeric = by_id["openstax-c1-3.6-253"].answer
+    assert isinstance(numeric, NumericAnswer)
+    assert isinstance(numeric.precision, Decimals) and numeric.precision.decimals == 3
 
 
 def test_urls_match_section() -> None:
