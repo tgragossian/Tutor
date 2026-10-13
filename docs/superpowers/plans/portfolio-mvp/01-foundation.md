@@ -1,6 +1,6 @@
 # A — contracts and deployed skeleton
 
-[Plan index](README.md) · Budget target: 20 hours.
+[Plan index](README.md) · Budget target: 20 hours · [Executable tasks](milestone-a/README.md)
 
 ## Deliver
 

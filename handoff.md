@@ -72,16 +72,16 @@ in the [README footnote](README.md#acknowledgments). Existing commits are not re
 
 Revised contracts drafted in [portfolio-core spec](docs/superpowers/specs/2026-10-13-portfolio-core/README.md),
 covering remaining findings 1–5 and 7 plus decision 0001 domains. MathLive claim verified
-against the official changelog (0.111.0 removal; 0.111.1 XSS fixes). Awaiting Thomas's review;
-milestone A tasks are written only after approval. Finding 6 is accepted (applies to milestone C).
+against the official changelog (0.111.0 removal; 0.111.1 XSS fixes). Thomas approved the spec.
+Finding 6 is accepted (applies to milestone C). Milestone A plan: 8 tasks in
+[milestone-a/](docs/superpowers/plans/portfolio-mvp/milestone-a/README.md), awaiting Thomas's review.
 
 ## Next action for Claude
 
 Follow option B; do not reopen the A/B/C choice.
-Revise affected technical contracts and write milestone A's executable tasks.
-Start with the MathLive/input spike and six reviewed problems across the first three topics.
-Document real domains, the shared equivalence default and presentation/submission identity.
-The execution method remains undecided; the user's choice B concerns product sequencing.
+After Thomas reviews the milestone A plan and picks an execution method
+(subagent-driven or native), execute it from task 1. Human gates: ADR 0002 (task 2),
+seed review (task 5), AWS/domain/DNS (task 8). No assistant co-author trailers.
 
 ## Reference documents
 
