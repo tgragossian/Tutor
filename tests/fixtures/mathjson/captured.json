@@ -1,0 +1,446 @@
+{
+  "cases": {
+    "abs_x": {
+      "input": {
+        "latex": "\\lvert x\\rvert"
+      },
+      "latex_out": "\\lvert x\\rvert",
+      "mathjson": "[\"Abs\",\"x\"]",
+      "mathjson_canonical": "[\"Abs\",\"x\"]"
+    },
+    "antideriv_c": {
+      "input": {
+        "latex": "\\frac{x^3}{3}+C"
+      },
+      "latex_out": "\\frac{x^3}{3}+C",
+      "mathjson": "[\"Add\",[\"Divide\",[\"Power\",\"x\",3],3],\"C\"]",
+      "mathjson_canonical": "[\"Add\",[\"Multiply\",[\"Rational\",1,3],[\"Power\",\"x\",3]],\"C\"]"
+    },
+    "arcsin": {
+      "input": {
+        "latex": "\\arcsin x"
+      },
+      "latex_out": "\\arcsin x",
+      "mathjson": "[\"Arcsin\",\"x\"]",
+      "mathjson_canonical": "[\"Arcsin\",\"x\"]"
+    },
+    "cot_x": {
+      "input": {
+        "latex": "\\cot x"
+      },
+      "latex_out": "\\cot x",
+      "mathjson": "[\"Cot\",\"x\"]",
+      "mathjson_canonical": "[\"Cot\",\"x\"]"
+    },
+    "cuberoot": {
+      "input": {
+        "latex": "\\sqrt[3]{x}"
+      },
+      "latex_out": "\\sqrt[3]{x}",
+      "mathjson": "[\"Root\",\"x\",3]",
+      "mathjson_canonical": "[\"Root\",\"x\",3]"
+    },
+    "dec_0780": {
+      "input": {
+        "latex": "0.780"
+      },
+      "latex_out": "0.780",
+      "mathjson": "0.78",
+      "mathjson_canonical": "0.78"
+    },
+    "dec_0785": {
+      "input": {
+        "latex": "0.785"
+      },
+      "latex_out": "0.785",
+      "mathjson": "0.785",
+      "mathjson_canonical": "0.785"
+    },
+    "dec_079": {
+      "input": {
+        "latex": "0.79"
+      },
+      "latex_out": "0.79",
+      "mathjson": "0.79",
+      "mathjson_canonical": "0.79"
+    },
+    "dec_inside": {
+      "input": {
+        "latex": "\\frac{0.5}{x}"
+      },
+      "latex_out": "\\frac{0.5}{x}",
+      "mathjson": "[\"Divide\",0.5,\"x\"]",
+      "mathjson_canonical": "[\"Divide\",0.5,\"x\"]"
+    },
+    "dne": {
+      "input": {
+        "latex": "\\mathrm{DNE}"
+      },
+      "latex_out": "\\mathrm{DNE}",
+      "mathjson": "\"DNE\"",
+      "mathjson_canonical": "\"DNE\""
+    },
+    "empty": {
+      "input": {
+        "latex": ""
+      },
+      "latex_out": "",
+      "mathjson": "\"Nothing\"",
+      "mathjson_canonical": "\"Nothing\""
+    },
+    "exp_fn": {
+      "input": {
+        "latex": "\\exp(x)"
+      },
+      "latex_out": "\\exp(x)",
+      "mathjson": "[\"Exp\",\"x\"]",
+      "mathjson_canonical": "[\"Power\",\"ExponentialE\",\"x\"]"
+    },
+    "exp_x2": {
+      "input": {
+        "latex": "e^{x^2}"
+      },
+      "latex_out": "e^{x^2}",
+      "mathjson": "[\"Power\",\"e\",[\"Power\",\"x\",2]]",
+      "mathjson_canonical": "[\"Power\",\"ExponentialE\",[\"Power\",\"x\",2]]"
+    },
+    "f_of_2x": {
+      "input": {
+        "latex": "f(2x)"
+      },
+      "latex_out": "f(2x)",
+      "mathjson": "[\"InvisibleOperator\",\"f\",[\"Delimiter\",[\"InvisibleOperator\",2,\"x\"]]]",
+      "mathjson_canonical": "[\"f\",[\"Multiply\",2,\"x\"]]"
+    },
+    "frac_pi_4": {
+      "input": {
+        "latex": "\\frac{\\pi}{4}"
+      },
+      "latex_out": "\\frac{\\pi}{4}",
+      "mathjson": "[\"Divide\",\"Pi\",4]",
+      "mathjson_canonical": "[\"Multiply\",[\"Rational\",1,4],\"Pi\"]"
+    },
+    "frac_power": {
+      "input": {
+        "latex": "x^{\\frac{3}{2}}"
+      },
+      "latex_out": "x^{\\frac{3}{2}}",
+      "mathjson": "[\"Power\",\"x\",[\"Divide\",3,2]]",
+      "mathjson_canonical": "[\"Power\",\"x\",[\"Rational\",3,2]]"
+    },
+    "huge_pow": {
+      "input": {
+        "latex": "10^{10^{10}}"
+      },
+      "latex_out": "10^{10^{10}}",
+      "mathjson": "[\"Power\",10,[\"Power\",10,10]]",
+      "mathjson_canonical": "[\"Power\",10,10000000000]"
+    },
+    "implicit_mult": {
+      "input": {
+        "latex": "2\\pi x"
+      },
+      "latex_out": "2\\pi x",
+      "mathjson": "[\"InvisibleOperator\",2,\"Pi\",\"x\"]",
+      "mathjson_canonical": "[\"Multiply\",2,\"Pi\",\"x\"]"
+    },
+    "incomplete": {
+      "input": {
+        "latex": "x^{\\placeholder{}}"
+      },
+      "latex_out": "x^{\\placeholder{}}",
+      "mathjson": "\"x\"",
+      "mathjson_canonical": "\"x\""
+    },
+    "inf": {
+      "input": {
+        "latex": "\\infty"
+      },
+      "latex_out": "\\infty",
+      "mathjson": "\"PositiveInfinity\"",
+      "mathjson_canonical": "\"PositiveInfinity\""
+    },
+    "ln_x": {
+      "input": {
+        "latex": "\\ln x"
+      },
+      "latex_out": "\\ln x",
+      "mathjson": "[\"Ln\",\"x\"]",
+      "mathjson_canonical": "[\"Ln\",\"x\"]"
+    },
+    "ln_x2": {
+      "input": {
+        "latex": "\\ln(x^2)"
+      },
+      "latex_out": "\\ln(x^2)",
+      "mathjson": "[\"Ln\",[\"Power\",\"x\",2]]",
+      "mathjson_canonical": "[\"Ln\",[\"Power\",\"x\",2]]"
+    },
+    "log2_x": {
+      "input": {
+        "latex": "\\log_2 x"
+      },
+      "latex_out": "\\log_2 x",
+      "mathjson": "[\"Lb\",\"x\"]",
+      "mathjson_canonical": "[\"Log\",\"x\",2]"
+    },
+    "log_x": {
+      "input": {
+        "latex": "\\log x"
+      },
+      "latex_out": "\\log x",
+      "mathjson": "[\"Log\",\"x\"]",
+      "mathjson_canonical": "[\"Log\",\"x\"]"
+    },
+    "long_int": {
+      "input": {
+        "latex": "1234567890123456789012345678901234567890"
+      },
+      "latex_out": "1234567890123456789012345678901234567890",
+      "mathjson": "{\"num\":\"1234567890123456789012345678901234567890\"}",
+      "mathjson_canonical": "{\"num\":\"1234567890123456789012345678901234567890\"}"
+    },
+    "matrix": {
+      "input": {
+        "latex": "\\begin{pmatrix}1&2\\end{pmatrix}"
+      },
+      "latex_out": "\\begin{pmatrix}1&2\\end{pmatrix}",
+      "mathjson": "[\"Matrix\",[\"List\",[\"List\",1,2]]]",
+      "mathjson_canonical": "[\"Matrix\",[\"List\",[\"List\",1,2]]]"
+    },
+    "neg_half": {
+      "input": {
+        "latex": "-\\frac{1}{2}"
+      },
+      "latex_out": "-\\frac{1}{2}",
+      "mathjson": "[\"Negate\",[\"Divide\",1,2]]",
+      "mathjson_canonical": "[\"Rational\",-1,2]"
+    },
+    "neg_power": {
+      "input": {
+        "latex": "x^{-2}"
+      },
+      "latex_out": "x^{-2}",
+      "mathjson": "[\"Power\",\"x\",[\"Negate\",2]]",
+      "mathjson_canonical": "[\"Power\",\"x\",-2]"
+    },
+    "num_3": {
+      "input": {
+        "latex": "3"
+      },
+      "latex_out": "3",
+      "mathjson": "3",
+      "mathjson_canonical": "3"
+    },
+    "pi_e": {
+      "input": {
+        "latex": "\\pi+e"
+      },
+      "latex_out": "\\pi+e",
+      "mathjson": "[\"Add\",\"Pi\",\"e\"]",
+      "mathjson_canonical": "[\"Add\",\"ExponentialE\",\"Pi\"]"
+    },
+    "product_rule": {
+      "input": {
+        "latex": "f'(x)g(x)+f(x)g'(x)"
+      },
+      "latex_out": "f'(x)g(x)+f(x)g'(x)",
+      "mathjson": "[\"Add\",[\"InvisibleOperator\",[\"Apply\",[\"Derivative\",\"f\",1],\"x\"],\"g\",[\"Delimiter\",\"x\"]],[\"InvisibleOperator\",\"f\",[\"Delimiter\",\"x\"],[\"Apply\",[\"Derivative\",\"g\",1],\"x\"]]]",
+      "mathjson_canonical": "[\"Add\",[\"Multiply\",[\"g\",\"x\"],[\"Apply\",[\"Derivative\",\"f\",1],\"x\"]],[\"Multiply\",[\"f\",\"x\"],[\"Apply\",[\"Derivative\",\"g\",1],\"x\"]]]"
+    },
+    "rational_fn": {
+      "input": {
+        "latex": "\\frac{x^2-1}{x-1}"
+      },
+      "latex_out": "\\frac{x^2-1}{x-1}",
+      "mathjson": "[\"Divide\",[\"Subtract\",[\"Power\",\"x\",2],1],[\"Subtract\",\"x\",1]]",
+      "mathjson_canonical": "[\"Divide\",[\"Add\",[\"Power\",\"x\",2],-1],[\"Add\",\"x\",-1]]"
+    },
+    "sec2": {
+      "input": {
+        "latex": "\\sec^2 x"
+      },
+      "latex_out": "\\sec^2 x",
+      "mathjson": "[\"Power\",[\"Sec\",\"x\"],2]",
+      "mathjson_canonical": "[\"Power\",[\"Sec\",\"x\"],2]"
+    },
+    "set_pts": {
+      "input": {
+        "latex": "-1,1"
+      },
+      "latex_out": "-1,1",
+      "mathjson": "[\"Delimiter\",[\"Sequence\",[\"Negate\",1],1],\"','\"]",
+      "mathjson_canonical": "[\"Tuple\",-1,1]"
+    },
+    "sin2x": {
+      "input": {
+        "latex": "\\sin^2 x"
+      },
+      "latex_out": "\\sin^2 x",
+      "mathjson": "[\"Power\",[\"Sin\",\"x\"],2]",
+      "mathjson_canonical": "[\"Power\",[\"Sin\",\"x\"],2]"
+    },
+    "sin_inv": {
+      "input": {
+        "latex": "\\sin^{-1} x"
+      },
+      "latex_out": "\\sin^{-1} x",
+      "mathjson": "[\"Apply\",[\"InverseFunction\",\"Sin\"],\"x\"]",
+      "mathjson_canonical": "[\"Arcsin\",\"x\"]"
+    },
+    "sin_of_2x": {
+      "input": {
+        "latex": "\\sin(2x)"
+      },
+      "latex_out": "\\sin(2x)",
+      "mathjson": "[\"Sin\",[\"InvisibleOperator\",2,\"x\"]]",
+      "mathjson_canonical": "[\"Sin\",[\"Multiply\",2,\"x\"]]"
+    },
+    "six_x_cos": {
+      "input": {
+        "latex": "6x\\cos(3x^2)"
+      },
+      "latex_out": "6x\\cos(3x^2)",
+      "mathjson": "[\"InvisibleOperator\",6,\"x\",[\"Cos\",[\"InvisibleOperator\",3,[\"Power\",\"x\",2]]]]",
+      "mathjson_canonical": "[\"Multiply\",6,\"x\",[\"Cos\",[\"Multiply\",3,[\"Power\",\"x\",2]]]]"
+    },
+    "sqrt_x": {
+      "input": {
+        "latex": "\\sqrt{x}"
+      },
+      "latex_out": "\\sqrt{x}",
+      "mathjson": "[\"Sqrt\",\"x\"]",
+      "mathjson_canonical": "[\"Sqrt\",\"x\"]"
+    },
+    "sqrt_x2": {
+      "input": {
+        "latex": "\\sqrt{x^2}"
+      },
+      "latex_out": "\\sqrt{x^2}",
+      "mathjson": "[\"Sqrt\",[\"Power\",\"x\",2]]",
+      "mathjson_canonical": "[\"Sqrt\",[\"Power\",\"x\",2]]"
+    },
+    "tan_x": {
+      "input": {
+        "latex": "\\tan x"
+      },
+      "latex_out": "\\tan x",
+      "mathjson": "[\"Tan\",\"x\"]",
+      "mathjson_canonical": "[\"Tan\",\"x\"]"
+    },
+    "typed_dec_0780": {
+      "input": {
+        "keys": [
+          "0",
+          ".",
+          "7",
+          "8",
+          "0"
+        ]
+      },
+      "latex_out": "0.780",
+      "mathjson": "0.78",
+      "mathjson_canonical": "0.78"
+    },
+    "typed_frac": {
+      "input": {
+        "keys": [
+          "1",
+          "/",
+          "x"
+        ]
+      },
+      "latex_out": "\\frac{1}{x}",
+      "mathjson": "[\"Divide\",1,\"x\"]",
+      "mathjson_canonical": "[\"Divide\",1,\"x\"]"
+    },
+    "typed_frac_empty": {
+      "input": {
+        "keys": [
+          "1",
+          "/"
+        ]
+      },
+      "latex_out": "\\frac{1}{\\placeholder{}}",
+      "mathjson": "[\"Divide\",1,[\"Error\",\"'missing'\"]]",
+      "mathjson_canonical": "[\"Divide\",1,[\"Error\",\"'missing'\"]]"
+    },
+    "typed_pow": {
+      "input": {
+        "keys": [
+          "x",
+          "^",
+          "2",
+          "ArrowRight",
+          "+",
+          "1"
+        ]
+      },
+      "latex_out": "x^2+1",
+      "mathjson": "[\"Add\",[\"Power\",\"x\",2],1]",
+      "mathjson_canonical": "[\"Add\",[\"Power\",\"x\",2],1]"
+    },
+    "typed_pow_empty": {
+      "input": {
+        "keys": [
+          "x",
+          "^"
+        ]
+      },
+      "latex_out": "x^{}",
+      "mathjson": "\"x\"",
+      "mathjson_canonical": "\"x\""
+    },
+    "typed_sin": {
+      "input": {
+        "keys": [
+          "s",
+          "i",
+          "n",
+          "(",
+          "2",
+          "x",
+          ")"
+        ]
+      },
+      "latex_out": "\\sin\\left(2x\\right)",
+      "mathjson": "[\"Sin\",[\"InvisibleOperator\",2,\"x\"]]",
+      "mathjson_canonical": "[\"Sin\",[\"Multiply\",2,\"x\"]]"
+    },
+    "typed_sqrt": {
+      "input": {
+        "keys": [
+          "s",
+          "q",
+          "r",
+          "t",
+          "x"
+        ]
+      },
+      "latex_out": "\\sqrt{x}",
+      "mathjson": "[\"Sqrt\",\"x\"]",
+      "mathjson_canonical": "[\"Sqrt\",\"x\"]"
+    },
+    "x2_sinx": {
+      "input": {
+        "latex": "x^2\\sin x"
+      },
+      "latex_out": "x^2\\sin x",
+      "mathjson": "[\"InvisibleOperator\",[\"Power\",\"x\",2],[\"Sin\",\"x\"]]",
+      "mathjson_canonical": "[\"Multiply\",[\"Sin\",\"x\"],[\"Power\",\"x\",2]]"
+    },
+    "x_plain": {
+      "input": {
+        "latex": "x"
+      },
+      "latex_out": "x",
+      "mathjson": "\"x\"",
+      "mathjson_canonical": "\"x\""
+    }
+  },
+  "meta": {
+    "chromium": "156.0.8078.4",
+    "compute_engine": "0.151.0",
+    "mathlive": "0.111.1"
+  }
+}

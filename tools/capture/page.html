@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>MathLive capture</title>
+</head>
+<body>
+  <math-field id="mf" math-virtual-keyboard-policy="manual" sounds-directory="none"></math-field>
+  <script type="module">
+    import { MathfieldElement } from '/node_modules/mathlive/mathlive.min.mjs';
+    import { ComputeEngine } from '/node_modules/@cortex-js/compute-engine/dist/esm-min/compute-engine.js';
+
+    // MathLive 0.111.x does not bundle a Compute Engine; attach one explicitly.
+    MathfieldElement.computeEngine = new ComputeEngine();
+    MathfieldElement.soundsDirectory = null;
+
+    const ce = MathfieldElement.computeEngine;
+    const mf = document.getElementById('mf');
+    // `form: 'raw'` is the documented non-canonical option (`canonical: false` is a deprecated alias).
+    const NONCANONICAL = { form: 'raw' };
+
+    window.capture = {
+      ready: true,
+      versions: { mathlive: MathfieldElement.version, compute_engine: ce.constructor.version ?? null },
+      setValue(latex) { mf.setValue(latex); },
+      read() {
+        const latex = mf.getValue();
+        const raw = ce.parse(latex, NONCANONICAL).json;
+        const canonical = ce.parse(latex).json;
+        return {
+          latex,
+          mathjson: JSON.stringify(raw),
+          mathjson_canonical: JSON.stringify(canonical),
+        };
+      },
+      probe(latex, options) {
+        return JSON.stringify(ce.parse(latex, options).json);
+      },
+    };
+  </script>
+</body>
+</html>
