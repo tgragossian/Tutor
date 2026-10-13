@@ -32,6 +32,16 @@ The working stack proposal is FastAPI, Jinja/HTMX, MathLive, SymPy, SQLite and D
 RAG, evaluation and a public deployment are the intended portfolio deliverables.
 Installation instructions and measured results will be added when software exists.
 
+## Development
+
+Install [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`), then:
+
+```bash
+uv sync
+uv run pytest
+uv run python tools/check_docs.py
+```
+
 ## Acknowledgments
 
 [^ai]: Planning and technical review were assisted by Anthropic Claude and OpenAI Codex.
