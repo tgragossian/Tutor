@@ -185,7 +185,8 @@ Equivalence for expression-like comparisons:
 1. **Symbolic:** `simplify(student - expected) == 0` → `correct`, method `symbolic`.
 2. **Numeric:**
    - Draw 20 points uniformly from `sample_domain` (seeded) and evaluate both expressions with mpmath at 50 digits.
-   - Skip a point if either side is non-finite or non-real.
+   - Skip a point only if the **expected** value is non-finite or non-real there.
+   - If the expected value is defined but the student's is not → `incorrect`, reason `student_undefined`.
    - If any valid point has |s − e| > 1e-8 · max(1, |e|) → `incorrect`, method `numeric`.
    - If all valid points agree and there are ≥ 10 of them → `correct`, method `numeric`.
    - Otherwise → `unable_to_verify`, reason `insufficient_sample_points`.
@@ -333,7 +334,7 @@ Every selection returns `(item_id | None, reason: str)`. The reason is shown to 
 2. Dashboard: per-topic recall and application bands, "Start session"
 3. Session setup: topics grouped by area, minutes (15/30/45/60/custom 5–180), mode, exam conditions, warm-up toggle
 4. Item page:
-   - statement, MathLive field, calculus button row (a/b, xⁿ, √, sin, cos, tan, ln, eˣ, π, |x|, ∞, +C) and MathLive's virtual keyboard
+   - statement, MathLive field, calculus button row (a/b, xⁿ, √, sin, cos, tan, ln, eˣ, π, |x|, ∞, +C, DNE) and MathLive's virtual keyboard
    - precision hint, Check button, verdict area, reason line
    - formula-sheet panel when exam conditions allow
 5. Session report
@@ -347,6 +348,7 @@ Every selection returns `(item_id | None, reason: str)`. The reason is shown to 
 | `POST /api/sessions` | `{mode, topics, minutes, exam_conditions, warmup}` → session |
 | `GET /api/sessions/{id}/next` | `{item, reason}` or `{done: true}` |
 | `POST /api/attempts` | `{session_id, item_id, answer_mathjson, answer_latex}` → `{verdict, can_retry, can_reveal}` or a format message |
+| `POST /api/sessions/{id}/skip-warmup` | turns off the warm-up for this session |
 | `POST /api/sessions/{id}/reveal` | expected answer (practice only, after 3 tries) |
 | `GET /api/sessions/{id}/report` | per-topic bands + item list |
 | `GET /api/me/mastery` | dashboard data |
