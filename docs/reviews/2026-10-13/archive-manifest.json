@@ -1,0 +1,504 @@
+[
+  {
+    "source": "handoff.md",
+    "original_sha256": "bb2b21471db177e5c0efba97f046631bdd0d45a2a636c002c70831ad6e9bbbb2",
+    "normalized_sha256": "a7d0aca8e029746c21a14e2305e63897e334e75b05a457301ed8a108ec423daa",
+    "parts": [
+      {
+        "path": "docs/handoff/00-overview.md",
+        "begin": 1,
+        "end": 20,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "de71c9a74fd1db4b1deecf066891cf5f0ae23c7bc9217875be78e8340c3eaf30"
+      },
+      {
+        "path": "docs/handoff/01-brainstorming-decisions.md",
+        "begin": 21,
+        "end": 79,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "edcba4d22df61b0871e808771119178afe70307063e8898002edb74b3bb15e8f"
+      },
+      {
+        "path": "docs/handoff/02-developer-goals.md",
+        "begin": 80,
+        "end": 102,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "f4caa913157691e9cd23eb96fa9cd88e87df202e4ae9d06f0899398dc50419b1"
+      },
+      {
+        "path": "docs/handoff/03-courses.md",
+        "begin": 103,
+        "end": 120,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "af0cba384c8809ad66f67dbee2e8488a3ddb2bdca654580fa28eecdc5d8cc827"
+      },
+      {
+        "path": "docs/handoff/04-problem-bank.md",
+        "begin": 121,
+        "end": 152,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "758905c4a5be74e8b32ccfb8d3d471ea951b3f21e396b34cf6100eae72bea9bc"
+      },
+      {
+        "path": "docs/handoff/05-ingestion-history.md",
+        "begin": 153,
+        "end": 188,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "05a4881387af8466f3c7856413c6ac74b340c7213ac58cb473ee3884766c740f"
+      },
+      {
+        "path": "docs/handoff/06-verification.md",
+        "begin": 189,
+        "end": 243,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "680acdcbf0d840591ad713e4ba9f8a49b27c329cf6cb8334e642606d2e08a557"
+      },
+      {
+        "path": "docs/handoff/07-retrieval.md",
+        "begin": 244,
+        "end": 278,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "af0baa81381d6ec1456fe593cf967cdf834048d1d2f13edd195cb3464aa60148"
+      },
+      {
+        "path": "docs/handoff/08-recommendations.md",
+        "begin": 279,
+        "end": 308,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "07cef512644f0b47302addf703a07693ddee5a634dd8f4b49786446e19eb3f9e"
+      },
+      {
+        "path": "docs/handoff/09-quizzes.md",
+        "begin": 309,
+        "end": 323,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "c715513ae7804ca4205ca4301fbbe31e78430c25896d79ae5097ee88223835de"
+      },
+      {
+        "path": "docs/handoff/10-ask-mode.md",
+        "begin": 324,
+        "end": 351,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "590d56f5be79f8b878d8a563cc29c96bc416f8dd947a329b2774cdaf642c4fdf"
+      },
+      {
+        "path": "docs/handoff/11-stack-history.md",
+        "begin": 352,
+        "end": 377,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "119e93a771418749bc090cba81e40ab9edf2679374c9a76878be1d7856adcdb3"
+      },
+      {
+        "path": "docs/handoff/12-fine-tuning.md",
+        "begin": 378,
+        "end": 404,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "68db915b9280e2da6378631e96d364df758fe48cda7760179a2e5ecdab9837fa"
+      },
+      {
+        "path": "docs/handoff/13-evaluation.md",
+        "begin": 405,
+        "end": 448,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "f5dd31863305b6a13c8836acbacdda97191fe0aa6b370303443df6fbac3471c9"
+      },
+      {
+        "path": "docs/handoff/14-aws.md",
+        "begin": 449,
+        "end": 469,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "77501338d5baf3212ad6b088256f9143d62456296273867f64d91ef26820f3ae"
+      },
+      {
+        "path": "docs/handoff/15-mvp-history.md",
+        "begin": 470,
+        "end": 490,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "0818d32737b6dfc81ea48704dece24be9807b85e447c836fe9bd6d44c00f83b3"
+      },
+      {
+        "path": "docs/handoff/16-phases-history.md",
+        "begin": 491,
+        "end": 556,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "41ebe481b820aeb3dbc3b62120c7c10862d7c9b0f3876979d3be095ce8cc7d57"
+      },
+      {
+        "path": "docs/handoff/17-engineering.md",
+        "begin": 557,
+        "end": 578,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "76942674579e80c3a974f58cc1fff369f9649cf105b432b1f9ee5a47f93872b8"
+      },
+      {
+        "path": "docs/handoff/18-collaboration.md",
+        "begin": 579,
+        "end": 607,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "f9bc3fdbd9762d2c9d66a4e535f34adaff0f8caf60c32e22c85fc6c2e809c012"
+      },
+      {
+        "path": "docs/handoff/19-open-questions.md",
+        "begin": 608,
+        "end": 634,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "0304ed661957e2c94bda01e9893887701ec5f4d75633867b99dd898d816ff223"
+      },
+      {
+        "path": "docs/handoff/20-next-action-history.md",
+        "begin": 635,
+        "end": 653,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "1acdcacd49c9e30ab3c0929fca860ef98997e39cbe766c4e372490fba4acb23a"
+      }
+    ]
+  },
+  {
+    "source": "docs/superpowers/specs/2026-10-13-core-practice-loop-design.md",
+    "original_sha256": "d8bd8d1d9d1c1a778ac8381d22ace5c718b626486303738e3a63ea577de07f7b",
+    "normalized_sha256": "0b65f6fb678838b184ad44b5e9ff5b069db829349ca567bada20e72e04b65943",
+    "parts": [
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/00-scope.md",
+        "begin": 1,
+        "end": 41,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "2120bc37e64965b60f26547624f55ce14a9abffa2061c12fec49e76cef79821c"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/01-architecture.md",
+        "begin": 42,
+        "end": 79,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "f78072821732edcf574c2c8dcf3d797ff7cd69668b89892ec4063949d44bf00e"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/02-content.md",
+        "begin": 80,
+        "end": 159,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "26c2040ee961377f7995d7b74c3d8f966dbe3ffe0ab78696888a366dc4e587f2"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/03-translation.md",
+        "begin": 160,
+        "end": 181,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "2484f12481eb1a1f938852ddf9a4d7fff88f8bcb4371b225d5f867a59de21095"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/04-equivalence.md",
+        "begin": 182,
+        "end": 220,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "034eaef4754e4c09a5fa2a188800da7c8806f2252d81ebb2cc08cea01c6abda6"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/05-execution-and-evaluation.md",
+        "begin": 221,
+        "end": 255,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "9be91eb5c785c63190dfface0205be0c85d10ba9b21699ef48aa3c16f1e9d8da"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/06-persistence.md",
+        "begin": 256,
+        "end": 270,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "b54cd2ba08f6cf9e4150acc75af5b2ffde38918f8215d79b7f34d8150c8d588d"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/07-selection.md",
+        "begin": 271,
+        "end": 328,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "19f354eb96d380629f458ebcaa7987babc593cef521afb1e69e206a790e4f14e"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/08-web.md",
+        "begin": 329,
+        "end": 369,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "fa17e5aaddb43e081e71d21319c5b5b453b7eb7098bc252451114b8af714f2d2"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/09-security.md",
+        "begin": 370,
+        "end": 384,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "befccca2f6d76ea94e09a2b78e7745d1545784584ace2d68bbc1ee194dc5f8a2"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/10-testing.md",
+        "begin": 385,
+        "end": 399,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "be774050c74bfd1661ed4588cd1bae7ac358b93e060abc632d2165b98a9d8684"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/11-deployment.md",
+        "begin": 400,
+        "end": 411,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "7740657dbe8eb29a6335fe0269c0f0ac3645877e593b89194fa86c1528f6973a"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/12-acceptance.md",
+        "begin": 412,
+        "end": 425,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "c1a74f8b2993b606727c5b9f3592010395efb67aebeefe16413f4cc71122d79e"
+      },
+      {
+        "path": "docs/superpowers/specs/core-practice-loop/13-risks.md",
+        "begin": 426,
+        "end": 434,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "c73b6a6b6d30dd0dc2a9fc96d3ec328fc8a20fd604cb82ed32cb7dc2dc43de08"
+      }
+    ]
+  },
+  {
+    "source": "docs/superpowers/plans/2026-10-13-core-practice-loop.md",
+    "original_sha256": "e13cb6c63ea0afa737fc447b9584007008379e49d29d572861726f0132dac1cf",
+    "normalized_sha256": "bed40d459a8aa0e7460f4e37805b198496c1323b0c48ebd9d9edd7ce3882c674",
+    "parts": [
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/00-core-practice-loop-implementation-plan.md",
+        "begin": 1,
+        "end": 16,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "20242c13839967f6469e6b6ea22172693eb2083033ca05b8bb944be8cdc75268"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/01-global-constraints.md",
+        "begin": 17,
+        "end": 53,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "c087ae79011809b6b71e1263f479b3404849ec269bb587786ec40a1121913c97",
+        "original_body_sha256": "d4e7635cd84a188e5832ac624de710c428ea37591a1959f914653dcac28e83b9",
+        "amendments": [
+          {
+            "date": "2026-10-13",
+            "reason": "User requested README acknowledgment instead of assistant commit coauthor trailers.",
+            "original": "- Every commit message ends with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.",
+            "replacement": "- Commit attribution: no assistant coauthor trailers; acknowledge Claude and Codex in README."
+          }
+        ]
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/02-review-focus.md",
+        "begin": 54,
+        "end": 63,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "3f5e1bec1408bf03d3ff225662b3ffc2d6675b314290d72dc1e437052088f700"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/03-file-structure.md",
+        "begin": 64,
+        "end": 102,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "860eab8080df8310bf89bee81e67023d63e45b0e355da24322eb8fe9e9cf63af"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/01-project-scaffold-tooling-ci.md",
+        "begin": 103,
+        "end": 127,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "5d5b6f3cf7971b957a5d6bb8971b30a78fc3675a5e93fa3e4c45180a14ded66b"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/02-spike-capture-real-mathlive-mathjson.md",
+        "begin": 128,
+        "end": 183,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "63cd676ca05ef116c882539f528cc7d6f6c1868155b1c686f16b8325b11a3582"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/03-verifier-types-and-mathjson-sympy-translator.md",
+        "begin": 184,
+        "end": 271,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "557b4e8a3162cb145af254ccd569f9a8ebc9cd6d10fc6961ca0df454abd452ca"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/04-trusted-answer-parsing-and-equivalence-core.md",
+        "begin": 272,
+        "end": 319,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "886f41ae98513c8bd3d5635d6f2efa2c75169f1c4ec1dae98920b6f05fca6bdf"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/05-pre-checks-and-per-type-checkers.md",
+        "begin": 320,
+        "end": 372,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "48b495742703111a0186967c5fdf5bca9711d3bdebae2ff946597b24e0e50df6"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/06-implicit-derivative-checker.md",
+        "begin": 373,
+        "end": 405,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "e8615a0f5f733c1ce084a1d9c706032a4f77e7954ff164d4aa8cd7afb7de6830"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/07-sandboxed-verifier-pool.md",
+        "begin": 406,
+        "end": 444,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "03bb1c7a61de4ccc65c73fd487cf563fae0a66c45fe9efc68c01a3ae9ed04098"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/08-content-schemas-loader-topics.md",
+        "begin": 445,
+        "end": 486,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "1a98fef639f2dbad3de6a95d6bd36985d753adb4423dc9226d3592cfe8c100d9"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/09-seed-content-developer-authored.md",
+        "begin": 487,
+        "end": 511,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "08d704899c39397cf9383b76729da2483f0099f441e9fd635260ffd8bb34c95f"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/10-verifier-evaluation-set-and-ci-gate.md",
+        "begin": 512,
+        "end": 555,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "b410f8e503c06bf0903afa39ae67d764284e4d1a03ea2dc14ec17c883c25eea2"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/11-domain-types-and-mastery.md",
+        "begin": 556,
+        "end": 607,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "bb3098f58b603f41169cacc047dcc190fa05a9a7e428065ef291610d59012b12"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/12-persistence-sqlalchemy-alembic.md",
+        "begin": 608,
+        "end": 644,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "d443e1915b3db83b21150d337ca49d52e17d88d4e847ca35e19541f5e51f0255"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/13-policy-framework-diagnostic-recap-baseline.md",
+        "begin": 645,
+        "end": 696,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "dd30aa982348c9ab3a9415b04b19a39d1757a648443e1d18e73c4e1919ced6fc"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/14-practice-policy.md",
+        "begin": 697,
+        "end": 738,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "fe08d5798454d56ca423369a4825edf6a489984e0a18845bd51985de3a652ef2"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/15-web-foundation-settings-app-auth-security-errors-logging.md",
+        "begin": 739,
+        "end": 779,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "9ab4ca7861316e8aa27435090a8b264bad2b1d9a29a3743ab1f5b0a8f1b84d8a"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/16-session-and-attempt-api.md",
+        "begin": 780,
+        "end": 825,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "223041077f1ceeefd0196e9130cacaa64b1582a376c335af326e90b307d80f6e"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/17-pages-and-mathlive-ui.md",
+        "begin": 826,
+        "end": 854,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "b155571ea85f002dc5e3d297c698ed12c4d6200af747a761af61f97cf9fdf663"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/18-end-to-end-smoke-test.md",
+        "begin": 855,
+        "end": 878,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "3c06181b1f30ff9ba77d444ca1bdc85c49105ff9089b6d422477a182617551cf"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/19-containerization-and-backups.md",
+        "begin": 879,
+        "end": 895,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "b2bd735d41599481cb90435aa085973ed8cd94c8d1893f4f002fb58852f2bc6e"
+      },
+      {
+        "path": "docs/superpowers/plans/core-practice-loop/tasks/20-deploy-budget-guard-readme.md",
+        "begin": 896,
+        "end": 933,
+        "prefix_lines": 4,
+        "suffix_lines": 1,
+        "body_sha256": "40cc260f080bfb43bd1f5fe9ddcce7c51af1741f38ac483d6195b47cc544ba73"
+      }
+    ]
+  }
+]
