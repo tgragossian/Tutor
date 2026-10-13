@@ -14,3 +14,14 @@ jobs:
       - run: uv run mypy src
       - run: uv run pytest -q
       - run: uv run python tools/check_docs.py
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --prefix tools
+      - run: npm test --prefix tools
+      - run: npm run compile --prefix tools
+      - run: git diff --exit-code content/compiled

@@ -1,0 +1,184 @@
+{
+  "problems": [
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "3x^2",
+        "mathjson": [
+          "InvisibleOperator",
+          3,
+          [
+            "Power",
+            "x",
+            2
+          ]
+        ]
+      },
+      "difficulty": 1,
+      "id": "z",
+      "review": {
+        "date": "2026-01-01",
+        "reviewer": "tester",
+        "status": "human_verified"
+      },
+      "source": {
+        "book": "Calculus Volume 1",
+        "exercise": 1,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.3",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
+      },
+      "statement": "Find the derivative of $x^3$.",
+      "topic": "derivatives.trig"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "3x^2",
+        "mathjson": [
+          "InvisibleOperator",
+          3,
+          [
+            "Power",
+            "x",
+            2
+          ]
+        ]
+      },
+      "difficulty": 2,
+      "id": "b",
+      "review": {
+        "date": "2026-01-01",
+        "reviewer": "tester",
+        "status": "human_verified"
+      },
+      "source": {
+        "book": "Calculus Volume 1",
+        "exercise": 1,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.3",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
+      },
+      "statement": "Find the derivative of $x^3$.",
+      "topic": "derivatives.basic_rules"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "3x^2",
+        "mathjson": [
+          "InvisibleOperator",
+          3,
+          [
+            "Power",
+            "x",
+            2
+          ]
+        ]
+      },
+      "difficulty": 2,
+      "id": "a",
+      "review": {
+        "date": "2026-01-01",
+        "reviewer": "tester",
+        "status": "human_verified"
+      },
+      "source": {
+        "book": "Calculus Volume 1",
+        "exercise": 1,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.3",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
+      },
+      "statement": "Find the derivative of $x^3$.",
+      "topic": "derivatives.basic_rules"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "3x^2",
+        "mathjson": [
+          "InvisibleOperator",
+          3,
+          [
+            "Power",
+            "x",
+            2
+          ]
+        ]
+      },
+      "difficulty": 1,
+      "id": "c",
+      "review": {
+        "date": "2026-01-01",
+        "reviewer": "tester",
+        "status": "human_verified"
+      },
+      "source": {
+        "book": "Calculus Volume 1",
+        "exercise": 1,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.3",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
+      },
+      "statement": "Find the derivative of $x^3$.",
+      "topic": "derivatives.basic_rules"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "3x^2",
+        "mathjson": [
+          "InvisibleOperator",
+          3,
+          [
+            "Power",
+            "x",
+            2
+          ]
+        ]
+      },
+      "difficulty": 1,
+      "id": "d",
+      "review": {
+        "date": "2026-01-01",
+        "reviewer": "tester",
+        "status": "human_verified"
+      },
+      "source": {
+        "book": "Calculus Volume 1",
+        "exercise": 1,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.3",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
+      },
+      "statement": "Find the derivative of $x^3$.",
+      "topic": "derivatives.chain_rule"
+    }
+  ],
+  "schema_version": 1,
+  "tools": {
+    "compute_engine": "0.151.0",
+    "mathlive": "0.111.1"
+  },
+  "topics": [
+    {
+      "order": 1,
+      "section": "3.3",
+      "title": "Basic differentiation rules",
+      "topic_id": "derivatives.basic_rules"
+    },
+    {
+      "order": 2,
+      "section": "3.5",
+      "title": "Derivatives of trigonometric functions",
+      "topic_id": "derivatives.trig"
+    },
+    {
+      "order": 3,
+      "section": "3.6",
+      "title": "The chain rule",
+      "topic_id": "derivatives.chain_rule"
+    }
+  ]
+}

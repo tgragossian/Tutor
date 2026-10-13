@@ -1,0 +1,28 @@
+{
+  "problems": [],
+  "schema_version": 1,
+  "tools": {
+    "compute_engine": "0.151.0",
+    "mathlive": "0.111.1"
+  },
+  "topics": [
+    {
+      "order": 1,
+      "section": "3.3",
+      "title": "Basic differentiation rules",
+      "topic_id": "derivatives.basic_rules"
+    },
+    {
+      "order": 2,
+      "section": "3.5",
+      "title": "Derivatives of trigonometric functions",
+      "topic_id": "derivatives.trig"
+    },
+    {
+      "order": 3,
+      "section": "3.6",
+      "title": "The chain rule",
+      "topic_id": "derivatives.chain_rule"
+    }
+  ]
+}

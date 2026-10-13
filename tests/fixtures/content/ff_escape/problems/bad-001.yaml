@@ -1,0 +1,14 @@
+id: bad-001
+topic: derivatives.basic_rules
+difficulty: 1
+source:
+  book: Calculus Volume 1
+  section: '3.3'
+  url: https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules
+  license: CC BY-NC-SA 4.0
+statement: 'Find the derivative.'
+answer:
+  kind: expression
+  latex: "\frac{1}{x}"
+review:
+  status: needs_review

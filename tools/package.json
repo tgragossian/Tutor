@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "capture": "node capture/capture.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "compile": "node compile_content/compile.mjs ../content ../content/compiled/problems.json"
   },
   "dependencies": {
     "@cortex-js/compute-engine": "0.151.0",
