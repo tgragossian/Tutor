@@ -1,0 +1,24 @@
+id: openstax-c1-3.3-111
+topic: derivatives.basic_rules
+difficulty: 3
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.3'
+  exercise: 111
+  url: https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules
+  license: CC BY-NC-SA 4.0
+statement: 'Find $f''(x)$ for $f(x) = 3x\left(18x^4 + \frac{13}{x+1}\right)$.'
+answer:
+  kind: expression
+  latex: '270x^4+\frac{39}{(x+1)^2}'
+  variable: x
+  domain:
+    intervals: [['-inf', 'inf', open, open]]
+    exclude: ['-1']
+misconceptions:
+  - '270x^4+39  # differentiated 39x/(x+1) as 39 instead of using the quotient rule'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Expand first: f(x) = 54x^5 + 39x/(x+1). Power rule: 270x^4. Quotient rule: 39[(x+1) - x]/(x+1)^2 = 39/(x+1)^2. So f''(x) = 270x^4 + 39/(x+1)^2, matching the OpenStax answer key for 111. Domain: undefined only at x = -1, so R minus {-1}. Cross-checked with a throwaway SymPy diff/simplify.'

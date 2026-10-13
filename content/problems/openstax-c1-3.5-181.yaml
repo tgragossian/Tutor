@@ -1,0 +1,21 @@
+id: openstax-c1-3.5-181
+topic: derivatives.trig
+difficulty: 2
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.5'
+  exercise: 181
+  url: https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions
+  license: CC BY-NC-SA 4.0
+statement: 'Find $\frac{dy}{dx}$ for $y = (x + \cos x)(1 - \sin x)$.'
+answer:
+  kind: expression
+  latex: '(1-\sin x)^2-(x+\cos x)\cos x'
+  variable: x
+misconceptions:
+  - '(1-\sin x)^2+(x+\cos x)\cos x  # sign error: derivative of -sin x taken as +cos x'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Product rule with u = x + cos x, v = 1 - sin x: u'' = 1 - sin x, v'' = -cos x. dy/dx = (1 - sin x)(1 - sin x) + (x + cos x)(-cos x) = (1 - sin x)^2 - cos x (x + cos x), matching the OpenStax answer key for 181. Domain: all reals (only sin, cos and polynomials). Cross-checked with a throwaway SymPy diff/simplify. LaTeX puts the cos x factor last: Compute Engine parses \cos x\,(x+\cos x) as cos(x(x + cos x)).'

@@ -1,0 +1,22 @@
+id: openstax-c1-3.3-115
+topic: derivatives.basic_rules
+difficulty: 2
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.3'
+  exercise: 115
+  url: https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules
+  license: CC BY-NC-SA 4.0
+statement: 'Find $f''(x)$ for $f(x) = \frac{4x^3 - 2x + 1}{x^2}$.'
+answer:
+  kind: expression
+  latex: '4+\frac{2}{x^2}-\frac{2}{x^3}'
+  variable: x
+  domain:
+    intervals: [['-inf', 'inf', open, open]]
+    exclude: ['0']
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Rewrite f(x) = 4x - 2x^(-1) + x^(-2); power rule gives f''(x) = 4 + 2x^(-2) - 2x^(-3) = 4 + 2/x^2 - 2/x^3. The OpenStax key gives (4x^4 + 2x^2 - 2x)/x^4, the same function (divide through by x^4). Domain: undefined only at x = 0, so R minus {0}. Cross-checked with a throwaway SymPy diff/simplify against both forms.'

@@ -1,0 +1,32 @@
+id: adapted-c1-3.5-x2cosx
+topic: derivatives.trig
+difficulty: 2
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.5'
+  exercise: null
+  url: https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions
+  license: CC BY-NC-SA 4.0
+  adapted: true
+statement: 'Which is the derivative of $y = x^2\cos x$?'
+answer:
+  kind: choice
+  choices:
+    - id: a
+      latex: '2x\cos x-x^2\sin x'
+    - id: b
+      latex: '2x\cos x+x^2\sin x'
+    - id: c
+      latex: '-2x\sin x'
+    - id: d
+      latex: '2x\cos x'
+  correct: a
+misconceptions:
+  - 'b: sign error, derivative of cos x taken as +sin x'
+  - 'c: derivative of a product taken as the product of the derivatives'
+  - 'd: cos x treated as a constant (second product-rule term dropped)'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Author-written, modelled on the 3.5 product-rule-with-trig exercises (e.g. 177, 181). Product rule: (x^2)''cos x + x^2 (cos x)'' = 2x cos x - x^2 sin x, so a. Distractors: b flips the sign of (cos x)''; c is (x^2)''(cos x)'' = -2x sin x; d drops the x^2 (cos x)'' term. Each is genuinely wrong, e.g. at x = pi/2: y'' = -pi^2/4, b = +pi^2/4, c = -pi, d = 0. SymPy confirmed a equals y'' and b, c, d do not.'

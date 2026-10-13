@@ -1,0 +1,21 @@
+id: openstax-c1-3.6-221
+topic: derivatives.chain_rule
+difficulty: 2
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.6'
+  exercise: 221
+  url: https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule
+  license: CC BY-NC-SA 4.0
+statement: 'Find $\frac{dy}{dx}$ as a function of $x$ for $y = (3x^2 + 1)^3$.'
+answer:
+  kind: expression
+  latex: '18x(3x^2+1)^2'
+  variable: x
+misconceptions:
+  - '3(3x^2+1)^2  # missing inner derivative 6x'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Exercise 221 also asks to decompose (part a: u = 3x^2 + 1, y = u^3); only part b (dy/dx) is graded here. Chain rule: dy/du = 3u^2, du/dx = 6x, so dy/dx = 3(3x^2 + 1)^2 * 6x = 18x(3x^2 + 1)^2, matching the OpenStax answer key for 221. Domain: all reals (polynomial). Cross-checked with a throwaway SymPy diff/simplify; the misconception 3(3x^2+1)^2 confirmed not equal.'
