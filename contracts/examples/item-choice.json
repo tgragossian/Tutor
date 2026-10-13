@@ -1,0 +1,33 @@
+{
+  "session_item_id": 44,
+  "revision": 1,
+  "statement_html": "<p>Which rule gives the derivative of \\(\\sin(3x^2)\\)?</p>",
+  "answer_kind": "choice",
+  "precision_hint": null,
+  "choices": [
+    {
+      "id": "a",
+      "label_latex": "\\text{Power rule only}"
+    },
+    {
+      "id": "b",
+      "label_latex": "\\text{Chain rule}"
+    },
+    {
+      "id": "c",
+      "label_latex": "\\text{Product rule}"
+    }
+  ],
+  "source": {
+    "book": "OpenStax Calculus Volume 1",
+    "section": "3.6",
+    "exercise": 221,
+    "url": "https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule",
+    "license": "CC BY-NC-SA 4.0",
+    "adapted": true
+  },
+  "allowed_actions": [
+    "submit",
+    "skip"
+  ]
+}

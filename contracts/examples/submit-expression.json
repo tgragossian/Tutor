@@ -1,0 +1,26 @@
+{
+  "submission_id": "3f2b8c1e-9a4d-4e57-8b6a-1c2d3e4f5a6b",
+  "session_item_id": 42,
+  "item_revision": 3,
+  "answer": {
+    "kind": "expression",
+    "mathjson": [
+      "InvisibleOperator",
+      6,
+      "x",
+      [
+        "Cos",
+        [
+          "InvisibleOperator",
+          3,
+          [
+            "Power",
+            "x",
+            2
+          ]
+        ]
+      ]
+    ],
+    "latex": "6x\\cos(3x^2)"
+  }
+}

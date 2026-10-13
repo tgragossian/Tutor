@@ -15,3 +15,4 @@ Resolve remaining technical findings before implementing affected tasks.
 Keep each Markdown file at most 100 lines, with a descriptive parent link.
 Use JSON/CSV for full evaluation results and short Markdown summaries for readers.
 - [Operations](ops/README.md): hours log and operational notes.
+- [API contracts](../contracts/README.md): example request and item bodies.
