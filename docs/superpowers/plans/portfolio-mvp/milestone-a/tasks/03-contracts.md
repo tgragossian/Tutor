@@ -22,7 +22,7 @@
     - `ItemState{ACTIVE, ANSWERED, EXHAUSTED, REVEALED, COMPLETED}`
     - `Action{SUBMIT, ADVANCE, SKIP, REVEAL}`
     - `VerdictStatus{CORRECT, INCORRECT, UNABLE_TO_VERIFY}`
-    - `FormatIssueCode{EMPTY, INCOMPLETE, EXACT_REQUIRED, TOO_FEW_DECIMALS, INPUT_TOO_LARGE, UNSUPPORTED_NOTATION}`
+    - `FormatIssueCode{EMPTY, INCOMPLETE, EXACT_REQUIRED, INPUT_TOO_LARGE, UNSUPPORTED_NOTATION}`
     - the constant `MAX_TRIES = 3`
   - **`content/schema.py`:**
     - `Source`, `Interval`, `Domain`, `Precision`, `Choice`, `Review`

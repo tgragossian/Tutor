@@ -9,7 +9,7 @@ Every task's requirements include this page.
 - **Python 3.12** (`.python-version`). Dependencies via `uv`; every command runs as `uv run ...`. `uv.lock` is committed and CI uses `uv sync --locked`.
 - **Node 24** for `tools/` only. The server image never contains Node.
 - **Exact pins in `tools/package.json`:** no `^`, `~` or ranges. `package-lock.json` is committed and CI uses `npm ci`.
-- **MathLive ≥ 0.111.1.** Never call `getValue('math-json')`; it was removed in 0.111.0. Use `MathfieldElement.computeEngine.parse(latex, {canonical: false}).json`, or the option name ADR 0002 records.
+- **MathLive ≥ 0.111.1.** Never call `getValue('math-json')`; it was removed in 0.111.0. Use a fresh `new ComputeEngine().parse(latex, {form: 'raw'}).json` per parse (CE 0.151.0, ADR 0002).
 - **No `eval`, `sympify` or `parse_expr` anywhere.** SymPy isn't a dependency in milestone A.
 - **Topic ids:**
 

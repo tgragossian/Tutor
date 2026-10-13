@@ -2,7 +2,7 @@
 
 [Decisions index](README.md)
 
-Status: proposed — awaiting Thomas's approval.
+Status: accepted by Thomas, 2026-10-13. Placeholder resolution: client blocks submit; server pre-check also rejects LaTeX containing `\placeholder` or an empty `{}` group (format issue `incomplete`; LaTeX is read only for this, never graded).
 
 Evidence: `tests/fixtures/mathjson/captured.json`, produced by `npm run capture --prefix tools` in
 real Chromium 156 (cases in `tools/capture/cases.json`). Snippets below are copied from it.

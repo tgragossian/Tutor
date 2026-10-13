@@ -37,16 +37,16 @@
 
 | Category | Allowed |
 |---|---|
-| Numbers | integers, decimals (kept as exact `Rational`), `Rational` |
-| Constants | `Pi`, `ExponentialE` |
-| Arithmetic | `Add`, `Subtract`, `Negate`, `Multiply`, `Divide`, `Power`, `Sqrt`, `Root` |
-| Trig | `Sin`, `Cos`, `Tan`, `Sec`, `Csc`, `Cot`; inverses deferred until a topic needs them |
-| Other | `Ln`, `Log` (base 10, or an explicit base), `Exp`, `Abs` |
-| Wrappers | `Delimiter` / `Parentheses`, unwrapped |
+| Numbers | JSON integers, decimals and `{"num": "..."}` (read with `Decimal`, kept as exact `Rational`), `Rational` |
+| Constants | `Pi`; `ExponentialE`, and raw `"e"` meaning the same |
+| Arithmetic | `Add`, `Subtract`, `Negate`, `Multiply`, `InvisibleOperator` (= product), `Divide`, `Power`, `Sqrt`, `Root` |
+| Trig | `Sin`, `Cos`, `Tan`, `Sec`, `Csc`, `Cot`; inverses (`Arcsin`, `Apply(InverseFunction(Sin))`) deferred until a topic needs them |
+| Other | `Ln`; `Log` (1 argument = base 10; 2 = explicit base); `Lb` (base 2); `Exp`, `Abs` |
+| Wrappers | `Delimiter` with one argument, unwrapped. A `Delimiter` holding a `Sequence` (a list) is `unsupported_notation` |
 
 - **Real-root rule:** `Root(a, n)` with odd integer `n` means the **real** n-th root (`sympy.real_root`). `Sqrt(a)` and even roots are principal roots, and their domain constraints are recorded.
 - **Variables** are created as `Symbol(name, real=True)`.
-- **Unknown heads, symbols or shapes → `Rejected("unsupported_notation")`.** The exact head names come from the captured fixtures (ADR 0002). Spellings such as `\sin^{-1}` vs `\arcsin`, or `\log` with a base, are mapped exactly as captured.
+- **Unknown heads, symbols or shapes → `Rejected("unsupported_notation")`.** Head names come from the raw (`form: 'raw'`) fixtures in [ADR 0002](../../../decisions/0002-mathlive-input.md). An `InvisibleOperator` whose first factor is a non-variable letter followed by a `Delimiter` (e.g. `f(2x)`) is function application, not a product, and is unsupported in the core kinds.
 
 ## Output
 

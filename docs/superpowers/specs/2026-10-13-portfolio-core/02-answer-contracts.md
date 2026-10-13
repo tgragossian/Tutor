@@ -5,9 +5,11 @@
 ## MathLive and Compute Engine
 
 - Pin **MathLive 0.111.1** or later, which includes the 0.111.1 fixes for script-injection (XSS) bugs.
-- Pin a compatible `@cortex-js/compute-engine`. The milestone A spike records the exact version in ADR 0002.
-- `getValue('math-json')` was removed in 0.111.0. Instead use `MathfieldElement.computeEngine.parse(mf.getValue(), {canonical: false}).json`. ADR 0002 confirms the supported non-canonical option name.
-- The browser sends **MathJSON for grading** and **LaTeX for display and logging only**. LaTeX is never graded.
+- MathLive 0.111.1 bundles no Compute Engine. Pin `@cortex-js/compute-engine` **0.151.0** and attach it yourself ([ADR 0002](../../../decisions/0002-mathlive-input.md)).
+- `getValue('math-json')` was removed in 0.111.0. Instead use `new ComputeEngine().parse(mf.getValue(), {form: 'raw'}).json`.
+- **Use a fresh `ComputeEngine` for every parse.** Parsing is stateful: an earlier parse can auto-declare `f` and change how later input parses.
+- The browser sends **MathJSON for grading** and **LaTeX for display and logging only**. LaTeX is never graded; the server reads it only for the `incomplete` pre-check below, because placeholders vanish from MathJSON (`x^{}` parses to `x`).
+- The browser blocks submitting while the field has an empty slot.
 - Vendor files are self-hosted under `static/vendor/` with SRI hashes. There are no CDN calls at runtime.
 
 ## Submission payload (one discriminated union)
@@ -27,15 +29,13 @@
 | Condition | Code |
 |---|---|
 | Empty tree, or `Nothing` | `empty` |
-| Placeholder or `Error` node anywhere | `incomplete` |
+| `Error` node anywhere, or LaTeX containing `\placeholder` or an empty `{}` group | `incomplete` |
 | Decimal answer where `precision: exact` | `exact_required` |
-| Decimal with fewer than N places | `too_few_decimals` |
 
 ## Decimal precision
 
-- Decimal places come **only** from the MathJSON number token, as its literal digit string.
-- The spike records how Compute Engine encodes a decimal such as `0.780`, keeping its trailing zero (for example `{"num": "0.780"}`).
-- If trailing zeros cannot be preserved, the milestone A fallback is to **not** enforce a minimum number of places. Any decimal is then graded by rounding to N places, and ADR 0002 records the change.
+- Numbers are read from MathJSON as exact decimals (`json.loads(..., parse_float=Decimal)`; long literals arrive as `{"num": "..."}`), never as floats.
+- **Trailing zeros are lost** (ADR 0002: `0.780` arrives as `0.78`), so no minimum number of places is enforced. Any decimal is graded by rounding to N places; there is no `too_few_decimals` code.
 - A decimal anywhere other than as the top-level value of a `numeric` answer (inside a fraction, say) is graded symbolically as an exact rational.
 - **Rounding rule:** compute exactly with `decimal.Decimal` from the rational expected value, using ROUND_HALF_EVEN. The student's decimal is correct iff `round(expected, N) == round(student, N)` at N = `decimals`.
 - An **exact** student answer to a `numeric` problem is checked symbolically ([04](04-equivalence.md)).
