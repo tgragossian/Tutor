@@ -19,7 +19,7 @@ Fill in each `TBD` as task 8 proceeds. Never record credentials, keys or the con
 | OS | Ubuntu 24.04 LTS |
 | Static IPv4 | `44.231.68.211` (Lightsail static IP) |
 | IPv6 | Dual-stack (IPv6 assigned; no `AAAA` record yet) |
-| Monthly price (date checked) | TBD |
+| Monthly price (date checked) | $7/month (2026-10-15) |
 | Firewall | 22: Thomas's IPv4 + Lightsail browser SSH; 80: any IPv4/IPv6; 443: any IPv4 |
 
 ## Domain
@@ -60,7 +60,14 @@ $ curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://44.231.68.211:8000/
 
 ## Idle memory (first data point, not final sizing)
 
-2026-10-15, idle after deploy. `free -m` not yet captured.
+2026-10-15, idle after deploy.
+
+```text
+$ free -m
+               total        used        free      shared  buff/cache   available
+Mem:             909         454         150           2         431         455
+Swap:           1023          30         993
+```
 
 ```text
 $ sudo docker stats --no-stream
@@ -69,5 +76,5 @@ deploy-caddy-1   0.03%     34.76MiB / 909.5MiB   3.82%
 deploy-app-1     0.13%     57.45MiB / 909.5MiB   6.32%
 ```
 
-App + Caddy idle ≈ 92 MiB of 909.5 MiB visible to Docker. Milestone B's verifier pool will
-dominate; measure again then (spec 09).
+App + Caddy idle ≈ 92 MiB; OS, Docker daemon and agents ≈ 360 MiB; ≈ 455 MiB available.
+That headroom bounds milestone B's verifier pool; measure again then (spec 09).
