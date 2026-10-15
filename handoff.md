@@ -73,14 +73,14 @@ in the [README footnote](README.md#acknowledgments). Existing commits are not re
 Spec approved; milestone A runs on branch `milestone-a` (worktree `.claude/worktrees/milestone-a`).
 Tasks 1–6 done: ADR 0002 accepted, six seed problems human-verified by Thomas, app factory
 with `/healthz`, `/readyz` and placeholder page (85 tests pass). Task 7 (Dockerfile, Caddy,
-compose, CI smoke job) is committed but unverified: no Docker locally and no GitHub remote yet.
+compose, CI smoke job) passes in CI. Remote: https://github.com/tgragossian/Tutor (main, milestone-a).
 Progress ledger: `.superpowers/sdd/README/progress.md` (git-ignored; rulings recorded there).
 
 ## Next action for Claude
 
 Follow option B; do not reopen the A/B/C choice.
-Thomas: create the GitHub repo and push `milestone-a` (or install Docker) so the task 7 smoke
-test runs. Then task 8 needs Thomas's AWS account, domain and DNS. No co-author trailers.
+Task 8 (Lightsail deploy) next; it needs Thomas's AWS account, domain and DNS.
+No co-author trailers.
 
 ## Reference documents
 
