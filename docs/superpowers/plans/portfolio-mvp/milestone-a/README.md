@@ -2,8 +2,8 @@
 
 [Delivery plan](../README.md) · [Milestone A goals](../01-foundation.md) · [Handoff](../../../../../handoff.md)
 
-**Status:** tasks 1–7 done; task 8's skeleton is live. Host and budget records,
-then the final whole-branch review, remain. Task checkboxes below are the original plan.
+**Status:** complete and merged to `main`; the skeleton is live. Task checkboxes below
+are the original plan, not a current progress tracker.
 
 **Goal:** A tested Python/Node scaffold with real MathLive captures, typed content and API contracts, six human-reviewed seed problems, and an HTTPS skeleton deployed on Lightsail.
 

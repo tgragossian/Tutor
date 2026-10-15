@@ -4,8 +4,8 @@
 - [Decisions](decisions/README.md): accepted direction and precedence.
 - [Active portfolio-core spec](superpowers/specs/2026-10-13-portfolio-core/README.md): approved contracts for milestones A–B.
 - [Active option B delivery plan](superpowers/plans/portfolio-mvp/README.md): milestones and gates.
-  - [Milestone A tasks](superpowers/plans/portfolio-mvp/milestone-a/README.md): tasks 1–7 done; skeleton live; final review next.
-- [Review](reviews/2026-10-13/README.md): findings with source locations and fixes.
+  - [Milestone B tasks](superpowers/plans/portfolio-mvp/milestone-b/README.md): practice loop underway.
+- [Reviews](reviews/README.md): original findings and milestone B plan review.
 - Historical references:
   - [Original handoff](handoff/README.md).
   - [Original design](superpowers/specs/2026-10-13-core-practice-loop-design.md).
