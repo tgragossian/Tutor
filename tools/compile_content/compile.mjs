@@ -2,6 +2,7 @@ import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync } from 
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ComputeEngine } from "@cortex-js/compute-engine";
+import markdownit from "markdown-it";
 import { isPair, isScalar, isSeq, parseDocument, visit } from "yaml";
 
 const TOOLS_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -105,6 +106,55 @@ function attachMathJson(problem, label) {
   }
 }
 
+const OPENSTAX = "https://openstax.org/";
+
+// Raw HTML is escaped (html: false) and links off openstax.org are unwrapped (R3).
+const md = markdownit({ html: false, linkify: false });
+md.core.ruler.push("openstax_links_only", (state) => {
+  for (const block of state.tokens) {
+    if (block.type !== "inline" || !block.children) continue;
+    const kept = [];
+    let dropping = false;
+    for (const t of block.children) {
+      if (t.type === "link_open") {
+        dropping = !(t.attrGet("href") ?? "").startsWith(OPENSTAX);
+        if (dropping) continue;
+      } else if (t.type === "link_close" && dropping) {
+        dropping = false;
+        continue;
+      }
+      kept.push(t);
+    }
+    block.children = kept;
+  }
+});
+
+export function statementHtml(statement) {
+  return String(statement)
+    .split(/\$([^$]*)\$/)
+    .map((part, i) =>
+      i % 2 === 1
+        ? `<math-field read-only>${md.utils.escapeHtml(part)}</math-field>`
+        : md.renderInline(part),
+    )
+    .join("");
+}
+
+// A misconception is "<latex>  # <why>"; for choice problems the part before it is a choice id.
+function misconceptionsMathJson(problem, label) {
+  if (!Array.isArray(problem.misconceptions) || problem.misconceptions.length === 0) return;
+  const isChoice = problem.answer?.kind === "choice";
+  problem.misconceptions_mathjson = problem.misconceptions.map((m, i) => {
+    if (isChoice || typeof m !== "string") return null;
+    const latex = m.split("  #")[0].trim();
+    try {
+      return toMathJson(latex, label, `misconceptions[${i}]`);
+    } catch {
+      return null;
+    }
+  });
+}
+
 export function compile(contentDir) {
   const topics = loadYaml(join(contentDir, "topics.yaml"), "topics.yaml");
   const problems = [];
@@ -117,11 +167,13 @@ export function compile(contentDir) {
       const label = `problems/${f}`;
       const problem = loadYaml(join(pdir, f), label);
       attachMathJson(problem, label);
+      misconceptionsMathJson(problem, label);
+      problem.statement_html = statementHtml(problem.statement);
       problems.push(problem);
     }
   }
   return {
-    schema_version: 1,
+    schema_version: 2,
     tools: {
       mathlive: pkgVersion("mathlive"),
       compute_engine: pkgVersion("@cortex-js/compute-engine"),

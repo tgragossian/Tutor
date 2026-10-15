@@ -21,6 +21,7 @@ VALID: dict[str, Any] = {
         "license": "CC BY-NC-SA 4.0",
     },
     "statement": "Find $\\frac{dy}{dx}$ for $y = \\sin(3x^2)$.",
+    "statement_html": "Find <math-field read-only>x</math-field>.",
     "answer": {
         "kind": "expression",
         "latex": "6x\\cos(3x^2)",
@@ -213,7 +214,7 @@ def test_models_are_frozen() -> None:
 def test_bundle_parses_and_tool_versions_match_capture() -> None:
     m = meta()
     bundle = {
-        "schema_version": 1,
+        "schema_version": 2,
         "tools": {"mathlive": m["mathlive"], "compute_engine": m["compute_engine"]},
         "topics": [
             {
@@ -228,6 +229,13 @@ def test_bundle_parses_and_tool_versions_match_capture() -> None:
     b = ContentBundle.model_validate(bundle)
     assert b.tools.compute_engine == "0.151.0"
     with pytest.raises(ValidationError):
-        ContentBundle.model_validate({**bundle, "schema_version": 2})
+        ContentBundle.model_validate({**bundle, "schema_version": 1})
     with pytest.raises(ValidationError):
         ContentBundle.model_validate({**bundle, "tools": {"mathlive": "1"}})
+
+
+def test_misconceptions_mathjson_must_match_misconceptions_in_length() -> None:
+    ok = {**VALID, "misconceptions": ["x  # why", "y  # why"], "misconceptions_mathjson": [None, 1]}
+    assert Problem.model_validate(ok).misconceptions_mathjson == [None, 1]
+    with pytest.raises(ValidationError):
+        Problem.model_validate({**ok, "misconceptions_mathjson": [None]})

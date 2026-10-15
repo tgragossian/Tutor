@@ -99,6 +99,11 @@
         "c  # derivative of a product taken as the product of the derivatives",
         "d  # cos x treated as a constant (second product-rule term dropped)"
       ],
+      "misconceptions_mathjson": [
+        null,
+        null,
+        null
+      ],
       "review": {
         "date": "2026-10-15",
         "notes": "Author-written, modelled on the 3.5 product-rule-with-trig exercises (e.g. 177, 181). Product rule: (x^2)'cos x + x^2 (cos x)' = 2x cos x - x^2 sin x, so a. Distractors: b flips the sign of (cos x)'; c is (x^2)'(cos x)' = -2x sin x; d drops the x^2 (cos x)' term. Each is genuinely wrong, e.g. at x = pi/2: y' = -pi^2/4, b = +pi^2/4, c = -pi, d = 0. SymPy confirmed a equals y' and b, c, d do not.",
@@ -114,6 +119,7 @@
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions"
       },
       "statement": "Which is the derivative of $y = x^2\\cos x$?",
+      "statement_html": "Which is the derivative of <math-field read-only>y = x^2\\cos x</math-field>?",
       "topic": "derivatives.trig"
     },
     {
@@ -168,6 +174,21 @@
       "misconceptions": [
         "270x^4+39  # differentiated 39x/(x+1) as 39 instead of using the quotient rule"
       ],
+      "misconceptions_mathjson": [
+        [
+          "Add",
+          [
+            "InvisibleOperator",
+            270,
+            [
+              "Power",
+              "x",
+              4
+            ]
+          ],
+          39
+        ]
+      ],
       "review": {
         "date": "2026-10-15",
         "notes": "Expand first: f(x) = 54x^5 + 39x/(x+1). Power rule: 270x^4. Quotient rule: 39[(x+1) - x]/(x+1)^2 = 39/(x+1)^2. So f'(x) = 270x^4 + 39/(x+1)^2, matching the OpenStax answer key for 111. Domain: undefined only at x = -1, so R minus {-1}. Cross-checked with a throwaway SymPy diff/simplify.",
@@ -182,6 +203,7 @@
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
       },
       "statement": "Find $f'(x)$ for $f(x) = 3x\\left(18x^4 + \\frac{13}{x+1}\\right)$.",
+      "statement_html": "Find <math-field read-only>f'(x)</math-field> for <math-field read-only>f(x) = 3x\\left(18x^4 + \\frac{13}{x+1}\\right)</math-field>.",
       "topic": "derivatives.basic_rules"
     },
     {
@@ -244,6 +266,7 @@
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
       },
       "statement": "Find $f'(x)$ for $f(x) = \\frac{4x^3 - 2x + 1}{x^2}$.",
+      "statement_html": "Find <math-field read-only>f'(x)</math-field> for <math-field read-only>f(x) = \\frac{4x^3 - 2x + 1}{x^2}</math-field>.",
       "topic": "derivatives.basic_rules"
     },
     {
@@ -293,6 +316,44 @@
       "misconceptions": [
         "(1-\\sin x)^2+(x+\\cos x)\\cos x  # sign error: derivative of -sin x taken as +cos x"
       ],
+      "misconceptions_mathjson": [
+        [
+          "Add",
+          [
+            "Power",
+            [
+              "Delimiter",
+              [
+                "Subtract",
+                1,
+                [
+                  "Sin",
+                  "x"
+                ]
+              ]
+            ],
+            2
+          ],
+          [
+            "InvisibleOperator",
+            [
+              "Delimiter",
+              [
+                "Add",
+                "x",
+                [
+                  "Cos",
+                  "x"
+                ]
+              ]
+            ],
+            [
+              "Cos",
+              "x"
+            ]
+          ]
+        ]
+      ],
       "review": {
         "date": "2026-10-15",
         "notes": "Product rule with u = x + cos x, v = 1 - sin x: u' = 1 - sin x, v' = -cos x. dy/dx = (1 - sin x)(1 - sin x) + (x + cos x)(-cos x) = (1 - sin x)^2 - cos x (x + cos x), matching the OpenStax answer key for 181. Domain: all reals (only sin, cos and polynomials). Cross-checked with a throwaway SymPy diff/simplify. LaTeX puts the cos x factor last: Compute Engine parses \\cos x\\,(x+\\cos x) as cos(x(x + cos x)).",
@@ -307,6 +368,7 @@
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions"
       },
       "statement": "Find $\\frac{dy}{dx}$ for $y = (x + \\cos x)(1 - \\sin x)$.",
+      "statement_html": "Find <math-field read-only>\\frac{dy}{dx}</math-field> for <math-field read-only>y = (x + \\cos x)(1 - \\sin x)</math-field>.",
       "topic": "derivatives.trig"
     },
     {
@@ -345,6 +407,32 @@
       "misconceptions": [
         "3(3x^2+1)^2  # missing inner derivative 6x"
       ],
+      "misconceptions_mathjson": [
+        [
+          "InvisibleOperator",
+          3,
+          [
+            "Power",
+            [
+              "Delimiter",
+              [
+                "Add",
+                [
+                  "InvisibleOperator",
+                  3,
+                  [
+                    "Power",
+                    "x",
+                    2
+                  ]
+                ],
+                1
+              ]
+            ],
+            2
+          ]
+        ]
+      ],
       "review": {
         "date": "2026-10-15",
         "notes": "Exercise 221 also asks to decompose (part a: u = 3x^2 + 1, y = u^3); only part b (dy/dx) is graded here. Chain rule: dy/du = 3u^2, du/dx = 6x, so dy/dx = 3(3x^2 + 1)^2 * 6x = 18x(3x^2 + 1)^2, matching the OpenStax answer key for 221. Domain: all reals (polynomial). Cross-checked with a throwaway SymPy diff/simplify; the misconception 3(3x^2+1)^2 confirmed not equal.",
@@ -359,6 +447,7 @@
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule"
       },
       "statement": "Find $\\frac{dy}{dx}$ as a function of $x$ for $y = (3x^2 + 1)^3$.",
+      "statement_html": "Find <math-field read-only>\\frac{dy}{dx}</math-field> as a function of <math-field read-only>x</math-field> for <math-field read-only>y = (3x^2 + 1)^3</math-field>.",
       "topic": "derivatives.chain_rule"
     },
     {
@@ -382,6 +471,16 @@
       "misconceptions": [
         "-\\frac{200}{49}  # power rule exponent not lowered: -200(t+1)^{-2} instead of -200(t+1)^{-3}"
       ],
+      "misconceptions_mathjson": [
+        [
+          "Negate",
+          [
+            "Divide",
+            200,
+            49
+          ]
+        ]
+      ],
       "review": {
         "date": "2026-10-15",
         "notes": "Exercise 253 has parts a (velocity), b (acceleration) and c (speeding up or slowing down); only part a is graded here. v(t) = s'(t) = 100 * (-2)(t+1)^(-3) * 1 = -200/(t+1)^3. v(6) = -200/7^3 = -200/343 = -0.58309... m/s (-0.583 to 3 decimals), matching the OpenStax answer key for 253a. Cross-checked with a throwaway SymPy diff and subs.",
@@ -396,10 +495,11 @@
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule"
       },
       "statement": "The position function of a freight train is given by $s(t) = 100(t+1)^{-2}$, with $s$ in meters and $t$ in seconds. At time $t = 6$ s, find the train's velocity in m/s.",
+      "statement_html": "The position function of a freight train is given by <math-field read-only>s(t) = 100(t+1)^{-2}</math-field>, with <math-field read-only>s</math-field> in meters and <math-field read-only>t</math-field> in seconds. At time <math-field read-only>t = 6</math-field> s, find the train's velocity in m/s.",
       "topic": "derivatives.chain_rule"
     }
   ],
-  "schema_version": 1,
+  "schema_version": 2,
   "tools": {
     "compute_engine": "0.151.0",
     "mathlive": "0.111.1"

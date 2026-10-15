@@ -1,15 +1,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { compile, serialize } from "./compile.mjs";
+import { compile, serialize, statementHtml } from "./compile.mjs";
 
 const FIX = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "tests", "fixtures", "content");
 const GOOD = join(FIX, "good");
 
 test("good fixture compiles with mathjson on every answer and choice", () => {
   const b = compile(GOOD);
-  assert.equal(b.schema_version, 1);
+  assert.equal(b.schema_version, 2);
   assert.equal(b.topics.length, 3);
   assert.deepEqual(Object.keys(b.tools).sort(), ["compute_engine", "mathlive"]);
   assert.equal(b.problems.length, 2);
@@ -54,4 +56,41 @@ test("output is byte-identical across two runs and keys are sorted", () => {
   assert.ok(a.endsWith("}\n") && !a.includes("\r"));
   const top = Object.keys(JSON.parse(a));
   assert.deepEqual(top, [...top].sort());
+});
+
+test("statement_html renders inline math as read-only math-field", () => {
+  assert.equal(statementHtml("$x^2$"), "<math-field read-only>x^2</math-field>");
+  assert.equal(
+    statementHtml("Find $a<b$ now"),
+    "Find <math-field read-only>a&lt;b</math-field> now",
+  );
+  assert.equal(compile(GOOD).problems[0].statement_html.includes("<math-field read-only>x^3"), true);
+});
+
+test("statement raw HTML is escaped", () => {
+  const html = statementHtml("<script>alert(1)</script> $x$");
+  assert.ok(!html.includes("<script>"));
+  assert.ok(html.includes("&lt;script&gt;"));
+});
+
+test("statement links outside openstax.org are dropped", () => {
+  const html = statementHtml("[bad](https://evil.example/x) and [ok](https://openstax.org/a)");
+  assert.ok(!html.includes("evil.example"));
+  assert.ok(html.includes("bad"));
+  assert.ok(html.includes('<a href="https://openstax.org/a">ok</a>'));
+});
+
+test("misconceptions compile to mathjson in order; unparsable and choice entries are null", () => {
+  const dir = mkdtempSync(join(tmpdir(), "mc-"));
+  cpSync(GOOD, dir, { recursive: true });
+  const f = join(dir, "problems", "pow-001.yaml");
+  writeFileSync(
+    f,
+    readFileSync(f, "utf8") +
+      "misconceptions:\n  - '2x  # dropped a factor'\n  - '\\frac{1}{  # broken'\n",
+  );
+  const p = compile(dir).problems.find((x) => x.id === "pow-001");
+  assert.equal(p.misconceptions_mathjson.length, 2);
+  assert.notEqual(p.misconceptions_mathjson[0], null);
+  assert.equal(p.misconceptions_mathjson[1], null);
 });

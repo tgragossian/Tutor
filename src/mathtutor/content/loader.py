@@ -90,7 +90,9 @@ def load_bundle(path: Path) -> LoadedContent:
             errors.append(f"{label}: id: duplicate problem id")
         seen.add(label)
         topic = raw.get("topic")
-        if topic not in topic_ids:
+        if not _plain(topic):
+            errors.append(f"{label}: topic: topic must be a string, got {topic!r}")
+        elif topic not in topic_ids:
             errors.append(f"{label}: topic: unknown topic {topic!r}")
     if errors:
         raise ContentError("\n".join(errors))

@@ -125,3 +125,10 @@ def test_loader_unhashable_topic_value_is_content_error(
     path.write_text(json.dumps(data), encoding="utf-8")
     with pytest.raises(ContentError):
         load_bundle(path)
+
+
+def test_loader_unhashable_problem_topic_is_content_error(tmp_path: Path) -> None:
+    data = json.loads(GOOD.read_text(encoding="utf-8"))
+    data["problems"][0]["topic"] = ["x"]
+    with pytest.raises(ContentError, match=r"pow-001: topic:"):
+        load_bundle(_write(tmp_path, data))
