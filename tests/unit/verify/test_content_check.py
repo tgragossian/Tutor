@@ -106,3 +106,16 @@ def test_cli_as_module() -> None:
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert result.stdout == "ok: 6 problems\n"
+
+
+def test_same_domain_defect_is_reported_once(tmp_path: Path) -> None:
+    def edit(problems: list[dict[str, Any]]) -> None:
+        # two constraints (x != 0 and x^2 != 0) fail at the same point
+        problems[0]["answer"]["mathjson"] = [
+            "Add",
+            ["Divide", 1, "x"],
+            ["Divide", 1, ["Power", "x", 2]],
+        ]
+
+    errors = check_bundle(_edited(tmp_path, edit))
+    assert len(errors) == 1 and "undefined on domain" in errors[0]

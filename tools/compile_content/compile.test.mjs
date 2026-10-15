@@ -94,3 +94,36 @@ test("misconceptions compile to mathjson in order; unparsable and choice entries
   assert.notEqual(p.misconceptions_mathjson[0], null);
   assert.equal(p.misconceptions_mathjson[1], null);
 });
+
+test("markdown images never render, including nested in a link", () => {
+  for (const src of [
+    "![x](https://evil.com/t.png)",
+    "[![i](https://evil.com/p.png)](https://evil.com)",
+    "![x](https://openstax.org/a.png)",
+  ]) {
+    const html = statementHtml(src);
+    assert.ok(!html.includes("<img"), html);
+    assert.ok(!html.includes("evil.com/"), html);
+  }
+});
+
+test("hostile link targets are unwrapped and an unmatched $ stays literal", () => {
+  for (const href of [
+    "javascript:alert(1)",
+    "https://openstax.org.evil.com/",
+    "https://openstax.org@evil.com/",
+  ]) {
+    const html = statementHtml(`[go](${href})`);
+    assert.ok(!html.includes("<a"), html);
+    assert.ok(!html.includes("href"), html);
+  }
+  assert.equal(statementHtml("it costs $5"), "it costs $5");
+});
+
+test("an escaped dollar is literal and opens no math", () => {
+  assert.equal(statementHtml("cost \$5 and \$6"), "cost $5 and $6");
+  assert.equal(
+    statementHtml("pay \$5 for $x$"),
+    "pay $5 for <math-field read-only>x</math-field>",
+  );
+});

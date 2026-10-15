@@ -74,7 +74,7 @@ def _self_checks(answer: ExpressionAnswer | NumericAnswer, budget: Budget) -> li
     verdict = equivalent(tree, tree, domain, strict, var, budget)
     if not (isinstance(verdict, Verdict) and verdict.status == VerdictStatus.CORRECT):
         errors.append("answer.latex: not provably equal to itself")
-    return errors
+    return list(dict.fromkeys(errors))
 
 
 def _choice_checks(answer: ChoiceAnswer, budget: Budget) -> list[str]:

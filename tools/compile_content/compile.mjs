@@ -109,7 +109,7 @@ function attachMathJson(problem, label) {
 const OPENSTAX = "https://openstax.org/";
 
 // Raw HTML is escaped (html: false) and links off openstax.org are unwrapped (R3).
-const md = markdownit({ html: false, linkify: false });
+const md = markdownit({ html: false, linkify: false }).disable("image");
 md.core.ruler.push("openstax_links_only", (state) => {
   for (const block of state.tokens) {
     if (block.type !== "inline" || !block.children) continue;
@@ -131,7 +131,7 @@ md.core.ruler.push("openstax_links_only", (state) => {
 
 export function statementHtml(statement) {
   return String(statement)
-    .split(/\$([^$]*)\$/)
+    .split(/(?<!\\)\$((?:\\.|[^$\\])*)\$/)
     .map((part, i) =>
       i % 2 === 1
         ? `<math-field read-only>${md.utils.escapeHtml(part)}</math-field>`
