@@ -49,9 +49,9 @@ class _Skip(Exception):
 
 
 @contextmanager
-def _working_precision() -> Iterator[None]:
+def _working_precision(dps: int = DPS) -> Iterator[None]:
     saved = iv.dps
-    iv.dps = DPS
+    iv.dps = dps
     try:
         yield
     finally:
@@ -201,10 +201,22 @@ def _neighbourhood(point: Any) -> Any:
     return iv.mpf([_ends(_rational(lo))[0], _ends(_rational(hi))[1]])
 
 
-def enclose(expr: sympy.Expr, var: sympy.Symbol, point: sympy.Rational) -> Box | None:
-    """A rigorous 60-digit enclosure of ``expr`` at ``point``, or None if not enclosable."""
-    with _working_precision():
-        return _enclose(expr, var, _point_box(point))
+def enclose(
+    expr: sympy.Expr, var: sympy.Symbol, point: sympy.Rational, dps: int = DPS
+) -> Box | None:
+    """A rigorous ``dps``-digit enclosure of ``expr`` at ``point``, or None if not enclosable."""
+    with _working_precision(dps):
+        try:
+            return _enclose(expr, var, _point_box(point))
+        except Exception:  # e.g. a point that is not a SymPy Rational: no enclosure
+            return None
+
+
+def to_fraction(value: Any) -> Fraction:
+    """The exact value of a finite mpf endpoint."""
+    sign, man, exp, _ = value._mpf_
+    magnitude: Fraction = Fraction(man) * Fraction(2) ** exp
+    return -magnitude if sign else magnitude
 
 
 # -- refutation ------------------------------------------------------------------------------

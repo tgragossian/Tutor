@@ -277,3 +277,20 @@ def test_rational_inside_is_strictly_inside(interval: Any) -> None:
     p = rational_inside(interval)
     assert isinstance(p, Rational)
     assert (interval.start < p) is sympy.true and (p < interval.end) is sympy.true
+
+
+@pytest.mark.parametrize(
+    "expr",
+    [
+        sympy.gamma(x),  # an unknown head
+        x + sympy.Symbol("y", real=True),  # a free symbol
+        x + sympy.Float("0.1"),  # a Float
+        sympy.Integral(x, x),
+        sympy.Max(x, 1),
+    ],
+)
+def test_unknown_nodes_skip_and_never_raise(expr: Any) -> None:
+    assert enclose(expr, x, Rational(1)) is None
+    s = Translated(expr, ())
+    assert refute(s, T("x"), x, [Rational(1), Rational(2)], B()) is None
+    assert refute(T("x"), s, x, [Rational(1), Rational(2)], B()) is None

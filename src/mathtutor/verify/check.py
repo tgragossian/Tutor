@@ -6,6 +6,7 @@ import logging
 import os
 import time
 from decimal import Decimal
+from fractions import Fraction
 
 import sympy
 from pydantic import JsonValue
@@ -14,9 +15,15 @@ from mathtutor import __version__
 from mathtutor.content.schema import Answer, ChoiceAnswer, Decimals, Domain, NumericAnswer
 from mathtutor.domain import Method, VerdictReason, VerdictStatus
 from mathtutor.verify.equivalence import Budget, Gap, equivalent, to_sympy_set
-from mathtutor.verify.numeric import round_matches
+from mathtutor.verify.numeric import round_half_even, round_matches, rounded_cell
 from mathtutor.verify.precheck import precheck
-from mathtutor.verify.refute import rational_inside, refute, sample_points
+from mathtutor.verify.refute import (
+    enclose,
+    rational_inside,
+    refute,
+    sample_points,
+    to_fraction,
+)
 from mathtutor.verify.structure import check_structure
 from mathtutor.verify.translate import (
     VARIABLE_ASSUMPTIONS,
@@ -67,14 +74,38 @@ def _abstain(budget: Budget, verdict: Verdict) -> Verdict:
     return _TIMEOUT if budget.remaining() <= 0 else verdict
 
 
-def _grade_rounding(spec: NumericAnswer, literal: str, decimals: int) -> Verdict:
-    """Spec 02 rounding rule: the expected value must be an exact rational."""
-    value = _expected(spec, TranslateContext(spec.variable)).expr.doit()
-    if not isinstance(value, sympy.Rational):
-        raise _ContentBug(f"expected value for a decimals answer is not rational: {value}")
-    if round_matches(value, Decimal(literal), decimals):
-        return _ROUNDED_MATCH
-    return _ROUNDED_MISMATCH
+_ROUNDING_DPS = (60, 120, 240)
+
+
+def _certified_cell(expr: sympy.Expr, decimals: int, budget: Budget) -> int | None:
+    """The rounding cell of an irrational constant, certified by enclosures (owner R21)."""
+    for dps in _ROUNDING_DPS:
+        if budget.remaining() <= 0:
+            return None
+        box = enclose(expr, sympy.Symbol("_unused"), sympy.S.Zero, dps=dps)
+        if box is None:
+            return None
+        cell = rounded_cell(to_fraction(box[0]), to_fraction(box[1]), decimals)
+        if cell is not None:
+            return cell
+    return None
+
+
+def _grade_rounding(spec: NumericAnswer, literal: str, decimals: int, budget: Budget) -> Verdict:
+    """Spec 02 rounding rule: exact for a rational expected value; otherwise certified (R21)."""
+    expr = _expected(spec, TranslateContext(spec.variable)).expr
+    value = expr.doit()
+    if value.free_symbols:
+        raise _ContentBug(f"expected value for a decimals answer is not constant: {value}")
+    student = Decimal(literal)
+    if isinstance(value, sympy.Rational):
+        matches = round_matches(value, student, decimals)
+    else:
+        cell = _certified_cell(expr, decimals, budget)
+        if cell is None:
+            return _abstain(budget, _NOT_PROVEN)
+        matches = cell == round_half_even(Fraction(student), decimals)
+    return _ROUNDED_MATCH if matches else _ROUNDED_MISMATCH
 
 
 def _certify_gap(
@@ -146,7 +177,7 @@ def _grade(spec: Answer, answer: SubmittedAnswer, budget: Budget) -> Verdict | F
         return issue
     literal = _decimal_literal(tree)
     if isinstance(spec, NumericAnswer) and isinstance(spec.precision, Decimals) and literal:
-        return _grade_rounding(spec, literal, spec.precision.decimals)
+        return _grade_rounding(spec, literal, spec.precision.decimals, budget)
     return _grade_symbolic(spec, tree, budget)
 
 

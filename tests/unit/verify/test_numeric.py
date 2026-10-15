@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from fractions import Fraction
 
 import pytest
 from sympy import Rational
 
-from mathtutor.verify.numeric import round_matches
+from mathtutor.verify.numeric import round_matches, rounded_cell
 
 
 @pytest.mark.parametrize(
@@ -42,3 +43,9 @@ def test_round_matches_large_decimals_never_hit_context_precision() -> None:
 def test_round_matches_tiny_decimal() -> None:
     assert round_matches(Rational(1, 10**30), Decimal("1E-30"), 3) is True
     assert round_matches(Rational(1, 10**30), Decimal("0.001"), 3) is False
+
+
+def test_rounded_cell() -> None:
+    assert rounded_cell(Fraction(73890, 10000), Fraction(73891, 10000), 3) == 7389
+    assert rounded_cell(Fraction(73884, 10000), Fraction(73886, 10000), 3) is None  # straddles
+    assert rounded_cell(Fraction(-58309, 100000), Fraction(-58308, 100000), 3) == -583

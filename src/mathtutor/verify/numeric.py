@@ -8,7 +8,7 @@ from fractions import Fraction
 import sympy
 
 
-def _round_half_even(value: Fraction, decimals: int) -> int:
+def round_half_even(value: Fraction, decimals: int) -> int:
     """``value`` rounded to ``decimals`` places with ROUND_HALF_EVEN, scaled by 10**decimals."""
     scaled: Fraction = value * Fraction(10**decimals)
     floor = scaled.numerator // scaled.denominator
@@ -25,4 +25,14 @@ def round_matches(expected: sympy.Rational, student: Decimal, decimals: int) -> 
     """
     want = Fraction(int(expected.p), int(expected.q))
     got = Fraction(student)  # exact; raises on NaN or infinity
-    return _round_half_even(want, decimals) == _round_half_even(got, decimals)
+    return round_half_even(want, decimals) == round_half_even(got, decimals)
+
+
+def rounded_cell(lo: Fraction, hi: Fraction, decimals: int) -> int | None:
+    """The rounding of every value in ``[lo, hi]`` (scaled by 10**decimals), or None.
+
+    Rounding is monotone, so when both ends round to the same cell every value between them
+    does too; otherwise the enclosure meets a cell boundary and nothing is certified.
+    """
+    cell = round_half_even(lo, decimals)
+    return cell if cell == round_half_even(hi, decimals) else None

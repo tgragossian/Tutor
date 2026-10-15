@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import mpmath
 import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
@@ -122,9 +123,53 @@ def test_check_numeric_decimal_inside_a_tree_is_exact() -> None:
     assert outcome(submit(spec, ["Divide", {"num": "0.5"}, 2], "0.5/2")) == CORRECT
 
 
-def test_check_numeric_irrational_expected_abstains() -> None:
-    spec = NumericAnswer(kind="numeric", latex="", mathjson="Pi", precision=Decimals(decimals=2))
-    assert outcome(submit(spec, {"num": "3.14"}, "3.14")).status == VerdictStatus.UNABLE_TO_VERIFY
+ROUNDED_MATCH = Verdict(VerdictStatus.CORRECT, VerdictReason.ROUNDED_MATCH, Method.ROUNDING)
+ROUNDED_MISMATCH = Verdict(VerdictStatus.INCORRECT, VerdictReason.ROUNDED_MISMATCH, Method.ROUNDING)
+
+
+def decimals_spec(tree: Any, n: int) -> NumericAnswer:
+    return NumericAnswer(kind="numeric", latex="", mathjson=tree, precision=Decimals(decimals=n))
+
+
+@pytest.mark.parametrize(
+    "tree,n,student,verdict",
+    [
+        (["Exp", 2], 3, "7.389", ROUNDED_MATCH),  # e^2 = 7.38905...
+        (["Exp", 2], 3, "7.388", ROUNDED_MISMATCH),
+        (["Power", "e", 2], 3, "7.389", ROUNDED_MATCH),
+        (["Divide", "Pi", 4], 2, "0.79", ROUNDED_MATCH),  # pi/4 = 0.785398...
+        (["Divide", "Pi", 4], 2, "0.78", ROUNDED_MISMATCH),
+        (["Ln", 3], 4, "1.0986", ROUNDED_MATCH),  # ln 3 = 1.098612...
+        (["Ln", 3], 4, "1.0987", ROUNDED_MISMATCH),
+        (["Sqrt", 2], 0, "1", ROUNDED_MATCH),
+        ("Pi", 2, "3.14", ROUNDED_MATCH),
+    ],
+)
+def test_check_numeric_irrational_certified_rounding(
+    tree: Any, n: int, student: str, verdict: Verdict
+) -> None:
+    assert outcome(submit(decimals_spec(tree, n), {"num": student}, student)) == verdict
+
+
+def test_check_numeric_straddling_enclosure_abstains(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[int] = []
+
+    def straddle(expr: Any, var: Any, point: Any, dps: int = 60) -> Any:
+        calls.append(dps)
+        return (mpmath.mpf("7.38849"), mpmath.mpf("7.38851"))  # meets the 7.3885 boundary
+
+    monkeypatch.setattr(check_module, "enclose", straddle)
+    assert outcome(submit(decimals_spec(["Exp", 2], 3), {"num": "7.389"}, "7.389")) == NOT_PROVEN
+    assert calls == [60, 120, 240]
+
+
+def test_check_numeric_unenclosable_abstains(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(check_module, "enclose", lambda *args, **kwargs: None)
+    assert outcome(submit(decimals_spec(["Exp", 2], 3), {"num": "7.389"}, "7.389")) == NOT_PROVEN
+
+
+def test_check_numeric_non_constant_expected_is_internal_error() -> None:
+    assert outcome(submit(decimals_spec("x", 2), {"num": "1.5"}, "1.5")) == INTERNAL_ERROR
 
 
 # -- expression ------------------------------------------------------------------------------
