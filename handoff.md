@@ -79,9 +79,10 @@ Ledger: `.superpowers/sdd/README/progress.md` (git-ignored; rulings and deferred
 ## Next action for Claude
 
 Follow option B; do not reopen the A/B/C choice. No co-author trailers.
-1. Thomas supplies `free -m` / `docker stats` output, monthly price, budget-alert status → `host.md`.
-2. Final whole-branch review of milestone A, then merge to `main`; switch the host to `main`.
-3. Then milestone B (02-practice.md): write its implementation plan.
+Milestone A is merged to `main` and the host runs `main`.
+The [milestone B plan](docs/superpowers/plans/portfolio-mvp/milestone-b/README.md) (16 tasks,
+~43 h estimated vs a 30 h timebox) awaits Thomas's review and choice of execution method.
+Human gates in B: dev-case labels (task 9), new problems (task 15), host deploy (task 16).
 
 ## Reference documents
 
