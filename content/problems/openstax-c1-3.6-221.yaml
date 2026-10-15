@@ -15,7 +15,7 @@ answer:
 misconceptions:
   - '3(3x^2+1)^2  # missing inner derivative 6x'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-15'
   notes: 'Exercise 221 also asks to decompose (part a: u = 3x^2 + 1, y = u^3); only part b (dy/dx) is graded here. Chain rule: dy/du = 3u^2, du/dx = 6x, so dy/dx = 3(3x^2 + 1)^2 * 6x = 18x(3x^2 + 1)^2, matching the OpenStax answer key for 221. Domain: all reals (polynomial). Cross-checked with a throwaway SymPy diff/simplify; the misconception 3(3x^2+1)^2 confirmed not equal.'

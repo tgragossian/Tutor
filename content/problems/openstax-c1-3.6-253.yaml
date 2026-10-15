@@ -16,7 +16,7 @@ answer:
 misconceptions:
   - '-\frac{200}{49}  # power rule exponent not lowered: -200(t+1)^{-2} instead of -200(t+1)^{-3}'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-15'
   notes: 'Exercise 253 has parts a (velocity), b (acceleration) and c (speeding up or slowing down); only part a is graded here. v(t) = s''(t) = 100 * (-2)(t+1)^(-3) * 1 = -200/(t+1)^3. v(6) = -200/7^3 = -200/343 = -0.58309... m/s (-0.583 to 3 decimals), matching the OpenStax answer key for 253a. Cross-checked with a throwaway SymPy diff and subs.'

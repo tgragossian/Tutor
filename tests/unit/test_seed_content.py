@@ -5,8 +5,6 @@ from __future__ import annotations
 from collections import Counter
 from pathlib import Path
 
-import pytest
-
 from mathtutor.content.loader import load_bundle
 from mathtutor.content.schema import Decimals, Domain, ExpressionAnswer, NumericAnswer
 
@@ -62,6 +60,5 @@ def test_transcribed_problems_cite_an_exercise() -> None:
             assert not p.source.adapted and p.source.exercise is not None, p.id
 
 
-@pytest.mark.xfail(reason="awaiting Thomas's review (task 5 step 5)", strict=True)
 def test_all_human_verified() -> None:
     assert all(p.review.status == "human_verified" for p in PROBLEMS)

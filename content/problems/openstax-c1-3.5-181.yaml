@@ -15,7 +15,7 @@ answer:
 misconceptions:
   - '(1-\sin x)^2+(x+\cos x)\cos x  # sign error: derivative of -sin x taken as +cos x'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-15'
   notes: 'Product rule with u = x + cos x, v = 1 - sin x: u'' = 1 - sin x, v'' = -cos x. dy/dx = (1 - sin x)(1 - sin x) + (x + cos x)(-cos x) = (1 - sin x)^2 - cos x (x + cos x), matching the OpenStax answer key for 181. Domain: all reals (only sin, cos and polynomials). Cross-checked with a throwaway SymPy diff/simplify. LaTeX puts the cos x factor last: Compute Engine parses \cos x\,(x+\cos x) as cos(x(x + cos x)).'

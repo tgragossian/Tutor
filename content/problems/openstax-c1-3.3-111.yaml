@@ -18,7 +18,7 @@ answer:
 misconceptions:
   - '270x^4+39  # differentiated 39x/(x+1) as 39 instead of using the quotient rule'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-15'
   notes: 'Expand first: f(x) = 54x^5 + 39x/(x+1). Power rule: 270x^4. Quotient rule: 39[(x+1) - x]/(x+1)^2 = 39/(x+1)^2. So f''(x) = 270x^4 + 39/(x+1)^2, matching the OpenStax answer key for 111. Domain: undefined only at x = -1, so R minus {-1}. Cross-checked with a throwaway SymPy diff/simplify.'
