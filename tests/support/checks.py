@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import threading
 import time
 
 from mathtutor.domain import Method, VerdictReason, VerdictStatus
@@ -31,3 +32,8 @@ def die(req: CheckRequest) -> CheckResult:
 
 def boom(req: CheckRequest) -> CheckResult:
     raise RuntimeError("check function failed")
+
+
+def die_after_reply(req: CheckRequest) -> CheckResult:
+    threading.Timer(0.1, os._exit, args=(1,)).start()
+    return CheckResult(CORRECT, "test")

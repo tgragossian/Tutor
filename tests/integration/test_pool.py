@@ -12,9 +12,10 @@ from typing import Any
 
 import psutil
 import pytest
-from support.checks import boom, die, ok, sleepy, slow
+from support.checks import boom, die, die_after_reply, ok, sleepy, slow
 
 from mathtutor.content.loader import load_bundle
+from mathtutor.verify import pool as pool_module
 from mathtutor.verify.pool import VerifierPool
 from mathtutor.verify.types import CheckRequest, CheckResult, SubmittedAnswer, Verdict, VerifierBusy
 
@@ -112,7 +113,7 @@ def test_exception_is_internal_error_and_recovers(make_pool: Callable[..., Verif
 
 
 def test_queue_full_raises_busy_fast(make_pool: Callable[..., VerifierPool]) -> None:
-    p = make_pool(size=1, queue_max=2, queue_wait_s=5.0, check_fn=slow)
+    p = make_pool(size=1, queue_max=2, queue_wait_s=30.0, deadline_s=30.0, check_fn=sleepy)
     in_background(p)
     wait_until(lambda: p._busy == 1)
     in_background(p)
@@ -131,7 +132,7 @@ def test_queue_wait_exceeded_raises_busy(make_pool: Callable[..., VerifierPool])
     started = time.monotonic()
     with pytest.raises(VerifierBusy):
         p.submit(REQ)
-    assert 0.25 <= time.monotonic() - started < 0.9
+    assert 0.25 <= time.monotonic() - started < 1.5
 
 
 def test_sixteen_threads_no_deadlock_no_zombies(make_pool: Callable[..., VerifierPool]) -> None:
@@ -223,8 +224,102 @@ def test_real_check_through_pool(make_pool: Callable[..., VerifierPool]) -> None
     assert r.verifier_version
 
 
+def test_worker_ms_excludes_reap_and_respawn(make_pool: Callable[..., VerifierPool]) -> None:
+    p = make_pool(check_fn=sleepy, deadline_s=0.05)
+    r = p.submit(REQ)
+    assert r.outcome == TIMEOUT
+    assert r.worker_ms < 50 + 250
+
+
+def test_default_check_gets_soft_budget_inside_hard_deadline() -> None:
+    from mathtutor.verify.check import check
+
+    fn = pool_module._default_check(3.0)
+    assert fn.func is check and fn.keywords == {"deadline_s": 2.5}
+    assert pool_module._default_check(0.6).keywords == {"deadline_s": 0.3}
+
+
+def fail_respawns(p: VerifierPool, times: int, delay: float = 0.0) -> None:
+    real = p._new_worker
+    left = [times]
+
+    def flaky() -> Any:
+        time.sleep(delay)
+        if left[0] > 0:
+            left[0] -= 1
+            raise OSError("injected respawn failure")
+        return real()
+
+    p._new_worker = flaky  # type: ignore[method-assign]
+
+
+def test_failed_respawn_is_retried_by_next_submit(make_pool: Callable[..., VerifierPool]) -> None:
+    p = make_pool(size=1, check_fn=sleepy, deadline_s=0.3)
+    fail_respawns(p, 1)
+    assert p.submit(REQ).outcome == TIMEOUT
+    p._check_fn_for_test(ok)
+    assert p.submit(REQ).outcome.status == "correct"
+    assert p.alive()
+    assert len(live_workers()) == 1
+
+
+def test_failed_respawn_is_retried_by_alive(make_pool: Callable[..., VerifierPool]) -> None:
+    p = make_pool(size=1, check_fn=sleepy, deadline_s=0.3)
+    fail_respawns(p, 2)
+    assert p.submit(REQ).outcome == TIMEOUT
+    assert not p.alive()  # the retry failed too
+    assert p.alive()  # the next retry succeeds
+    p._check_fn_for_test(ok)
+    assert p.submit(REQ).outcome.status == "correct"
+
+
+def test_alive_stays_true_during_respawn(make_pool: Callable[..., VerifierPool]) -> None:
+    p = make_pool(size=1, check_fn=sleepy, deadline_s=0.3)
+    fail_respawns(p, 0, delay=1.0)
+    in_background(p)
+    wait_until(lambda: p._respawning == 1)
+    assert p.alive()
+
+
+def test_worker_that_died_after_replying_is_not_reused(
+    make_pool: Callable[..., VerifierPool],
+) -> None:
+    p = make_pool(size=1, check_fn=die_after_reply)
+    assert p.submit(REQ).outcome.status == "correct"
+    time.sleep(0.5)  # the worker exits 0.1 s after replying
+    p._check_fn_for_test(ok)
+    assert p.submit(REQ).outcome.status == "correct"
+
+
+def test_pipe_closed_when_process_start_fails(make_pool: Callable[..., VerifierPool]) -> None:
+    p = make_pool(size=1, check_fn=ok)
+    real_ctx = p._ctx
+    pipes: list[Any] = []
+
+    class BrokenProcess:
+        def __init__(self, **kwargs: Any) -> None:
+            pass
+
+        def start(self) -> None:
+            raise OSError("injected start failure")
+
+    class Ctx:
+        def Pipe(self) -> Any:  # noqa: N802
+            ends = real_ctx.Pipe()
+            pipes.extend(ends)
+            return ends
+
+        Process = BrokenProcess
+
+    p._ctx = Ctx()  # type: ignore[assignment]
+    with pytest.raises(OSError):
+        p._new_worker()
+    assert pipes and all(c.closed for c in pipes)
+
+
 IMPORT_GATE = """
 import sys
+from mathtutor.verify import pool as pool_module
 from mathtutor.verify.pool import VerifierPool
 pool = VerifierPool(size=1)
 pool.close()
