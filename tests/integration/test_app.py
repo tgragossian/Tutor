@@ -1,0 +1,104 @@
+"""App factory, health/readiness probes and the placeholder page."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+from fastapi.testclient import TestClient
+from pydantic import ValidationError
+
+from mathtutor import __version__
+from mathtutor.content.loader import ContentError, load_bundle
+from mathtutor.settings import Settings
+from mathtutor.web.app import create_app
+
+ROOT = Path(__file__).resolve().parents[2]
+REAL_PATH = ROOT / "content" / "compiled" / "problems.json"
+GOOD_FIXTURE = ROOT / "tests" / "fixtures" / "content" / "bundles" / "good.json"
+REAL = load_bundle(REAL_PATH)
+TITLES = [t.title for t in sorted(REAL.bundle.topics, key=lambda t: t.order)]
+
+
+@pytest.fixture
+def client() -> TestClient:
+    return TestClient(create_app(Settings(env="test", content_path=REAL_PATH)))
+
+
+@pytest.fixture
+def needs_review_only(tmp_path: Path) -> Path:
+    data = json.loads(GOOD_FIXTURE.read_text(encoding="utf-8"))
+    for p in data["problems"]:
+        p["review"] = {"status": "needs_review", "reviewer": "", "date": "", "notes": ""}
+    path = tmp_path / "problems.json"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    return path
+
+
+def test_healthz(client: TestClient) -> None:
+    r = client.get("/healthz")
+    assert r.status_code == 200
+    assert r.json() == {"status": "ok", "version": __version__}
+
+
+def test_readyz_ready_with_real_content(client: TestClient) -> None:
+    r = client.get("/readyz")
+    assert r.status_code == 200
+    assert r.json() == {"status": "ready", "content_version": REAL.bundle_version, "servable": 6}
+
+
+def test_readyz_503_when_nothing_servable(needs_review_only: Path) -> None:
+    app = create_app(Settings(env="test", content_path=needs_review_only))
+    r = TestClient(app).get("/readyz")
+    assert r.status_code == 503
+    assert r.json() == {"status": "not_ready", "reason": "no_servable_problems"}
+
+
+def test_missing_content_aborts_startup(tmp_path: Path) -> None:
+    with pytest.raises(ContentError, match="problems.json"):
+        create_app(Settings(env="test", content_path=tmp_path / "problems.json"))
+
+
+def test_production_requires_long_secret() -> None:
+    with pytest.raises(ValidationError):
+        Settings(env="production", secret_key="short")
+    with pytest.raises(ValidationError):
+        Settings(env="production")
+    Settings(env="production", secret_key="x" * 32)
+
+
+def test_development_allows_missing_secret() -> None:
+    assert Settings(env="development").secret_key is None
+
+
+def test_settings_read_env_prefix(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MATHTUTOR_ENV", "test")
+    monkeypatch.setenv("MATHTUTOR_CONTENT_PATH", "elsewhere.json")
+    s = Settings()
+    assert s.env == "test" and s.content_path == Path("elsewhere.json")
+
+
+def test_index_lists_topics_and_attribution(client: TestClient) -> None:
+    r = client.get("/")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
+    body = r.text
+    positions = [body.index(t) for t in TITLES]
+    assert positions == sorted(positions)
+    assert "OpenStax" in body and "CC BY-NC-SA 4.0" in body
+    assert __version__ in body
+
+
+def test_index_leaks_no_answers(client: TestClient) -> None:
+    body = client.get("/").text
+    # Ruling R5: only answers long enough not to appear innocently ("2", "x").
+    answers = [p.answer.latex for p in REAL.bundle.problems if p.answer.kind != "choice"]
+    assert not any(a in body for a in answers if len(a) >= 4)
+
+
+def test_security_headers(client: TestClient) -> None:
+    for path in ("/healthz", "/readyz", "/"):
+        h = client.get(path).headers
+        assert h["content-security-policy"] == "default-src 'self'"
+        assert h["x-content-type-options"] == "nosniff"
+        assert h["referrer-policy"] == "same-origin"

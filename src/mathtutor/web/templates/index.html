@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ app_name }}</h1>
+<p>Practice is coming soon. Topics in this release:</p>
+<ol>
+  {% for t in topics %}
+  <li>{{ t.title }} (&sect;{{ t.section }}): {{ t.servable }} problem{{ "" if t.servable == 1 else "s" }}</li>
+  {% endfor %}
+</ol>
+{% endblock %}
