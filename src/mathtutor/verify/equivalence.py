@@ -7,6 +7,7 @@ is ``None`` (not proven, so task 5 tries to refute) or ``domain_unproven``.
 
 from __future__ import annotations
 
+import random
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -148,9 +149,102 @@ def _violated(c: Constraint) -> Any:
     return sympy.sin(c.expr)
 
 
-def violation_set(c: Constraint, var: sympy.Symbol, D: sympy.Set) -> sympy.Set:
-    """The points of D where ``c`` is violated (``solveset`` intersected with D)."""
-    return sympy.Intersection(sympy.solveset(_violated(c), var, D), D)
+class DomainUnproven(Exception):
+    """``solveset`` cannot be trusted on a constraint (owner ruling R18)."""
+
+
+def _has_real_root_form(expr: Any) -> bool:
+    """``Abs`` or ``sign`` under a non-integer power: R14's real roots, which SymPy 1.14's
+    ``solveset`` mis-solves (``|x|^(2/3) - 1 = 0`` gives EmptySet)."""
+    return any(
+        p.exp.is_integer is not True and p.base.has(sympy.Abs, sympy.sign)
+        for p in expr.atoms(sympy.Pow)
+    )
+
+
+_FIXED_POINTS: tuple[int | Fraction, ...] = (
+    *(0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 10, -10, 100, -100, 1000, -1000),
+    *(Fraction(1, 2), Fraction(-1, 2), Fraction(1, 3), Fraction(-1, 3)),
+    *(Fraction(3, 2), Fraction(-3, 2)),
+)
+_NEAR = (Fraction(1, 10), Fraction(1, 1000))
+_RANDOM_PER_INTERVAL = 64
+_SEED = 20261013
+
+
+def _components(D: sympy.Set) -> list[sympy.Interval]:
+    parts = D.args if isinstance(D, sympy.Union) else (D,)
+    return [p for p in parts if isinstance(p, sympy.Interval)]
+
+
+def _finite_bound(b: Any) -> Fraction | None:
+    if not b.is_Rational:
+        return None
+    return Fraction(int(b.p), int(b.q))
+
+
+def _sample_points(D: sympy.Set) -> list[Any]:
+    """Deterministic rationals in D: fixed points, points near each finite bound and seeded
+    pseudo-random points in every interval (at least 64 per interval)."""
+    rng = random.Random(_SEED)
+    candidates: list[Fraction] = [Fraction(p) for p in _FIXED_POINTS]
+    for interval in _components(D):
+        lo, hi = _finite_bound(interval.start), _finite_bound(interval.end)
+        for bound in (b for b in (lo, hi) if b is not None):
+            candidates += [bound, *(bound + d for d in _NEAR), *(bound - d for d in _NEAR)]
+        low = lo if lo is not None else (hi - 200 if hi is not None else Fraction(-200))
+        high = hi if hi is not None else low + 400
+        for _ in range(_RANDOM_PER_INTERVAL):
+            candidates.append(low + (high - low) * Fraction(rng.randint(1, 9999), 10000))
+    points = []
+    for value in dict.fromkeys(candidates):
+        point = sympy.Rational(value.numerator, value.denominator)
+        if D.contains(point) is sympy.true:
+            points.append(point)
+    return points
+
+
+def _violated_at(c: Constraint, var: sympy.Symbol, point: Any) -> bool | None:
+    """Whether ``c`` is violated at ``point``; None where undefined or undecided."""
+    value = c.expr.subs(var, point)
+    if value.is_finite is not True or value.is_extended_real is not True:
+        return None
+    holds = _holds_at(c, var, point)
+    return None if holds is None else not holds
+
+
+def _cross_check(
+    c: Constraint, var: sympy.Symbol, D: sympy.Set, found: sympy.Set, budget: Budget
+) -> None:
+    """Raise DomainUnproven if a sample point disagrees with ``found`` (ruling R18)."""
+    for point in _sample_points(D):
+        _tick(budget)
+        violated = _violated_at(c, var, point)
+        if violated is None:
+            continue
+        member = found.contains(point)
+        if member is not sympy.true and member is not sympy.false:
+            raise DomainUnproven("membership undecided")
+        if violated != (member is sympy.true):
+            raise DomainUnproven(f"solveset disagrees with the constraint at {point}")
+
+
+def violation_set(
+    c: Constraint, var: sympy.Symbol, D: sympy.Set, budget: Budget | None = None
+) -> sympy.Set:
+    """The points of D where ``c`` is violated (``solveset`` intersected with D).
+
+    ``solveset`` is untrusted (R18): real-root forms raise DomainUnproven without solving,
+    and an empty, finite or interval answer is cross-checked at sample points of D.
+    """
+    budget = budget or _unlimited()
+    if _has_real_root_form(c.expr):
+        raise DomainUnproven("real-root form in a constraint")
+    _tick(budget)
+    found = sympy.Intersection(sympy.solveset(_violated(c), var, D), D)
+    if found.is_empty is True or isinstance(found, sympy.FiniteSet | sympy.Interval | sympy.Union):
+        _cross_check(c, var, D, found, budget)
+    return found
 
 
 def _holds_at(c: Constraint, var: sympy.Symbol, h: Any) -> bool | None:
@@ -230,7 +324,7 @@ def _gap(found: sympy.Set, e: Translated, var: sympy.Symbol, budget: Budget) -> 
         bad = []
         for c in e.constraints:
             _tick(budget)
-            bad.append(violation_set(c, var, interval))
+            bad.append(violation_set(c, var, interval, budget))
         _tick(budget)
         rest = sympy.Complement(interval, sympy.Union(*bad)) if bad else interval
         if isinstance(rest, sympy.Interval | sympy.Union):
@@ -253,7 +347,7 @@ def _check_constraint(
     if c in e.constraints:
         return None  # wherever the student fails c, E is undefined too
     _tick(budget)
-    found = violation_set(c, var, D)
+    found = violation_set(c, var, D, budget)
     if found.is_empty is True:
         return None
     if isinstance(found, sympy.FiniteSet):

@@ -271,3 +271,40 @@ def test_spent_budget_in_domain_step_is_domain_unproven(monkeypatch: pytest.Monk
 def test_budget_remaining() -> None:
     assert Budget(time.monotonic() + 100).remaining() > 99
     assert Budget(time.monotonic() - 1).remaining() < 0
+
+
+# -- untrusted solveset (review C1, ruling R18) ----------------------------------------------
+
+TWO_THIRDS_OF_X = ["Power", "x", ["Rational", 2, 3]]
+ONE_MINUS_TT = ["Subtract", 1, TWO_THIRDS_OF_X]
+TT_MINUS_ONE = ["Subtract", TWO_THIRDS_OF_X, 1]
+
+
+@pytest.mark.parametrize(
+    "student,expected,strict",
+    [
+        (["Power", ["Sqrt", ONE_MINUS_TT], 2], ONE_MINUS_TT, False),
+        (["Add", "x", ["Subtract", ["Ln", ONE_MINUS_TT], ["Ln", ONE_MINUS_TT]]], X, False),
+        (["Divide", ["Multiply", "x", TT_MINUS_ONE], TT_MINUS_ONE], X, True),
+    ],
+)
+def test_real_root_constraints_never_falsely_correct(
+    student: Any, expected: Any, strict: bool
+) -> None:
+    """R18 (a): solveset mis-solves |a|^(p/q); such constraints abstain, never correct."""
+    result = eq(student, expected, strict=strict)
+    assert result != CORRECT
+    assert result == DOMAIN_UNPROVEN or isinstance(result, Gap) or result == UNDEFINED_ON_DOMAIN
+
+
+def test_wrong_empty_solveset_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R18 (b): a sampled violation outside solveset's answer → domain_unproven."""
+    monkeypatch.setattr(equivalence.sympy, "solveset", lambda *args, **kwargs: sympy.S.EmptySet)
+    assert eq(SQRT_X_SQUARED, X) == DOMAIN_UNPROVEN
+    assert eq(RATIONAL_FN, X_PLUS_1) == DOMAIN_UNPROVEN
+
+
+def test_spurious_solveset_point_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R18 (b): a sampled point solveset calls violated where the constraint holds."""
+    monkeypatch.setattr(equivalence.sympy, "solveset", lambda *args, **kwargs: FiniteSet(1, 2))
+    assert eq(RATIONAL_FN, X_PLUS_1, strict=True) == DOMAIN_UNPROVEN
