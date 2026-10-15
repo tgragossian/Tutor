@@ -44,7 +44,7 @@
 | Other | `Ln`; `Log` (1 argument = base 10; 2 = explicit base); `Lb` (base 2); `Exp`, `Abs` |
 | Wrappers | `Delimiter` with one argument, unwrapped. A `Delimiter` holding a `Sequence` (a list) is `unsupported_notation` |
 
-- **Real-root rule:** `Root(a, n)` with odd integer `n` means the **real** n-th root (`sympy.real_root`). `Sqrt(a)` and even roots are principal roots, and their domain constraints are recorded.
+- **Real-root rule:** `Root(a, n)` with odd integer `n` means the **real** n-th root (`sympy.real_root`). `Sqrt(a)` and even roots are principal roots, and their domain constraints are recorded. A constant rational exponent `p/q` whose reduced denominator `q` is odd follows the same real-root rule (`x^(1/3)` = `Root(x, 3)`, no base constraint when p > 0, `nonzero` when p < 0); an even `q` stays principal.
 - **Variables** are created as `Symbol(name, real=True)`.
 - **Unknown heads, symbols or shapes → `Rejected("unsupported_notation")`.** Head names come from the raw (`form: 'raw'`) fixtures in [ADR 0002](../../../decisions/0002-mathlive-input.md). An `InvisibleOperator` whose first factor is a non-variable letter followed by a `Delimiter` (e.g. `f(2x)`) is function application, not a product, and is unsupported in the core kinds.
 

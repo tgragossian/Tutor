@@ -28,8 +28,6 @@ MAX_EXPONENT = 1000
 MAX_CONST_DIGITS = 1000
 MAX_DEGREE = 200
 MAX_ROOT_INDEX = 1000
-# Digit estimates saturate here; anything this large is already far past every bound.
-_DIGITS_CAP = 10**6
 _LOG10_2 = 0.30103  # slightly above log10(2), so digit estimates stay upper bounds
 
 
@@ -101,14 +99,13 @@ def _frac_digits(v: Fraction) -> int:
     return max(_int_digits(v.numerator), _int_digits(v.denominator))
 
 
-def _cap(n: int) -> int:
-    return min(n, _DIGITS_CAP)
-
-
 def _const(expr: Any, value: Fraction | None, digits: int) -> _Node:
+    """A constant node; no constant may exceed the digit bound, whatever head built it."""
     if value is not None:
         digits = _frac_digits(value)
-    return _Node(expr, value, _cap(digits), 0)
+    if digits > MAX_CONST_DIGITS:
+        raise _too_large(f"constant may exceed {MAX_CONST_DIGITS} digits")
+    return _Node(expr, value, digits, 0)
 
 
 def _rational(v: Fraction) -> Any:
@@ -265,7 +262,8 @@ class _Builder:
             letter = isinstance(prev, str) and len(prev) == 1 and prev.isalpha()
             delimited = isinstance(cur, list) and cur[:1] == ["Delimiter"]
             if letter and prev != self.variable and delimited:
-                raise _unsupported("function application")
+                # Function application (owner ruling R15): rejected, with a hint for the student.
+                raise _unsupported(f"Did you mean {prev}·(...)? Add a multiplication sign.")
             if _is_literal(cur):
                 raise _unsupported("number after a factor in an implicit product")
             if _is_literal(prev) and _is_literal_fraction(cur):
@@ -293,12 +291,20 @@ class _Builder:
     # -- powers and roots --------------------------------------------------------------------
 
     def _power(self, args: list[JsonValue]) -> _Node:
-        base, exp = self.walk(args[0]), self.walk(args[1])
+        return self._raise(self.walk(args[0]), self.walk(args[1]))
+
+    def _raise(self, base: _Node, exp: _Node, build: Callable[[Any], Any] | None = None) -> _Node:
+        """``base ** exp`` under the spec 03 cost bound.
+
+        ``build`` makes the expression from the exponent's SymPy form instead of ``Pow``;
+        ``Exp(a)`` uses it so that it shares the rule for ``Power(e, a)``.
+        """
         if not exp.constant:
             # Never expanded; real-valued only for a positive base.
             self.require("positive", base)
-            expr = sympy.Pow(base.expr, exp.expr, evaluate=False)
-            return _Node(expr, None, None, 1)
+            if build is not None:
+                return _Node(build(exp.expr), None, None, 1)
+            return _Node(sympy.Pow(base.expr, exp.expr, evaluate=False), None, None, 1)
         v = exp.value
         if v is not None:
             if abs(v) > MAX_EXPONENT:
@@ -319,12 +325,19 @@ class _Builder:
                 raise _too_large(f"constant may exceed {MAX_CONST_DIGITS} digits")
         if v is None:
             self.require("positive", base)
-        elif v.denominator == 1 and v < 0:
-            self.require("nonzero", base)
-        elif v.denominator != 1:
+        elif v.denominator % 2 == 1:
+            # Integer, or an odd reduced denominator: the real power (owner ruling R14).
+            if v < 0:
+                self.require("nonzero", base)
+        else:
             self.require("positive" if v < 0 else "nonnegative", base)
         exponent = _rational(v) if v is not None else exp.expr
-        expr = sympy.Pow(base.expr, exponent, evaluate=False)
+        if build is not None:
+            expr = build(exponent)
+        elif v is not None and v.denominator % 2 == 1 and v.denominator != 1:
+            expr = _real_power(base.expr, exponent, odd_numerator=v.numerator % 2 == 1)
+        else:
+            expr = sympy.Pow(base.expr, exponent, evaluate=False)
         if digits is None:
             return _Node(expr, None, None, base.degree * bound)
         value = None
@@ -359,10 +372,7 @@ class _Builder:
         if n % 2 == 0:
             self.require("nonnegative", node)
             return self._like(node, sympy.Pow(node.expr, exponent, evaluate=False))
-        # Odd root: the real root, sign(a) * |a|^(1/n) (what sympy.real_root gives for real a).
-        magnitude = sympy.Pow(sympy.Abs(node.expr, evaluate=False), exponent, evaluate=False)
-        expr = sympy.Mul(sympy.sign(node.expr, evaluate=False), magnitude, evaluate=False)
-        return self._like(node, expr)
+        return self._like(node, _real_power(node.expr, exponent, odd_numerator=True))
 
     @staticmethod
     def _like(node: _Node, expr: Any) -> _Node:
@@ -390,7 +400,11 @@ class _Builder:
     def _ln(self, args: list[JsonValue]) -> _Node:
         node = self.walk(args[0])
         self.require("positive", node)
-        return self._apply(sympy.log, node, (node.digits or 0) + 1)
+        digits = (node.digits or 0) + 1
+        if node.value is not None:
+            # |ln(p/q)| <= ln(max(p, q)) < 2.31 * digits(p/q).
+            digits = _int_digits(math.ceil(Fraction(231, 100) * _frac_digits(node.value))) + 1
+        return self._apply(sympy.log, node, digits)
 
     def _log_base(self, arg: _Node, base: _Node) -> _Node:
         self.require("positive", arg)
@@ -418,14 +432,10 @@ class _Builder:
         return self._log_base(self.walk(args[0]), self.walk(2))
 
     def _exp(self, args: list[JsonValue]) -> _Node:
-        node = self.walk(args[0])
-        digits = _DIGITS_CAP
-        if node.value is not None and abs(node.value) <= _DIGITS_CAP:
-            # e^|v| has at most |v| * log10(e) + 1 digits; 0.4343 > log10(e).
-            digits = math.floor(abs(node.value) * Fraction(4343, 10000)) + 1
-        elif node.digits is not None and node.digits <= 6:
-            digits = 10**node.digits  # |a| < 10^d, so e^|a| has fewer than 10^d digits
-        return self._apply(sympy.exp, node, digits)
+        # Same cost rule as Power(e, a): exp(n*ln k) evaluates to k**n.
+        return self._raise(
+            self._symbol("e"), self.walk(args[0]), lambda a: sympy.exp(a, evaluate=False)
+        )
 
     def _abs(self, args: list[JsonValue]) -> _Node:
         node = self.walk(args[0])
@@ -433,6 +443,17 @@ class _Builder:
         if node.value is not None:
             return _const(expr, abs(node.value), 0)
         return self._like(node, expr)
+
+
+def _real_power(base: Any, exponent: Any, *, odd_numerator: bool) -> Any:
+    """Real ``base ** (p/q)`` for odd q: ``sign(a)*|a|^(p/q)`` (odd p) or ``|a|^(p/q)``.
+
+    Built unevaluated; ``sympy.real_root`` would evaluate eagerly and may build a Piecewise.
+    """
+    magnitude = sympy.Pow(sympy.Abs(base, evaluate=False), exponent, evaluate=False)
+    if not odd_numerator:
+        return magnitude
+    return sympy.Mul(sympy.sign(base, evaluate=False), magnitude, evaluate=False)
 
 
 def _is_int(tree: JsonValue) -> bool:

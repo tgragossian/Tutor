@@ -333,3 +333,80 @@ def test_constraint_is_frozen_value() -> None:
     assert c == Constraint("nonzero", X)
     with pytest.raises(AttributeError):
         c.kind = "positive"  # type: ignore[misc]
+
+
+# -- fix round 1 ---------------------------------------------------------------------------
+
+
+def test_exp_head_obeys_the_cost_bound() -> None:
+    # exp(10^29 * ln 10) = 10^(10^29): SymPy would try to build it on evaluation.
+    assert code(["Exp", ["Multiply", 10**29, ["Ln", 10]]]) == "input_too_large"
+    assert code(["Exp", ["Multiply", 100000, ["Ln", 10]]]) == "input_too_large"
+
+
+def test_exp_and_power_e_share_one_rule() -> None:
+    for head in (lambda a: ["Exp", a], lambda a: ["Power", "e", a]):
+        assert isinstance(translate(head(1000), CTX), Translated)
+        assert code(head(1001)) == "input_too_large"
+        assert isinstance(translate(head(["Multiply", 2, ["Ln", 10]]), CTX), Translated)
+        assert code(head(["Multiply", 10, ["Ln", 10]])) == "input_too_large"
+        assert isinstance(translate(head("x"), CTX), Translated)
+
+
+def test_no_constant_node_exceeds_digit_bound() -> None:
+    big = ["Power", 10, 999]
+    assert isinstance(translate(big, CTX), Translated)
+    assert code(["Multiply", big, 10]) == "input_too_large"
+
+
+def _real_power(tree: Any) -> Translated:
+    return ok(["Power", "x", tree])
+
+
+def test_odd_denominator_exponent_is_real_root() -> None:
+    assert _real_power(["Divide", 1, 3]).constraints == ()
+    assert _real_power(["Divide", 2, 3]).constraints == ()
+    neg = _real_power(["Negate", ["Divide", 1, 3]])
+    assert neg.constraints == (Constraint("nonzero", X),)
+    assert has(_real_power(["Divide", 1, 2]), "nonnegative", X)
+    assert has(_real_power(["Negate", ["Divide", 1, 2]]), "positive", X)
+
+
+def test_odd_denominator_value_at_negative_point() -> None:
+    assert ok(["Power", "x", ["Divide", 1, 3]]).expr.subs(X, -8) == -2
+    assert ok(["Power", "x", ["Divide", 2, 3]]).expr.subs(X, -8) == 4
+    assert ok(["Power", "x", ["Negate", ["Divide", 1, 3]]]).expr.subs(X, -8) == Rational(-1, 2)
+    assert same(ok(["Power", ["Negate", 8], ["Divide", 1, 3]]).expr, sympy.Integer(-2))
+
+
+@pytest.mark.parametrize(
+    "exponent",
+    [
+        ["Divide", 2, 6],
+        ["Rational", 2, 6],
+        ["Delimiter", ["Divide", 1, 3]],
+        ["Divide", {"num": "0.5"}, {"num": "1.5"}],
+    ],
+)
+def test_reduced_one_third_matches_cube_root(exponent: Any) -> None:
+    t = _real_power(exponent)
+    assert t.constraints == ()
+    assert same(t.expr, ok(["Root", "x", 3]).expr)
+
+
+def test_decimal_exponent_with_odd_denominator_is_real_root() -> None:
+    t = _real_power({"num": "0.2"})  # 1/5
+    assert t.constraints == ()
+    assert t.expr.subs(X, -32) == -2
+
+
+def test_odd_denominator_power_built_unevaluated() -> None:
+    expr = _real_power(["Divide", 1, 3]).expr
+    assert not isinstance(expr, sympy.Piecewise)
+    assert expr.has(sympy.sign) and expr.has(sympy.Abs)
+
+
+def test_function_application_rejection_suggests_product() -> None:
+    result = translate(["InvisibleOperator", "e", ["Delimiter", ["Add", "x", 1]]], CTX)
+    assert isinstance(result, Rejected) and result.code == "unsupported_notation"
+    assert result.detail == "Did you mean e·(...)? Add a multiplication sign."
