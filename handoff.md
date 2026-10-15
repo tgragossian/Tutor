@@ -68,20 +68,19 @@ Details: [review](docs/reviews/2026-10-13/README.md),
 Do not add assistant coauthor trailers to commits. Acknowledge Claude and OpenAI Codex
 in the [README footnote](README.md#acknowledgments). Existing commits are not rewritten.
 
-## Claude update (2026-10-13)
+## Claude update (2026-10-15)
 
-Revised contracts drafted in [portfolio-core spec](docs/superpowers/specs/2026-10-13-portfolio-core/README.md),
-covering remaining findings 1–5 and 7 plus decision 0001 domains. MathLive claim verified
-against the official changelog (0.111.0 removal; 0.111.1 XSS fixes). Thomas approved the spec.
-Finding 6 is accepted (applies to milestone C). Milestone A plan: 8 tasks in
-[milestone-a/](docs/superpowers/plans/portfolio-mvp/milestone-a/README.md), awaiting Thomas's review.
+Spec approved; milestone A runs on branch `milestone-a` (worktree `.claude/worktrees/milestone-a`).
+Tasks 1–6 done: ADR 0002 accepted, six seed problems human-verified by Thomas, app factory
+with `/healthz`, `/readyz` and placeholder page (85 tests pass). Task 7 (Dockerfile, Caddy,
+compose, CI smoke job) is committed but unverified: no Docker locally and no GitHub remote yet.
+Progress ledger: `.superpowers/sdd/README/progress.md` (git-ignored; rulings recorded there).
 
 ## Next action for Claude
 
 Follow option B; do not reopen the A/B/C choice.
-After Thomas reviews the milestone A plan and picks an execution method
-(subagent-driven or native), execute it from task 1. Human gates: ADR 0002 (task 2),
-seed review (task 5), AWS/domain/DNS (task 8). No assistant co-author trailers.
+Thomas: create the GitHub repo and push `milestone-a` (or install Docker) so the task 7 smoke
+test runs. Then task 8 needs Thomas's AWS account, domain and DNS. No co-author trailers.
 
 ## Reference documents
 
