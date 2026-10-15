@@ -26,9 +26,9 @@ Fill in each `TBD` as task 8 proceeds. Never record credentials, keys or the con
 
 | Field | Value |
 |---|---|
-| Domain | TBD |
+| Domain | `thomasgragossian.dev` (registered 2026-10-15); app at `tutor.thomasgragossian.dev` |
 | Registrar / DNS | TBD |
-| Yearly cost | TBD |
+| Yearly cost | $8.20 first year, $12.20/yr renewal |
 | Records | `A` → static IPv4 (`AAAA` only if IPv6 is enabled); DNS-only, no proxy |
 
 ## Layout on the host
