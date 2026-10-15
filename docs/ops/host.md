@@ -14,11 +14,11 @@ Fill in each `TBD` as task 8 proceeds. Never record credentials, keys or the con
 | Field | Value |
 |---|---|
 | Provider | AWS Lightsail |
-| Region | TBD |
-| Bundle / RAM | TBD (at least 1 GB) |
+| Region | Oregon, us-west-2 (zone us-west-2a) |
+| Bundle / RAM | General purpose: 1 GB RAM, 2 vCPUs, 40 GB SSD |
 | OS | Ubuntu 24.04 LTS |
 | Static IPv4 | TBD |
-| IPv6 | TBD (enabled or not) |
+| IPv6 | Dual-stack (IPv6 assigned; no `AAAA` record yet) |
 | Monthly price (date checked) | TBD |
 | Firewall | 22 from Thomas's IP only; 80 and 443 from anywhere; nothing else |
 
@@ -27,7 +27,7 @@ Fill in each `TBD` as task 8 proceeds. Never record credentials, keys or the con
 | Field | Value |
 |---|---|
 | Domain | `thomasgragossian.dev` (registered 2026-10-15); app at `tutor.thomasgragossian.dev` |
-| Registrar / DNS | TBD |
+| Registrar / DNS | Cloudflare (registrar and DNS) |
 | Yearly cost | $8.20 first year, $12.20/yr renewal |
 | Records | `A` → static IPv4 (`AAAA` only if IPv6 is enabled); DNS-only, no proxy |
 
