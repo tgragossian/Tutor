@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync } from 
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ComputeEngine } from "@cortex-js/compute-engine";
-import { parse as parseYaml } from "yaml";
+import { isPair, isScalar, isSeq, parseDocument, visit } from "yaml";
 
 const TOOLS_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -13,20 +13,51 @@ function pkgVersion(name) {
 
 function loadYaml(file, label) {
   const text = readFileSync(file, "utf8").replace(/\r\n/g, "\n");
-  let doc;
-  try {
-    doc = parseYaml(text, { schema: "core", uniqueKeys: true });
-  } catch (e) {
+  const parsed = parseDocument(text, { schema: "core", uniqueKeys: true });
+  if (parsed.errors.length) {
+    const e = parsed.errors[0];
     const dup = /unique/i.test(e.message) ? "duplicate key: " : "";
     throw new Error(`${label}: ${dup}${e.message}`);
   }
+  checkDoubleQuotedEscapes(parsed, text, label);
+  const doc = parsed.toJS();
   checkControlChars(doc, label, "");
   return doc;
 }
 
+function yamlPath(path, key) {
+  const parts = [];
+  path.forEach((node, i) => {
+    if (isPair(node) && isScalar(node.key)) parts.push(String(node.key.value));
+    if (isSeq(node)) {
+      const next = path[i + 1];
+      const idx = next === undefined ? key : node.items.indexOf(next);
+      parts[parts.length - 1] += `[${idx}]`;
+    }
+  });
+  return parts.join(".") || "(root)";
+}
+
+// Every backslash escape in a double-quoted scalar is a trap for LaTeX: some become control
+// characters, but \n, \N, \L, \P and \_ yield newline/U+0085/U+2028/U+2029/U+00A0, so \nu or
+// \Pi would silently compile to "u" or "i" (review focus 2).
+function checkDoubleQuotedEscapes(parsed, text, label) {
+  visit(parsed, {
+    Scalar(key, node, path) {
+      if (node.type !== "QUOTE_DOUBLE" || !node.range) return;
+      if (text.slice(node.range[0], node.range[1]).includes("\\")) {
+        throw new Error(
+          `${label}: ${yamlPath(path, key)}: backslash escape in a double-quoted string; ` +
+            "use single quotes for LaTeX",
+        );
+      }
+    },
+  });
+}
+
 function checkControlChars(node, label, path) {
   if (typeof node === "string") {
-    if (/[\u0000-\u0009\u000b-\u001f]/.test(node)) {
+    if (/[\u0000-\u0009\u000b-\u001f\u0085\u00a0\u2028\u2029]/.test(node)) {
       throw new Error(
         `${label}: ${path || "(root)"}: control character in string; use single quotes for LaTeX`,
       );

@@ -29,6 +29,17 @@ test("double-quoted \\frac fails with single-quote hint", () => {
   );
 });
 
+// \n and \P are YAML escapes too, but produce a newline / U+2029 rather than a control
+// character: \nu and \Pi would silently become "u" and "i" (review focus 2).
+for (const name of ["nu_escape", "pi_escape"]) {
+  test(`double-quoted backslash escape fails (${name})`, () => {
+    assert.throws(
+      () => compile(join(FIX, name)),
+      /bad-001\.yaml.*answer\.latex.*single quotes/,
+    );
+  });
+}
+
 test("placeholder answer fails", () => {
   assert.throws(
     () => compile(join(FIX, "placeholder")),
