@@ -17,7 +17,7 @@ Fill in each `TBD` as task 8 proceeds. Never record credentials, keys or the con
 | Region | Oregon, us-west-2 (zone us-west-2a) |
 | Bundle / RAM | General purpose: 1 GB RAM, 2 vCPUs, 40 GB SSD |
 | OS | Ubuntu 24.04 LTS |
-| Static IPv4 | TBD |
+| Static IPv4 | `44.231.68.211` (Lightsail static IP) |
 | IPv6 | Dual-stack (IPv6 assigned; no `AAAA` record yet) |
 | Monthly price (date checked) | TBD |
 | Firewall | 22 from Thomas's IP only; 80 and 443 from anywhere; nothing else |
