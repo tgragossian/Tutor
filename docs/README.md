@@ -1,19 +1,23 @@
 # Documentation
 
 - [Current handoff](../handoff.md): status, priorities and next action.
+- [Decisions](decisions/README.md): accepted direction and precedence.
+- [Active portfolio-core spec](superpowers/specs/2026-10-13-portfolio-core/README.md): approved contracts for milestones A–B.
+- [Active option B delivery plan](superpowers/plans/portfolio-mvp/README.md): milestones and gates.
+  - [Milestone A tasks](superpowers/plans/portfolio-mvp/milestone-a/README.md): tasks 1–7 done; skeleton live; final review next.
 - [Review](reviews/2026-10-13/README.md): findings with source locations and fixes.
-- [Active option B delivery sequence](superpowers/plans/portfolio-mvp/README.md): scope and gates.
-- [Original handoff](handoff/README.md): preserved background, including superseded ideas.
-- [Reference design](superpowers/specs/2026-10-13-core-practice-loop-design.md).
-- [Reference task plan](superpowers/plans/2026-10-13-core-practice-loop.md).
+- Historical references:
+  - [Original handoff](handoff/README.md).
+  - [Original design](superpowers/specs/2026-10-13-core-practice-loop-design.md).
+  - [Original task plan](superpowers/plans/2026-10-13-core-practice-loop.md).
+- [Operations](ops/README.md): hours log and operational notes.
+- [API contracts](../contracts/README.md): example request and item bodies.
+- [Content](../content/README.md): problem authoring, compiling and source licence manifest.
 
-Reference documents preserve the original wording and numbering for traceability.
-The [decision record](decisions/README.md) captures option B and the verifier/attribution refinements.
-It takes precedence over the preserved drafts and earlier review recommendations.
-Resolve remaining technical findings before implementing affected tasks.
+Reference documents preserve original wording and numbering for traceability.
+Decision 0001 takes precedence over the approved portfolio-core spec, which takes
+precedence over the original design for milestones A–B. The active plan governs
+delivery order; resolve findings before implementing affected tasks.
 
 Keep each Markdown file at most 100 lines, with a descriptive parent link.
 Use JSON/CSV for full evaluation results and short Markdown summaries for readers.
-- [Operations](ops/README.md): hours log and operational notes.
-- [API contracts](../contracts/README.md): example request and item bodies.
-- [Content](../content/README.md): problem authoring, compiling and the source licence manifest.

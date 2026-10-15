@@ -2,7 +2,8 @@
 
 [Delivery plan](../README.md) · [Milestone A goals](../01-foundation.md) · [Handoff](../../../../../handoff.md)
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** tasks 1–7 done; task 8's skeleton is live. Host and budget records,
+then the final whole-branch review, remain. Task checkboxes below are the original plan.
 
 **Goal:** A tested Python/Node scaffold with real MathLive captures, typed content and API contracts, six human-reviewed seed problems, and an HTTPS skeleton deployed on Lightsail.
 
