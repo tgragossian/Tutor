@@ -13,6 +13,7 @@ from pydantic import ValidationError
 
 from mathtutor.content.schema import ContentBundle, Problem
 from mathtutor.domain import ReviewStatus
+from mathtutor.jsonio import loads_exact
 
 
 class ContentError(Exception):
@@ -39,23 +40,36 @@ def _lines(label: str, exc: ValidationError) -> list[str]:
 
 
 def load_bundle(path: Path) -> LoadedContent:
-    # Plain json.loads: MathJSON is not interpreted in milestone A, and Decimal would
-    # not pass pydantic's JsonValue validation.
+    # Decimal literals become {"num": "<literal>"}: no float ever holds an answer value.
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data = loads_exact(path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
         raise ContentError(f"{path.name}: (file): {e}") from e
     if not isinstance(data, dict):
         raise ContentError(f"{path.name}: (root): bundle must be a JSON object")
 
-    raw_problems = data.get("problems", [])
+    raw_problems = data.get("problems")
+    if not isinstance(raw_problems, list):
+        raise ContentError(f"{path.name}: (root): problems must be a list")
+    raw_topics = data.get("topics")
+    if not isinstance(raw_topics, list):
+        raise ContentError(f"{path.name}: (root): topics must be a list")
     errors: list[str] = []
     try:
         ContentBundle.model_validate({**data, "problems": []})
     except ValidationError as exc:
         errors += _lines(path.name, exc)
 
-    topic_ids = {t.get("topic_id") for t in data.get("topics", []) if isinstance(t, dict)}
+    for key in ("topic_id", "order"):
+        seen_values: set[Any] = set()
+        for i, t in enumerate(raw_topics):
+            if not isinstance(t, dict) or key not in t:
+                continue
+            if t[key] in seen_values:
+                errors.append(f"topics[{i}]: {key}: duplicate")
+            seen_values.add(t[key])
+
+    topic_ids = {t.get("topic_id") for t in raw_topics if isinstance(t, dict)}
     seen: set[str] = set()
     for i, raw in enumerate(raw_problems):
         label = str(raw.get("id", f"problems[{i}]")) if isinstance(raw, dict) else f"problems[{i}]"

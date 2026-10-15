@@ -9,6 +9,9 @@ HTTPS and CI (tests, container smoke test) work. No grading, accounts or experim
 Option B is selected: ship the core early, then restore features in a gated queue.
 Tasks 1–7 are done. Task 8's host and budget records and the final branch review remain.
 
+Hosting is on one AWS instance ([host record](docs/ops/host.md)); the AWS Budget alert emails
+at $10/month and is not a spending cap.
+
 Start with the [handoff](handoff.md), [review](docs/reviews/2026-10-13/README.md),
 and [active implementation sequence](docs/superpowers/plans/portfolio-mvp/README.md).
 

@@ -71,3 +71,45 @@ def test_compiled_tools_match_captured_meta() -> None:
         "mathlive": captured["mathlive"],
         "compute_engine": captured["compute_engine"],
     }
+
+
+def _write(tmp_path: Path, data: dict[str, object]) -> Path:
+    path = tmp_path / "b.json"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    return path
+
+
+def test_loader_reads_mathjson_exactly(tmp_path: Path) -> None:
+    text = GOOD.read_text(encoding="utf-8")
+    data = json.loads(text)
+    data["problems"][0]["answer"]["mathjson"] = "@@"
+    raw = json.dumps(data).replace('"@@"', "0.785")
+    path = tmp_path / "b.json"
+    path.write_text(raw, encoding="utf-8")
+    c = load_bundle(path)
+    assert c.bundle.problems[0].answer.mathjson == {"num": "0.785"}
+
+
+def test_loader_problems_null_is_content_error(tmp_path: Path) -> None:
+    data = json.loads(GOOD.read_text(encoding="utf-8"))
+    data["problems"] = None
+    with pytest.raises(ContentError, match=r"\(root\)"):
+        load_bundle(_write(tmp_path, data))
+
+
+def test_loader_problems_missing_is_content_error(tmp_path: Path) -> None:
+    data = json.loads(GOOD.read_text(encoding="utf-8"))
+    del data["problems"]
+    with pytest.raises(ContentError, match=r"\(root\)"):
+        load_bundle(_write(tmp_path, data))
+
+
+@pytest.mark.parametrize("field", ["topic_id", "order"])
+def test_loader_duplicate_topic_id_or_order(tmp_path: Path, field: str) -> None:
+    data = json.loads(GOOD.read_text(encoding="utf-8"))
+    data["topics"].append({**data["topics"][0]})
+    data["topics"][1] = {**data["topics"][0]}
+    other = "order" if field == "topic_id" else "topic_id"
+    data["topics"][1][other] = "zz.other" if other == "topic_id" else 99
+    with pytest.raises(ContentError, match=rf"topics\[1\]: {field}: duplicate"):
+        load_bundle(_write(tmp_path, data))

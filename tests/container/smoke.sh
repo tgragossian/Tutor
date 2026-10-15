@@ -9,7 +9,7 @@ NAME=mathtutor-smoke-$$
 CREATED_ENV=0
 
 cleanup() {
-  docker rm -f "$NAME" >/dev/null 2>&1 || true
+  docker rm -f "$NAME" "$NAME-nosecret" >/dev/null 2>&1 || true
   if [ "$CREATED_ENV" = 1 ]; then rm -f deploy/.env; fi
 }
 trap cleanup EXIT
@@ -41,7 +41,7 @@ case "$body" in
 esac
 
 set +e
-timeout 10 docker run --rm "$IMAGE" >/dev/null 2>&1
+timeout 10 docker run --rm --name "$NAME-nosecret" "$IMAGE" >/dev/null 2>&1
 rc=$?
 set -e
 [ "$rc" -ne 0 ] || fail "started without MATHTUTOR_SECRET_KEY"
@@ -49,6 +49,6 @@ set -e
 
 # compose reads env_file deploy/.env; supply the example if none exists.
 if [ ! -f deploy/.env ]; then cp deploy/.env.example deploy/.env; CREATED_ENV=1; fi
-docker compose -f deploy/compose.yaml --env-file deploy/.env.example config -q
+SITE_ADDRESS=localhost docker compose -f deploy/compose.yaml --env-file deploy/.env.example config -q
 
 echo "container smoke test: PASS"

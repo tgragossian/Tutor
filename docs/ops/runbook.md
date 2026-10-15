@@ -14,6 +14,7 @@ C="sudo docker compose -f deploy/compose.yaml"
 git pull --ff-only
 sudo docker build -t mathtutor:local .
 $C up -d
+sudo docker image prune -f
 curl -fsS https://<domain>/readyz        # expect "status":"ready"
 ```
 
@@ -56,3 +57,7 @@ In milestone A nothing uses the key yet; from milestone B, rotating it logs ever
 
 `deploy/.env` exists **only on the host** (mode 600). It is git-ignored and excluded from the
 image by `.dockerignore`. If it is lost, recreate it from `deploy/.env.example` with a new key.
+
+## Costs
+
+The AWS Budget alert emails at $10/month; it is not a spending cap.
