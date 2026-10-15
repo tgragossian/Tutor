@@ -2,8 +2,8 @@
 
 [Handoff](../../../../handoff.md) · [Review](../../../reviews/2026-10-13/README.md)
 
-Status: option B selected; milestone A [tasks](milestone-a/README.md) 1–7 done.
-The skeleton is live; finish task 8 records and the final branch review.
+Status: option B selected; [milestone A](milestone-a/README.md) complete and live.
+[Milestone B plan](milestone-b/README.md) drafted 2026-10-15, awaiting Thomas's review.
 [Decision record](../../../decisions/0001-delivery-verifier-attribution.md) takes precedence over draft rules.
 Goal: a deployed Calculus I practice tutor with measured verification, citation-based
 hints, reproducible retrieval experiments and clear operational limits.
@@ -61,7 +61,7 @@ Do not promise learning gains or a better tutor based solely on offline scores.
 ## Next implementation step
 
 Follow the selected order and [verifier decisions](../../../decisions/0001-delivery-verifier-attribution.md).
-Finish [milestone A](milestone-a/README.md): record remaining host details, review the
-whole branch, then merge to main and move the live host to main.
+Thomas reviews the [milestone B plan](milestone-b/README.md) and picks an execution
+method; then execute it from task 1. Milestone A is complete and live.
 The product option B is distinct from milestone B and does not select an agent workflow.
 The original 20 tasks remain linked [here](../2026-10-13-core-practice-loop.md) for reuse.
