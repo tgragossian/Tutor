@@ -2,9 +2,11 @@
 
 A portfolio project by Thomas Gragossian: build and evaluate a deployed Calculus I tutor.[^ai]
 
-Status: design review completed on 2026-10-13. No application code or deployment exists.
+Live: <https://tutor.thomasgragossian.dev>
+
+Status: milestone A skeleton. Six human-reviewed problems load; health and readiness probes,
+HTTPS and CI (tests, container smoke test) work. No grading, accounts or experiments yet.
 Option B is selected: ship the core early, then restore features in a gated queue.
-No experiments have run.
 
 Start with the [handoff](handoff.md), [review](docs/reviews/2026-10-13/README.md),
 and [active implementation sequence](docs/superpowers/plans/portfolio-mvp/README.md).

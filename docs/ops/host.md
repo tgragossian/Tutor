@@ -20,7 +20,7 @@ Fill in each `TBD` as task 8 proceeds. Never record credentials, keys or the con
 | Static IPv4 | `44.231.68.211` (Lightsail static IP) |
 | IPv6 | Dual-stack (IPv6 assigned; no `AAAA` record yet) |
 | Monthly price (date checked) | TBD |
-| Firewall | 22 from Thomas's IP only; 80 and 443 from anywhere; nothing else |
+| Firewall | 22: Thomas's IPv4 + Lightsail browser SSH; 80: any IPv4/IPv6; 443: any IPv4 |
 
 ## Domain
 
@@ -40,17 +40,22 @@ Fill in each `TBD` as task 8 proceeds. Never record credentials, keys or the con
 
 ## Verification from outside AWS
 
-Paste the real outputs here, with the date.
+Checked 2026-10-15 16:57 UTC from Thomas's laptop (outside AWS). All four pass.
+TLS: Let's Encrypt certificate for `tutor.thomasgragossian.dev`, expires 2027-01-13 (Caddy renews).
 
 ```text
-$ curl -sS https://<domain>/readyz
-TBD
-$ curl -sI http://<domain>/            # expect 308 to https://
-TBD
-$ curl -sI https://<domain>/healthz    # expect content-security-policy header
-TBD
-$ curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://<static-ip>:8000/   # expect failure
-TBD
+$ curl -sS https://tutor.thomasgragossian.dev/readyz
+{"status":"ready","content_version":"36c7219f7f63","servable":6}
+$ curl -sI http://tutor.thomasgragossian.dev/
+HTTP/1.1 308 Permanent Redirect
+Location: https://tutor.thomasgragossian.dev/
+$ curl -sI https://tutor.thomasgragossian.dev/healthz
+HTTP 200
+Content-Security-Policy: default-src 'self'
+Referrer-Policy: same-origin
+X-Content-Type-Options: nosniff
+$ curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://44.231.68.211:8000/
+000 (Connection timed out after 5022 milliseconds)
 ```
 
 ## Idle memory (first data point, not final sizing)
