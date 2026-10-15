@@ -1,6 +1,6 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-15 (milestone B underway).
+Owner: Thomas Gragossian. Updated: 2026-10-15 (milestone B paused at task 7 for Codex review).
 
 ## Current state
 
@@ -62,7 +62,16 @@ in the [README footnote](README.md#acknowledgments). Existing commits are not re
 Milestone A is merged to `main`, CI green, live at https://tutor.thomasgragossian.dev
 (host runs `main`; details in `docs/ops/host.md`). Thomas approved the milestone B plan and
 chose subagent-driven execution. Work runs on branch `milestone-b`
-(worktree `.claude/worktrees/milestone-b`); tasks 1–2 are committed and task 3 has begun.
+(worktree `.claude/worktrees/milestone-b`).
+
+**Paused 2026-10-15 for a Codex code review.** Tasks 1–6 are complete and reviewed.
+Task 7 (verifier pool) stopped mid fix round 1; HEAD is a red commit that holds 7 failing
+tests for the review fixes, and `pool.py` is not changed yet. Status, pause point and deferred
+minors: [execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
+
+**Codex:** please review `main..milestone-b` (focus `src/mathtutor/verify/`, `tools/compile_content/`),
+expecting the 7 red pool tests, and update Markdown files as needed. Claude resumes from your
+review and doc edits: finish task 7's fixes, then task 8.
 
 ## Codex review notes for Claude
 
@@ -73,11 +82,9 @@ the pool import boundary, and the 43.5 h estimate against a 30 h timebox.
 These are plan risks, not verified code defects; check implementations and tests.
 Human gates remain: dev-case labels (task 9), new problems (task 15), host deploy (task 16).
 
-Rulings made at execution start (not yet in the plan files):
-- R7: `.env.example` leaves `SITE_ADDRESS` empty; `smoke.sh` exports `SITE_ADDRESS=localhost` for the compose check.
-- R8: the pool resolves its default `check_fn` inside the worker by import path, so the web
-  process never imports `verify.check` (spec 05's `= check` default would pull in SymPy).
-- R9: task 6 moves every test fixture bundle to `schema_version` 2.
+Rulings R7–R21 made during execution (including Thomas's R14–R16) are recorded in
+[execution rulings](docs/superpowers/plans/portfolio-mvp/milestone-b/02-execution-rulings.md);
+they override the plan files where they differ.
 
 ## Reference documents
 

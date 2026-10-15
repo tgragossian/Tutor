@@ -23,6 +23,8 @@
 
 - [Global constraints, rulings and review focus](00-constraints.md): applies to every task
 - [File map](01-file-map.md): every file this milestone creates or changes
+- [Execution rulings](02-execution-rulings.md): R7–R21 and in-task rulings (override the plan)
+- [Execution status](03-execution-status.md): task progress, pause point, deferred minors
 
 ## Tasks
 
