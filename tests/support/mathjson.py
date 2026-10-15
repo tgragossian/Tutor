@@ -23,6 +23,11 @@ def mj(key: str) -> Any:
     return loads_exact(_load()["cases"][key]["mathjson"])
 
 
+def keys() -> list[str]:
+    """Every captured case key."""
+    return list(_load()["cases"])
+
+
 def latex(key: str) -> str:
     """The LaTeX string MathLive reported for ``key`` (display/logging only)."""
     return str(_load()["cases"][key]["latex_out"])
