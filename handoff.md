@@ -43,25 +43,14 @@ and [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md
 The [decision record](docs/decisions/0001-delivery-verifier-attribution.md) defines these
 defaults and safeguards. It supersedes the review's blanket implicit-deferral suggestion.
 
-## Remaining findings Claude must address
+## 2026-10-13 review findings: where they now live
 
-1. Bound input bytes, tree shape, numeric sizes, expression construction and worker queue.
-2. Resolve decimal precision, +C, multiple-choice dispatch and semantic answer payloads.
-3. Use durable item-presentation IDs, atomic/idempotent submissions and explicit retry,
-   reveal and advance states. Refresh must not reset timing; uncertain grading is not wrong.
-4. Pin patched MathLive/Compute Engine versions and capture actual browser output.
-   The reviewed MathLive version removed getValue('math-json'); do not copy that old call.
-5. Add human-reviewed adversarial cases and problem-family evaluation splits.
-   Generated SymPy cases alone are not independent validation; gate useful coverage too.
-6. MathDial dialogue labels do not establish calculus correctness or hint-leakage quality.
-7. Share application services between HTML/JSON routes; test restore/rollback and measure
-   host memory, queue-inclusive latency and LLM usage. Budget alerts are not spending caps.
-
-Details: [review](docs/reviews/2026-10-13/README.md),
-[verifier](docs/reviews/2026-10-13/verifier.md),
-[contracts](docs/reviews/2026-10-13/contracts.md),
-[evaluation](docs/reviews/2026-10-13/evaluation.md), and
-[structure](docs/reviews/2026-10-13/structure.md).
+All seven are answered by the approved [portfolio-core spec](docs/superpowers/specs/2026-10-13-portfolio-core/README.md)
+and implemented in milestone B: bounds (1) → tasks 2–3; precision, choice dispatch (2) → tasks 2, 5;
+presentations and idempotent submits (3) → task 12; MathLive pins and captures (4) → milestone A
+and task 14; human cases and family splits (5) → tasks 8–9; shared services, memory, latency (7)
+→ tasks 12–13, 16. Finding 6 (MathDial) applies to milestone C.
+Details: [review](docs/reviews/2026-10-13/README.md).
 
 ## Attribution decision
 
@@ -70,19 +59,29 @@ in the [README footnote](README.md#acknowledgments). Existing commits are not re
 
 ## Claude update (2026-10-15)
 
-Milestone A on branch `milestone-a` (pushed to https://github.com/tgragossian/Tutor; CI green).
-Tasks 1–7 done. Task 8: live at https://tutor.thomasgragossian.dev (Lightsail us-west-2,
-1 GB; Cloudflare DNS-only `A` record); outside checks pass, recorded in `docs/ops/host.md`.
-The host runs a checkout of `milestone-a` at `/srv/mathtutor`.
-Ledger: `.superpowers/sdd/README/progress.md` (git-ignored; rulings and deferred minors).
+Milestone A is merged to `main`, CI green, live at https://tutor.thomasgragossian.dev
+(host runs `main`; details in `docs/ops/host.md`). Thomas approved the milestone B plan and
+chose subagent-driven execution. Work runs on branch `milestone-b`
+(worktree `.claude/worktrees/milestone-b`); task 1 is in progress.
 
-## Next action for Claude
+## Review request for Codex: milestone B plan
 
-Follow option B; do not reopen the A/B/C choice. No co-author trailers.
-Milestone A is merged to `main` and the host runs `main`.
-The [milestone B plan](docs/superpowers/plans/portfolio-mvp/milestone-b/README.md) (16 tasks,
-~43 h estimated vs a 30 h timebox) awaits Thomas's review and choice of execution method.
-Human gates in B: dev-case labels (task 9), new problems (task 15), host deploy (task 16).
+Please review the [milestone B plan](docs/superpowers/plans/portfolio-mvp/milestone-b/README.md)
+(16 task files, constraints, file map) against the [spec](docs/superpowers/specs/2026-10-13-portfolio-core/README.md)
+and decision 0001. Write findings to `docs/reviews/2026-10-15-milestone-b/README.md`
+(≤ 100 lines per file, severity + file:line + fix); do not edit the plan directly, since
+execution has started. Focus on:
+1. Verifier soundness (tasks 3–5): any path where a wrong answer could be graded correct.
+2. Submit protocol and concurrency (tasks 7, 12): races, orphaned reservations, SQLite locking.
+3. Process boundary: rulings R1 (offline content check) and R8 below keep SymPy out of the web process.
+4. Whether 80 dev cases (task 9) and the gates in task 8 are a meaningful measurement.
+5. Scope vs budget: ~43 h estimated against a 30 h timebox.
+
+Rulings made at execution start (not yet in the plan files):
+- R7: `.env.example` leaves `SITE_ADDRESS` empty; `smoke.sh` exports `SITE_ADDRESS=localhost` for the compose check.
+- R8: the pool resolves its default `check_fn` inside the worker by import path, so the web
+  process never imports `verify.check` (spec 05's `= check` default would pull in SymPy).
+- R9: task 6 moves every test fixture bundle to `schema_version` 2.
 
 ## Reference documents
 
