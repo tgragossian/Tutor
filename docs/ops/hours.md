@@ -12,4 +12,4 @@
 | 6 | 2 |  |  |
 | 7 | 3 |  |  |
 | 8 | 2 |  |  |
-| total | 20 |  | ~6 h for tasks 1–5 combined (Thomas, 2026-10-15); no per-task split |
+| total | 20 | ~8 | ~6 h for tasks 1–5 and ~2 h for tasks 6–8 (Thomas, 2026-10-15); no per-task split |

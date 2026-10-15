@@ -6,7 +6,7 @@ Fill in each `TBD` as task 8 proceeds. Never record credentials, keys or the con
 
 ## Cost controls
 
-- **AWS Budget:** $10/month alert to Thomas's email, created TBD.
+- **AWS Budget:** $10/month alert to Thomas's email, created 2026-10-15.
   It is a **notification, not a spending cap**: AWS keeps billing past it.
 
 ## Instance
