@@ -1,0 +1,263 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+import pytest
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
+
+from mathtutor import __version__
+from mathtutor.content.loader import load_bundle
+from mathtutor.content.schema import (
+    ChoiceAnswer,
+    Decimals,
+    Domain,
+    ExpressionAnswer,
+    NumericAnswer,
+)
+from mathtutor.domain import AnswerKind, FormatIssueCode, Method, VerdictReason, VerdictStatus
+from mathtutor.verify import check as check_module
+from mathtutor.verify.check import VERIFIER_VERSION, check
+from mathtutor.verify.types import (
+    CheckRequest,
+    CheckResult,
+    FormatIssue,
+    SubmittedAnswer,
+    Verdict,
+)
+
+ROOT = Path(__file__).resolve().parents[3]
+SEED = load_bundle(ROOT / "content" / "compiled" / "problems.json").bundle.problems
+BY_ID = {p.id: p for p in SEED}
+
+CORRECT = Verdict(VerdictStatus.CORRECT, VerdictReason.PROVEN, Method.SYMBOLIC)
+NOT_PROVEN = Verdict(VerdictStatus.UNABLE_TO_VERIFY, VerdictReason.NOT_PROVEN, Method.NONE)
+DOMAIN_UNPROVEN = Verdict(
+    VerdictStatus.UNABLE_TO_VERIFY, VerdictReason.DOMAIN_UNPROVEN, Method.DOMAIN
+)
+INTERNAL_ERROR = Verdict(VerdictStatus.UNABLE_TO_VERIFY, VerdictReason.INTERNAL_ERROR, Method.NONE)
+
+
+def expression_spec(tree: Any, domain: Domain | None = None, strict: bool = False) -> Any:
+    return ExpressionAnswer(
+        kind="expression",
+        latex="",
+        mathjson=tree,
+        domain=domain or Domain(),
+        strict_domain=strict,
+    )
+
+
+def submit(spec: Any, tree: Any, latex: str = "x") -> CheckRequest:
+    return CheckRequest(spec, SubmittedAnswer(spec.kind, tree, latex, None))
+
+
+def choice_req(choice: str | None, correct: str) -> CheckRequest:
+    spec = ChoiceAnswer(
+        kind="choice",
+        choices=[
+            {"id": "a", "latex": "1", "mathjson": 1},
+            {"id": "b", "latex": "2", "mathjson": 2},
+        ],
+        correct=correct,
+    )
+    return CheckRequest(spec, SubmittedAnswer(AnswerKind.CHOICE, None, "", choice))
+
+
+def outcome(req: CheckRequest) -> Verdict | FormatIssue:
+    result = check(req)
+    assert isinstance(result, CheckResult)
+    assert result.verifier_version == VERIFIER_VERSION
+    return result.outcome
+
+
+# -- choice ----------------------------------------------------------------------------------
+
+
+def test_check_choice() -> None:
+    assert outcome(choice_req("b", correct="b")) == Verdict(
+        VerdictStatus.CORRECT, VerdictReason.CHOICE_MATCH, Method.EXACT
+    )
+    assert outcome(choice_req("a", correct="b")) == Verdict(
+        VerdictStatus.INCORRECT, VerdictReason.CHOICE_MISMATCH, Method.EXACT
+    )
+    assert outcome(choice_req(None, correct="b")) == FormatIssue(FormatIssueCode.EMPTY)
+
+
+def test_kind_mismatch_raises() -> None:
+    spec = expression_spec("x")
+    req = CheckRequest(spec, SubmittedAnswer(AnswerKind.NUMERIC, "x", "x", None))
+    with pytest.raises(ValueError):
+        check(req)
+
+
+# -- numeric ---------------------------------------------------------------------------------
+
+
+def test_check_numeric_decimal() -> None:
+    spec = BY_ID["openstax-c1-3.6-253"].answer
+    assert outcome(submit(spec, {"num": "-0.583"}, "-0.583")) == Verdict(
+        VerdictStatus.CORRECT, VerdictReason.ROUNDED_MATCH, Method.ROUNDING
+    )
+    assert outcome(submit(spec, {"num": "-0.58"}, "-0.58")) == Verdict(
+        VerdictStatus.INCORRECT, VerdictReason.ROUNDED_MISMATCH, Method.ROUNDING
+    )
+
+
+def test_check_numeric_exact_symbolic() -> None:
+    spec = BY_ID["openstax-c1-3.6-253"].answer
+    exact = ["Divide", -200, 343]
+    assert outcome(submit(spec, exact, "\\frac{-200}{343}")) == CORRECT
+    wrong = ["Divide", -200, 49]
+    assert outcome(submit(spec, wrong, "\\frac{-200}{49}")) == Verdict(
+        VerdictStatus.INCORRECT, VerdictReason.COUNTEREXAMPLE, Method.REFUTATION
+    )
+
+
+def test_check_numeric_decimal_inside_a_tree_is_exact() -> None:
+    spec = NumericAnswer(
+        kind="numeric", latex="", mathjson=["Divide", 1, 4], precision=Decimals(decimals=2)
+    )
+    assert outcome(submit(spec, ["Divide", {"num": "0.5"}, 2], "0.5/2")) == CORRECT
+
+
+def test_check_numeric_irrational_expected_abstains() -> None:
+    spec = NumericAnswer(kind="numeric", latex="", mathjson="Pi", precision=Decimals(decimals=2))
+    assert outcome(submit(spec, {"num": "3.14"}, "3.14")).status == VerdictStatus.UNABLE_TO_VERIFY
+
+
+# -- expression ------------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("problem", SEED, ids=[p.id for p in SEED])
+def test_check_expression_seed_answers(problem: Any) -> None:
+    spec = problem.answer
+    if spec.kind == "choice":
+        req = CheckRequest(spec, SubmittedAnswer(AnswerKind.CHOICE, None, "", spec.correct))
+        assert outcome(req).status == VerdictStatus.CORRECT
+    else:
+        assert outcome(submit(spec, spec.mathjson, spec.latex)) == CORRECT
+
+
+def test_check_gap_certified() -> None:
+    spec = expression_spec("x")
+    assert outcome(submit(spec, ["Power", ["Sqrt", "x"], 2])) == Verdict(
+        VerdictStatus.INCORRECT, VerdictReason.UNDEFINED_ON_DOMAIN, Method.DOMAIN
+    )
+
+
+def test_check_gap_uncertified_abstains(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(check_module, "refute", lambda *args, **kwargs: None)
+    spec = expression_spec("x")
+    assert outcome(submit(spec, ["Power", ["Sqrt", "x"], 2])) == DOMAIN_UNPROVEN
+
+
+def test_check_refutation() -> None:
+    spec = expression_spec(["Multiply", 2, "x"])
+    assert outcome(submit(spec, ["Power", "x", 2])) == Verdict(
+        VerdictStatus.INCORRECT, VerdictReason.COUNTEREXAMPLE, Method.REFUTATION
+    )
+    ln_spec = expression_spec(
+        ["Ln", ["Power", "x", 2]],
+        Domain(intervals=[("-inf", "0", "open", "open"), ("0", "inf", "open", "open")]),
+    )
+    assert outcome(submit(ln_spec, ["Multiply", 2, ["Ln", "x"]])) == Verdict(
+        VerdictStatus.INCORRECT, VerdictReason.STUDENT_UNDEFINED, Method.REFUTATION
+    )
+
+
+def test_check_removable_hole_is_correct() -> None:
+    spec = expression_spec(["Add", "x", 1])
+    hole = ["Divide", ["Subtract", ["Power", "x", 2], 1], ["Subtract", "x", 1]]
+    assert outcome(submit(spec, hole)) == CORRECT
+
+
+def test_check_unproven_abstains() -> None:
+    # x + 10^-70 differs from x below 60 digits on (1, 2): no proof and no certified point.
+    spec = expression_spec("x", Domain(intervals=[("1", "2", "open", "open")]))
+    assert outcome(submit(spec, ["Add", "x", ["Power", 10, -70]])) == NOT_PROVEN
+
+
+def test_check_timeout() -> None:
+    spec = expression_spec(["Multiply", 2, "x"])
+    result = check(submit(spec, ["Add", "x", "x"]), deadline_s=0.0)
+    assert result.outcome == Verdict(
+        VerdictStatus.UNABLE_TO_VERIFY, VerdictReason.TIMEOUT, Method.NONE
+    )
+
+
+def test_check_expected_rejected_is_internal_error(caplog: pytest.LogCaptureFixture) -> None:
+    spec = expression_spec(["Foo", "x"])
+    assert outcome(submit(spec, "x")) == INTERNAL_ERROR
+    assert "expected answer" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "tree,latex,code",
+    [
+        (None, "", FormatIssueCode.EMPTY),
+        ("Nothing", "", FormatIssueCode.EMPTY),
+        (["Add", "x", ["Error", "'missing'"]], "x+", FormatIssueCode.INCOMPLETE),
+        ("x", "x^{}", FormatIssueCode.INCOMPLETE),
+        (["Add", "x", 10**40], "x", FormatIssueCode.INPUT_TOO_LARGE),
+        (["Add", *(["x"] * 250)], "x", FormatIssueCode.INPUT_TOO_LARGE),
+        (["Foo", "x"], "x", FormatIssueCode.UNSUPPORTED_NOTATION),
+        (["Power", "x", 5000], "x", FormatIssueCode.INPUT_TOO_LARGE),
+        ("y", "y", FormatIssueCode.UNSUPPORTED_NOTATION),
+    ],
+)
+def test_check_format_issue_passthrough(tree: Any, latex: str, code: FormatIssueCode) -> None:
+    result = outcome(submit(expression_spec("x"), tree, latex))
+    assert isinstance(result, FormatIssue)
+    assert result.code == code
+
+
+def test_check_format_issue_keeps_suggestion() -> None:
+    tree = ["InvisibleOperator", "e", ["Delimiter", ["Add", "x", 1]]]
+    result = outcome(submit(expression_spec("x"), tree, "e(x+1)"))
+    assert isinstance(result, FormatIssue)
+    assert result.code == FormatIssueCode.UNSUPPORTED_NOTATION
+    assert "Did you mean e·(...)?" in result.detail
+
+
+def test_check_exact_required() -> None:
+    spec = NumericAnswer(kind="numeric", latex="", mathjson=["Divide", 1, 4], precision="exact")
+    assert outcome(submit(spec, {"num": "0.25"}, "0.25")) == FormatIssue(
+        FormatIssueCode.EXACT_REQUIRED
+    )
+
+
+def test_verifier_version() -> None:
+    assert VERIFIER_VERSION.startswith(f"{__version__}+")
+
+
+# -- robustness ------------------------------------------------------------------------------
+
+_HEADS = ["Add", "Subtract", "Multiply", "Divide", "Power", "Sqrt", "Root", "Negate", "Sin"]
+_HEADS += ["Cos", "Tan", "Ln", "Log", "Exp", "Abs", "Delimiter", "InvisibleOperator", "Foo"]
+_LEAVES = st.one_of(
+    st.integers(min_value=-(10**35), max_value=10**35),
+    st.sampled_from(["x", "Pi", "e", "y", "Nothing", "ExponentialE"]),
+    st.builds(lambda s: {"num": s}, st.sampled_from(["0.5", "-2.75", "1e-40", "abc", "3"])),
+    st.none(),
+    st.booleans(),
+)
+_TREES = st.recursive(
+    _LEAVES,
+    lambda kids: st.one_of(
+        st.builds(lambda h, a: [h, *a], st.sampled_from(_HEADS), st.lists(kids, max_size=3)),
+        st.lists(kids, max_size=3),
+        st.dictionaries(st.sampled_from(["num", "x"]), kids, max_size=2),
+    ),
+    max_leaves=12,
+)
+
+
+@settings(max_examples=60, deadline=None, suppress_health_check=[HealthCheck.too_slow])
+@given(tree=_TREES, latex=st.sampled_from(["x", "", "x^{}", "\\placeholder{}"]))
+def test_check_never_raises(tree: Any, latex: str) -> None:
+    spec = BY_ID["openstax-c1-3.6-221"].answer
+    result = check(CheckRequest(spec, SubmittedAnswer(spec.kind, tree, latex, None)), 0.5)
+    assert isinstance(result, CheckResult)
+    assert isinstance(result.outcome, Verdict | FormatIssue)
