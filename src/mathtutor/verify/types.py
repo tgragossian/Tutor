@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
 from pydantic import JsonValue
 
+from mathtutor import __version__
 from mathtutor.content.schema import Answer
 from mathtutor.domain import AnswerKind, FormatIssueCode, Method, VerdictReason, VerdictStatus
+
+VERIFIER_VERSION: str = f"{__version__}+{os.environ.get('MATHTUTOR_GIT_SHA', 'dev')}"
 
 
 @dataclass(frozen=True)

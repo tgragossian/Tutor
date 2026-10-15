@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import time
 from decimal import Decimal
 from fractions import Fraction
@@ -11,7 +10,6 @@ from fractions import Fraction
 import sympy
 from pydantic import JsonValue
 
-from mathtutor import __version__
 from mathtutor.content.schema import Answer, ChoiceAnswer, Decimals, Domain, NumericAnswer
 from mathtutor.domain import Method, VerdictReason, VerdictStatus
 from mathtutor.verify.equivalence import Budget, Gap, equivalent, to_sympy_set
@@ -32,9 +30,14 @@ from mathtutor.verify.translate import (
     Translated,
     translate,
 )
-from mathtutor.verify.types import CheckRequest, CheckResult, FormatIssue, SubmittedAnswer, Verdict
-
-VERIFIER_VERSION: str = f"{__version__}+{os.environ.get('MATHTUTOR_GIT_SHA', 'dev')}"
+from mathtutor.verify.types import (
+    VERIFIER_VERSION,
+    CheckRequest,
+    CheckResult,
+    FormatIssue,
+    SubmittedAnswer,
+    Verdict,
+)
 
 log = logging.getLogger(__name__)
 
