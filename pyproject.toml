@@ -32,7 +32,7 @@ select = ["E", "F", "I", "B", "UP"]
 python_version = "3.12"
 
 [[tool.mypy.overrides]]
-module = ["mathtutor.domain", "mathtutor.domain.*", "mathtutor.content", "mathtutor.content.*"]
+module = ["mathtutor.domain", "mathtutor.domain.*", "mathtutor.content", "mathtutor.content.*", "mathtutor.verify", "mathtutor.verify.*"]
 strict = true
 
 [tool.pytest.ini_options]
