@@ -167,6 +167,55 @@ def test_nonconstant_log_base() -> None:
     assert same(t.expr, log(8) / log(X))
 
 
+def _fails_for_every_x(t: Translated) -> bool:
+    """Some constraint is variable-free and provably violated."""
+    checks = {
+        "nonzero": lambda v: v == 0,
+        "positive": lambda v: v <= 0,
+        "nonnegative": lambda v: v < 0,
+    }
+    for c in t.constraints:
+        if X in c.expr.free_symbols or c.kind not in checks:
+            continue
+        if checks[c.kind](sympy.simplify(c.expr)):
+            return True
+    return False
+
+
+@pytest.mark.parametrize("base", [1, 0, -2])
+def test_invalid_constant_log_base_fails_everywhere(base: int) -> None:
+    # Design: an invalid constant base translates, with a constraint violated for every x.
+    t = ok(["Log", "x", base])
+    assert _fails_for_every_x(t)
+    assert has(t, "positive", X)
+
+
+def test_log_base_one_and_zero_constraints_exact() -> None:
+    one = ok(["Log", "x", 1])
+    assert Constraint("nonzero", sympy.Add(1, -1, evaluate=False)) in one.constraints
+    zero = ok(["Log", "x", 0])
+    assert Constraint("positive", sympy.Integer(0)) in zero.constraints
+    negative = ok(["Log", "x", -2])
+    assert Constraint("positive", sympy.Integer(-2)) in negative.constraints
+
+
+def test_variable_log_base_constraints() -> None:
+    # Only the item's variable is a symbol, so a variable base is the variable itself;
+    # any other letter ("y") is unsupported notation.
+    assert code(["Log", "x", "y"]) == "unsupported_notation"
+    t = ok(["Log", 2, "x"])
+    assert has(t, "positive", X)
+    assert has(t, "nonzero", X - 1)
+    # Raw tree: the base constraint survives even though the argument equals the base.
+    t = ok(["Log", "x", "x"])
+    assert has(t, "nonzero", X - 1)
+
+
+def test_valid_log_bases_add_no_base_constraint() -> None:
+    for tree in (["Log", "x", 10], ["Log", "x", "e"], ["Lb", "x"], ["Log", "x"]):
+        assert ok(tree).constraints == (Constraint("positive", X),)
+
+
 def test_constant_violation_is_kept_as_constraint() -> None:
     assert has(ok(["Divide", 1, 0]), "nonzero", sympy.Integer(0))
     assert has(ok(["Ln", ["Negate", 1]]), "positive", sympy.Integer(-1))
