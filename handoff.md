@@ -1,11 +1,11 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-13 after selecting option B.
+Owner: Thomas Gragossian. Updated: 2026-10-15 (milestone A skeleton live).
 
 ## Current state
 
 - Independent review of Claude's handoff, specification and all 20 tasks is complete.
-- Documentation only: no application implementation, deployment or experiments yet.
+- Milestone A skeleton is live at https://tutor.thomasgragossian.dev; no grading or experiments yet.
 - The original design/tasks remain references; use the decisions below when they conflict.
 - Keep every Markdown file at most 100 lines, organized under linked parent indexes.
 
