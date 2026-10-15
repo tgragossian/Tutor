@@ -70,17 +70,18 @@ in the [README footnote](README.md#acknowledgments). Existing commits are not re
 
 ## Claude update (2026-10-15)
 
-Spec approved; milestone A runs on branch `milestone-a` (worktree `.claude/worktrees/milestone-a`).
-Tasks 1–6 done: ADR 0002 accepted, six seed problems human-verified by Thomas, app factory
-with `/healthz`, `/readyz` and placeholder page (85 tests pass). Task 7 (Dockerfile, Caddy,
-compose, CI smoke job) passes in CI. Remote: https://github.com/tgragossian/Tutor (main, milestone-a).
-Progress ledger: `.superpowers/sdd/README/progress.md` (git-ignored; rulings recorded there).
+Milestone A on branch `milestone-a` (pushed to https://github.com/tgragossian/Tutor; CI green).
+Tasks 1–7 done. Task 8: live at https://tutor.thomasgragossian.dev (Lightsail us-west-2,
+1 GB; Cloudflare DNS-only `A` record); outside checks pass, recorded in `docs/ops/host.md`.
+The host runs a checkout of `milestone-a` at `/srv/mathtutor`.
+Ledger: `.superpowers/sdd/README/progress.md` (git-ignored; rulings and deferred minors).
 
 ## Next action for Claude
 
-Follow option B; do not reopen the A/B/C choice.
-Task 8 (Lightsail deploy) next; it needs Thomas's AWS account, domain and DNS.
-No co-author trailers.
+Follow option B; do not reopen the A/B/C choice. No co-author trailers.
+1. Thomas supplies `free -m` / `docker stats` output, monthly price, budget-alert status → `host.md`.
+2. Final whole-branch review of milestone A, then merge to `main`; switch the host to `main`.
+3. Then milestone B (02-practice.md): write its implementation plan.
 
 ## Reference documents
 
