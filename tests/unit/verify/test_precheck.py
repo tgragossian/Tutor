@@ -5,7 +5,7 @@ from support.mathjson import latex, mj
 
 from mathtutor.content.schema import ChoiceAnswer, ExpressionAnswer, NumericAnswer
 from mathtutor.domain import AnswerKind
-from mathtutor.verify.precheck import precheck
+from mathtutor.verify.precheck import decimal_literal, precheck
 from mathtutor.verify.types import SubmittedAnswer
 
 EXPR = ExpressionAnswer(kind="expression", latex="2x", mathjson=["Multiply", 2, "x"])
@@ -97,3 +97,37 @@ def test_kind_mismatch_raises() -> None:
         precheck(expr_answer(mj("x_plain"), "x"), CHOICE)
     with pytest.raises(ValueError):
         precheck(SubmittedAnswer(AnswerKind.CHOICE, None, "", "a"), EXPR)
+
+
+@pytest.mark.parametrize(
+    "tree",
+    [
+        ["Negate", {"num": "0.5"}],  # how Compute Engine sends -0.5
+        ["Delimiter", {"num": "0.5"}],  # (0.5)
+        ["Delimiter", ["Negate", {"num": "0.5"}]],  # (-0.5)
+    ],
+)
+def test_top_level_decimal_shapes_when_exact_required(tree: object) -> None:
+    issue = precheck(num_answer(tree, "-0.5"), EXACT)
+    assert issue is not None and issue.code == "exact_required"
+
+
+@pytest.mark.parametrize(
+    "tree,literal",
+    [
+        ({"num": "0.5"}, "0.5"),
+        ({"num": "-0.5"}, "-0.5"),
+        (["Negate", {"num": "0.583"}], "-0.583"),
+        (["Delimiter", {"num": "3.14"}], "3.14"),
+        (["Negate", ["Delimiter", {"num": "0.5"}]], "-0.5"),
+        (["Negate", ["Negate", {"num": "0.5"}]], None),
+        (["Negate", {"num": "-0.5"}], None),
+        (["Delimiter", {"num": "0.5"}, 1], None),
+        (["Divide", {"num": "0.5"}, 2], None),
+        (["Negate", 1], None),
+        ({"num": 5}, None),
+        (None, None),
+    ],
+)
+def test_decimal_literal(tree: object, literal: str | None) -> None:
+    assert decimal_literal(tree) == literal  # type: ignore[arg-type]
