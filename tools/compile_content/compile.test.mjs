@@ -121,9 +121,9 @@ test("hostile link targets are unwrapped and an unmatched $ stays literal", () =
 });
 
 test("an escaped dollar is literal and opens no math", () => {
-  assert.equal(statementHtml("cost \$5 and \$6"), "cost $5 and $6");
+  assert.equal(statementHtml("cost \\$5 and \\$6"), "cost $5 and $6");
   assert.equal(
-    statementHtml("pay \$5 for $x$"),
+    statementHtml("pay \\$5 for $x$"),
     "pay $5 for <math-field read-only>x</math-field>",
   );
 });
