@@ -43,14 +43,14 @@ and [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md
 The [decision record](docs/decisions/0001-delivery-verifier-attribution.md) defines these
 defaults and safeguards. It supersedes the review's blanket implicit-deferral suggestion.
 
-## Remaining findings Claude must address
+## Review findings by stage
 
 1. Bound input bytes, tree shape, numeric sizes, expression construction and worker queue.
 2. Resolve decimal precision, +C, multiple-choice dispatch and semantic answer payloads.
 3. Use durable item-presentation IDs, atomic/idempotent submissions and explicit retry,
    reveal and advance states. Refresh must not reset timing; uncertain grading is not wrong.
-4. Pin patched MathLive/Compute Engine versions and capture actual browser output.
-   The reviewed MathLive version removed getValue('math-json'); do not copy that old call.
+4. Milestone A pinned MathLive/Compute Engine and captured browser output. ADR 0002
+   records the supported API; the removed getValue('math-json') call must stay out.
 5. Add human-reviewed adversarial cases and problem-family evaluation splits.
    Generated SymPy cases alone are not independent validation; gate useful coverage too.
 6. MathDial dialogue labels do not establish calculus correctness or hint-leakage quality.
@@ -68,20 +68,25 @@ Details: [review](docs/reviews/2026-10-13/README.md),
 Do not add assistant coauthor trailers to commits. Acknowledge Claude and OpenAI Codex
 in the [README footnote](README.md#acknowledgments). Existing commits are not rewritten.
 
-## Claude update (2026-10-15)
+## Milestone A update (2026-10-15)
 
-Milestone A on branch `milestone-a` (pushed to https://github.com/tgragossian/Tutor; CI green).
-Tasks 1–7 done. Task 8: live at https://tutor.thomasgragossian.dev (Lightsail us-west-2,
-1 GB; Cloudflare DNS-only `A` record); outside checks pass, recorded in `docs/ops/host.md`.
-The host runs a checkout of `milestone-a` at `/srv/mathtutor`.
-Ledger: `.superpowers/sdd/README/progress.md` (git-ignored; rulings and deferred minors).
+Branch `milestone-a` is pushed; CI is green. Tasks 1–8 are complete. The skeleton is
+live at https://tutor.thomasgragossian.dev; outside checks, $7/month Lightsail price,
+$10/month budget alert and idle memory are recorded in [host.md](docs/ops/host.md).
+The host still runs a `milestone-a` checkout at `/srv/mathtutor`.
+The whole-branch review found no critical issues. Important fixes landed (YAML
+backslash escapes and stale handoff/host records). Deferred minors
+and implementation rulings are in `.superpowers/sdd/README/progress.md` (git-ignored).
 
 ## Next action for Claude
 
 Follow option B; do not reopen the A/B/C choice. No co-author trailers.
-1. Thomas supplies `free -m` / `docker stats` output, monthly price, budget-alert status → `host.md`.
-2. Final whole-branch review of milestone A, then merge to `main`; switch the host to `main`.
-3. Then milestone B (02-practice.md): write its implementation plan.
+1. Read the final-review ledger and inspect the current `milestone-a` diff against
+   `main`; decide whether any deferred minor needs a fix before merge.
+2. Merge to `main`, switch the host checkout to `main`, redeploy and recheck `/readyz`.
+3. Write the [milestone B practice plan](docs/superpowers/plans/portfolio-mvp/02-practice.md).
+   Carry forward the Compute Engine `\cos x\,(...)` parsing caveat; for milestone C,
+   resolve OpenStax's stated restriction on LLM ingestion before using its text in RAG.
 
 ## Reference documents
 
