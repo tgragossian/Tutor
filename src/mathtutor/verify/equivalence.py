@@ -136,29 +136,115 @@ def prove_equal(s: sympy.Expr, e: sympy.Expr, budget: Budget) -> bool:
 # -- step 2: the domain ----------------------------------------------------------------------
 
 
-def _violated(c: Constraint) -> Any:
-    """The condition (an expression meaning ``= 0``, or a relation) where ``c`` fails."""
-    if c.kind == "nonzero":
-        return c.expr
-    if c.kind == "positive":
-        return sympy.Le(c.expr, 0)
-    if c.kind == "nonnegative":
-        return sympy.Lt(c.expr, 0)
-    if c.kind == "not_half_pi_odd":
-        return sympy.cos(c.expr)
-    return sympy.sin(c.expr)
-
-
 class DomainUnproven(Exception):
-    """``solveset`` cannot be trusted on a constraint (owner ruling R18)."""
+    """A violation set that cannot be decided exactly (owner rulings R18, R19)."""
 
 
-def _has_real_root_form(expr: Any) -> bool:
-    """``Abs`` or ``sign`` under a non-integer power: R14's real roots, which SymPy 1.14's
-    ``solveset`` mis-solves (``|x|^(2/3) - 1 = 0`` gives EmptySet)."""
-    return any(
-        p.exp.is_integer is not True and p.base.has(sympy.Abs, sympy.sign)
-        for p in expr.atoms(sympy.Pow)
+def _between(lo: Any, hi: Any) -> Any:
+    """A rational strictly between the exact reals ``lo < hi``, verified exactly."""
+    approx = sympy.Rational((lo + hi).evalf(60)) / 2
+    if (lo < approx) is not sympy.true or (approx < hi) is not sympy.true:
+        raise DomainUnproven("cannot separate roots")
+    return approx
+
+
+def _test_points(roots: list[Any]) -> list[Any]:
+    """One verified rational per cell of ℝ minus ``roots`` (ascending, distinct)."""
+    if not roots:
+        return [sympy.S.Zero]
+    first, last = sympy.floor(roots[0]) - 1, sympy.ceiling(roots[-1]) + 1
+    if not (first.is_Integer and last.is_Integer):
+        raise DomainUnproven("cannot bound roots")
+    points = [first, *(_between(lo, hi) for lo, hi in zip(roots, roots[1:], strict=False)), last]
+    for left, root, right in zip(points, roots, points[1:], strict=False):
+        if (left < root) is not sympy.true or (root < right) is not sympy.true:
+            raise DomainUnproven("roots are not separated")
+    return points
+
+
+def _rational_violations(c: Constraint, var: sympy.Symbol) -> sympy.Set:
+    """R19 (i): exact violation set in ℝ of a sign constraint on a rational function over ℚ.
+
+    Zeros of the denominator are left out: each comes from a division or negative power in
+    the raw tree, which the translator records as its own ``nonzero`` constraint.
+    """
+    num, den = sympy.fraction(sympy.together(c.expr))
+    try:
+        top = sympy.Poly(num, var, domain=sympy.QQ)
+        bottom = sympy.Poly(den, var, domain=sympy.QQ)
+    except Exception as error:
+        raise DomainUnproven("not a rational function over QQ") from error
+    if bottom.is_zero:
+        raise DomainUnproven("zero denominator")
+    if top.is_zero:  # identically 0 wherever defined
+        if c.kind == "nonnegative":
+            return sympy.S.EmptySet
+        return sympy.Complement(sympy.S.Reals, sympy.FiniteSet(*bottom.real_roots()))
+    roots = list(dict.fromkeys((top * bottom).sqf_part().real_roots()))
+    tests = _test_points(roots)
+    pieces: list[sympy.Set] = []
+    ends = [sympy.S.NegativeInfinity, *roots, sympy.S.Infinity]
+    for i, point in enumerate(tests):
+        negative = top.eval(point) * bottom.eval(point) < 0
+        if negative and c.kind != "nonzero":
+            pieces.append(sympy.Interval.open(ends[i], ends[i + 1]))
+    top_sqf = top.sqf_part()
+    for i, root in enumerate(roots):
+        lo, hi = tests[i], tests[i + 1]
+        is_zero = top_sqf.count_roots(lo, hi) > 0 and bottom.count_roots(lo, hi) == 0
+        if is_zero and c.kind != "nonnegative":
+            pieces.append(sympy.FiniteSet(root))
+    return sympy.Union(*pieces) if pieces else sympy.S.EmptySet
+
+
+_MAX_TRIG_POINTS = 10_000
+
+
+def _trig_violations(c: Constraint, var: sympy.Symbol, D: sympy.Set) -> sympy.Set:
+    """R19 (ii): the exact zeros of cos/sin(a·x + b) in a bounded D, a ∈ ℚ∖{0}, b ∈ ℚ + ℚπ."""
+    arg = c.expr
+    a = sympy.diff(arg, var)
+    if not (a.is_Rational and a != 0):
+        raise DomainUnproven("trig argument is not linear with a rational slope")
+    b = sympy.expand(arg.subs(var, 0))
+    if sympy.expand(arg - a * var - b) is not sympy.S.Zero:
+        raise DomainUnproven("trig argument is not linear")
+    b_pi = b.coeff(sympy.pi)
+    b_rational = sympy.expand(b - b_pi * sympy.pi)
+    if not (b_pi.is_Rational and b_rational.is_Rational):
+        raise DomainUnproven("trig offset is not in Q + Q*pi")
+    lo, hi = D.inf, D.sup
+    if not (lo.is_Rational and hi.is_Rational):
+        raise DomainUnproven("unbounded domain: infinitely many trig zeros")
+    offset = sympy.pi / 2 if c.kind == "not_half_pi_odd" else sympy.S.Zero
+    low, high = sorted((a * lo + b, a * hi + b), key=lambda v: float(v.evalf(30)))
+    k_min = sympy.floor((low - offset) / sympy.pi) - 1
+    k_max = sympy.ceiling((high - offset) / sympy.pi) + 1
+    if not (k_min.is_Integer and k_max.is_Integer) or k_max - k_min > _MAX_TRIG_POINTS:
+        raise DomainUnproven("cannot enumerate trig zeros")
+    points = []
+    for k in range(int(k_min), int(k_max) + 1):
+        point = (offset + k * sympy.pi - b) / a
+        inside = D.contains(point)
+        if inside is sympy.true:
+            points.append(point)
+        elif inside is not sympy.false:
+            raise DomainUnproven("membership undecided")
+    return sympy.FiniteSet(*points)
+
+
+def _exact_violations(c: Constraint, var: sympy.Symbol, D: sympy.Set) -> sympy.Set:
+    """R19: the violation set, decided exactly, or DomainUnproven (case iii)."""
+    if c.kind in ("not_half_pi_odd", "not_pi_multiple"):
+        return _trig_violations(c, var, D)
+    return _rational_violations(c, var)
+
+
+def _decided_set(found: sympy.Set) -> bool:
+    if found.is_empty is True or isinstance(found, sympy.FiniteSet | sympy.Interval):
+        return True
+    return isinstance(found, sympy.Union) and all(
+        isinstance(p, sympy.FiniteSet | sympy.Interval) for p in found.args
     )
 
 
@@ -216,34 +302,37 @@ def _violated_at(c: Constraint, var: sympy.Symbol, point: Any) -> bool | None:
 def _cross_check(
     c: Constraint, var: sympy.Symbol, D: sympy.Set, found: sympy.Set, budget: Budget
 ) -> None:
-    """Raise DomainUnproven if a sample point disagrees with ``found`` (ruling R18)."""
+    """Raise DomainUnproven if a sample point disagrees with ``found`` (R18 b, R19)."""
+    decided = 0
     for point in _sample_points(D):
         _tick(budget)
         violated = _violated_at(c, var, point)
         if violated is None:
             continue
+        decided += 1
         member = found.contains(point)
         if member is not sympy.true and member is not sympy.false:
             raise DomainUnproven("membership undecided")
         if violated != (member is sympy.true):
-            raise DomainUnproven(f"solveset disagrees with the constraint at {point}")
+            raise DomainUnproven(f"violation set disagrees with the constraint at {point}")
+    if decided == 0:
+        raise DomainUnproven("no sample point could be decided")
 
 
 def violation_set(
     c: Constraint, var: sympy.Symbol, D: sympy.Set, budget: Budget | None = None
 ) -> sympy.Set:
-    """The points of D where ``c`` is violated (``solveset`` intersected with D).
+    """The points of D where ``c`` is violated, decided exactly (R19), never by ``solveset``.
 
-    ``solveset`` is untrusted (R18): real-root forms raise DomainUnproven without solving,
-    and an empty, finite or interval answer is cross-checked at sample points of D.
+    Raises DomainUnproven when the set cannot be decided exactly, and cross-checks every
+    answer at seeded sample points of D as a defence in depth (R18 b).
     """
     budget = budget or _unlimited()
-    if _has_real_root_form(c.expr):
-        raise DomainUnproven("real-root form in a constraint")
     _tick(budget)
-    found = sympy.Intersection(sympy.solveset(_violated(c), var, D), D)
-    if found.is_empty is True or isinstance(found, sympy.FiniteSet | sympy.Interval | sympy.Union):
-        _cross_check(c, var, D, found, budget)
+    found = sympy.Intersection(_exact_violations(c, var, D), D)
+    if not _decided_set(found):
+        raise DomainUnproven(f"not a finite union of intervals and points: {type(found)}")
+    _cross_check(c, var, D, found, budget)
     return found
 
 
@@ -312,6 +401,9 @@ def removable_at(
 
 
 def _intervals(found: sympy.Set) -> list[sympy.Interval]:
+    """The positive-length intervals among every component of a decided set."""
+    if not _decided_set(found):
+        raise DomainUnproven(f"not a finite union of intervals and points: {type(found)}")
     parts = found.args if isinstance(found, sympy.Union) else (found,)
     return [
         p for p in parts if isinstance(p, sympy.Interval) and p.measure.is_extended_positive is True
@@ -319,7 +411,7 @@ def _intervals(found: sympy.Set) -> list[sympy.Interval]:
 
 
 def _gap(found: sympy.Set, e: Translated, var: sympy.Symbol, budget: Budget) -> Gap | None:
-    """The first subinterval of ``found`` where E is defined, if SymPy can show one."""
+    """The first subinterval of ``found`` where E is defined (a hint task 5 must certify)."""
     for interval in _intervals(found):
         bad = []
         for c in e.constraints:
@@ -327,10 +419,9 @@ def _gap(found: sympy.Set, e: Translated, var: sympy.Symbol, budget: Budget) -> 
             bad.append(violation_set(c, var, interval, budget))
         _tick(budget)
         rest = sympy.Complement(interval, sympy.Union(*bad)) if bad else interval
-        if isinstance(rest, sympy.Interval | sympy.Union):
-            pieces = _intervals(rest)
-            if pieces:
-                return Gap(pieces[0])
+        pieces = _intervals(rest)
+        if pieces:
+            return Gap(pieces[0])
     return None
 
 

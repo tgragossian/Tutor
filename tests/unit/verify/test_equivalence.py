@@ -5,13 +5,14 @@ from typing import Any
 
 import pytest
 import sympy
-from sympy import ConditionSet, FiniteSet, Interval, Rational, oo, pi
+from sympy import FiniteSet, Interval, Rational, oo, pi
 
 from mathtutor.content.schema import Domain
 from mathtutor.domain import Method, VerdictReason, VerdictStatus
 from mathtutor.verify import equivalence
 from mathtutor.verify.equivalence import (
     Budget,
+    DomainUnproven,
     Gap,
     equivalent,
     prove_equal,
@@ -225,9 +226,33 @@ def test_violation_sets() -> None:
     assert violation_set(Constraint("nonnegative", x), x, reals) == Interval.open(-oo, 0)
     assert violation_set(Constraint("not_half_pi_odd", x), x, Interval(0, 2)) == FiniteSet(pi / 2)
     assert violation_set(Constraint("not_pi_multiple", x), x, Interval.open(0, 4)) == FiniteSet(pi)
-    assert isinstance(
-        violation_set(Constraint("nonzero", x - sympy.cos(x)), x, reals), ConditionSet
+    assert violation_set(Constraint("nonzero", x**2 - 2), x, reals) == FiniteSet(
+        -sympy.sqrt(2), sympy.sqrt(2)
     )
+    assert violation_set(Constraint("positive", (x - 1) / x), x, reals) == Interval.Lopen(0, 1)
+    assert violation_set(Constraint("not_pi_multiple", 2 * x + pi / 2), x, Interval(0, 2)) == (
+        FiniteSet(pi / 4)
+    )
+
+
+@pytest.mark.parametrize(
+    "constraint,D",
+    [
+        (Constraint("nonzero", x - sympy.cos(x)), sympy.S.Reals),
+        (Constraint("nonzero", sympy.sin(x) - sympy.cos(x)), Interval.open(0, 10)),
+        (Constraint("positive", sympy.exp(x) - 2), sympy.S.Reals),
+        (Constraint("nonzero", pi * x - 1), sympy.S.Reals),
+        (Constraint("nonzero", sympy.Abs(x) - 1), sympy.S.Reals),
+        (Constraint("not_half_pi_odd", x), sympy.S.Reals),
+        (Constraint("not_half_pi_odd", x), Interval.open(0, oo)),
+        (Constraint("not_pi_multiple", x**2), Interval(0, 2)),
+        (Constraint("not_pi_multiple", sympy.sqrt(2) * x), Interval(0, 2)),
+    ],
+)
+def test_undecidable_violation_sets_abstain(constraint: Constraint, D: Any) -> None:
+    """R19 (iii): only rational functions and linear trig arguments are decided."""
+    with pytest.raises(DomainUnproven):
+        violation_set(constraint, x, D)
 
 
 def test_removable_at() -> None:
@@ -297,14 +322,51 @@ def test_real_root_constraints_never_falsely_correct(
     assert result == DOMAIN_UNPROVEN or isinstance(result, Gap) or result == UNDEFINED_ON_DOMAIN
 
 
-def test_wrong_empty_solveset_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
-    """R18 (b): a sampled violation outside solveset's answer → domain_unproven."""
-    monkeypatch.setattr(equivalence.sympy, "solveset", lambda *args, **kwargs: sympy.S.EmptySet)
+def test_wrong_exact_set_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R18 (b), kept by R19: a sampled violation outside the computed set → domain_unproven."""
+    monkeypatch.setattr(equivalence, "_exact_violations", lambda c, var, D: sympy.S.EmptySet)
     assert eq(SQRT_X_SQUARED, X) == DOMAIN_UNPROVEN
     assert eq(RATIONAL_FN, X_PLUS_1) == DOMAIN_UNPROVEN
 
 
-def test_spurious_solveset_point_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
-    """R18 (b): a sampled point solveset calls violated where the constraint holds."""
-    monkeypatch.setattr(equivalence.sympy, "solveset", lambda *args, **kwargs: FiniteSet(1, 2))
+def test_spurious_exact_point_is_caught(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R18 (b), kept by R19: a sampled point called violated where the constraint holds."""
+    monkeypatch.setattr(equivalence, "_exact_violations", lambda c, var, D: FiniteSet(1, 2))
     assert eq(RATIONAL_FN, X_PLUS_1, strict=True) == DOMAIN_UNPROVEN
+
+
+SIN_MINUS_COS = ["Subtract", ["Sin", "x"], ["Cos", "x"]]
+SIN_MINUS_ROOT3_COS = ["Subtract", ["Sin", "x"], ["Multiply", ["Sqrt", 3], ["Cos", "x"]]]
+HALF_LINE = Domain(intervals=[("0", "inf", "open", "open")])
+CLOSED_HALF_LINE = Domain(intervals=[("0", "inf", "closed", "open")])
+NONNEGATIVE = CLOSED_HALF_LINE
+
+
+@pytest.mark.parametrize("numerator", [SIN_MINUS_COS, SIN_MINUS_ROOT3_COS])
+@pytest.mark.parametrize("domain", [HALF_LINE, CLOSED_HALF_LINE, REALS])
+def test_trig_zeros_never_falsely_correct(numerator: Any, domain: Domain) -> None:
+    """Re-review C2: solveset returns EmptySet for sin x − cos x = 0 on (0, ∞)."""
+    result = eq(["Divide", numerator, numerator], ONE, domain=domain, strict=True)
+    assert result != CORRECT
+
+
+X2_MINUS_2 = ["Subtract", ["Power", "x", 2], 2]
+IRRATIONAL_HOLE = ["Divide", ["Multiply", X2_MINUS_2, "x"], X2_MINUS_2]
+
+
+def test_irrational_hole_strict() -> None:
+    """R19 (i): nonzero(x² − 2) on ℝ is exactly {±√2}; strict → undefined_on_domain."""
+    assert eq(IRRATIONAL_HOLE, X, strict=True) == UNDEFINED_ON_DOMAIN
+
+
+def test_irrational_hole_removable() -> None:
+    """R19 (i): the holes at ±√2 are removable → correct by default."""
+    assert eq(IRRATIONAL_HOLE, X) == CORRECT
+
+
+def test_common_answers_still_correct() -> None:
+    """R19: exact decisions keep the everyday rational and log cases provable."""
+    assert eq(RATIONAL_FN, X_PLUS_1) == CORRECT
+    assert eq(SQRT_X_SQUARED, X, domain=NONNEGATIVE) == CORRECT
+    assert eq(LN_X2, TWO_LN_X, domain=POSITIVE) == CORRECT
+    assert eq(["Divide", 1, "x"], ["Power", "x", -1]) == CORRECT
