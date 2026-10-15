@@ -25,3 +25,9 @@ jobs:
       - run: npm test --prefix tools
       - run: npm run compile --prefix tools
       - run: git diff --exit-code content/compiled
+  container:
+    needs: [python, node]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash tests/container/smoke.sh

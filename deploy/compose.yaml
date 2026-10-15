@@ -1,0 +1,26 @@
+# Production stack: the app is reachable only through Caddy on the compose network.
+services:
+  app:
+    image: ${MATHTUTOR_IMAGE:-mathtutor:local}
+    env_file: .env
+    restart: unless-stopped
+    # No ports: 8000 must never be published (uvicorn trusts forwarded headers).
+
+  caddy:
+    image: caddy:2.11.6-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?set SITE_ADDRESS in deploy/.env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:
