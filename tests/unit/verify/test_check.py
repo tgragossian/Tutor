@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -7,6 +9,7 @@ import mpmath
 import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
+from sympy import Rational
 
 from mathtutor import __version__
 from mathtutor.content.loader import load_bundle
@@ -20,6 +23,7 @@ from mathtutor.content.schema import (
 from mathtutor.domain import AnswerKind, FormatIssueCode, Method, VerdictReason, VerdictStatus
 from mathtutor.verify import check as check_module
 from mathtutor.verify.check import VERIFIER_VERSION, check
+from mathtutor.verify.numeric import round_matches
 from mathtutor.verify.types import (
     CheckRequest,
     CheckResult,
@@ -38,6 +42,13 @@ DOMAIN_UNPROVEN = Verdict(
     VerdictStatus.UNABLE_TO_VERIFY, VerdictReason.DOMAIN_UNPROVEN, Method.DOMAIN
 )
 INTERNAL_ERROR = Verdict(VerdictStatus.UNABLE_TO_VERIFY, VerdictReason.INTERNAL_ERROR, Method.NONE)
+
+ROUNDED_MATCH = Verdict(VerdictStatus.CORRECT, VerdictReason.ROUNDED_MATCH, Method.ROUNDING)
+ROUNDED_MISMATCH = Verdict(VerdictStatus.INCORRECT, VerdictReason.ROUNDED_MISMATCH, Method.ROUNDING)
+
+
+def decimals_spec(tree: Any, n: int) -> NumericAnswer:
+    return NumericAnswer(kind="numeric", latex="", mathjson=tree, precision=Decimals(decimals=n))
 
 
 def expression_spec(tree: Any, domain: Domain | None = None, strict: bool = False) -> Any:
@@ -106,6 +117,44 @@ def test_check_numeric_decimal() -> None:
     )
 
 
+RATIONAL_253 = Rational(-200, 343)
+
+
+@pytest.mark.parametrize(
+    "tree,verdict",
+    [
+        # Compute Engine raw form sends every negative decimal as Negate of a decimal.
+        (["Negate", {"num": "0.583"}], ROUNDED_MATCH),
+        (["Negate", {"num": "0.58"}], ROUNDED_MISMATCH),
+        (["Delimiter", ["Negate", {"num": "0.583"}]], ROUNDED_MATCH),  # (-0.583)
+        (["Negate", ["Delimiter", {"num": "0.583"}]], ROUNDED_MATCH),  # -(0.583)
+        (["Delimiter", ["Delimiter", ["Negate", {"num": "0.5831"}]]], ROUNDED_MATCH),
+    ],
+)
+def test_check_numeric_negative_decimal_shapes(tree: Any, verdict: Verdict) -> None:
+    spec = BY_ID["openstax-c1-3.6-253"].answer
+    assert outcome(submit(spec, tree, "-0.583")) == verdict
+
+
+def test_check_numeric_parenthesised_decimal() -> None:
+    spec = decimals_spec("Pi", 2)
+    assert outcome(submit(spec, ["Delimiter", {"num": "3.14"}], "(3.14)")) == ROUNDED_MATCH
+
+
+@pytest.mark.parametrize(
+    "tree",
+    [
+        ["Negate", ["Negate", {"num": "0.583"}]],  # double negation: not a decimal literal
+        ["Negate", {"num": "-0.583"}],  # sign already in the literal
+        ["Delimiter", {"num": "0.583"}, {"num": "1"}],  # Delimiter with two arguments
+    ],
+)
+def test_check_numeric_other_shapes_are_graded_exactly(tree: Any) -> None:
+    spec = BY_ID["openstax-c1-3.6-253"].answer
+    result = outcome(submit(spec, tree, "x"))
+    assert isinstance(result, FormatIssue) or result.status != VerdictStatus.CORRECT
+
+
 def test_check_numeric_exact_symbolic() -> None:
     spec = BY_ID["openstax-c1-3.6-253"].answer
     exact = ["Divide", -200, 343]
@@ -121,14 +170,6 @@ def test_check_numeric_decimal_inside_a_tree_is_exact() -> None:
         kind="numeric", latex="", mathjson=["Divide", 1, 4], precision=Decimals(decimals=2)
     )
     assert outcome(submit(spec, ["Divide", {"num": "0.5"}, 2], "0.5/2")) == CORRECT
-
-
-ROUNDED_MATCH = Verdict(VerdictStatus.CORRECT, VerdictReason.ROUNDED_MATCH, Method.ROUNDING)
-ROUNDED_MISMATCH = Verdict(VerdictStatus.INCORRECT, VerdictReason.ROUNDED_MISMATCH, Method.ROUNDING)
-
-
-def decimals_spec(tree: Any, n: int) -> NumericAnswer:
-    return NumericAnswer(kind="numeric", latex="", mathjson=tree, precision=Decimals(decimals=n))
 
 
 @pytest.mark.parametrize(
@@ -285,6 +326,7 @@ _LEAVES = st.one_of(
     st.integers(min_value=-(10**35), max_value=10**35),
     st.sampled_from(["x", "Pi", "e", "y", "Nothing", "ExponentialE"]),
     st.builds(lambda s: {"num": s}, st.sampled_from(["0.5", "-2.75", "1e-40", "abc", "3"])),
+    st.builds(lambda s: ["Negate", {"num": s}], st.sampled_from(["0.583", "-0.5", "1.0"])),
     st.none(),
     st.booleans(),
 )
@@ -302,7 +344,46 @@ _TREES = st.recursive(
 @settings(max_examples=60, deadline=None, suppress_health_check=[HealthCheck.too_slow])
 @given(tree=_TREES, latex=st.sampled_from(["x", "", "x^{}", "\\placeholder{}"]))
 def test_check_never_raises(tree: Any, latex: str) -> None:
-    spec = BY_ID["openstax-c1-3.6-221"].answer
-    result = check(CheckRequest(spec, SubmittedAnswer(spec.kind, tree, latex, None)), 0.5)
-    assert isinstance(result, CheckResult)
-    assert isinstance(result.outcome, Verdict | FormatIssue)
+    for problem in ("openstax-c1-3.6-221", "openstax-c1-3.6-253"):
+        spec = BY_ID[problem].answer
+        result = check(CheckRequest(spec, SubmittedAnswer(spec.kind, tree, latex, None)), 0.5)
+        assert isinstance(result, CheckResult)
+        assert isinstance(result.outcome, Verdict | FormatIssue)
+
+
+_DECIMAL_TEXT = st.decimals(
+    min_value=Decimal("-2"), max_value=Decimal("2"), allow_nan=False, places=4
+).map(str)
+
+
+@settings(max_examples=80, deadline=None)
+@given(text=_DECIMAL_TEXT, shape=st.sampled_from(["bare", "negate", "delimiter"]))
+def test_check_decimal_rounding_property(text: str, shape: str) -> None:
+    """Seed 253: correct exactly when the typed decimal rounds like -200/343 at 3 places."""
+    value = Decimal(text)
+    magnitude = str(abs(value))
+    if shape == "bare":
+        tree: Any = {"num": text}
+    elif value < 0 or (value == 0 and text.startswith("-")):
+        tree = ["Negate", {"num": magnitude}]
+    else:
+        tree = {"num": magnitude}
+    if shape == "delimiter":
+        tree = ["Delimiter", tree]
+    spec = BY_ID["openstax-c1-3.6-253"].answer
+    result = check(CheckRequest(spec, SubmittedAnswer(spec.kind, tree, text, None)), 2.0)
+    expected = ROUNDED_MATCH if round_matches(RATIONAL_253, value, 3) else ROUNDED_MISMATCH
+    assert result.outcome == expected
+
+
+def test_check_gap_without_point_after_deadline_is_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def slow_none(interval: Any) -> None:
+        time.sleep(1.1)  # the budget runs out while looking for a point
+
+    monkeypatch.setattr(check_module, "rational_inside", slow_none)
+    result = check(submit(expression_spec("x"), ["Power", ["Sqrt", "x"], 2]), deadline_s=1.0)
+    assert result.outcome == Verdict(
+        VerdictStatus.UNABLE_TO_VERIFY, VerdictReason.TIMEOUT, Method.NONE
+    )
