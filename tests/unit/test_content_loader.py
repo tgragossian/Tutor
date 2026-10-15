@@ -113,3 +113,15 @@ def test_loader_duplicate_topic_id_or_order(tmp_path: Path, field: str) -> None:
     data["topics"][1][other] = "zz.other" if other == "topic_id" else 99
     with pytest.raises(ContentError, match=rf"topics\[1\]: {field}: duplicate"):
         load_bundle(_write(tmp_path, data))
+
+
+@pytest.mark.parametrize(("field", "value"), [("order", 1.5), ("topic_id", ["a"])])
+def test_loader_unhashable_topic_value_is_content_error(
+    tmp_path: Path, field: str, value: object
+) -> None:
+    data = json.loads(GOOD.read_text(encoding="utf-8"))
+    data["topics"][0][field] = value
+    path = tmp_path / "b.json"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ContentError):
+        load_bundle(path)

@@ -39,6 +39,11 @@ def _lines(label: str, exc: ValidationError) -> list[str]:
     ]
 
 
+def _plain(value: Any) -> bool:
+    """Hashable scalar worth tracking; pydantic reports any other type."""
+    return isinstance(value, (str, int)) and not isinstance(value, bool)
+
+
 def load_bundle(path: Path) -> LoadedContent:
     # Decimal literals become {"num": "<literal>"}: no float ever holds an answer value.
     try:
@@ -63,13 +68,15 @@ def load_bundle(path: Path) -> LoadedContent:
     for key in ("topic_id", "order"):
         seen_values: set[Any] = set()
         for i, t in enumerate(raw_topics):
-            if not isinstance(t, dict) or key not in t:
+            if not isinstance(t, dict) or not _plain(t.get(key)):
                 continue
             if t[key] in seen_values:
                 errors.append(f"topics[{i}]: {key}: duplicate")
             seen_values.add(t[key])
 
-    topic_ids = {t.get("topic_id") for t in raw_topics if isinstance(t, dict)}
+    topic_ids = {
+        t["topic_id"] for t in raw_topics if isinstance(t, dict) and _plain(t.get("topic_id"))
+    }
     seen: set[str] = set()
     for i, raw in enumerate(raw_problems):
         label = str(raw.get("id", f"problems[{i}]")) if isinstance(raw, dict) else f"problems[{i}]"
