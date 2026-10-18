@@ -65,7 +65,7 @@ def _ends(v: Any) -> Box:
 
 def _guard(v: Any) -> Any:
     lo, hi = _ends(v)
-    if not (mpmath.isfinite(lo) and mpmath.isfinite(hi)) or max(-lo, hi) > _LIMIT:
+    if not (mpmath.isfinite(lo) and mpmath.isfinite(hi)) or lo < -_LIMIT or hi > _LIMIT:
         raise _Skip
     return v
 
@@ -94,7 +94,7 @@ def _rational_power(base: Any, q: Any) -> Any:
 
 def _exp(v: Any) -> Any:
     lo, hi = _ends(v)
-    if max(-lo, hi) > _EXP_LIMIT:
+    if lo < -_EXP_LIMIT or hi > _EXP_LIMIT:
         raise _Skip
     return iv.exp(v)
 
@@ -106,12 +106,9 @@ def _log(v: Any) -> Any:
 
 
 def _abs(v: Any) -> Any:
-    lo, hi = _ends(v)
-    if lo >= 0:
-        return v
-    if hi <= 0:
-        return -v
-    return iv.mpf([0, max(-lo, hi)])
+    # Interval abs rounds its ends outward. Negating a bare mpf end would round it to the
+    # ordinary ``mp`` precision, possibly inward, and lose the true value (review B-C1).
+    return abs(v)
 
 
 def _sign(v: Any) -> Any:

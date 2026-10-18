@@ -204,6 +204,68 @@ def test_enclose_contains_exact_value(tree: Any, point: int, value: Any) -> None
     assert lo <= value <= hi
 
 
+# Review B-C1: a cancellation leaves a wide box straddling 0 whose ends carry more bits than
+# ordinary double precision; Abs must widen outward, never round an end inward.
+EPS, BIG = ["Power", 10, -20], ["Power", 2, 240]
+C1_STUDENT = [
+    "Abs",
+    [
+        "Divide",
+        ["Add", ["Negate", ["Subtract", ["Add", BIG, ["Subtract", 2**38, EPS]], BIG]], EPS],
+        3,
+    ],
+]
+C1_EXPECTED = ["Subtract", ["Divide", 2**38, 3], ["Divide", ["Multiply", 2, EPS], 3]]
+
+
+def _cancelled(inner: Any) -> Any:
+    """``inner`` computed as (2^240 + inner) - 2^240: exact value inner, a box wide around it."""
+    return ["Subtract", ["Add", BIG, inner], BIG]
+
+
+@pytest.mark.parametrize(
+    "tree",
+    [
+        C1_STUDENT,
+        ["Abs", _cancelled(["Divide", 1, 3])],
+        ["Abs", _cancelled(["Negate", ["Divide", 1, 3]])],
+        ["Abs", _cancelled(["Subtract", 2**38, EPS])],
+        ["Abs", ["Negate", _cancelled(["Subtract", 2**38, EPS])]],
+        ["Abs", _cancelled(["Add", ["Power", 2, 60], ["Divide", 1, 7]])],
+        ["Abs", _cancelled(["Negate", ["Add", ["Power", 2, 60], ["Divide", 1, 7]]])],
+    ],
+)
+def test_abs_of_zero_crossing_box_contains_exact_value(tree: Any) -> None:
+    expr = T(tree).expr
+    box = enclose(expr, x, Rational(0))
+    assert box is not None
+    lo, hi = (_exact(v) for v in box)
+    assert lo <= expr.doit() <= hi
+
+
+def test_abs_of_wide_box_widens_outward() -> None:
+    import mpmath
+    from mpmath import iv
+
+    from mathtutor.verify.refute import _enclose, _working_precision
+
+    with mpmath.workprec(400):  # ends beyond double precision, built exactly
+        end = mpmath.mpf(1) + mpmath.mpf(2) ** -150
+        neg_end = -end
+    with _working_precision():
+        for box in (iv.mpf([neg_end, 0.5]), iv.mpf([-0.5, end])):
+            result = _enclose(sympy.Abs(x, evaluate=False), x, box)
+            assert result is not None
+            assert _exact(result[0]) == 0
+            assert _exact(result[1]) >= 1 + Rational(1, 2**150)
+
+
+def test_equal_constants_after_cancellation_not_refuted() -> None:
+    s, e = T(C1_STUDENT), T(C1_EXPECTED)
+    assert sympy.simplify(s.expr - e.expr) == 0
+    assert refute(s, e, x, [Rational(0)], B()) is None
+
+
 @pytest.mark.parametrize(
     "tree,point",
     [
