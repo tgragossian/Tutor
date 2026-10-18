@@ -9,6 +9,7 @@ import time
 from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
 import psutil
 import pytest
@@ -315,6 +316,23 @@ def test_pipe_closed_when_process_start_fails(make_pool: Callable[..., VerifierP
     with pytest.raises(OSError):
         p._new_worker()
     assert pipes and all(c.closed for c in pipes)
+
+
+def test_partial_startup_stops_workers_already_created() -> None:
+    created: list[Any] = []
+    real = VerifierPool._new_worker
+
+    def second_fails(self: VerifierPool) -> Any:
+        if created:
+            raise OSError("injected second start failure")
+        created.append(real(self))
+        return created[0]
+
+    with patch.object(VerifierPool, "_new_worker", second_fails):
+        with pytest.raises(OSError, match="second start"):
+            VerifierPool(size=2, check_fn=ok)
+    assert created and created[0]._stopped
+    assert live_workers() == []
 
 
 IMPORT_GATE = """
