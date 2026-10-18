@@ -1,8 +1,19 @@
-# Milestone B plan review — 2026-10-15
+# Milestone B reviews — 2026-10-15
 
 [Reviews](../README.md) · [Plan](../../superpowers/plans/portfolio-mvp/milestone-b/README.md) · [Spec](../../superpowers/specs/2026-10-13-portfolio-core/README.md)
 
-Plan review while execution is underway. These are risks in the written tasks, not
+## Read next
+
+- [Code review at 2f95748](01-code-review.md): three new code defects, known pool failures, verification and fix order.
+- [Reproductions](02-reproductions.md): small probes for B-C1 through B-C3.
+- [Execution rulings](../../superpowers/plans/portfolio-mvp/milestone-b/02-execution-rulings.md): R10–R13 resolve plan findings 1–4; implementation is still pending.
+- Plan findings 5–6 are implemented: logarithm-base constraints and worker-only default imports.
+  Code finding B-C2 concerns magnitude bounds, a separate issue from logarithm domains.
+- Plan finding 7 remains a schedule checkpoint; retain the timebox and human gates.
+
+## Earlier plan review
+
+Plan review while execution was underway. These are risks in the written tasks, not
 claims that the implementation has these bugs. Check code and tests before applying fixes.
 Do not weaken proof, resource, or evaluation gates to recover the 30-hour timebox.
 

@@ -1,6 +1,6 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-15 (milestone B paused at task 7 for Codex review).
+Owner: Thomas Gragossian. Updated: 2026-10-15 (milestone B code review complete; fixes pending).
 
 ## Current state
 
@@ -64,22 +64,23 @@ Milestone A is merged to `main`, CI green, live at https://tutor.thomasgragossia
 chose subagent-driven execution. Work runs on branch `milestone-b`
 (worktree `.claude/worktrees/milestone-b`).
 
-**Paused 2026-10-15 for a Codex code review.** Tasks 1–6 are complete and reviewed.
-Task 7 (verifier pool) stopped mid fix round 1; HEAD is a red commit that holds 7 failing
-tests for the review fixes, and `pool.py` is not changed yet. Status, pause point and deferred
+**Codex reviewed through 2f95748 on 2026-10-15.** Tasks 1–6 were complete; tasks 3/5 now need review fixes.
+Task 7 (verifier pool) stopped mid fix round 1; 60ab581 added seven failing tests.
+The pool fixes are still pending. Status, pause point and deferred
 minors: [execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
 
-**Codex:** please review `main..milestone-b` (focus `src/mathtutor/verify/`, `tools/compile_content/`),
-expecting the 7 red pool tests, and update Markdown files as needed. Claude resumes from your
-review and doc edits: finish task 7's fixes, then task 8.
+**Claude:** address the code findings below and finish task 7's fixes before task 8.
+Use the milestone-B worktree. This review changed documentation only; fixes remain unimplemented.
 
 ## Codex review notes for Claude
 
-Read the [milestone B plan review](docs/reviews/2026-10-15-milestone-b/README.md)
-before the affected tasks. It flags generated-set gating, unsupported false accepts,
-SQLite submission races and in-flight replays, explicit logarithm-base domains,
-the pool import boundary, and the 43.5 h estimate against a 30 h timebox.
-These are plan risks, not verified code defects; check implementations and tests.
+- [Code review](docs/reviews/2026-10-15-milestone-b/01-code-review.md): B-C1/P1, inward-rounded
+  absolute-value enclosure produces a false refutation; B-C2/P1, computed logarithms bypass
+  exponent bounds; B-C3/P2, partial pool construction fails to clean up earlier workers.
+- [Reproductions](docs/reviews/2026-10-15-milestone-b/02-reproductions.md): focused probes and expected current output.
+- Verified: 474 tests pass, seven known pool tests fail, one Linux-only test skips.
+  Compiler tests (14), content check (6 problems), ruff and mypy pass; Docker not verified.
+- [Review index and earlier plan risks](docs/reviews/2026-10-15-milestone-b/README.md): ruling dispositions and schedule checkpoint.
 Human gates remain: dev-case labels (task 9), new problems (task 15), host deploy (task 16).
 
 Rulings R7–R21 made during execution (including Thomas's R14–R16) are recorded in

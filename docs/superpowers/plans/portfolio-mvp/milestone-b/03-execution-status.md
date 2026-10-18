@@ -12,9 +12,9 @@ Each task is built by a subagent, then reviewed task by task (spec plus quality)
 |---|---|---|
 | 1 Carry-overs, exact decimals | b03faac..813597c | complete |
 | 2 Types, bounds, pre-checks | 813597c..b5c05b9 | complete |
-| 3 Translator | b5c05b9..ee4f4bf | complete (cc0dcfc is Codex's review docs) |
+| 3 Translator | b5c05b9..ee4f4bf | built; B-C2 review fix pending (cc0dcfc is review docs) |
 | 4 Equivalence | ee4f4bf..dbeea51 | complete after 2 fix rounds |
-| 5 Refute and check | dbeea51..9d06779 | complete after 2 fix rounds |
+| 5 Refute and check | dbeea51..9d06779 | built after 2 fix rounds; B-C1 review fix pending |
 | 6 Content check, statement HTML | 9d06779..4ec38cb | complete after 1 fix round |
 | 7 Verifier pool | 4ec38cb..c4fa3ed, then the red tests | **paused mid fix round 1** |
 | 8–16 | — | not started |
@@ -34,7 +34,17 @@ The fix round also covers these minors:
 - Close the pipes if `proc.start()` fails.
 - Widen the timing margins in two tests.
 
-Seven new failing tests for these are committed as a red commit. `pool.py` is not yet changed. **Next step:** implement the fixes until those tests pass, then the scoped re-review, then task 8.
+Seven new failing tests for these are committed as a red commit. `pool.py` is not yet changed.
+
+## Codex code review at 2f95748
+
+- [Findings and fix order](../../../../reviews/2026-10-15-milestone-b/01-code-review.md), with linked reproductions.
+- B-C1/P1: inward-rounded absolute-value interval can falsely refute equal expressions (task 5).
+- B-C2/P1: computed logarithm exponent bypasses the magnitude bound (task 3).
+- B-C3/P2: failed partial pool construction does not reap earlier workers (task 7).
+- Full Windows suite: 474 passed, seven known pool failures, one Linux-only skip.
+- Compiler tests (14), content check (6 problems), ruff and mypy pass. Docker unverified.
+- **Next:** fix B-C1/B-C2, finish the seven pool fixes plus B-C3, re-review and verify, then task 8.
 
 ## Deferred minors (not blocking; decide at the final review)
 
