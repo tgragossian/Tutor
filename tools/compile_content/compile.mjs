@@ -12,7 +12,7 @@ function pkgVersion(name) {
   return JSON.parse(readFileSync(p, "utf8")).version;
 }
 
-function loadYaml(file, label) {
+export function loadYaml(file, label) {
   const text = readFileSync(file, "utf8").replace(/\r\n/g, "\n");
   const parsed = parseDocument(text, { schema: "core", uniqueKeys: true });
   if (parsed.errors.length) {
@@ -80,7 +80,7 @@ function hasBadNode(node) {
 }
 
 // Placeholders vanish from MathJSON (ADR 0002), so they are rejected on the LaTeX string.
-function toMathJson(latex, label, field) {
+export function toMathJson(latex, label, field) {
   if (typeof latex !== "string") throw new Error(`${label}: ${field}: latex must be a string`);
   if (latex.includes("\\placeholder") || /\{\s*\}/.test(latex)) {
     throw new Error(`${label}: ${field}: placeholder or empty group in latex ${latex}`);

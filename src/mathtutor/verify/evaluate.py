@@ -38,7 +38,7 @@ from mathtutor.verify.types import (
 
 DEFAULT_CONTENT = Path("content/compiled/problems.json")
 SET_PATHS = {
-    "dev": Path("evals/verifier/dev.jsonl"),
+    "dev": Path("evals/verifier/human/dev.jsonl"),
     "generated": Path("evals/verifier/generated/mutations.jsonl"),
 }
 GRADE_DEADLINE_S = 3.0
@@ -50,7 +50,13 @@ GATES_B: dict[str, float] = {
     "coverage_min": 0.85,
     "generated_fa_max": 0,
 }
-_UNSUPPORTED_ISSUES = {FormatIssueCode.UNSUPPORTED_NOTATION, FormatIssueCode.INPUT_TOO_LARGE}
+# Format issues an `unsupported` label expects: notation, size, and partial (placeholder) input.
+_UNSUPPORTED_ISSUES = {
+    FormatIssueCode.UNSUPPORTED_NOTATION,
+    FormatIssueCode.INPUT_TOO_LARGE,
+    FormatIssueCode.EMPTY,
+    FormatIssueCode.INCOMPLETE,
+}
 _ANSWER_ADAPTER: TypeAdapter[Any] = TypeAdapter(Answer)
 
 Rate = tuple[int, int]
@@ -83,6 +89,9 @@ class Case(BaseModel):
     label: Literal["correct", "incorrect", "unsupported"]
     rationale: str
     reviewer: str
+    # The authored input behind a browser capture: LaTeX set on the field, or keys typed.
+    raw_latex: str | None = None
+    raw_keys: list[str] | None = None
 
     @field_validator("rationale", "reviewer")
     @classmethod

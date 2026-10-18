@@ -8,7 +8,7 @@ Offline measurement of the SymPy verifier. It must never grade a wrong answer co
 
 | Set | File | Gate mode |
 |---|---|---|
-| `dev` | `dev.jsonl` (hand-written, reviewed; added in task 9) | all milestone B gates |
+| `dev` | `human/dev.jsonl` (hand-written, captured from MathLive; [review sheet](human/REVIEW.md)) | all milestone B gates |
 | `generated` | `generated/mutations.jsonl` | zero false accepts only |
 
 The generated set is **regression-only**. It is built by `mathtutor.verify.mutate` from the
@@ -17,7 +17,8 @@ seed expression problems and is never cited as accuracy.
 ## Case record
 
 One JSON object per line: `id`, `family`, `problem_id` or `inline_spec`, `answer`, `label`,
-`rationale`, `reviewer`. `answer` is `{"mathjson": ..., "latex": ...}` or `{"choice_id": "a"}`.
+`rationale`, `reviewer`, and for captured cases `raw_latex` or `raw_keys` (the authored input).
+`answer` is `{"mathjson": ..., "latex": ...}` or `{"choice_id": "a"}`.
 `label` is `correct`, `incorrect` or `unsupported`. Decimals are read as exact literals.
 
 ## Metrics and gates
@@ -26,13 +27,16 @@ One JSON object per line: `id`, `family`, `problem_id` or `inline_spec`, `answer
 - FR: correct-labelled cases graded incorrect, over correct-labelled cases.
 - Coverage: correct-labelled cases graded correct, over correct-labelled cases.
 - An `unsupported` case graded correct is a zero-tolerance gate of its own.
-- An `unsupported` case answered with a format issue counts as agreement.
+- An `unsupported` case answered with a format issue (notation, size, empty, incomplete) agrees.
 - Rates carry 95% Wilson intervals; 0 of n is shown as an upper bound, never "0%".
 
 Gate B on `dev`: at least 80 cases, FA 0, FR at most 2%, coverage at least 85%.
 Gate B on `generated`: FA 0 and no unsupported accepts; there is no minimum case count.
 
 ## Commands
+
+Human cases are authored in `human/dev.src.yaml` and captured by typing each into a real
+MathLive field (`npm run capture:eval --prefix tools` rewrites `human/dev.jsonl`).
 
 ```
 uv run python -m mathtutor.verify.mutate

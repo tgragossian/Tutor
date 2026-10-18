@@ -251,3 +251,36 @@ def test_mutations_grade_as_labelled() -> None:
 def test_committed_mutations_file_is_current() -> None:
     committed = (ROOT / "evals" / "verifier" / "generated" / "mutations.jsonl").read_bytes()
     assert committed == dump(mutate(REAL))
+
+
+def test_case_rows_keep_raw_inputs(tmp_path: Path) -> None:
+    typed = {**case("r-1", "correct", GOOD), "raw_latex": "18x(3x^2+1)^2"}
+    keyed = {**case("r-2", "unsupported", "x", "x^{}"), "raw_keys": ["x", "^"]}
+    loaded = load_cases(write(tmp_path / "r.jsonl", [typed, keyed]))
+    assert loaded[0].raw_latex == "18x(3x^2+1)^2" and loaded[0].raw_keys is None
+    assert loaded[1].raw_keys == ["x", "^"] and loaded[1].raw_latex is None
+
+
+def test_unsupported_label_agrees_with_partial_input(tmp_path: Path) -> None:
+    rows = [
+        case("p-1", "unsupported", "x", "x^{}"),  # incomplete
+        case("p-2", "unsupported", "Nothing"),  # empty
+    ]
+    m, results = evaluate(load_cases(write(tmp_path / "p.jsonl", rows)), REAL)
+    assert [r.reason for r in results] == ["format:incomplete", "format:empty"]
+    assert all(r.agrees for r in results) and m.agreement == (2, 2)
+
+
+def test_dev_set_lives_under_human() -> None:
+    assert ev.SET_PATHS["dev"] == Path("evals/verifier/human/dev.jsonl")
+
+
+def test_committed_dev_set_loads_sorted_with_raw_inputs() -> None:
+    path = ROOT / ev.SET_PATHS["dev"]
+    raw = path.read_bytes()
+    assert b"\r" not in raw
+    cases = load_cases(path)
+    assert len(cases) >= 80
+    assert [c.id for c in cases] == sorted(c.id for c in cases)
+    typed = [c for c in cases if "choice_id" not in c.answer]
+    assert all((c.raw_latex is None) != (c.raw_keys is None) for c in typed)
