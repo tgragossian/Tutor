@@ -16,6 +16,7 @@ jobs:
       - run: uv run mypy src
       - run: uv run pytest -q
       - run: uv run python -m mathtutor.verify.content_check
+      - run: uv run python -m mathtutor.verify.evaluate --set generated --gate B
       - run: uv run python tools/check_docs.py
   node:
     runs-on: ubuntu-latest

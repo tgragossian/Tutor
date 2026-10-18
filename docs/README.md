@@ -12,6 +12,7 @@
   - [Original task plan](superpowers/plans/2026-10-13-core-practice-loop.md).
 - [Operations](ops/README.md): hours log and operational notes.
 - [API contracts](../contracts/README.md): example request and item bodies.
+- [Verifier evaluation](../evals/verifier/README.md): case format, gates and how to run the evaluation.
 - [Content](../content/README.md): problem authoring, compiling and source licence manifest.
 
 Reference documents preserve original wording and numbering for traceability.
