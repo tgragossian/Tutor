@@ -349,7 +349,9 @@ def test_exp_and_power_e_share_one_rule() -> None:
         assert isinstance(translate(head(1000), CTX), Translated)
         assert code(head(1001)) == "input_too_large"
         assert isinstance(translate(head(["Multiply", 2, ["Ln", 10]]), CTX), Translated)
-        assert code(head(["Multiply", 10, ["Ln", 10]])) == "input_too_large"
+        # 10 ln 10 < 24 by enclosure (review B-C2): e^24 is small, so it is accepted now.
+        assert isinstance(translate(head(["Multiply", 10, ["Ln", 10]]), CTX), Translated)
+        assert code(head(["Multiply", 500, ["Ln", 10]])) == "input_too_large"
         assert isinstance(translate(head("x"), CTX), Translated)
 
 
@@ -357,6 +359,73 @@ def test_no_constant_node_exceeds_digit_bound() -> None:
     big = ["Power", 10, 999]
     assert isinstance(translate(big, CTX), Translated)
     assert code(["Multiply", big, 10]) == "input_too_large"
+
+
+# -- review B-C2: computed exponents must be bounded before evaluation ----------------------
+# MathJSON Log(a, b) is log base b of a. Never evaluate or simplify the outer power (or an
+# accepted exponent) in these tests: with N = 10^29 the power is 2^(10^29).
+
+
+def _near_one(n: int) -> Any:
+    """exp(1/n): a base so close to 1 that its logarithm is 1/n."""
+    return ["Exp", ["Divide", 1, n]]
+
+
+COMPUTED_EXPONENTS = [
+    lambda n: ["Log", "e", _near_one(n)],  # log_{e^(1/n)} e = n (review repro C2)
+    lambda n: ["Divide", 1, ["Ln", _near_one(n)]],  # n
+    lambda n: ["Divide", 1, ["Log", _near_one(n), "e"]],  # n
+    lambda n: ["Log", 2, _near_one(n)],  # n ln 2
+    lambda n: ["Divide", ["Ln", 2], ["Ln", _near_one(n)]],  # n ln 2
+    lambda n: ["Log", "e", ["Power", "e", ["Divide", 1, n]]],  # n
+    lambda n: ["Divide", 1, ["Lb", ["Power", 2, ["Divide", 1, n]]]],  # n
+    lambda n: ["Divide", 1, ["Ln", ["Root", "e", n]]],  # n
+    lambda n: ["Ln", ["Exp", n]],  # n
+]
+
+
+@pytest.mark.parametrize("n", [2000, 10000, 10**29])
+@pytest.mark.parametrize("exponent", COMPUTED_EXPONENTS)
+def test_computed_exponent_beyond_limit_rejected(exponent: Any, n: int) -> None:
+    tree = exponent(n)
+    for outer in (["Power", 2, tree], ["Exp", tree], ["Power", "x", tree]):
+        assert code(outer) == "input_too_large", outer
+
+
+def test_root_index_feeds_exponent_bound() -> None:
+    # log_4(2^(1/1000)) = 1/2000, so log_{2^(1/1000)} 4 = 2000 exceeds the exponent limit.
+    assert code(["Power", 2, ["Log", 4, ["Root", 2, 1000]]]) == "input_too_large"
+    assert code(["Exp", ["Log", 4, ["Root", 2, 1000]]]) == "input_too_large"
+
+
+def test_undefined_constant_exponent_rejected() -> None:
+    # 1/sin(pi) has no finite enclosure, so its magnitude cannot be bounded.
+    assert code(["Power", 2, ["Divide", 1, ["Sin", "Pi"]]]) == "input_too_large"
+
+
+@pytest.mark.parametrize(
+    "tree",
+    [
+        ["Power", 2, ["Ln", 3]],
+        ["Power", "x", ["Log", 8, 2]],  # x^3, written x^(log_2 8)
+        ["Power", "x", ["Lb", 8]],
+        ["Power", "x", "Pi"],
+        ["Power", "x", ["Sqrt", 2]],
+        ["Exp", ["Multiply", 2, ["Ln", 10]]],
+        ["Power", 2, ["Divide", 1, ["Ln", _near_one(2)]]],  # 2^2
+        ["Power", 2, ["Ln", _near_one(10)]],  # 2^(1/10)
+        ["Power", 3, ["Divide", 1, ["Sin", 3]]],
+        ["Power", 2, ["Log", 8, ["Root", 2, 3]]],  # 2^9
+    ],
+)
+def test_small_computed_exponents_accepted(tree: Any) -> None:
+    assert isinstance(translate(tree, CTX), Translated)
+
+
+def test_small_log_exponent_degree_is_tight() -> None:
+    # The bound comes from an enclosure of log_2 8 = 3, not from 10^digits.
+    assert isinstance(translate(["Power", ["Power", "x", 40], ["Log", 8, 2]], CTX), Translated)
+    assert code(["Power", ["Power", "x", 60], ["Log", 8, 2]]) == "input_too_large"
 
 
 def _real_power(tree: Any) -> Translated:

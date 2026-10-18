@@ -311,16 +311,17 @@ class _Builder:
                 raise _too_large(f"exponent exceeds {MAX_EXPONENT}")
             bound = math.ceil(abs(v))
         else:
-            # Not rational arithmetic (pi, sqrt, exp, ...): |b| < 10^digits is all we know.
-            assert exp.digits is not None
-            if exp.digits > 3:
-                raise _too_large(f"exponent may exceed {MAX_EXPONENT}")
-            bound = 10**exp.digits
+            # Not rational arithmetic (pi, sqrt, exp, log, ...). Digits do not bound magnitude:
+            # 1/ln(exp(1/N)) = N has few (review B-C2). Bound |exp| by a rigorous interval
+            # enclosure instead, before anything evaluates.
+            bound = self._exponent_bound(exp.expr)
         if base.degree * bound > MAX_DEGREE:
             raise _too_large(f"polynomial degree may exceed {MAX_DEGREE}")
         digits = None
         if base.constant:
-            digits = self._power_digits(base, bound)
+            # The exponent stays in the tree (e^(1/N), 2^(1/N)), so its digits count too.
+            assert exp.digits is not None
+            digits = max(self._power_digits(base, bound), exp.digits)
             if digits > MAX_CONST_DIGITS:
                 raise _too_large(f"constant may exceed {MAX_CONST_DIGITS} digits")
         if v is None:
@@ -345,6 +346,19 @@ class _Builder:
             if base.value != 0 or v >= 0:
                 value = base.value ** int(v)
         return _const(expr, value, digits)
+
+    def _exponent_bound(self, expr: Any) -> int:
+        """ceil(|expr|) for a constant exponent, from a rigorous enclosure, or reject."""
+        # Imported here: refute imports this module (through equivalence) at load time.
+        from mathtutor.verify.refute import enclose, to_fraction
+
+        box = enclose(expr, self.symbol, sympy.Integer(0))
+        if box is None:
+            raise _too_large(f"exponent may exceed {MAX_EXPONENT}")
+        magnitude = max(abs(to_fraction(box[0])), abs(to_fraction(box[1])))
+        if magnitude > MAX_EXPONENT:
+            raise _too_large(f"exponent may exceed {MAX_EXPONENT}")
+        return math.ceil(magnitude)
 
     @staticmethod
     def _power_digits(base: _Node, bound: int) -> int:
@@ -371,8 +385,12 @@ class _Builder:
         exponent = sympy.Rational(1, int(n))
         if n % 2 == 0:
             self.require("nonnegative", node)
-            return self._like(node, sympy.Pow(node.expr, exponent, evaluate=False))
-        return self._like(node, _real_power(node.expr, exponent, odd_numerator=True))
+            expr = sympy.Pow(node.expr, exponent, evaluate=False)
+        else:
+            expr = _real_power(node.expr, exponent, odd_numerator=True)
+        # 1/n stays in the tree: ln(2^(1/n)) = ln(2)/n, so the index's digits count too.
+        digits = None if node.digits is None else max(node.digits, _int_digits(int(n)))
+        return _Node(expr, None, digits, node.degree)
 
     @staticmethod
     def _like(node: _Node, expr: Any) -> _Node:
