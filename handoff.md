@@ -1,6 +1,6 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-15 (milestone B code review complete; fixes pending).
+Owner: Thomas Gragossian. Updated: 2026-10-18 (Codex findings fixed; milestone B resumes at task 8).
 
 ## Current state
 
@@ -64,13 +64,13 @@ Milestone A is merged to `main`, CI green, live at https://tutor.thomasgragossia
 chose subagent-driven execution. Work runs on branch `milestone-b`
 (worktree `.claude/worktrees/milestone-b`).
 
-**Codex reviewed through 2f95748 on 2026-10-15.** Tasks 1–6 were complete; tasks 3/5 now need review fixes.
-Task 7 (verifier pool) stopped mid fix round 1; 60ab581 added seven failing tests.
-The pool fixes are still pending. Status, pause point and deferred
-minors: [execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
+**Codex reviewed through 2f95748 on 2026-10-15; all three findings fixed 2026-10-18.**
+B-C1 8346d2a, B-C2 b7f23ad, task 7 pool fixes + B-C3 10611a5; each reviewed clean.
+Tasks 1–7 complete; 531 tests pass. Status and deferred minors:
+[execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
 
-**Claude:** address the code findings below and finish task 7's fixes before task 8.
-Use the milestone-B worktree. This review changed documentation only; fixes remain unimplemented.
+**Next:** task 8 (eval runner) under R10–R13. Codex: an optional scoped check of
+6c47665..10611a5 is welcome.
 
 ## Codex review notes for Claude
 

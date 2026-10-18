@@ -2,7 +2,7 @@
 
 [Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md)
 
-Updated 2026-10-15. Branch `milestone-b` (worktree `.claude/worktrees/milestone-b`).
+Updated 2026-10-18. Branch `milestone-b` (worktree `.claude/worktrees/milestone-b`).
 
 Each task is built by a subagent, then reviewed task by task (spec plus quality), then put through fix rounds and a re-review.
 
@@ -12,29 +12,14 @@ Each task is built by a subagent, then reviewed task by task (spec plus quality)
 |---|---|---|
 | 1 Carry-overs, exact decimals | b03faac..813597c | complete |
 | 2 Types, bounds, pre-checks | 813597c..b5c05b9 | complete |
-| 3 Translator | b5c05b9..ee4f4bf | built; B-C2 review fix pending (cc0dcfc is review docs) |
+| 3 Translator | b5c05b9..ee4f4bf, b7f23ad | complete; B-C2 fixed in b7f23ad |
 | 4 Equivalence | ee4f4bf..dbeea51 | complete after 2 fix rounds |
-| 5 Refute and check | dbeea51..9d06779 | built after 2 fix rounds; B-C1 review fix pending |
+| 5 Refute and check | dbeea51..9d06779, 8346d2a | complete; B-C1 fixed in 8346d2a |
 | 6 Content check, statement HTML | 9d06779..4ec38cb | complete after 1 fix round |
-| 7 Verifier pool | 4ec38cb..c4fa3ed, then the red tests | **paused mid fix round 1** |
+| 7 Verifier pool | 4ec38cb..10611a5 | complete after fix round 1; B-C3 fixed in 10611a5 |
 | 8–16 | — | not started |
 
-At c4fa3ed: 474 tests pass, 1 is skipped (Linux only), and mypy and ruff are clean.
-
-## Task 7: where it stopped
-
-The review of c4fa3ed found 3 Important issues:
-1. `worker_ms` includes the reap and respawn time.
-2. The soft budget inside `check` equals the 3 s hard deadline. It should be `deadline - 0.5`.
-3. A failed respawn is permanent. It should be retried lazily.
-
-The fix round also covers these minors:
-- `alive()` must not report False while a respawn is in progress, so `/readyz` does not flap.
-- A worker that replied and then died must not be reused.
-- Close the pipes if `proc.start()` fails.
-- Widen the timing margins in two tests.
-
-Seven new failing tests for these are committed as a red commit. `pool.py` is not yet changed.
+At 10611a5: 531 tests pass, 1 is skipped (Linux only), and mypy and ruff are clean.
 
 ## Codex code review at 2f95748
 
@@ -44,7 +29,8 @@ Seven new failing tests for these are committed as a red commit. `pool.py` is no
 - B-C3/P2: failed partial pool construction does not reap earlier workers (task 7).
 - Full Windows suite: 474 passed, seven known pool failures, one Linux-only skip.
 - Compiler tests (14), content check (6 problems), ruff and mypy pass. Docker unverified.
-- **Next:** fix B-C1/B-C2, finish the seven pool fixes plus B-C3, re-review and verify, then task 8.
+- **Fixed 2026-10-18** (each reviewed clean): B-C1 8346d2a, B-C2 b7f23ad, pool + B-C3 10611a5.
+- **Next:** task 8 under R10–R13.
 
 ## Deferred minors (not blocking; decide at the final review)
 
@@ -73,9 +59,16 @@ Seven new failing tests for these are committed as a red commit. `pool.py` is no
   - choice translation hard-codes x;
   - `\\$` is read as an escaped dollar.
 - **Task 7:**
+  - `alive()` retries a respawn synchronously, so `/readyz` can wait one worker start;
+  - no respawn backoff under persistent start failure; a `BaseException` in spawn leaks the counter;
   - the respawn runs on the timed-out caller's thread;
   - first-in, first-out order among waiters is not enforced;
-  - `close()` can return while a respawn is still starting.
+
+- **B-C fixes:**
+  - x^(log_2 8) vs x^3 is graded incorrect (R15 positive base); reduce exact-rational
+    constant exponents first — revisit with task 9 false-reject numbers;
+  - constant-base digit estimate can undercount with deep nesting (cost only);
+  - lazy `refute` import in `translate`; extract the interval walker to its own module.
 
 ## Human gates still ahead
 
