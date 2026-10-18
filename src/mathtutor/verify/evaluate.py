@@ -1,7 +1,8 @@
 """Offline verifier evaluation (spec 08): metrics with Wilson intervals, gates, results JSON.
 
 ``python -m mathtutor.verify.evaluate --set dev|generated [--gate B] [--out results/<name>.json]``
-calls ``check`` directly, so it imports SymPy and must never be imported by the web process.
+grades through a one-worker VerifierPool (3 s deadline); it imports SymPy-using modules and must
+never be imported by the web process.
 Exit 0 when every gate holds (or no gate was asked for), 1 otherwise.
 """
 
@@ -13,20 +14,23 @@ import json
 import math
 import sys
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import TypeAdapter, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, field_validator
 
 from mathtutor.content.loader import ContentError, LoadedContent, load_bundle
 from mathtutor.content.schema import Answer, ChoiceAnswer
-from mathtutor.domain import AnswerKind, FormatIssueCode, VerdictStatus
+from mathtutor.domain import AnswerKind, FormatIssueCode, VerdictReason, VerdictStatus
 from mathtutor.jsonio import loads_exact
 from mathtutor.verify.check import check
+from mathtutor.verify.pool import VerifierPool
 from mathtutor.verify.types import (
     VERIFIER_VERSION,
     CheckRequest,
+    CheckResult,
     FormatIssue,
     SubmittedAnswer,
     Verdict,
@@ -37,6 +41,7 @@ SET_PATHS = {
     "dev": Path("evals/verifier/dev.jsonl"),
     "generated": Path("evals/verifier/generated/mutations.jsonl"),
 }
+GRADE_DEADLINE_S = 3.0
 LABELS = ("correct", "incorrect", "unsupported")
 GATES_B: dict[str, float] = {
     "min_cases": 80,
@@ -62,16 +67,37 @@ def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
     return (max(0.0, centre - half), min(1.0, centre + half))
 
 
-@dataclass(frozen=True)
-class Case:
-    id: str
-    family: str
-    problem_id: str | None
-    inline_spec: dict[str, Any] | None
+_ANSWER_KEYS = {"mathjson", "latex", "choice_id"}
+
+
+class Case(BaseModel):
+    """One case row (spec 08). Strict: unknown keys and blank rationale/reviewer are errors."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    id: str = Field(min_length=1)
+    family: str = Field(min_length=1)
+    problem_id: str | None = None
+    inline_spec: dict[str, Any] | None = None
     answer: dict[str, Any]
-    label: str
+    label: Literal["correct", "incorrect", "unsupported"]
     rationale: str
     reviewer: str
+
+    @field_validator("rationale", "reviewer")
+    @classmethod
+    def _not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("must be a non-empty string")
+        return value
+
+    @field_validator("answer")
+    @classmethod
+    def _known_answer_keys(cls, value: dict[str, Any]) -> dict[str, Any]:
+        unknown = sorted(set(value) - _ANSWER_KEYS)
+        if unknown:
+            raise ValueError(f"unknown answer keys {unknown}")
+        return value
 
 
 @dataclass(frozen=True)
@@ -95,6 +121,9 @@ class Metrics:
     by_kind_reason_method: dict[str, int]
     # `unsupported` cases graded correct: a zero-tolerance accept (ruling R11).
     unsupported_accept: Rate = field(default=(0, 0))
+    # Cases whose outcome matches the label; and verifier crashes (a bug, never an abstention).
+    agreement: Rate = field(default=(0, 0))
+    internal_errors: int = 0
 
 
 def parse_cases(rows: list[dict[str, Any]]) -> list[Case]:
@@ -102,47 +131,41 @@ def parse_cases(rows: list[dict[str, Any]]) -> list[Case]:
     for i, row in enumerate(rows, 1):
         where = f"case {i} ({row.get('id', '?')})"
         try:
-            label = row["label"]
-            if label not in LABELS:
-                raise ValueError(f"label {label!r} is not one of {', '.join(LABELS)}")
-            problem_id, inline = row.get("problem_id"), row.get("inline_spec")
-            if (problem_id is None) == (inline is None):
+            case = Case.model_validate(row)
+            if (case.problem_id is None) == (case.inline_spec is None):
                 raise ValueError("exactly one of problem_id or inline_spec is required")
-            if not isinstance(row["answer"], dict):
-                raise ValueError("answer must be an object")
-            cases.append(
-                Case(
-                    row["id"],
-                    row["family"],
-                    problem_id,
-                    inline,
-                    row["answer"],
-                    label,
-                    row.get("rationale", ""),
-                    row.get("reviewer", ""),
-                )
+        except ValidationError as error:
+            details = "; ".join(
+                f"{'.'.join(str(p) for p in e['loc']) or '(row)'}: {e['msg']}"
+                for e in error.errors()
             )
-        except (KeyError, ValueError) as error:
+            raise ValueError(f"{where}: {details}") from error
+        except ValueError as error:
             raise ValueError(f"{where}: {error}") from error
+        cases.append(case)
     ids = [c.id for c in cases]
     if len(set(ids)) != len(ids):
         raise ValueError("duplicate case ids")
     return cases
 
 
-def load_cases(path: Path) -> list[Case]:
+def _rows(text: str, name: str) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+    for number, line in enumerate(text.splitlines(), 1):
         if not line.strip():
             continue
         try:
             row = loads_exact(line)
         except ValueError as error:
-            raise ValueError(f"{path.name}:{number}: invalid JSON ({error})") from error
+            raise ValueError(f"{name}:{number}: invalid JSON ({error})") from error
         if not isinstance(row, dict):
-            raise ValueError(f"{path.name}:{number}: case must be a JSON object")
+            raise ValueError(f"{name}:{number}: case must be a JSON object")
         rows.append(row)
-    return parse_cases(rows)
+    return rows
+
+
+def load_cases(path: Path) -> list[Case]:
+    return parse_cases(_rows(path.read_text(encoding="utf-8"), path.name))
 
 
 def _spec_for(case: Case, content: LoadedContent) -> Any:
@@ -174,12 +197,18 @@ def _agrees(label: str, outcome: Verdict | FormatIssue) -> bool:
     return False
 
 
-def evaluate(cases: list[Case], content: LoadedContent) -> tuple[Metrics, list[CaseResult]]:
+def evaluate(
+    cases: list[Case],
+    content: LoadedContent,
+    grade: Callable[[CheckRequest], CheckResult] | None = None,
+) -> tuple[Metrics, list[CaseResult]]:
+    """Grade every case. ``grade`` defaults to ``check`` in this process; the CLI passes a pool."""
+    grade = grade or check
     results: list[CaseResult] = []
     breakdown: Counter[str] = Counter()
     for case in cases:
         spec = _spec_for(case, content)
-        graded = check(CheckRequest(spec, _submitted(case, spec), case.id))
+        graded = grade(CheckRequest(spec, _submitted(case, spec), case.id))
         outcome = graded.outcome
         if isinstance(outcome, FormatIssue):
             status, reason, method = "format_issue", f"format:{outcome.code}", "none"
@@ -222,6 +251,8 @@ def _metrics(results: list[CaseResult], breakdown: Counter[str]) -> Metrics:
             sum(r.status == graded_correct for r in unsupported),
             len(unsupported),
         ),
+        agreement=(sum(r.agrees for r in results), len(results)),
+        internal_errors=sum(r.reason == str(VerdictReason.INTERNAL_ERROR) for r in results),
     )
 
 
@@ -236,6 +267,11 @@ def gate_failures(
     if metrics.unsupported_accept[0] > 0:
         k, n = metrics.unsupported_accept
         failures.append(f"unsupported input graded correct: {k} of {n} (max 0)")
+    if metrics.internal_errors:
+        failures.append(f"internal_error: {metrics.internal_errors} cases crashed the verifier")
+    if mode == "generated" and metrics.agreement[0] < metrics.agreement[1]:
+        k, n = metrics.agreement
+        failures.append(f"regression: only {k} of {n} cases agree with their label")
     if mode == "dev":
         if n_cases < gates["min_cases"]:
             failures.append(f"min_cases: {n_cases} cases (need {int(gates['min_cases'])})")
@@ -263,6 +299,7 @@ def render_summary(metrics: Metrics) -> str:
         _rate("FR (correct rejected)", metrics.fr),
         _rate("Supported coverage", metrics.coverage),
         _rate("Unsupported graded correct", metrics.unsupported_accept),
+        _rate("Agreement with label", metrics.agreement),
     ]
     lines += [_rate(f"Abstain ({label})", rate) for label, rate in metrics.abstain.items()]
     lines += [f"  {key}: {count}" for key, count in metrics.by_kind_reason_method.items()]
@@ -286,6 +323,8 @@ def results_json(
             "fr": _rate_json(metrics.fr),
             "coverage": _rate_json(metrics.coverage),
             "unsupported_accept": _rate_json(metrics.unsupported_accept),
+            "agreement": _rate_json(metrics.agreement),
+            "internal_errors": metrics.internal_errors,
             "abstain": {label: _rate_json(rate) for label, rate in metrics.abstain.items()},
             "by_kind_reason_method": metrics.by_kind_reason_method,
         },
@@ -307,12 +346,19 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     try:
         content = load_bundle(args.content)
-        cases = load_cases(path)
-        metrics, results = evaluate(cases, content)
-    except (ContentError, ValueError) as error:
+        raw = path.read_bytes()
+        cases = parse_cases(_rows(raw.decode("utf-8"), path.name))
+        # Each case runs in a worker under the standard deadline: a pathological case becomes a
+        # timeout abstention instead of hanging CI.
+        pool = VerifierPool(size=1, deadline_s=GRADE_DEADLINE_S)
+        try:
+            metrics, results = evaluate(cases, content, grade=pool.submit)
+        finally:
+            pool.close()
+    except (ContentError, ValueError, RuntimeError) as error:
         print(error)
         return 1
-    sha = hashlib.sha256(path.read_bytes()).hexdigest()
+    sha = hashlib.sha256(raw).hexdigest()
     print(f"set: {args.set_name} ({len(cases)} cases, sha256 {sha[:12]}) {VERIFIER_VERSION}")
     print(render_summary(metrics))
     if args.out:

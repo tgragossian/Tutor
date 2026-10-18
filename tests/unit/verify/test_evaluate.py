@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -105,17 +106,15 @@ def test_gate_fails_on_unsupported_graded_correct(
     assert code == 1 and "unsupported" in out
 
 
-def test_gate_fails_when_everything_abstains(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    unable = Verdict(VerdictStatus.UNABLE_TO_VERIFY, VerdictReason.NOT_PROVEN, Method.NONE)
+def abstaining(reason: VerdictReason) -> Callable[[CheckRequest], CheckResult]:
+    unable = Verdict(VerdictStatus.UNABLE_TO_VERIFY, reason, Method.NONE)
+    return lambda req: CheckResult(unable, "test")
 
-    def fake(req: CheckRequest, deadline_s: float = 3.0) -> CheckResult:
-        return CheckResult(unable, "test")
 
-    monkeypatch.setattr(ev, "check", fake)
-    code, out = run(capsys, "dev", TINY, "--gate", "B")
-    assert code == 1 and "coverage" in out
+def test_gate_fails_when_everything_abstains() -> None:
+    m, _ = evaluate(load_cases(TINY), REAL, grade=abstaining(VerdictReason.NOT_PROVEN))
+    failures = gate_failures(m, 80, "dev", GATES_B)
+    assert any("coverage" in f for f in failures)
 
 
 def test_gate_fails_under_80_cases(capsys: pytest.CaptureFixture[str]) -> None:
@@ -123,10 +122,36 @@ def test_gate_fails_under_80_cases(capsys: pytest.CaptureFixture[str]) -> None:
     assert code == 1 and "min_cases" in out
 
 
-def test_generated_mode_ignores_min_cases(capsys: pytest.CaptureFixture[str]) -> None:
-    code, out = run(capsys, "generated", TINY, "--gate", "B")
+def test_generated_mode_ignores_min_cases(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    agreeing = [c for c in load_rows(TINY) if c["id"] != "t-c3"]
+    code, out = run(capsys, "generated", write(tmp_path / "ok.jsonl", agreeing), "--gate", "B")
     assert code == 0, out
     assert "min_cases" not in out
+
+
+def load_rows(path: Path) -> list[dict[str, Any]]:
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+
+
+@pytest.mark.parametrize("reason", [VerdictReason.NOT_PROVEN, VerdictReason.INTERNAL_ERROR])
+@pytest.mark.parametrize("mode", ["generated", "dev"])
+def test_gate_fails_when_verifier_abstains_or_crashes(mode: str, reason: VerdictReason) -> None:
+    m, _ = evaluate(load_cases(TINY), REAL, grade=abstaining(reason))
+    assert gate_failures(m, 80, mode, GATES_B)
+
+
+def test_generated_gate_fails_on_any_disagreement() -> None:
+    m, _ = evaluate(load_cases(TINY), REAL)  # t-c3 (a placeholder labelled correct) disagrees
+    assert any("regression" in f for f in gate_failures(m, 7, "generated", GATES_B))
+
+
+def test_internal_error_is_counted_and_fails_gate() -> None:
+    m, _ = evaluate(load_cases(TINY), REAL, grade=abstaining(VerdictReason.INTERNAL_ERROR))
+    assert m.internal_errors == 7
+    for mode in ("dev", "generated"):
+        assert any("internal_error" in f for f in gate_failures(m, 80, mode, GATES_B))
 
 
 def test_gate_failures_dev_checks_fr_and_coverage() -> None:
@@ -167,6 +192,29 @@ def test_unknown_problem_is_an_error(tmp_path: Path, capsys: pytest.CaptureFixtu
     assert code == 1 and "nope" in out
 
 
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        {"inline_spce": {}},
+        {"rationale": ""},
+        {"reviewer": "  "},
+        {"answer": {"mathjsn": 1}},
+        {"extra": 1},
+    ],
+)
+def test_case_rows_are_strict(tmp_path: Path, mutation: dict[str, Any]) -> None:
+    row = {**case("s-1", "correct", GOOD), **mutation}
+    with pytest.raises(ValueError, match="s-1"):
+        load_cases(write(tmp_path / "s.jsonl", [row]))
+
+
+def test_missing_rationale_is_rejected(tmp_path: Path) -> None:
+    row = case("s-2", "correct", GOOD)
+    del row["reviewer"]
+    with pytest.raises(ValueError, match="s-2"):
+        load_cases(write(tmp_path / "s.jsonl", [row]))
+
+
 def test_load_cases_rejects_bad_label(tmp_path: Path) -> None:
     path = write(tmp_path / "l.jsonl", [case("l-1", "maybe", GOOD)])
     with pytest.raises(ValueError, match="label"):
@@ -197,7 +245,7 @@ def test_mutations_shape() -> None:
 def test_mutations_grade_as_labelled() -> None:
     m, results = evaluate(ev.parse_cases(mutate(REAL)), REAL)
     assert m.fa[0] == 0 and m.fr[0] == 0
-    assert not any(r.status == "format_issue" for r in results)
+    assert all(r.agrees for r in results)
 
 
 def test_committed_mutations_file_is_current() -> None:
