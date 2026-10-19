@@ -5,7 +5,7 @@
         "choices": [
           {
             "id": "a",
-            "latex": "2x\\cos x-x^2\\sin x",
+            "latex": "2x\\cos(x)-x^2\\sin(x)",
             "mathjson": [
               "Subtract",
               [
@@ -33,7 +33,7 @@
           },
           {
             "id": "b",
-            "latex": "2x\\cos x+x^2\\sin x",
+            "latex": "2x\\cos(x)+x^2\\sin(x)",
             "mathjson": [
               "Add",
               [
@@ -61,7 +61,7 @@
           },
           {
             "id": "c",
-            "latex": "-2x\\sin x",
+            "latex": "-2x\\sin(x)",
             "mathjson": [
               "InvisibleOperator",
               [
@@ -77,7 +77,7 @@
           },
           {
             "id": "d",
-            "latex": "2x\\cos x",
+            "latex": "2x\\cos(x)",
             "mathjson": [
               "InvisibleOperator",
               2,
@@ -106,7 +106,7 @@
       ],
       "review": {
         "date": "2026-10-15",
-        "notes": "Author-written, modelled on the 3.5 product-rule-with-trig exercises (e.g. 177, 181). Product rule: (x^2)'cos x + x^2 (cos x)' = 2x cos x - x^2 sin x, so a. Distractors: b flips the sign of (cos x)'; c is (x^2)'(cos x)' = -2x sin x; d drops the x^2 (cos x)' term. Each is genuinely wrong, e.g. at x = pi/2: y' = -pi^2/4, b = +pi^2/4, c = -pi, d = 0. SymPy confirmed a equals y' and b, c, d do not.",
+        "notes": "Author-written, modelled on the 3.5 product-rule-with-trig exercises (e.g. 177, 181). Product rule: (x^2)'cos x + x^2 (cos x)' = 2x cos x - x^2 sin x, so a. Distractors: b flips the sign of (cos x)'; c is (x^2)'(cos x)' = -2x sin x; d drops the x^2 (cos x)' term. Each is genuinely wrong, e.g. at x = pi/2: y' = -pi^2/4, b = +pi^2/4, c = -pi, d = 0. SymPy confirmed a equals y' and b, c, d do not. 2026-10-19: LaTeX parenthesized for R22; meaning unchanged (proved equal to the previous compiled answer).",
         "reviewer": "tg",
         "status": "human_verified"
       },
@@ -272,7 +272,7 @@
     {
       "answer": {
         "kind": "expression",
-        "latex": "(1-\\sin x)^2-(x+\\cos x)\\cos x",
+        "latex": "(1-\\sin(x))^2-(x+\\cos(x))\\cos(x)",
         "mathjson": [
           "Subtract",
           [
@@ -314,7 +314,7 @@
       "difficulty": 2,
       "id": "openstax-c1-3.5-181",
       "misconceptions": [
-        "(1-\\sin x)^2+(x+\\cos x)\\cos x  # sign error: derivative of -sin x taken as +cos x"
+        "(1-\\sin(x))^2+(x+\\cos(x))\\cos(x)  # sign error: derivative of -sin x taken as +cos x"
       ],
       "misconceptions_mathjson": [
         [
@@ -356,7 +356,7 @@
       ],
       "review": {
         "date": "2026-10-15",
-        "notes": "Product rule with u = x + cos x, v = 1 - sin x: u' = 1 - sin x, v' = -cos x. dy/dx = (1 - sin x)(1 - sin x) + (x + cos x)(-cos x) = (1 - sin x)^2 - cos x (x + cos x), matching the OpenStax answer key for 181. Domain: all reals (only sin, cos and polynomials). Cross-checked with a throwaway SymPy diff/simplify. LaTeX puts the cos x factor last: Compute Engine parses \\cos x\\,(x+\\cos x) as cos(x(x + cos x)).",
+        "notes": "Product rule with u = x + cos x, v = 1 - sin x: u' = 1 - sin x, v' = -cos x. dy/dx = (1 - sin x)(1 - sin x) + (x + cos x)(-cos x) = (1 - sin x)^2 - cos x (x + cos x), matching the OpenStax answer key for 181. Domain: all reals (only sin, cos and polynomials). Cross-checked with a throwaway SymPy diff/simplify. LaTeX puts the cos x factor last: Compute Engine parses \\cos x\\,(x+\\cos x) as cos(x(x + cos x)). 2026-10-19: LaTeX parenthesized for R22; meaning unchanged (proved equal to the previous compiled answer).",
         "reviewer": "tg",
         "status": "human_verified"
       },

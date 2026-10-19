@@ -9,7 +9,10 @@ from typing import Any
 import pytest
 
 from mathtutor.content.loader import LoadedContent, load_bundle
+from mathtutor.domain import FormatIssueCode
+from mathtutor.verify import content_check
 from mathtutor.verify.content_check import check_bundle, main
+from mathtutor.verify.types import CheckResult, FormatIssue
 
 ROOT = Path(__file__).resolve().parents[3]
 REAL = ROOT / "content" / "compiled" / "problems.json"
@@ -119,3 +122,51 @@ def test_same_domain_defect_is_reported_once(tmp_path: Path) -> None:
 
     errors = check_bundle(_edited(tmp_path, edit))
     assert len(errors) == 1 and "undefined on domain" in errors[0]
+
+
+def test_bare_function_in_answer_latex_is_an_error(tmp_path: Path) -> None:
+    def edit(problems: list[dict[str, Any]]) -> None:
+        problems[0]["answer"]["latex"] = r"(1-\sin x)^2"
+        problems[0]["answer"]["mathjson"] = ["Power", ["Subtract", 1, ["Sin", "x"]], 2]
+
+    errors = check_bundle(_edited(tmp_path, edit))
+    assert errors == [r"pow-001: answer.latex: function input needs parentheses (\sin)"]
+
+
+def test_bare_function_in_choice_is_an_error(tmp_path: Path) -> None:
+    def edit(problems: list[dict[str, Any]]) -> None:
+        problems[1]["answer"]["choices"][1]["latex"] = r"x\cos x"
+        problems[1]["answer"]["choices"][1]["mathjson"] = ["Multiply", "x", ["Cos", "x"]]
+
+    errors = check_bundle(_edited(tmp_path, edit))
+    assert errors == [r"pow-002: answer.choices[1].latex: function input needs parentheses (\cos)"]
+
+
+def test_bare_function_in_misconception_is_an_error(tmp_path: Path) -> None:
+    def edit(problems: list[dict[str, Any]]) -> None:
+        problems[0]["misconceptions"] = [r"\sin x  # forgot the chain rule"]
+        problems[0]["misconceptions_mathjson"] = [["Sin", "x"]]
+
+    errors = check_bundle(_edited(tmp_path, edit))
+    assert errors == [r"pow-001: misconceptions[0]: function input needs parentheses (\sin)"]
+
+
+def test_rejected_misconception_is_an_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def edit(problems: list[dict[str, Any]]) -> None:
+        problems[0]["misconceptions"] = ["2x  # wrong"]
+        problems[0]["misconceptions_mathjson"] = [["InvisibleOperator", 2, "x"]]
+
+    content = _edited(tmp_path, edit)
+    rejected = CheckResult(FormatIssue(FormatIssueCode.INCOMPLETE), "test")
+    monkeypatch.setattr(content_check, "check", lambda *args, **kwargs: rejected)
+    errors = check_bundle(content)
+    assert errors == ["pow-001: misconceptions[0]: misconception is not gradable: incomplete"]
+
+
+def test_statement_is_not_checked(tmp_path: Path) -> None:
+    def edit(problems: list[dict[str, Any]]) -> None:
+        problems[0]["statement"] = r"Find the derivative of $\cos x$."
+
+    assert check_bundle(_edited(tmp_path, edit)) == []

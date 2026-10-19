@@ -13,13 +13,13 @@ answer:
   kind: choice
   choices:
     - id: a
-      latex: '2x\cos x-x^2\sin x'
+      latex: '2x\cos(x)-x^2\sin(x)'
     - id: b
-      latex: '2x\cos x+x^2\sin x'
+      latex: '2x\cos(x)+x^2\sin(x)'
     - id: c
-      latex: '-2x\sin x'
+      latex: '-2x\sin(x)'
     - id: d
-      latex: '2x\cos x'
+      latex: '2x\cos(x)'
   correct: a
 misconceptions:
   - 'b  # sign error: derivative of cos x taken as +sin x'
@@ -29,4 +29,4 @@ review:
   status: human_verified
   reviewer: 'tg'
   date: '2026-10-15'
-  notes: 'Author-written, modelled on the 3.5 product-rule-with-trig exercises (e.g. 177, 181). Product rule: (x^2)''cos x + x^2 (cos x)'' = 2x cos x - x^2 sin x, so a. Distractors: b flips the sign of (cos x)''; c is (x^2)''(cos x)'' = -2x sin x; d drops the x^2 (cos x)'' term. Each is genuinely wrong, e.g. at x = pi/2: y'' = -pi^2/4, b = +pi^2/4, c = -pi, d = 0. SymPy confirmed a equals y'' and b, c, d do not.'
+  notes: 'Author-written, modelled on the 3.5 product-rule-with-trig exercises (e.g. 177, 181). Product rule: (x^2)''cos x + x^2 (cos x)'' = 2x cos x - x^2 sin x, so a. Distractors: b flips the sign of (cos x)''; c is (x^2)''(cos x)'' = -2x sin x; d drops the x^2 (cos x)'' term. Each is genuinely wrong, e.g. at x = pi/2: y'' = -pi^2/4, b = +pi^2/4, c = -pi, d = 0. SymPy confirmed a equals y'' and b, c, d do not. 2026-10-19: LaTeX parenthesized for R22; meaning unchanged (proved equal to the previous compiled answer).'

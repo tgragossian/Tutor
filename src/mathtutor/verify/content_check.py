@@ -25,6 +25,7 @@ from mathtutor.content.schema import (
 from mathtutor.domain import AnswerKind, VerdictStatus
 from mathtutor.verify.check import check
 from mathtutor.verify.equivalence import Budget, equivalent, to_sympy_set, violation_set
+from mathtutor.verify.latex_rules import unparenthesized_function
 from mathtutor.verify.translate import (
     VARIABLE_ASSUMPTIONS,
     Rejected,
@@ -32,7 +33,7 @@ from mathtutor.verify.translate import (
     Translated,
     translate,
 )
-from mathtutor.verify.types import CheckRequest, SubmittedAnswer, Verdict
+from mathtutor.verify.types import CheckRequest, FormatIssue, SubmittedAnswer, Verdict
 
 DEFAULT_PATH = Path("content/compiled/problems.json")
 _PROBLEM_SECONDS = 30.0
@@ -47,8 +48,17 @@ def _translated(tree: JsonValue, variable: str) -> Translated | str:
     return result
 
 
+def _parens_error(field: str, latex: str) -> str | None:
+    """R22 on authored LaTeX: the same rule that rejects student input."""
+    bare = unparenthesized_function(latex)
+    return None if bare is None else f"{field}: function input needs parentheses ({bare})"
+
+
 def _self_checks(answer: ExpressionAnswer | NumericAnswer, budget: Budget) -> list[str]:
     """The expected answer translates, equals itself, and is defined on its whole domain."""
+    bare = _parens_error("answer.latex", answer.latex)
+    if bare is not None:
+        return [bare]
     tree = _translated(answer.mathjson, answer.variable)
     if isinstance(tree, str):
         return [f"answer.latex: {tree}"]
@@ -81,6 +91,10 @@ def _choice_checks(answer: ChoiceAnswer, budget: Budget) -> list[str]:
     errors: list[str] = []
     trees: dict[str, Translated] = {}
     for i, choice in enumerate(answer.choices):
+        bare = _parens_error(f"answer.choices[{i}].latex", choice.latex)
+        if bare is not None:
+            errors.append(bare)
+            continue
         tree = _translated(choice.mathjson, "x")
         if isinstance(tree, str):
             errors.append(f"answer.choices[{i}].latex: {tree}")
@@ -119,8 +133,15 @@ def _misconception_checks(problem: Problem) -> list[str]:
             tree = trees[i] if trees is not None else None
             if tree is None:  # the compiler could not parse it: skipped by design
                 continue
+            bare = _parens_error(field, head)
+            if bare is not None:
+                errors.append(bare)
+                continue
             submitted = SubmittedAnswer(AnswerKind(spec.kind), tree, head, None)
         outcome = check(CheckRequest(spec, submitted), deadline_s=_GRADE_SECONDS).outcome
+        if isinstance(outcome, FormatIssue):
+            errors.append(f"{field}: misconception is not gradable: {outcome.code}")
+            continue
         if isinstance(outcome, Verdict) and outcome.status == VerdictStatus.CORRECT:
             errors.append(f"{field}: graded correct against the expected answer")
     return errors
