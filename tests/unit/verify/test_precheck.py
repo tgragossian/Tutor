@@ -4,9 +4,10 @@ import pytest
 from support.mathjson import latex, mj
 
 from mathtutor.content.schema import ChoiceAnswer, ExpressionAnswer, NumericAnswer
-from mathtutor.domain import AnswerKind
+from mathtutor.domain import AnswerKind, FormatIssueCode
+from mathtutor.verify.latex_rules import FUNCTION_PARENS_DETAIL
 from mathtutor.verify.precheck import decimal_literal, precheck
-from mathtutor.verify.types import SubmittedAnswer
+from mathtutor.verify.types import FormatIssue, SubmittedAnswer
 
 EXPR = ExpressionAnswer(kind="expression", latex="2x", mathjson=["Multiply", 2, "x"])
 EXACT = NumericAnswer(kind="numeric", latex="1/2", mathjson=["Divide", 1, 2], precision="exact")
@@ -41,6 +42,20 @@ def test_empty_is_empty() -> None:
 def test_missing_mathjson_is_empty() -> None:
     issue = precheck(expr_answer(None, "x"), EXPR)
     assert issue is not None and issue.code == "empty"
+
+
+def test_bare_function_is_unsupported_notation() -> None:
+    issue = precheck(expr_answer(["Sin", "x"], r"\sin x"), EXPR)
+    assert issue == FormatIssue(FormatIssueCode.UNSUPPORTED_NOTATION, FUNCTION_PARENS_DETAIL)
+
+
+def test_parenthesized_function_proceeds() -> None:
+    assert precheck(expr_answer(["Sin", "x"], r"\sin(x)"), EXPR) is None
+
+
+def test_incomplete_wins_over_parens() -> None:
+    issue = precheck(expr_answer(["Sin", "x"], r"\sin\placeholder{}"), EXPR)
+    assert issue is not None and issue.code == "incomplete"
 
 
 def test_placeholder_latex_incomplete() -> None:

@@ -216,6 +216,9 @@ def test_check_numeric_non_constant_expected_is_internal_error() -> None:
 # -- expression ------------------------------------------------------------------------------
 
 
+_PARENTHESIZED_SEED_LATEX = {"openstax-c1-3.5-181": r"(1-\sin(x))^2-(x+\cos(x))\cos(x)"}
+
+
 @pytest.mark.parametrize("problem", SEED, ids=[p.id for p in SEED])
 def test_check_expression_seed_answers(problem: Any) -> None:
     spec = problem.answer
@@ -223,7 +226,9 @@ def test_check_expression_seed_answers(problem: Any) -> None:
         req = CheckRequest(spec, SubmittedAnswer(AnswerKind.CHOICE, None, "", spec.correct))
         assert outcome(req).status == VerdictStatus.CORRECT
     else:
-        assert outcome(submit(spec, spec.mathjson, spec.latex)) == CORRECT
+        # R22 rejects bare-function LaTeX; seed LaTeX is parenthesized in task 3 (then drop this).
+        tex = _PARENTHESIZED_SEED_LATEX.get(problem.id, spec.latex)
+        assert outcome(submit(spec, spec.mathjson, tex)) == CORRECT
 
 
 def test_check_gap_certified() -> None:

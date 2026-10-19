@@ -8,6 +8,7 @@ from pydantic import JsonValue
 
 from mathtutor.content.schema import Answer, NumericAnswer
 from mathtutor.domain import AnswerKind, FormatIssueCode
+from mathtutor.verify.latex_rules import FUNCTION_PARENS_DETAIL, unparenthesized_function
 from mathtutor.verify.types import FormatIssue, SubmittedAnswer
 
 _EMPTY_GROUP = re.compile(r"\{\s*\}")
@@ -73,6 +74,8 @@ def precheck(answer: SubmittedAnswer, spec: Answer) -> FormatIssue | None:
         return FormatIssue(FormatIssueCode.EMPTY)
     if _is_incomplete(answer, mathjson):
         return FormatIssue(FormatIssueCode.INCOMPLETE)
+    if unparenthesized_function(answer.latex) is not None:
+        return FormatIssue(FormatIssueCode.UNSUPPORTED_NOTATION, FUNCTION_PARENS_DETAIL)
     if (
         isinstance(spec, NumericAnswer)
         and spec.precision == "exact"
