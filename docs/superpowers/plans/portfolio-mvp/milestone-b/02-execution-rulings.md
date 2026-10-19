@@ -41,6 +41,13 @@ These rulings add to the plan, and where they conflict with it, they replace it.
   - Precision rises 60 → 120 → 240 digits.
   - If the value still straddles a rounding boundary → `unable_to_verify`.
 
+## Function input and domain rewrites (R22–R23)
+
+- **R22:** function input needs parentheses; a reject-only LaTeX pre-check, including `\operatorname{sin}` and `\mathrm{sin}`.
+  See [decision 0003](../../../../decisions/0003-function-parentheses.md) and the [spec](../../../specs/2026-10-19-function-input-and-domain-rewrite-design.md#r22-function-input-always-uses-parentheses).
+- **R23:** restrictions are rewritten and decided on their inner argument before the R19 solvers.
+  Amends R18 for Abs at the top of a constraint. See the [spec](../../../specs/2026-10-19-function-input-and-domain-rewrite-design.md#r23-restrictions-are-solved-on-their-inner-argument).
+
 ## Rulings made inside tasks
 
 - **Task 5:** the math libraries are pinned: `sympy==1.14.0`, `mpmath==1.3.0`.

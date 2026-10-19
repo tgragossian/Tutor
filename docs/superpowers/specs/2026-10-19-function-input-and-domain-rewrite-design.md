@@ -2,8 +2,8 @@
 
 [Specs index](README.md) · [Portfolio core](2026-10-13-portfolio-core/README.md) · [Decision 0001](../../decisions/0001-delivery-verifier-attribution.md) · [Decision 0002](../../decisions/0002-mathlive-input.md) · [Review sheet](../../../evals/verifier/human/REVIEW.md)
 
-**Status:** design agreed with Thomas in chat, 2026-10-19; this written spec awaits his review.
-Scope: milestone B, before task 10. Fixes review sheet disagreements 1 and 3–6, 8, 9.
+**Status:** approved by Thomas, 2026-10-19; implemented in ea6748b..6cc4853 and the dev-case recapture commit.
+Scope: milestone B, before task 10. Fixes review sheet disagreements 1 and 3–7, 9; 8 remains.
 Precedence: decision 0001 still wins; this amends ruling R18 and decision 0002 as stated.
 
 ## R22: function input always uses parentheses
@@ -12,7 +12,7 @@ Precedence: decision 0001 still wins; this amends ruling R18 and decision 0002 a
 cos(x(x + cos x)) (`d-181-05`). The tree cannot show which was meant: `\cos x(x+1)` and
 `\cos(x(x+1))` give the same MathJSON. Thomas chose: require parentheses, as Desmos does.
 
-1. **Practice field (task 13).** MathLive inline shortcuts turn `sin cos tan sec csc cot ln
+1. **Practice field (task 14).** MathLive inline shortcuts turn `sin cos tan sec csc cot ln
    log` into `\fn\left(\placeholder{}\right)`. Powers and bases sit before the parentheses:
    `\sin^2(x)`, `\log_2(8)`.
 2. **Server rule (pre-check).** In submitted LaTeX, each function command, after optional
@@ -60,10 +60,11 @@ recorded constraint with equivalent constraints on its inner argument, recursive
 
 - Recapture through real MathLive after editing `dev.src.yaml`. Labels never change to match
   the verifier; the input changes only because R22 changed what a student can submit.
-- The 26 cases whose input has an unparenthesized function get the parenthesized form, with
+- The 25 cases whose input has an unparenthesized function (the bare-function scan finds 26;
+  `d-lnsq-02` uses absolute-value bars, which R22 accepts) get the parenthesized form, with
   the same label and meaning (`\sec x^2`, meant as sec(x²), becomes `\sec(x^2)`).
   `d-181-05` becomes `(1-\sin(x))^2-\cos(x)(x+\cos(x))`, label `correct`.
-- New `unsupported` regression cases: `\sin x`, `\cos x(x+1)`, `\cos^2x`, `\log_2 8`.
+- New `unsupported` regression cases: `\sin x`, `\cos x(x+1)`, `\cos^2x`, `\log_2 8`, and `\operatorname{sin}x` (the operatorname/mathrm bypass, closed in 098b7ba).
 - Every edited or new case stays `reviewer: 'pending'` for Thomas.
 
 ## Testing and evidence
@@ -71,6 +72,6 @@ recorded constraint with equivalent constraints on its inner argument, recursive
 - Failing test first for each R22 pattern (rejects and accepts), each R23 rule, and the
   still-abstains list (cos(x) > 0 on ℝ; |u| under x^(1/2)).
 - Content check test: an authored answer with `\sin x` fails the build.
-- Expected draft result: disagreements 3–6, 8, 9 move to correct; coverage about 50/52.
-  `d-cot-03` is proven via the exact hole-limit check. Record the fresh draft numbers, not this estimate.
+- Actual draft result (136 cases): FA 0/54, FR 0/52, coverage 51/52, agreement 135/136.
+  Disagreements 1–7 and 9 now agree; only 8 (`d-explog-03`, ln(e^x)) still abstains.
 - Full Python and tool suites, ruff, mypy and the docs checker pass before each commit.

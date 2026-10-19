@@ -18,11 +18,11 @@ A ✗ marks a disagreement (discussed in the index).
 - `d-115-09` · `\frac{(12x^2-2)x^2+(4x^3-2x+1)(2x)}{x^4}` · incorrect · Quotient rule with + instead of -. At x = 1: 16 vs 4. · incorrect: counterexample
 - `d-115-10` · `\frac{(4x^3-2x+1)(2x)-(12x^2-2)x^2}{x^4}` · incorrect · Quotient-rule numerator in the wrong order: the negative of the answer. At x = 1: -4 vs 4. · incorrect: counterexample
 - `d-115-11` · `4+\frac{2}{x}-\frac{2}{x^2}` · incorrect · Exponents not lowered: -2x^-1 -> 2x^-1 and x^-2 -> -2x^-2. At x = 2: 4.5 vs 4.25. · incorrect: counterexample
-- `d-181-06` · `(1-\sin x)^2+(x+\cos x)\cos x` · incorrect · Seed misconception: d/dx(-sin x) taken as +cos x. At x = 0: 2 vs 0. · incorrect: counterexample
-- `d-181-07` · `-(1-\sin x)\cos x` · incorrect · Product of the derivatives u'v' = (1 - sin x)(-cos x). At x = 0: -1 vs 0. · incorrect: counterexample
-- `d-181-08` · `(1-\sin x)^2-(x+\cos x)\sin x` · incorrect · d/dx(1 - sin x) taken as -sin x. At x = 0: 1 vs 0. · incorrect: counterexample
-- `d-181-09` · `(1+\sin x)(1-\sin x)-(x+\cos x)\cos x` · incorrect · d/dx cos x taken as +sin x; differs by 2 sin x(1 - sin x). At x = -pi/2: -4. · incorrect: counterexample
-- `d-181-10` · `(1-\sin x)^2` · incorrect · Second product-rule term dropped. At x = 0: 1 vs 0. · incorrect: counterexample
+- `d-181-06` · `(1-\sin(x))^2+(x+\cos(x))\cos(x)` · incorrect · Seed misconception: d/dx(-sin x) taken as +cos x. At x = 0: 2 vs 0. · incorrect: counterexample
+- `d-181-07` · `-(1-\sin(x))\cos(x)` · incorrect · Product of the derivatives u'v' = (1 - sin x)(-cos x). At x = 0: -1 vs 0. · incorrect: counterexample
+- `d-181-08` · `(1-\sin(x))^2-(x+\cos(x))\sin(x)` · incorrect · d/dx(1 - sin x) taken as -sin x. At x = 0: 1 vs 0. · incorrect: counterexample
+- `d-181-09` · `(1+\sin(x))(1-\sin(x))-(x+\cos(x))\cos(x)` · incorrect · d/dx cos x taken as +sin x; differs by 2 sin x(1 - sin x). At x = -pi/2: -4. · incorrect: counterexample
+- `d-181-10` · `(1-\sin(x))^2` · incorrect · Second product-rule term dropped. At x = 0: 1 vs 0. · incorrect: counterexample
 - `d-221-07` · `3(3x^2+1)^2` · incorrect · Seed misconception: inner derivative 6x missing. At x = 1: 48 vs 288. · incorrect: counterexample
 - `d-221-08` · `18x(3x^2+1)^3` · incorrect · Outer exponent not lowered. At x = 1: 1152 vs 288. · incorrect: counterexample
 - `d-221-09` · `6x(3x^2+1)^2` · incorrect · Outer factor 3 from the power rule dropped. At x = 1: 96 vs 288. · incorrect: counterexample
@@ -37,7 +37,7 @@ A ✗ marks a disagreement (discussed in the index).
 - `d-x2cosx-02` · choice b · incorrect · Seed misconception: (cos x)' taken as +sin x. · incorrect: choice_mismatch
 - `d-x2cosx-03` · choice c · incorrect · Seed misconception: product of the derivatives, -2x sin x. · incorrect: choice_mismatch
 - `d-x2cosx-04` · choice d · incorrect · Seed misconception: cos x treated as a constant, second term dropped. · incorrect: choice_mismatch
-- `d-dtan-03` [expected `\sec^2x` on (-1, 1)] · `\sec x^2` · incorrect · sec(x^2) instead of (sec x)^2. At x = 1/2: sec(1/4) = 1.032 vs sec^2(1/2) = 1.298. · incorrect: counterexample
-- `d-dtan-04` [expected `\sec^2x` on (-1, 1)] · `-\csc^2x` · incorrect · Confused with d/dx cot x: negative wherever defined, while sec^2 x >= 1. · incorrect: counterexample
+- `d-dtan-03` [expected `\sec^2x` on (-1, 1)] · `\sec(x^2)` · incorrect · sec(x^2) instead of (sec x)^2. At x = 1/2: sec(1/4) = 1.032 vs sec^2(1/2) = 1.298. · incorrect: counterexample
+- `d-dtan-04` [expected `\sec^2x` on (-1, 1)] · `-\csc^2(x)` · incorrect · Confused with d/dx cot x: negative wherever defined, while sec^2 x >= 1. · incorrect: counterexample
 - `d-cot-02` [expected `\frac{1}{3}\cot(\frac{x}{3})` on (0, 9)] · `\cot(\frac{x}{3})` · incorrect · Inner derivative 1/3 missing: three times the answer, nonzero at x = 1. · incorrect: counterexample
 - `d-negpow-02` [expected `-\frac{2}{x^3}` x ≠ 0] · `-2x^{-1}` · incorrect · Exponent raised instead of lowered (-2 + 1). At x = 1: -2 vs -2, at x = 2: -1 vs -1/4. · incorrect: counterexample

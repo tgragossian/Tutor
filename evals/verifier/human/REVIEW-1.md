@@ -18,11 +18,11 @@ A ✗ marks a disagreement (discussed in the index).
 - `d-115-03` · `\frac{4x^3+2x-2}{x^3}` · correct · (4x^3 + 2x - 2)/x^3 = 4 + 2/x^2 - 2/x^3. · correct: proven
 - `d-115-04` · `\frac{(12x^2-2)x^2-(4x^3-2x+1)(2x)}{x^4}` · correct · Unsimplified quotient rule: numerator 12x^4 - 2x^2 - 8x^4 + 4x^2 - 2x = 4x^4 + 2x^2 - 2x. · correct: proven
 - `d-115-05` · `\frac{2(2x^3+x-1)}{x^3}` · correct · 2(2x^3 + x - 1) = 4x^3 + 2x - 2, as in d-115-03. · correct: proven
-- `d-181-01` · `(1-\sin x)^2-x\cos x-\cos^2x` · correct · Second term distributed: (x + cos x)cos x = x cos x + cos^2 x. · correct: proven
-- `d-181-02` · `1-2\sin x+\sin^2x-x\cos x-\cos^2x` · correct · Fully expanded: (1 - sin x)^2 = 1 - 2 sin x + sin^2 x. · correct: proven
-- `d-181-03` · `(1-\sin x)(1-\sin x)-(x+\cos x)\cos x` · correct · Product rule u'v + uv' left unsquared: (1 - sin x)(1 - sin x) = (1 - sin x)^2. · correct: proven
-- `d-181-04` · `1-2\sin x-\cos(2x)-x\cos x` · correct · Expanded, with sin^2 x - cos^2 x = -cos 2x (double angle). · correct: proven
-- `d-181-05` · `(1-\sin x)^2-\cos x(x+\cos x)` · correct · Read as written, cos x times (x + cos x): the answer with the factor moved first. (Compute Engine parses cos(x(x + cos x)); see the review note.) · incorrect: counterexample ✗
+- `d-181-01` · `(1-\sin(x))^2-x\cos(x)-\cos^2(x)` · correct · Second term distributed: (x + cos x)cos x = x cos x + cos^2 x. · correct: proven
+- `d-181-02` · `1-2\sin(x)+\sin^2(x)-x\cos(x)-\cos^2(x)` · correct · Fully expanded: (1 - sin x)^2 = 1 - 2 sin x + sin^2 x. · correct: proven
+- `d-181-03` · `(1-\sin(x))(1-\sin(x))-(x+\cos(x))\cos(x)` · correct · Product rule u'v + uv' left unsquared: (1 - sin x)(1 - sin x) = (1 - sin x)^2. · correct: proven
+- `d-181-04` · `1-2\sin(x)-\cos(2x)-x\cos(x)` · correct · Expanded, with sin^2 x - cos^2 x = -cos 2x (double angle). · correct: proven
+- `d-181-05` · `(1-\sin(x))^2-\cos(x)(x+\cos(x))` · correct · cos(x) times (x + cos(x)): the answer with the factor moved first. (Originally typed without parentheses; R22 resolution, option A.) · correct: proven
 - `d-221-01` · `162x^5+108x^3+18x` · correct · (3x^2+1)^2 = 9x^4 + 6x^2 + 1; times 18x gives 162x^5 + 108x^3 + 18x. · correct: proven
 - `d-221-02` · `3(3x^2+1)^2\cdot6x` · correct · Chain rule left unsimplified: 3u^2 * 6x with u = 3x^2 + 1. · correct: proven
 - `d-221-03` · `18x\left(9x^4+6x^2+1\right)` · correct · Square expanded inside: (3x^2 + 1)^2 = 9x^4 + 6x^2 + 1. · correct: proven
@@ -33,14 +33,14 @@ A ✗ marks a disagreement (discussed in the index).
 - `d-253-11` · `\frac{-200}{343}` · correct · Sign in the numerator: -200/343. · correct: proven
 - `d-253-12` · `-200(6+1)^{-3}` · correct · v(t) = -200(t+1)^-3 evaluated at t = 6, unsimplified: -200/343. · correct: proven
 - `d-253-13` · `-\frac{200}{(6+1)^3}` · correct · (6+1)^3 = 343. · correct: proven
-- `d-dtan-01` [expected `\sec^2x` on (-1, 1)] · `\frac{1}{\cos^2x}` · correct · d/dx tan x on (-1, 1): sec^2 x = 1/cos^2 x; cos x > 0 there. · abstain: domain_unproven ✗
-- `d-dtan-02` [expected `\sec^2x` on (-1, 1)] · `1+\tan^2x` · correct · Pythagorean identity 1 + tan^2 x = sec^2 x; tan is defined on (-1, 1). · correct: proven
-- `d-tan-01` [expected `\tan x` on (-1, 1)] · `\frac{\sin x}{\cos x}` · correct · tan x = sin x / cos x by definition; cos x > 0 on (-1, 1). · abstain: domain_unproven ✗
-- `d-cot-01` [expected `\frac{1}{3}\cot(\frac{x}{3})` on (0, 9)] · `\frac{\cos(\frac{x}{3})}{3\sin(\frac{x}{3})}` · correct · d/dx ln(sin(x/3)) on (0, 9): cot(x/3)/3 = cos(x/3)/(3 sin(x/3)); sin(x/3) > 0 there (3pi > 9). · abstain: domain_unproven ✗
-- `d-cot-04` [expected `\frac{1}{3}\cot(\frac{x}{3})` on (0, 9)] · `\frac{1}{3}\cot\frac{x}{3}` · correct · The answer typed without parentheses around x/3; \cot\frac{x}{3} is cot of x/3. · correct: proven
-- `d-log2-01` [expected `x^3`] · `x^{\log_2 8}` · correct · log_2 8 = 3 exactly, so x^(log_2 8) = x^3 for every real x. · incorrect: undefined_on_domain ✗
+- `d-dtan-01` [expected `\sec^2x` on (-1, 1)] · `\frac{1}{\cos^2(x)}` · correct · d/dx tan x on (-1, 1): sec^2 x = 1/cos^2 x; cos x > 0 there. · correct: proven
+- `d-dtan-02` [expected `\sec^2x` on (-1, 1)] · `1+\tan^2(x)` · correct · Pythagorean identity 1 + tan^2 x = sec^2 x; tan is defined on (-1, 1). · correct: proven
+- `d-tan-01` [expected `\tan x` on (-1, 1)] · `\frac{\sin(x)}{\cos(x)}` · correct · tan x = sin x / cos x by definition; cos x > 0 on (-1, 1). · correct: proven
+- `d-cot-01` [expected `\frac{1}{3}\cot(\frac{x}{3})` on (0, 9)] · `\frac{\cos(\frac{x}{3})}{3\sin(\frac{x}{3})}` · correct · d/dx ln(sin(x/3)) on (0, 9): cot(x/3)/3 = cos(x/3)/(3 sin(x/3)); sin(x/3) > 0 there (3pi > 9). · correct: proven
+- `d-cot-04` [expected `\frac{1}{3}\cot(\frac{x}{3})` on (0, 9)] · `\frac{1}{3}\cot(\frac{x}{3})` · correct · The answer with the factor 1/3 in front of cot(x/3). · correct: proven
+- `d-log2-01` [expected `x^3`] · `x^{\log_2(8)}` · correct · log_2 8 = 3 exactly, so x^(log_2 8) = x^3 for every real x. · correct: proven
 - `d-negpow-01` [expected `-\frac{2}{x^3}` x ≠ 0] · `-2x^{-3}` · correct · d/dx x^-2 = -2x^-3 = -2/x^3 on R \ {0}. · correct: proven
-- `d-csc-02` [expected `\csc x` on (1/2, 3)] · `\frac{1}{\sin x}` · correct · csc x = 1/sin x; sin x > 0 on (1/2, 3). · abstain: domain_unproven ✗
+- `d-csc-02` [expected `\csc x` on (1/2, 3)] · `\frac{1}{\sin(x)}` · correct · csc x = 1/sin x; sin x > 0 on (1/2, 3). · correct: proven
 
 ## Baseline (1)
 

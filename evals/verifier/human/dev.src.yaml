@@ -263,7 +263,7 @@
   family: openstax-c1-3.5-181
   category: tricky
   problem_id: openstax-c1-3.5-181
-  latex: '(1-\sin x)^2-x\cos x-\cos^2x'
+  latex: '(1-\sin(x))^2-x\cos(x)-\cos^2(x)'
   label: correct
   rationale: 'Second term distributed: (x + cos x)cos x = x cos x + cos^2 x.'
   reviewer: 'pending'
@@ -271,7 +271,7 @@
   family: openstax-c1-3.5-181
   category: tricky
   problem_id: openstax-c1-3.5-181
-  latex: '1-2\sin x+\sin^2x-x\cos x-\cos^2x'
+  latex: '1-2\sin(x)+\sin^2(x)-x\cos(x)-\cos^2(x)'
   label: correct
   rationale: 'Fully expanded: (1 - sin x)^2 = 1 - 2 sin x + sin^2 x.'
   reviewer: 'pending'
@@ -279,7 +279,7 @@
   family: openstax-c1-3.5-181
   category: tricky
   problem_id: openstax-c1-3.5-181
-  latex: '(1-\sin x)(1-\sin x)-(x+\cos x)\cos x'
+  latex: '(1-\sin(x))(1-\sin(x))-(x+\cos(x))\cos(x)'
   label: correct
   rationale: 'Product rule u''v + uv'' left unsquared: (1 - sin x)(1 - sin x) = (1 - sin x)^2.'
   reviewer: 'pending'
@@ -287,7 +287,7 @@
   family: openstax-c1-3.5-181
   category: tricky
   problem_id: openstax-c1-3.5-181
-  latex: '1-2\sin x-\cos(2x)-x\cos x'
+  latex: '1-2\sin(x)-\cos(2x)-x\cos(x)'
   label: correct
   rationale: 'Expanded, with sin^2 x - cos^2 x = -cos 2x (double angle).'
   reviewer: 'pending'
@@ -295,15 +295,15 @@
   family: openstax-c1-3.5-181
   category: tricky
   problem_id: openstax-c1-3.5-181
-  latex: '(1-\sin x)^2-\cos x(x+\cos x)'
+  latex: '(1-\sin(x))^2-\cos(x)(x+\cos(x))'
   label: correct
-  rationale: 'Read as written, cos x times (x + cos x): the answer with the factor moved first. (Compute Engine parses cos(x(x + cos x)); see the review note.)'
+  rationale: 'cos(x) times (x + cos(x)): the answer with the factor moved first. (Originally typed without parentheses; R22 resolution, option A.)'
   reviewer: 'pending'
 - id: d-181-06
   family: openstax-c1-3.5-181
   category: error
   problem_id: openstax-c1-3.5-181
-  latex: '(1-\sin x)^2+(x+\cos x)\cos x'
+  latex: '(1-\sin(x))^2+(x+\cos(x))\cos(x)'
   label: incorrect
   rationale: 'Seed misconception: d/dx(-sin x) taken as +cos x. At x = 0: 2 vs 0.'
   reviewer: 'pending'
@@ -311,7 +311,7 @@
   family: openstax-c1-3.5-181
   category: error
   problem_id: openstax-c1-3.5-181
-  latex: '-(1-\sin x)\cos x'
+  latex: '-(1-\sin(x))\cos(x)'
   label: incorrect
   rationale: 'Product of the derivatives u''v'' = (1 - sin x)(-cos x). At x = 0: -1 vs 0.'
   reviewer: 'pending'
@@ -319,7 +319,7 @@
   family: openstax-c1-3.5-181
   category: error
   problem_id: openstax-c1-3.5-181
-  latex: '(1-\sin x)^2-(x+\cos x)\sin x'
+  latex: '(1-\sin(x))^2-(x+\cos(x))\sin(x)'
   label: incorrect
   rationale: 'd/dx(1 - sin x) taken as -sin x. At x = 0: 1 vs 0.'
   reviewer: 'pending'
@@ -327,7 +327,7 @@
   family: openstax-c1-3.5-181
   category: error
   problem_id: openstax-c1-3.5-181
-  latex: '(1+\sin x)(1-\sin x)-(x+\cos x)\cos x'
+  latex: '(1+\sin(x))(1-\sin(x))-(x+\cos(x))\cos(x)'
   label: incorrect
   rationale: 'd/dx cos x taken as +sin x; differs by 2 sin x(1 - sin x). At x = -pi/2: -4.'
   reviewer: 'pending'
@@ -335,7 +335,7 @@
   family: openstax-c1-3.5-181
   category: error
   problem_id: openstax-c1-3.5-181
-  latex: '(1-\sin x)^2'
+  latex: '(1-\sin(x))^2'
   label: incorrect
   rationale: 'Second product-rule term dropped. At x = 0: 1 vs 0.'
   reviewer: 'pending'
@@ -343,7 +343,7 @@
   family: openstax-c1-3.5-181
   category: near
   problem_id: openstax-c1-3.5-181
-  latex: '(1-\sin x)^2-(x+\cos x)\cos x+10^{-9}'
+  latex: '(1-\sin(x))^2-(x+\cos(x))\cos(x)+10^{-9}'
   label: incorrect
   rationale: 'Differs by the constant 10^-9 everywhere.'
   reviewer: 'pending'
@@ -351,7 +351,7 @@
   family: openstax-c1-3.5-181
   category: near
   problem_id: openstax-c1-3.5-181
-  latex: '(1-\sin x)^2-(1.000001x+\cos x)\cos x'
+  latex: '(1-\sin(x))^2-(1.000001x+\cos(x))\cos(x)'
   label: incorrect
   rationale: 'Differs by 10^-6 x cos x, nonzero at x = 1.'
   reviewer: 'pending'
@@ -359,7 +359,7 @@
   family: openstax-c1-3.5-181
   category: partial
   problem_id: openstax-c1-3.5-181
-  latex: '(1-\sin x)^{\placeholder{}}-(x+\cos x)\cos x'
+  latex: '(1-\sin(x))^{\placeholder{}}-(x+\cos(x))\cos(x)'
   label: unsupported
   rationale: 'Exponent slot left empty (a placeholder) -> incomplete.'
   reviewer: 'pending'
@@ -887,7 +887,7 @@
   family: inline-ln-square
   category: domain
   inline_spec: {kind: expression, latex: '\ln(x^2)', domain: {exclude: ['0']}}
-  latex: '2\ln x'
+  latex: '2\ln(x)'
   label: incorrect
   rationale: 'On R \ {0}: 2 ln x is undefined for every x < 0, where ln(x^2) is defined.'
   reviewer: 'pending'
@@ -935,7 +935,7 @@
   family: inline-exp-log
   category: domain
   inline_spec: {kind: expression, latex: 'x'}
-  latex: 'e^{\ln x}'
+  latex: 'e^{\ln(x)}'
   label: incorrect
   rationale: 'On R: e^(ln x) is undefined for every x <= 0, a whole interval where x is defined.'
   reviewer: 'pending'
@@ -943,7 +943,7 @@
   family: inline-exp-log
   category: domain
   inline_spec: {kind: expression, latex: 'x', domain: {intervals: [['0', 'inf', open, open]]}}
-  latex: 'e^{\ln x}'
+  latex: 'e^{\ln(x)}'
   label: correct
   rationale: 'On (0, inf): e^(ln x) = x.'
   reviewer: 'pending'
@@ -959,7 +959,7 @@
   family: inline-dtan
   category: tricky
   inline_spec: {kind: expression, latex: '\sec^2x', domain: {intervals: [['-1', '1', open, open]]}}
-  latex: '\frac{1}{\cos^2x}'
+  latex: '\frac{1}{\cos^2(x)}'
   label: correct
   rationale: 'd/dx tan x on (-1, 1): sec^2 x = 1/cos^2 x; cos x > 0 there.'
   reviewer: 'pending'
@@ -967,7 +967,7 @@
   family: inline-dtan
   category: tricky
   inline_spec: {kind: expression, latex: '\sec^2x', domain: {intervals: [['-1', '1', open, open]]}}
-  latex: '1+\tan^2x'
+  latex: '1+\tan^2(x)'
   label: correct
   rationale: 'Pythagorean identity 1 + tan^2 x = sec^2 x; tan is defined on (-1, 1).'
   reviewer: 'pending'
@@ -975,7 +975,7 @@
   family: inline-dtan
   category: error
   inline_spec: {kind: expression, latex: '\sec^2x', domain: {intervals: [['-1', '1', open, open]]}}
-  latex: '\sec x^2'
+  latex: '\sec(x^2)'
   label: incorrect
   rationale: 'sec(x^2) instead of (sec x)^2. At x = 1/2: sec(1/4) = 1.032 vs sec^2(1/2) = 1.298.'
   reviewer: 'pending'
@@ -983,7 +983,7 @@
   family: inline-dtan
   category: error
   inline_spec: {kind: expression, latex: '\sec^2x', domain: {intervals: [['-1', '1', open, open]]}}
-  latex: '-\csc^2x'
+  latex: '-\csc^2(x)'
   label: incorrect
   rationale: 'Confused with d/dx cot x: negative wherever defined, while sec^2 x >= 1.'
   reviewer: 'pending'
@@ -991,7 +991,7 @@
   family: inline-tan
   category: tricky
   inline_spec: {kind: expression, latex: '\tan x', domain: {intervals: [['-1', '1', open, open]]}}
-  latex: '\frac{\sin x}{\cos x}'
+  latex: '\frac{\sin(x)}{\cos(x)}'
   label: correct
   rationale: 'tan x = sin x / cos x by definition; cos x > 0 on (-1, 1).'
   reviewer: 'pending'
@@ -1023,15 +1023,15 @@
   family: inline-dlnsin
   category: tricky
   inline_spec: {kind: expression, latex: '\frac{1}{3}\cot(\frac{x}{3})', domain: {intervals: [['0', '9', open, open]]}}
-  latex: '\frac{1}{3}\cot\frac{x}{3}'
+  latex: '\frac{1}{3}\cot(\frac{x}{3})'
   label: correct
-  rationale: 'The answer typed without parentheses around x/3; \cot\frac{x}{3} is cot of x/3.'
+  rationale: 'The answer with the factor 1/3 in front of cot(x/3).'
   reviewer: 'pending'
 - id: d-log2-01
   family: inline-log2
   category: tricky
   inline_spec: {kind: expression, latex: 'x^3'}
-  latex: 'x^{\log_2 8}'
+  latex: 'x^{\log_2(8)}'
   label: correct
   rationale: 'log_2 8 = 3 exactly, so x^(log_2 8) = x^3 for every real x.'
   reviewer: 'pending'
@@ -1055,15 +1055,57 @@
   family: inline-csc
   category: unsupported
   inline_spec: {kind: expression, latex: '\csc x', domain: {intervals: [['1/2', '3', open, open]]}}
-  latex: '\sin^{-1}x'
+  latex: '\sin^{-1}(x)'
   label: unsupported
-  rationale: 'sin^-1 x is ambiguous (arcsin vs 1/sin); inverse trig is deferred, so unsupported_notation.'
+  rationale: 'sin^-1(x) is ambiguous (arcsin vs 1/sin); inverse trig is deferred, so unsupported_notation.'
   reviewer: 'pending'
 - id: d-csc-02
   family: inline-csc
   category: tricky
   inline_spec: {kind: expression, latex: '\csc x', domain: {intervals: [['1/2', '3', open, open]]}}
-  latex: '\frac{1}{\sin x}'
+  latex: '\frac{1}{\sin(x)}'
   label: correct
   rationale: 'csc x = 1/sin x; sin x > 0 on (1/2, 3).'
+  reviewer: 'pending'
+
+# --- R22: function input must be parenthesized (reject-only LaTeX pre-check) -------------
+- id: d-r22-01
+  family: inline-r22
+  category: unsupported
+  inline_spec: {kind: expression, latex: '\sin(x)'}
+  latex: '\sin x'
+  label: unsupported
+  rationale: 'R22: function input must be parenthesized.'
+  reviewer: 'pending'
+- id: d-r22-02
+  family: inline-r22
+  category: unsupported
+  inline_spec: {kind: expression, latex: '\cos(x)(x+1)'}
+  latex: '\cos x(x+1)'
+  label: unsupported
+  rationale: 'R22: function input must be parenthesized.'
+  reviewer: 'pending'
+- id: d-r22-03
+  family: inline-r22
+  category: unsupported
+  inline_spec: {kind: expression, latex: '\cos^2(x)'}
+  latex: '\cos^2x'
+  label: unsupported
+  rationale: 'R22: function input must be parenthesized.'
+  reviewer: 'pending'
+- id: d-r22-04
+  family: inline-r22
+  category: unsupported
+  inline_spec: {kind: expression, latex: '\log_2(8)'}
+  latex: '\log_2 8'
+  label: unsupported
+  rationale: 'R22: function input must be parenthesized.'
+  reviewer: 'pending'
+- id: d-r22-05
+  family: inline-r22
+  category: unsupported
+  inline_spec: {kind: expression, latex: '\sin(x)'}
+  latex: '\operatorname{sin}x'
+  label: unsupported
+  rationale: 'R22: function input must be parenthesized (also when the name is written with operatorname).'
   reviewer: 'pending'

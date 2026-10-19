@@ -8,15 +8,19 @@ Owner: Thomas Gragossian. Updated: 2026-10-19 (documentation sync and evaluation
   serves the skeleton at <https://tutor.thomasgragossian.dev>; deployment was not rechecked today.
 - Active work: branch `milestone-b`, worktree `.claude/worktrees/milestone-b`.
   Reviewed through 2ad5514 (task 9 code a115846); B is not merged or deployed.
-- Tasks 1–8 complete. Task 9 steps 1–3 drafted: 131 cases, all `reviewer: pending`.
-  Tasks 10–16 are not started. See [execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
-- **Thomas next:** review every label in the [review sheet](evals/verifier/human/REVIEW.md).
-  Draft gate B fails: FR 2/52 (3.8%), coverage 43/52 (82.7%); FA 0/54
-  (95% Wilson upper bound 6.6%). These are unreviewed development results.
+- Tasks 1–8 complete. R22/R23 implemented (ea6748b..6cc4853: function input needs
+  parentheses, [decision 0003](docs/decisions/0003-function-parentheses.md); domain
+  restrictions decided on their inner argument). Task 9 steps 1–3 drafted: 136 cases, all
+  `reviewer: pending`. Tasks 10–16 are not started. See [execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
+- **Thomas next:** review every label of all 136 cases in the [review sheet](evals/verifier/human/REVIEW.md).
+  Fresh draft after R22/R23: FA 0/54 (95% upper bound 6.6%), FR 0/52, coverage 51/52,
+  agreement 135/136; only `d-explog-03` still abstains. Unreviewed development results;
+  the release gate fails until rows are `tg`.
 - **Claude done (2026-10-19):** review B-E1/B-E2 fixed in bdb1710 and `d-log2-01` in 832740f.
   Fresh draft run: FA 0/54, FR 1/52, coverage 44/52; still fails B on coverage.
   607 Python tests pass (1 Linux-only skip) and 19 tool tests pass on Windows.
-- **Claude next:** task 10 while Thomas reviews; after review, recapture and finish task 9 steps 5–7.
+- **Claude next:** after Thomas's label review, recapture and finish task 9 steps 5–7.
+  Task 10 may start meanwhile. `d-181-05` is resolved (R22 option A).
 - Documentation sync is complete. Keep every Markdown file at most 100 lines,
   splitting by responsibility and linking each child from its parent.
 
@@ -25,8 +29,8 @@ Owner: Thomas Gragossian. Updated: 2026-10-19 (documentation sync and evaluation
 1. Done in bdb1710: release dev gate needs reviewer `tg`; `--draft` measures unreviewed rows.
 2. Done in bdb1710: empty sets, FA 0 of 0, missing labels and category shortfalls fail.
 3. Done in 832740f: computed exponents proven rational follow R14; unproven ones abstain.
-4. Resolve `d-181-05` with Thomas: displayed trig input and captured tree differ in meaning.
-   Record the input/label decision; track seven conservative domain abstentions separately.
+4. Done: `d-181-05` resolved (R22 option A); six of seven domain abstentions now grade
+   correct under R23. `d-explog-03` (ln(e^x)) still abstains; see the follow-ups.
 5. Tasks 12–14 still need atomic revisions, pending replay responses, 422 kind checks and
    friendly format messages under R12–R16. These are planned, not implemented.
 6. Record actual hours before the 30-hour checkpoint; do not reduce accuracy or containment
@@ -57,7 +61,7 @@ Polynomial implicit differentiation is retained for topic expansion, with exact 
 denominator/regularity checks and coverage of every included branch.
 
 Use the [approved spec](docs/superpowers/specs/2026-10-13-portfolio-core/README.md) and
-[execution rulings R7–R21](docs/superpowers/plans/portfolio-mvp/milestone-b/02-execution-rulings.md)
+[execution rulings R7–R23](docs/superpowers/plans/portfolio-mvp/milestone-b/02-execution-rulings.md)
 with the active plan. Rulings supersede original task recipes; review suggestions are not rulings.
 Thomas approved milestone B and selected subagent-driven implementation; this pass is docs only.
 No assistant coauthor trailers; acknowledge assistance in the [README](README.md#acknowledgments).

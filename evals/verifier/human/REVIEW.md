@@ -1,52 +1,41 @@
 # Dev cases: review sheet (task 9, step 4)
 
-[Verifier evaluation](../README.md) · [Spec 08](../../../docs/superpowers/specs/2026-10-13-portfolio-core/08-verifier-evaluation.md)
+[Verifier evaluation](../README.md) · [Spec 08](../../../docs/superpowers/specs/2026-10-13-portfolio-core/08-verifier-evaluation.md) · [R22/R23 spec](../../../docs/superpowers/specs/2026-10-19-function-input-and-domain-rewrite-design.md)
 
-131 draft cases in [`dev.src.yaml`](dev.src.yaml), captured from real MathLive into
+136 draft cases in [`dev.src.yaml`](dev.src.yaml), captured from real MathLive into
 [`dev.jsonl`](dev.jsonl). Every case has `reviewer: 'pending'`. For each case check that the
 input is something a student could type, the label is right on the stored domain, and the
 rationale holds; then set `reviewer: 'tg'`. A disputed case gets a note and stays out until settled.
 Labels were written from the mathematics before the verifier ran and were not changed after.
 
-Draft run (`evaluate --set dev --gate B --out evals/verifier/results/dev-draft.json`):
-FA 0 of 54 (95% upper bound 6.6%) · FR 2 of 52 (3.8%) · coverage 43 of 52 (82.7%) ·
-unsupported graded correct 0 of 25 · agreement 122 of 131. Gate B fails on FR and coverage.
+## What changed under R22 and R23
 
-## Disagreements (9)
+- 25 inputs with an unparenthesized function were rewritten to parenthesized LaTeX, keeping
+  label and meaning (`\sec x^2` became `\sec(x^2)`). `d-lnsq-02` (`\ln\lvert x\rvert`) was
+  already accepted: bars count as parentheses. Their labels were not touched.
+- `d-181-05`: Thomas chose R22 option A (require parentheses). The case is now
+  `(1-\sin(x))^2-\cos(x)(x+\cos(x))`, label `correct`, and the verifier agrees.
+- Five new `unsupported` regression cases `d-r22-01..05` (`\sin x`, `\cos x(x+1)`,
+  `\cos^2x`, `\log_2 8`, `\operatorname{sin}x`): all rejected with `unsupported_notation`.
+- Edited and new cases stay `reviewer: 'pending'` for your review.
 
-Two false rejects (definite `incorrect` on a `correct` label), then seven abstentions.
+Fresh draft run (`evaluate --set dev --gate B --draft`, 2026-10-19, after R22/R23):
+FA 0 of 54 (95% upper bound 6.6%) · FR 0 of 52 (95% upper bound 6.9%) · coverage 51 of 52
+(98.1%) · unsupported graded correct 0 of 30 · agreement 135 of 136 (99.3%). Metrics pass
+gate B; the release gate still fails because no row is reviewed.
 
-1. `d-181-05` `(1-\sin x)^2-\cos x(x+\cos x)`: label correct, verifier **incorrect**
-   (counterexample). **Label question?** Compute Engine parses `\cos x(x+\cos x)` as
-   cos(x(x + cos x)), so the tree really is a different function and the verifier is right
-   about the tree. A reader of the typed field sees cos x · (x + cos x). Choose: relabel
-   `incorrect` (we grade what is sent; record why), or keep `correct` and treat it as an
-   input bug (e.g. reject `\cos x(...)` as ambiguous, like `e(x+1)` in R15). This is the
-   trap the seed note for 3.5-181 already warns about.
-2. `d-log2-01` `x^{\log_2 8}` against `x^3` on ℝ: label correct, verifier **incorrect**
-   (`undefined_on_domain`). **Verifier bug?** log₂8 is exactly 3, so the function is x³ on ℝ.
-   `translate._raise` deliberately requires a positive base when the exponent is not rational
-   arithmetic (`Lb(8)` is not simplified to 3), so x < 0 counts as undefined and the answer is
-   graded wrong rather than abstained. Counter-view for you: if x^c with a computed exponent
-   is meant to be defined only for x > 0 (as with e^{c ln x}), relabel with that rationale.
-3. `d-tan-01` sin x / cos x vs tan x on (−1, 1): abstain `domain_unproven`. **Verifier bug?**
-   (a coverage gap, not a soundness bug). cos x ≠ 0 holds on (−1, 1) because π/2 > 1; R19's
-   lattice enumeration covers Tan/Cot constraints but apparently not `nonzero` on a
-   trig denominator.
-4. `d-dtan-01` 1/cos²x vs sec²x on (−1, 1): abstain `domain_unproven`. **Verifier bug?**
-   Same gap as 3.
-5. `d-csc-02` 1/sin x vs csc x on (1/2, 3): abstain `domain_unproven`. **Verifier bug?**
-   Same gap: sin x > 0 on (0, π).
-6. `d-cot-01` cos(x/3) / (3 sin(x/3)) vs cot(x/3)/3 on (0, 9): abstain `domain_unproven`.
-   **Verifier bug?** Same gap: sin(x/3) ≠ 0 there since 3π > 9.
-7. `d-cot-03` 1/(3 tan(x/3)) vs cot(x/3)/3 on (0, 9): abstain `domain_unproven`.
-   **Verifier bug?** The only hole is x = 3π/2 (irrational). It is removable: the limit is
-   0, the same as the answer there. The default rule accepts it, so the label stands. Deciding
-   it needs an irrational hole plus a limit, which may be out of scope for milestone B.
-8. `d-explog-03` ln(eˣ) vs x on ℝ: abstain `domain_unproven`. **Verifier bug?** The
-   constraint eˣ > 0 holds everywhere; the violation set is empty but is not proven.
-9. `d-lnsq-02` 2 ln|x| vs ln(x²) on ℝ∖{0}: abstain `domain_unproven`. **Verifier bug?**
-   |x| > 0 fails only at the excluded 0. R18 makes Abs abstain conservatively.
+## Disagreements (1 left of the earlier 9)
+
+Before R22/R23: 9 disagreements (FR 2/52, coverage 43/52, agreement 122/131 on 131 cases).
+
+- Now agree: 1 `d-181-05` (R22 option A), 2 `d-log2-01` (fixed in 832740f), 3 `d-tan-01`,
+  4 `d-dtan-01`, 5 `d-csc-02`, 6 `d-cot-01` (R23 decides their trig denominators),
+  7 `d-cot-03` (R23 plus the exact hole-limit check: the hole at 3pi/2 is removable, so it
+  grades correct), 9 `d-lnsq-02` (R23 rewrites |x| != 0 to x != 0).
+- Still disagrees: 8 `d-explog-03` ln(e^x) vs x on R. Label correct, verifier abstains
+  (`domain_unproven`, marked in REVIEW-3). The spec expected R23's rule "e^u > 0
+  always holds" to decide it; it does not yet. Tracked in the
+  [follow-ups](../../../docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md).
 
 Not disagreements, but worth a look: `d-253-06` (−0.58349 is *correct* by the spec 02
 rounding rule), `d-253-02` (the trailing zero of −0.5830 is lost in capture), and the
@@ -63,10 +52,10 @@ partial-input cases (labelled `unsupported`; see the harness note below).
 | Near-equal perturbations | 11 | 8 | [REVIEW-3](REVIEW-3.md) |
 | Decimals at rounding boundaries | 9 | 6 | [REVIEW-3](REVIEW-3.md) |
 | Partial / placeholder input | 7 | 6 | [REVIEW-4](REVIEW-4.md) |
-| Unsupported notation | 11 | 8 | [REVIEW-4](REVIEW-4.md) |
+| Unsupported notation | 16 | 8 | [REVIEW-4](REVIEW-4.md) |
 | Resource limits | 7 | 5 | [REVIEW-4](REVIEW-4.md) |
 
-Labels: 52 correct, 54 incorrect, 25 unsupported. Families: the six seed problems plus ten
+Labels: 52 correct, 54 incorrect, 30 unsupported. Families: the six seed problems plus ten
 `inline-*` families (inline specs for holes, log/root/exp domains, and trig identities).
 
 ## Notes for the reviewer

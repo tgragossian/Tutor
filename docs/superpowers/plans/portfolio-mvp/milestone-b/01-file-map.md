@@ -55,7 +55,7 @@ tools/
 evals/verifier/
   README.md                     how cases are written, captured and reviewed        8
   human/dev.src.yaml            authored cases (latex, label, rationale)             9
-  human/dev.jsonl               131 captured cases; all pending human review         9
+  human/dev.jsonl               136 captured cases; all pending human review         9
   human/REVIEW.md, REVIEW-*.md   linked human-review sheets                            9
   generated/mutations.jsonl     SymPy-generated regression cases                     8
   results/                      .gitkeep (8), dev-draft.json (9), release (16)   8,9,16

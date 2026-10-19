@@ -11,10 +11,16 @@ Keep release-relevant evaluation issues ahead of optional cleanup.
   in bdb1710 (approved reviewer, label/category coverage, empty sets fail, `--draft`).
 - Done: `d-log2-01` in 832740f. After the B-C2 bound, a computed exponent is proven equal to
   the nearest small rational in its enclosure; enclosed-but-unproven abstains.
-- `d-181-05`: ambiguous trig application changes the captured tree. Thomas must resolve
-  notation/label semantics; do not silently relabel it to match the verifier.
-- Seven domain abstentions in the [review sheet](../../../../../evals/verifier/human/REVIEW.md)
-  depress coverage. Preserve abstention until the domain proof is justified.
+- Done: `d-181-05` resolved by Thomas (R22 option A, parentheses required); the case is
+  `(1-\sin(x))^2-\cos(x)(x+\cos(x))`, label `correct`. See [decision 0003](../../../../decisions/0003-function-parentheses.md).
+- Done: [R22/R23 plan](r22-r23/README.md) (ea6748b..6cc4853). Fresh draft: FA 0/54, FR 0/52,
+  coverage 51/52, agreement 135/136 on 136 cases. Of the nine review-sheet disagreements only
+  #8, `d-explog-03` (ln(e^x) vs x on R, `domain_unproven`), remains. The spec expected R23's
+  "e^u > 0 always holds" to decide it; investigate before reviewed labels are final.
+  Preserve abstention until the proof is justified.
+- Found and closed: the R22 pre-check missed `\operatorname{sin}x` and `\mathrm{sin}x`
+  (Compute Engine parses both as `Sin`; MathLive produces the operatorname form from typing).
+  Closed in 098b7ba with tests; regression case `d-r22-05`.
 - Reviewer placeholder is `pending`, replacing the plan's empty string. Nonblank validation
   does not establish human review. Regenerate captures after Thomas records review in YAML.
 - `dev-draft.json` reports `0.1.0+dev`; published runs should record the actual code SHA
