@@ -370,3 +370,11 @@ def test_common_answers_still_correct() -> None:
     assert eq(SQRT_X_SQUARED, X, domain=NONNEGATIVE) == CORRECT
     assert eq(LN_X2, TWO_LN_X, domain=POSITIVE) == CORRECT
     assert eq(["Divide", 1, "x"], ["Power", "x", -1]) == CORRECT
+
+
+def test_sign_constraints_on_trig_and_abs_power_still_abstain() -> None:
+    """R23 does not decide cos(u) > 0 or |x|^(1/2) > 0."""
+    with pytest.raises(DomainUnproven):
+        violation_set(Constraint("positive", sympy.cos(x)), x, Interval(-1, 1))
+    with pytest.raises(DomainUnproven):
+        violation_set(Constraint("positive", sympy.Abs(x) ** Rational(1, 2)), x, sympy.S.Reals)

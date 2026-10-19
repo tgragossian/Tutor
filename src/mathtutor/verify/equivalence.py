@@ -18,6 +18,7 @@ import sympy
 
 from mathtutor.content.schema import Domain
 from mathtutor.domain import Method, VerdictReason, VerdictStatus
+from mathtutor.verify.rewrite import reduce_constraint
 from mathtutor.verify.translate import Constraint, Translated
 from mathtutor.verify.types import Verdict
 
@@ -202,7 +203,7 @@ _MAX_TRIG_POINTS = 10_000
 
 def _trig_violations(c: Constraint, var: sympy.Symbol, D: sympy.Set) -> sympy.Set:
     """R19 (ii): the exact zeros of cos/sin(a·x + b) in a bounded D, a ∈ ℚ∖{0}, b ∈ ℚ + ℚπ."""
-    arg = c.expr
+    arg = c.expr.doit()  # unevaluated Pow(3, -1) would hide a rational slope (d-cot-01)
     a = sympy.diff(arg, var)
     if not (a.is_Rational and a != 0):
         raise DomainUnproven("trig argument is not linear with a rational slope")
@@ -234,10 +235,18 @@ def _trig_violations(c: Constraint, var: sympy.Symbol, D: sympy.Set) -> sympy.Se
 
 
 def _exact_violations(c: Constraint, var: sympy.Symbol, D: sympy.Set) -> sympy.Set:
-    """R19: the violation set, decided exactly, or DomainUnproven (case iii)."""
-    if c.kind in ("not_half_pi_odd", "not_pi_multiple"):
-        return _trig_violations(c, var, D)
-    return _rational_violations(c, var)
+    """R19/R23: the violation set, decided exactly, or DomainUnproven (case iii).
+
+    The constraint is first rewritten onto its inner arguments (R23); the sets of the
+    reduced constraints are united. ``violation_set`` still cross-checks the original.
+    """
+    pieces = []
+    for part in reduce_constraint(c):
+        if part.kind in ("not_half_pi_odd", "not_pi_multiple"):
+            pieces.append(_trig_violations(part, var, D))
+        else:
+            pieces.append(_rational_violations(part, var))
+    return sympy.Union(*pieces) if pieces else sympy.S.EmptySet
 
 
 def _decided_set(found: sympy.Set) -> bool:

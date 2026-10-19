@@ -407,3 +407,44 @@ def test_unprovable_near_rational_exponent_abstains() -> None:
     spec = expression_spec(["Root", "x", 3])
     result = outcome(submit(spec, ["Power", "x", third]))
     assert isinstance(result, Verdict) and result.status == VerdictStatus.UNABLE_TO_VERIFY
+
+
+# -- R23: restrictions decided on their inner argument -------------------------------------------
+
+
+def _open(lo: str, hi: str) -> Domain:
+    return Domain(intervals=[(lo, hi, "open", "open")])
+
+
+def test_sin_over_cos_is_tan_on_minus_one_one() -> None:  # d-tan-01
+    spec = expression_spec(["Tan", "x"], _open("-1", "1"))
+    assert outcome(submit(spec, ["Divide", ["Sin", "x"], ["Cos", "x"]])) == CORRECT
+
+
+def test_one_over_sin_is_csc() -> None:  # d-csc-02
+    spec = expression_spec(["Csc", "x"], _open("1/2", "3"))
+    assert outcome(submit(spec, ["Divide", 1, ["Sin", "x"]])) == CORRECT
+
+
+def test_cot_third_from_cos_over_sin() -> None:  # d-cot-01
+    spec = expression_spec(["Divide", ["Cot", ["Divide", "x", 3]], 3], _open("0", "9"))
+    third = ["Divide", "x", 3]
+    sub = ["Divide", ["Cos", third], ["Multiply", 3, ["Sin", third]]]
+    assert outcome(submit(spec, sub)) == CORRECT
+
+
+def test_ln_exp_is_x() -> None:  # d-explog-03
+    spec = expression_spec("x")
+    assert outcome(submit(spec, ["Ln", ["Exp", "x"]])) == CORRECT
+
+
+def test_two_ln_abs_is_ln_square() -> None:  # d-lnsq-02
+    spec = expression_spec(["Ln", ["Power", "x", 2]], Domain(exclude=["0"]))
+    assert outcome(submit(spec, ["Multiply", 2, ["Ln", ["Abs", "x"]]])) == CORRECT
+
+
+def test_cot_irrational_removable_hole_is_proven() -> None:  # d-cot-03
+    third = ["Divide", "x", 3]
+    spec = expression_spec(["Divide", ["Cot", third], 3], _open("0", "9"))
+    # the hole at 3pi/2 is removable: both one-sided limits are 0, the reference value there
+    assert outcome(submit(spec, ["Divide", 1, ["Multiply", 3, ["Tan", third]]])) == CORRECT

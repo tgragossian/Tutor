@@ -51,8 +51,9 @@ recorded constraint with equivalent constraints on its inner argument, recursive
   `DomainUnproven`. Every decided set still gets the seeded-point cross-check.
 - **Amends R18:** Abs at the top of a constraint is rewritten as above. Abs or sign under a
   non-integer power still abstains.
-- **Still abstains:** sign constraints on trig (cos(u) > 0), unbounded trig domains, and
-  irrational removable holes (`d-cot-03` at 3π/2; queued, not in milestone B).
+- **Still abstains:** sign constraints on trig (cos(u) > 0) and unbounded trig domains.
+- **`d-cot-03`** (hole at 3π/2) is now proven: R23 decides its other constraint, and the
+  existing exact hole-limit check shows the hole is removable (limit 0 = the answer there).
 - Inverse trig (arcsin u needs −1 ≤ u ≤ 1) fits this table but waits for topic expansion.
 
 ## Dev cases
@@ -71,5 +72,5 @@ recorded constraint with equivalent constraints on its inner argument, recursive
   still-abstains list (cos(x) > 0 on ℝ; |u| under x^(1/2)).
 - Content check test: an authored answer with `\sin x` fails the build.
 - Expected draft result: disagreements 3–6, 8, 9 move to correct; coverage about 50/52.
-  `d-cot-03` stays an abstention. Record the fresh draft numbers, not this estimate.
+  `d-cot-03` is proven via the exact hole-limit check. Record the fresh draft numbers, not this estimate.
 - Full Python and tool suites, ruff, mypy and the docs checker pass before each commit.
