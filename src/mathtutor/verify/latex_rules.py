@@ -67,8 +67,21 @@ def _has_opener(tex: str, i: int) -> bool:
     return j < len(tex) and tex[j] == "\\" and _command_at(tex, j) in _ABS_COMMANDS
 
 
+def _wrapped_function(tex: str, end: int) -> tuple[str, int] | None:
+    """The ``{NAME}`` group at ``end`` after ``\\operatorname``/``\\mathrm``: (NAME, index after)."""
+    start = _skip_blanks(tex, end)
+    if start >= len(tex) or tex[start] != "{":
+        return None
+    after = _skip_token(tex, start)
+    inner = tex[start + 1 : after - 1].strip()
+    # MathLive writes a typed ``\\operatorname{sin}`` back as ``\\operatorname{\\mathrm{sin}}``.
+    if inner.startswith("\\mathrm{") and inner.endswith("}"):
+        inner = inner[len("\\mathrm{") : -1].strip()
+    return (inner, after) if inner in _FUNCTIONS else None
+
+
 def unparenthesized_function(latex: str) -> str | None:
-    """The first function command (e.g. ``\\sin``) whose input is not parenthesized, or None."""
+    """The first function (e.g. ``\\sin``) whose input is not parenthesized, or None."""
     i = 0
     while i < len(latex):
         if latex[i] != "\\":
@@ -76,11 +89,17 @@ def unparenthesized_function(latex: str) -> str | None:
             continue
         name = _command_at(latex, i)
         end = i + 1 + max(len(name), 1)  # a symbol command such as ``\\\\`` spans two characters
+        label = "\\" + name
+        if name in ("operatorname", "mathrm"):
+            wrapped = _wrapped_function(latex, end)
+            if wrapped is not None:
+                label, end = f"\\{name}{{{wrapped[0]}}}", wrapped[1]
+                name = wrapped[0]
         if name in _FUNCTIONS:
             j = _skip_blanks(latex, end)
             while j < len(latex) and latex[j] in "^_":
                 j = _skip_blanks(latex, _skip_token(latex, _skip_blanks(latex, j + 1)))
             if not _has_opener(latex, j):
-                return "\\" + name
+                return label
         i = end
     return None
