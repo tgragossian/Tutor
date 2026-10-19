@@ -459,3 +459,8 @@ def test_strict_trig_of_exp_and_abs_is_not_proven_correct() -> None:
     for spec, sub in ((exp_spec, exp_sub), (abs_spec, abs_sub)):
         result = outcome(submit(spec, sub))
         assert isinstance(result, Verdict) and result.status != VerdictStatus.CORRECT
+
+
+def test_ln_of_typed_e_power_is_x() -> None:  # d-explog-03 as MathLive sends it
+    spec = expression_spec("x")
+    assert outcome(submit(spec, ["Ln", ["Power", "e", "x"]])) == CORRECT

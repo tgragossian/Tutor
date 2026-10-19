@@ -20,7 +20,7 @@ def reduce_constraint(c: Constraint) -> tuple[Constraint, ...]:
     if c.kind in ("not_half_pi_odd", "not_pi_multiple"):
         return (c,)  # lattice kinds are exact only for linear arguments: never rewritten
     expr = c.expr
-    if expr.func is sympy.exp:
+    if expr.func is sympy.exp or (expr.is_Pow and expr.base == sympy.E):  # e^u, either form
         return ()
     if isinstance(expr, sympy.Abs):
         if c.kind == "nonnegative":

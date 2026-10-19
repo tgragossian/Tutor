@@ -58,3 +58,11 @@ def test_trig_kinds_are_never_rewritten() -> None:
         for inner in (sympy.exp(X), sympy.Abs(X)):
             c = Constraint(kind, inner)  # type: ignore[arg-type]
             assert reduce_constraint(c) == (c,)
+
+
+def test_e_power_written_as_pow_always_holds() -> None:
+    power = sympy.Pow(sympy.E, X, evaluate=False)
+    for kind in ("positive", "nonnegative", "nonzero"):
+        assert reduce_constraint(Constraint(kind, power)) == ()  # type: ignore[arg-type]
+    c = Constraint("not_pi_multiple", power)
+    assert reduce_constraint(c) == (c,)
