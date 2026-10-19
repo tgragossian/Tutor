@@ -2,6 +2,9 @@
 
 [Milestone B plan](../README.md) · [Spec 03](../../../../specs/2026-10-13-portfolio-core/03-input-bounds.md) · [ADR 0002](../../../../../decisions/0002-mathlive-input.md)
 
+**Status (2026-10-19):** Complete: b5c05b9..ee4f4bf; R14/R15 refine powers/input; B-C2 fixed in b7f23ad.
+See [rulings](../02-execution-rulings.md) and [execution status](../03-execution-status.md); checked steps include recorded replacements.
+
 **Files:**
 - Create: `src/mathtutor/verify/translate.py`, `tests/unit/verify/test_translate.py`, `tests/unit/verify/test_translate_fuzz.py`
 - Modify: `pyproject.toml` (`uv add sympy mpmath`; `uv add --dev hypothesis`)
@@ -16,7 +19,7 @@
   - `def translate(tree: JsonValue, ctx: TranslateContext) -> Translated | Rejected` — never raises.
   - `VARIABLE_ASSUMPTIONS = {"real": True}`; symbols are `sympy.Symbol(name, real=True)`.
 
-- [ ] **Step 1: Write the failing tests** (one table test over the captured fixtures, plus bounds and fuzz).
+- [x] **Step 1: Write the failing tests** (one table test over the captured fixtures, plus bounds and fuzz).
 
 ```python
 X = sympy.Symbol("x", real=True)
@@ -43,13 +46,13 @@ def test_no_evaluation_during_build(): ...      # translate(["Power", 2, 1000]) 
 def test_translate_never_raises(tree): assert isinstance(translate(tree, CTX), (Translated, Rejected))
 ```
 
-- [ ] **Step 2:** Run `uv run pytest tests/unit/verify/test_translate.py -q`. Expected: FAIL (module missing).
-- [ ] **Step 3: Implement `translate`.** One recursive descent over the raw tree, after `check_structure` passes, computing for every subtree `(expr, const_digits | None, degree | None)` bottom-up:
+- [x] **Step 2:** Run `uv run pytest tests/unit/verify/test_translate.py -q`. Expected: FAIL (module missing).
+- [x] **Step 3: Implement `translate`.** One recursive descent over the raw tree, after `check_structure` passes, computing for every subtree `(expr, const_digits | None, degree | None)` bottom-up:
   - Heads and meanings exactly as spec 03's allowlist and ADR 0002 §3: `"e"`/`ExponentialE` → `E`; `Pi`; one-argument `Log` = base 10; `Lb` = base 2; `Log(a, b)` = base b; `Root(a, n)` odd n → `real_root`; `Delimiter` with one argument unwraps; `InvisibleOperator` = product unless its first factor is a non-variable letter followed by a `Delimiter` (function application → `unsupported_notation`).
   - Numbers: int → `Integer`; `{"num": s}` → `Rational(Decimal(s))` exactly.
   - Build every node with `evaluate=False`. Never call `sympify`.
   - Power cost rule (spec 03): reject if |b| > 1000, or `const_digits(a) × |b|` > 1000, or `degree(a) × |b|` > 200, using the integer value of a constant exponent; a non-constant exponent must itself pass the bounds and is not expanded.
   - Collect constraints from the raw tree while descending (denominators, `Ln`/`Log` arguments, `Sqrt`/even `Root` arguments, `Tan`/`Sec`, `Cot`/`Csc`, negative or fractional powers).
   - Any unexpected exception inside → `Rejected("unsupported_notation", <type name>)` (the fuzz test pins this).
-- [ ] **Step 4:** Run `uv run pytest tests/unit/verify -q` with the fuzz test (`max_examples=500` in CI). Expected: PASS.
-- [ ] **Step 5: Commit** `feat: allowlist MathJSON translator with cost bounds and domain constraints`.
+- [x] **Step 4:** Run `uv run pytest tests/unit/verify -q` with the fuzz test (`max_examples=500` in CI). Expected: PASS.
+- [x] **Step 5: Commit** `feat: allowlist MathJSON translator with cost bounds and domain constraints`.

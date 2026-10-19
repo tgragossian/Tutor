@@ -2,6 +2,11 @@
 
 [Milestone B plan](../README.md) · [Spec 01](../../../../specs/2026-10-13-portfolio-core/01-content-and-domains.md) · [Milestone A task 5](../../milestone-a/tasks/05-seed-problems.md)
 
+Start after task 9's human review/gates and tasks 13–14; the draft dev set does not satisfy this dependency.
+
+**Status (2026-10-19):** not started; paths below are planned outputs.
+Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
+
 **Files:**
 - Create: 14–24 new `content/problems/*.yaml`; `tools/e2e/smoke.mjs`
 - Modify: `content/compiled/problems.json`, `tests/unit/test_seed_content.py`, `tools/package.json` (script `e2e`), `.github/workflows/ci.yml`

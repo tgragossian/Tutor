@@ -1,10 +1,10 @@
 # Milestone B: execution status
 
-[Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md)
+[Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md) · [Follow-ups](05-follow-ups.md)
 
-Updated 2026-10-18. Branch `milestone-b` (worktree `.claude/worktrees/milestone-b`).
-
-Each task is built by a subagent, then reviewed task by task (spec plus quality), then put through fix rounds and a re-review.
+Updated 2026-10-19 against `milestone-b` 2ad5514; implementation through a115846.
+Worktree: `.claude/worktrees/milestone-b`; no milestone B deployment or merge is claimed.
+Implementation uses task-by-task spec/quality reviews and fix rounds.
 
 ## Tasks
 
@@ -12,68 +12,49 @@ Each task is built by a subagent, then reviewed task by task (spec plus quality)
 |---|---|---|
 | 1 Carry-overs, exact decimals | b03faac..813597c | complete |
 | 2 Types, bounds, pre-checks | 813597c..b5c05b9 | complete |
-| 3 Translator | b5c05b9..ee4f4bf, b7f23ad | complete; B-C2 fixed in b7f23ad |
-| 4 Equivalence | ee4f4bf..dbeea51 | complete after 2 fix rounds |
-| 5 Refute and check | dbeea51..9d06779, 8346d2a | complete; B-C1 fixed in 8346d2a |
-| 6 Content check, statement HTML | 9d06779..4ec38cb | complete after 1 fix round |
-| 7 Verifier pool | 4ec38cb..10611a5 | complete after fix round 1; B-C3 fixed in 10611a5 |
-| 8–16 | — | not started |
+| 3 Translator | b5c05b9..ee4f4bf, b7f23ad | complete; B-C2 fixed |
+| 4 Equivalence | ee4f4bf..dbeea51 | complete after two fix rounds |
+| 5 Refute and check | dbeea51..9d06779, 8346d2a | complete; B-C1 fixed |
+| 6 Content check, statement HTML | 9d06779..4ec38cb | complete after one fix round |
+| 7 Verifier pool | 4ec38cb..10611a5 | complete; pool fixes and B-C3 fixed |
+| 8 Evaluation runner and generated gate | 55744b8, 4138181 | complete; capture support refined in a115846 |
+| 9 Human dev cases | a115846 | steps 1–3 drafted; step 4 human review pending |
+| 10–16 | — | not started |
 
-At 10611a5: 531 tests pass, 1 is skipped (Linux only), and mypy and ruff are clean.
+Checked steps in tasks 1–8 record completion under rulings/review fixes, not literal
+execution of every old pseudocode example. Task 9 steps 4–7 and tasks 10–16 stay unchecked.
 
-## Codex code review at 2f95748
+## Current evidence and limits
 
-- [Findings and fix order](../../../../reviews/2026-10-15-milestone-b/01-code-review.md), with linked reproductions.
-- B-C1/P1: inward-rounded absolute-value interval can falsely refute equal expressions (task 5).
-- B-C2/P1: computed logarithm exponent bypasses the magnitude bound (task 3).
-- B-C3/P2: failed partial pool construction does not reap earlier workers (task 7).
-- Full Windows suite: 474 passed, seven known pool failures, one Linux-only skip.
-- Compiler tests (14), content check (6 problems), ruff and mypy pass. Docker unverified.
-- **Fixed 2026-10-18** (each reviewed clean): B-C1 8346d2a, B-C2 b7f23ad, pool + B-C3 10611a5.
-- **Next:** task 8 under R10–R13.
+- Fresh `uv run pytest -q`: **576 passed, 1 skipped, 1 warning** on Windows, 2026-10-19.
+  Skip: Linux-only memory limit. Warning: existing Starlette/httpx deprecation.
+- [Draft result](../../../../../evals/verifier/results/dev-draft.json): 131 cases;
+  52 correct, 54 incorrect, 25 unsupported, every reviewer `pending`.
+- FA 0/54 (95% Wilson upper bound 6.6%); FR 2/52 (3.8%); coverage 43/52 (82.7%);
+  unsupported accepts 0/25; agreement 122/131; no internal errors. **Gate B fails.**
+- Draft metrics are from the committed run, not a fresh accuracy measurement.
+  Resolve the [nine disagreements](../../../../../evals/verifier/human/REVIEW.md) with Thomas.
+- CI currently runs the generated gate only; the reviewed dev gate belongs to task 9 step 5.
+- Linux containment, browser behavior, Docker build and host memory were not verified here.
 
-## Deferred minors (not blocking; decide at the final review)
+## Codex review dispositions
 
-- **Task 1:** `app.py` rebuilds the lowercase header set for every header; the loader tests use string-replace tricks.
-- **Task 2:**
-  - `\d` in `structure.py` also accepts Unicode digits;
-  - the deep-tree test cannot prove the walk is not recursive.
-- **Task 3:**
-  - the x^0 / 0^0 convention is undocumented;
-  - `assert`s sit in untrusted-input paths;
-  - the digit rule is conservative.
-- **Task 4:** these cases abstain (`unable_to_verify`) when they could be decided:
-  - cot(x/3);
-  - π, e or ln 2 in a denominator;
-  - ln(x^(1/3)) on (0,∞);
-  - ln(eˣ) vs x;
-  - sin x/cos x vs tan x.
+- Historical [2026-10-15 code review](../../../../reviews/2026-10-15-milestone-b/01-code-review.md):
+  B-C1 8346d2a, B-C2 b7f23ad, B-C3 plus seven pool failures 10611a5; fixed 2026-10-18.
+  Old 474/531 test counts describe earlier commits, not the current branch.
+- [2026-10-19 review](../../../../reviews/2026-10-19-milestone-b/README.md): reviewer placeholders
+  pass validation; dev can pass without negative cases; empty generated sets pass.
+  These remain code follow-ups, not fixes delivered by this documentation sync.
+- Computed-log exponent rejection and seven domain abstentions need assessment
+  against reviewed dev labels. See [follow-ups](05-follow-ups.md).
 
-  Revisit the abstention rate once task 9 gives the dev-set numbers. Also, `real_roots` and trig enumeration ignore the budget (the pool's hard deadline still bounds them).
-- **Task 5:**
-  - `sample_points` duplicates the content schema's interval helpers;
-  - the rounding path's `doit()` has no budget;
-  - a Starlette/httpx deprecation warning (pre-existing).
-- **Task 6:**
-  - emphasis that spans `$...$` renders literal asterisks;
-  - choice translation hard-codes x;
-  - `\\$` is read as an escaped dollar.
-- **Task 7:**
-  - `alive()` retries a respawn synchronously, so `/readyz` can wait one worker start;
-  - no respawn backoff under persistent start failure; a `BaseException` in spawn leaks the counter;
-  - the respawn runs on the timed-out caller's thread;
-  - first-in, first-out order among waiters is not enforced;
+## Next actions and human gates
 
-- **B-C fixes:**
-  - x^(log_2 8) vs x^3 is graded incorrect (R15 positive base); reduce exact-rational
-    constant exponents first — revisit with task 9 false-reject numbers;
-  - constant-base digit estimate can undercount with deep nesting (cost only);
-  - lazy `refute` import in `translate`; extract the interval walker to its own module.
+1. Thomas reviews every task 9 label; record resolutions independently of verifier outcomes.
+2. Claude addresses review gaps, regenerates reviewed captures, enables the dev CI gate,
+   records passing `dev-b.json`, and finishes task 9. Do not count pending cases as reviewed.
+3. Task 10 may start during review; task 15 waits for task 9 and tasks 13–14.
+4. Thomas reviews new problems in task 15 and performs host deployment/sizing in task 16.
 
-## Human gates still ahead
-
-- Task 9: dev-case labels.
-- Task 15: new problems.
-- Task 16: deploy to the host and measure memory.
-
-Record hours in `docs/ops/hours.md`. Stop at 30 h.
+Record actual hours in the [hours log](../../../../ops/hours.md); no B actuals are supplied.
+At 30 h, stop at the next task boundary for a scope/date/contingency decision with Thomas.

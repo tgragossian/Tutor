@@ -2,6 +2,9 @@
 
 [Milestone B plan](../README.md) · [Spec 06](../../../../specs/2026-10-13-portfolio-core/06-session-state.md) · Ruling R5
 
+**Status (2026-10-19):** not started; paths below are planned outputs.
+Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
+
 **Files:**
 - Create: `src/mathtutor/application/selection.py`, `practice.py`
 - Create: `tests/unit/application/test_selection.py`, `test_practice.py`, `tests/integration/test_submit_races.py`
@@ -20,9 +23,11 @@
     - `session_summary(user_id) -> list[SessionSummary]` (`session_id, topics, started_at, answered, correct`)
   - `precision_hint`: `"Round to N decimal places"` or `"Give an exact answer"`; `None` for other kinds.
 
-**Protocol:** implement spec 06 "Submission protocol" steps 1–5 verbatim, with two additions:
+**Protocol:** implement spec 06 "Submission protocol" steps 1–5 verbatim, with these additions:
 - Format issues (`check` returns `FormatIssue`) delete the reservation and return the issue; nothing changes (spec 02).
-- R5: on replay, a reservation with no `attempt_results` and `created_at` older than 10 s is graded again (steps 3–4) instead of returning empty.
+- R5/R13: replay with no result at age ≥ 10 s regrades; below 10 s return `SubmissionPending` (409 `submission_pending`, `Retry-After: 1`).
+- R12: transaction B conditionally updates `WHERE revision=:expected AND state='active'`; no changed row → `StaleItem`. Map SQLite lock failures to `StaleItem`/`Busy`.
+- Rulings require race tests for in-flight duplicate ids as well as distinct-id revision races.
 
 - [ ] **Step 1: Write the failing tests** (pool replaced by a fake `submit` returning scripted results; races use the real pool with `tests/support/checks.slow`).
 

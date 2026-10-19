@@ -5,7 +5,9 @@
 Reviewed `main` bb15c91 through `milestone-b` 2f95748; tasks 1–6 and partial task 7.
 Focus: translation, proof/refutation, pool lifecycle, content compilation and B carry-overs.
 Tasks 8–16 are not implemented; their absence is not a defect in this review.
-No implementation changes made. The findings below remain open for Claude.
+Historical findings at that commit; resolved 2026-10-18 in 8346d2a, b7f23ad and 10611a5.
+No implementation changes were made by this review. See [current status](../../superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
+Tests and next-pass instructions below describe the original review snapshot.
 
 ## B-C1 — P1: absolute-value enclosure can exclude the true value
 

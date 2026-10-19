@@ -35,7 +35,12 @@ Problem content for the tutor: authored YAML in, one compiled JSON bundle out.
 
 ```sh
 npm run compile --prefix tools   # writes content/compiled/problems.json
+uv run python -m mathtutor.verify.content_check  # offline math validation
 uv run pytest -q                 # loader and seed-content checks
 ```
 
 CI recompiles and fails if the committed bundle is out of date. Commit the YAML and the regenerated bundle together.
+
+Milestone B bundles use schema version 2 with compiled `statement_html` and
+`misconceptions_mathjson`. CI and Docker builds run the offline mathematical check;
+web startup loads the schema without importing SymPy. Six problems exist; expansion is task 15.

@@ -76,6 +76,7 @@ Labels: 52 correct, 54 incorrect, 25 unsupported. Families: the six seed problem
   3 decimals; x2cosx is choice a.
 - **Harness note:** `unsupported` now also agrees with `empty` and `incomplete` format issues,
   so partial input can be labelled `unsupported` (task 8 had only notation and size).
-- `reviewer: 'pending'` passes the row schema (non-blank). The step-5 gate will require `tg`.
+- `reviewer: 'pending'` passes the row schema (non-blank). The task 9 step-5 gate must require `tg`; it is not implemented yet.
+  After review, recapture JSONL from the reviewed YAML before release evaluation.
 - Chromium's renderer sometimes crashes on deeply nested roots (`d-221-26`). The capture tool
   retries on a fresh page, which is why that case has 31 levels rather than more.

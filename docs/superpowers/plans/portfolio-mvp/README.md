@@ -2,6 +2,9 @@
 
 [Handoff](../../../../handoff.md) · [Review](../../../reviews/2026-10-13/README.md)
 
+2026-10-19: B tasks 1–8 complete; task 9 drafted and awaiting human labels; 10–16 pending.
+See [execution status](milestone-b/03-execution-status.md) and [review follow-ups](milestone-b/05-follow-ups.md).
+
 Status: option B selected; [milestone A](milestone-a/README.md) complete and live.
 [Milestone B plan](milestone-b/README.md) approved by Thomas; execution is underway.
 [Decision record](../../../decisions/0001-delivery-verifier-attribution.md) takes precedence over draft rules.

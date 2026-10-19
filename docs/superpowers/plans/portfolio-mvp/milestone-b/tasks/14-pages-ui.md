@@ -2,6 +2,12 @@
 
 [Milestone B plan](../README.md) · [Spec 07 UI](../../../../specs/2026-10-13-portfolio-core/07-application-and-web.md) · [Spec 02](../../../../specs/2026-10-13-portfolio-core/02-answer-contracts.md) · Ruling R4
 
+R13: retry `submission_pending` with the same submission id after `Retry-After`.
+R15/R16: show the `e·(x+1)` suggestion and friendly per-format-issue copy.
+
+**Status (2026-10-19):** not started; paths below are planned outputs.
+Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
+
 **Files:**
 - Create: `src/mathtutor/web/pages.py`, `tools/vendor.mjs`
 - Create templates: `web/templates/login.html`, `register.html`, `practice.html`; rewrite `index.html`, `base.html`

@@ -5,7 +5,7 @@ A portfolio project by Thomas Gragossian: build and evaluate a deployed Calculus
 Live: <https://tutor.thomasgragossian.dev>
 
 Status: milestone A skeleton. Six human-reviewed problems load; health and readiness probes,
-HTTPS and CI (tests, container smoke test) work. No grading, accounts or experiments yet.
+HTTPS and CI (tests, container smoke test) were recorded for milestone A. No public grading or accounts yet.
 Option B is selected: ship the core early, then restore features in a gated queue.
 Milestone A is complete and merged to `main`; milestone B practice work is underway
 on branch `milestone-b`. The live host still serves the milestone A skeleton.
@@ -25,7 +25,7 @@ docs/
   README.md                        Documentation map
   decisions/                       Accepted decisions and precedence
   handoff/                         Preserved Claude background
-  reviews/                         Historical and current findings
+  reviews/                         Historical findings; current 2026-10-19 review
   superpowers/
     specs/                         Approved portfolio-core spec; original design
     plans/
@@ -36,8 +36,9 @@ docs/
 Every Markdown file must remain at most 100 lines. Split by responsibility and link
 from a parent index; keep results and proposed work visibly distinct.
 
-The skeleton uses FastAPI, Jinja, MathLive content tooling and Docker. The practice
-loop, SymPy verification, RAG hints and measured evaluation follow in later milestones.
+The branch adds bounded SymPy verification and an evaluation runner (B tasks 1–8).
+Task 9 has 131 unreviewed draft cases and fails FR/coverage gates; accounts and practice UI
+remain tasks 10–16. RAG hints and final evaluation follow in later milestones.
 
 ## Development
 

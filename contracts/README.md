@@ -4,7 +4,8 @@
 
 Example request and response bodies for the HTTP API. They are validated against the pydantic models in `src/mathtutor/web/schemas.py` by `tests/unit/test_api_contracts.py`.
 
-The milestone B browser tests post these same files, so a change here changes the contract both sides test.
+Milestone B tasks 13–15 will exercise these contracts through API/browser tests.
+Those routes and tests are not implemented yet; current tests validate the DTO examples.
 
 ## Submissions (`POST` body, `SubmissionRequest`)
 

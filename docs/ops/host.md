@@ -2,7 +2,8 @@
 
 [Operations](README.md) · [Runbook](runbook.md)
 
-Fill in each `TBD` as task 8 proceeds. Never record credentials, keys or the contents of `.env`.
+Milestone A record from 2026-10-15; milestone B deployment and sizing remain task 16.
+Never record credentials, keys or the contents of `.env`.
 
 ## Cost controls
 

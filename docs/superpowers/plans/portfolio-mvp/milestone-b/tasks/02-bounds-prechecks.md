@@ -2,6 +2,9 @@
 
 [Milestone B plan](../README.md) · [Spec 02](../../../../specs/2026-10-13-portfolio-core/02-answer-contracts.md) · [Spec 03](../../../../specs/2026-10-13-portfolio-core/03-input-bounds.md)
 
+**Status (2026-10-19):** Complete: 813597c..b5c05b9; task 5 extends decimal detection via shared `decimal_literal`.
+See [rulings](../02-execution-rulings.md) and [execution status](../03-execution-status.md); checked steps include recorded replacements.
+
 **Files:**
 - Create: `src/mathtutor/verify/__init__.py`, `types.py`, `structure.py`, `precheck.py`
 - Create: `tests/unit/verify/test_structure.py`, `test_precheck.py`, `test_verify_imports.py`
@@ -22,7 +25,7 @@
 - Produces (`structure.py`): `def check_structure(tree: JsonValue) -> FormatIssue | None` — nodes ≤ 200, depth ≤ 30, integer ≤ 30 digits, `{"num": s}` ≤ 30 significant digits with |exponent| ≤ 30 → else `input_too_large`; a `num` string that is not a decimal literal → `unsupported_notation`.
 - Produces (`precheck.py`): `def precheck(answer: SubmittedAnswer, spec: Answer) -> FormatIssue | None`
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
 
 ```python
 @pytest.mark.parametrize("key", ["x_plain", "six_x_cos", "rational_fn", "huge_pow"])
@@ -43,9 +46,9 @@ def test_kind_mismatch_raises(): ...             # expression answer for a choic
 def test_verify_imports(): ...   # subprocess: import mathtutor.verify.*; assert no mathtutor.web/store/application
 ```
 
-- [ ] **Step 2:** Run `uv run pytest tests/unit/verify -q`. Expected: FAIL (module missing).
-- [ ] **Step 3: Implement** the types, then `check_structure` as one iterative walk (explicit stack, so a deep tree cannot hit Python's recursion limit), then `precheck`.
+- [x] **Step 2:** Run `uv run pytest tests/unit/verify -q`. Expected: FAIL (module missing).
+- [x] **Step 3: Implement** the types, then `check_structure` as one iterative walk (explicit stack, so a deep tree cannot hit Python's recursion limit), then `precheck`.
   - `exact_required` applies only when the top-level tree of a `numeric` answer with `precision: exact` is a `{"num": ...}` literal (spec 02: a decimal elsewhere is graded as an exact rational).
   - The `incomplete` LaTeX check is a string test: `"\\placeholder" in latex or re.search(r"\{\s*\}", latex)`, excluding `\{\}` (escaped braces).
-- [ ] **Step 4:** Run `uv run pytest -q && uv run mypy src`. Expected: PASS. Add `mathtutor.verify` to the mypy `strict` override.
-- [ ] **Step 5: Commit** `feat: verifier types, structural bounds and pre-checks`.
+- [x] **Step 4:** Run `uv run pytest -q && uv run mypy src`. Expected: PASS. Add `mathtutor.verify` to the mypy `strict` override.
+- [x] **Step 5: Commit** `feat: verifier types, structural bounds and pre-checks`.

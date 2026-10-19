@@ -2,6 +2,9 @@
 
 [Delivery plan](../README.md) · [Milestone B goals](../02-practice.md) · [Handoff](../../../../../handoff.md)
 
+**Status (2026-10-19):** tasks 1–8 complete; task 9 has 131 pending-review draft cases;
+tasks 10–16 not started. Draft gate B fails; see [execution status](03-execution-status.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** A signed-in student picks a topic, answers 20–30 reviewed problems in MathLive, and gets proof-based feedback with retry, skip, reveal and advance, at the deployed URL.
@@ -13,8 +16,8 @@
 - The problem page is server-rendered HTML that submits through `fetch` to the JSON API.
 
 **Tech Stack:**
-- Added Python deps: sympy, mpmath, sqlalchemy 2, alembic, argon2-cffi, itsdangerous, psutil, hypothesis (dev)
-- Added Node deps (tools only): markdown-it; MathLive and Compute Engine files vendored under `static/vendor/`
+- Present: sympy, mpmath; psutil and hypothesis are dev dependencies. Planned: sqlalchemy 2, alembic, argon2-cffi, itsdangerous.
+- Present Node tooling: markdown-it, pinned MathLive and Compute Engine. Vendoring under `static/vendor/` is task 14.
 - Unchanged: FastAPI, Jinja2, pydantic v2, uv, Docker, Caddy, Lightsail, GitHub Actions
 
 **Spec:** [portfolio-core contracts](../../../specs/2026-10-13-portfolio-core/README.md), modules 01–09. Executors read the spec and this plan together; the spec wins on conflict, decision 0001 wins over the spec.
@@ -25,7 +28,8 @@
 - [File map](01-file-map.md): every file this milestone creates or changes
 - [Execution rulings](02-execution-rulings.md): R7–R21 and in-task rulings (override the plan)
 - [Execution status](03-execution-status.md): task progress, pause point, deferred minors
-- [Codex doc-sync request](04-codex-doc-sync.md): 2026-10-19 request to update this tree
+- [Codex doc-sync request](04-codex-doc-sync.md): completed 2026-10-19; original scope retained
+- [Follow-ups](05-follow-ups.md): evaluation issues and deferred observations
 
 ## Tasks
 
@@ -61,7 +65,8 @@ cut scope (never accuracy or containment, per the delivery plan) or draw on the 
 
 ## Exit evidence (from [02-practice](../02-practice.md) and spec 08)
 
-- ≥ 80 human-reviewed dev cases from real browser captures; FA 0 observed, FR ≤ 2%, supported coverage ≥ 85%, generated-set FA 0, all enforced in CI (tasks 8–9).
+- Required: ≥ 80 human-reviewed dev cases; FA 0 observed, FR ≤ 2%, coverage ≥ 85%, generated-set FA 0, enforced in CI (tasks 8–9).
+  Current draft: 131 unreviewed cases, FA 0/54, FR 2/52, coverage 43/52; **fails B**. Only generated evaluation runs in CI.
 - Same-pool recovery after timeout and death, bounded queue, 16-thread concurrency with no zombies (task 7).
 - Duplicate submissions, racing submissions, stale revisions, exhausted items and cross-user access tested (task 12).
 - No response, JSON or HTML, contains a private answer field (task 13).

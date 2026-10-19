@@ -2,6 +2,12 @@
 
 [Milestone B plan](../README.md) · [Spec 02](../../../../specs/2026-10-13-portfolio-core/02-answer-contracts.md) · [Spec 04](../../../../specs/2026-10-13-portfolio-core/04-equivalence.md)
 
+**Status (2026-10-19):** Complete: dbeea51..9d06779; R17/R20/R21 refine witnesses/rounding; B-C1 fixed in 8346d2a.
+See [rulings](../02-execution-rulings.md) and [execution status](../03-execution-status.md); checked steps include recorded replacements.
+
+Implementation uses an allowlisted interval-tree walker, replacing the `lambdify` recipe below;
+`VERIFIER_VERSION` now lives in `verify/types.py` (task 7).
+
 **Files:**
 - Create: `src/mathtutor/verify/refute.py`, `numeric.py`, `check.py`
 - Create: `tests/unit/verify/test_refute.py`, `test_numeric.py`, `test_check.py`
@@ -15,7 +21,7 @@
   - `VERIFIER_VERSION: str` = `f"{__version__}+{os.environ.get('MATHTUTOR_GIT_SHA', 'dev')}"`
   - `def check(req: CheckRequest, deadline_s: float = 3.0) -> CheckResult`
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
 
 ```python
 def test_tiny_perturbation_refuted(): assert refute(T("x + 1/1000000000"), T("x"), x, pts(REALS), B) == "counterexample"
@@ -37,11 +43,11 @@ def test_check_format_issue_passthrough(): ...  # empty / incomplete / too large
 def test_check_never_raises(): ...           # hypothesis over submitted trees against a seed spec
 ```
 
-- [ ] **Step 2:** Run `uv run pytest tests/unit/verify -q`. Expected: the new tests FAIL.
-- [ ] **Step 3: Implement.**
+- [x] **Step 2:** Run `uv run pytest tests/unit/verify -q`. Expected: the new tests FAIL.
+- [x] **Step 3: Implement.**
   - `refute`: `mpmath.iv` with `mp.dps = 60`. At each point, first check student constraints exactly with Rationals (violated where E's enclosure is real and finite → `student_undefined`); otherwise evaluate both enclosures via `lambdify(var, expr, modules=[ivmath])` and return `counterexample` iff they are disjoint. Evaluation errors at a point skip that point.
   - `check` order: (1) kind mismatch → `ValueError`; (2) `choice` → id equality; (3) `check_structure`; (4) `precheck`; (5) numeric with `Decimals` and a top-level `{"num": s}` → `round_matches` against the expected value computed from the expected tree; (6) otherwise translate both, `equivalent`; on `Gap` certify the interval's midpoint with `refute` → `incorrect, undefined_on_domain, domain`, else `domain_unproven`; on `None` refute with `sample_points` → `incorrect` or `unable_to_verify, not_proven`.
   - A `Rejected` from translating the student → `FormatIssue(code)`; from translating the **expected** answer → `unable_to_verify, internal_error` (content bug, logged; task 6 prevents it).
   - Exact numeric answers use the domain `{intervals: [(-inf, inf)]}` (constant expressions).
-- [ ] **Step 4:** Run `uv run pytest -q && uv run mypy src`. Expected: PASS.
-- [ ] **Step 5: Commit** `feat: certified refutation, rounding rule and check dispatcher`.
+- [x] **Step 4:** Run `uv run pytest -q && uv run mypy src`. Expected: PASS.
+- [x] **Step 5: Commit** `feat: certified refutation, rounding rule and check dispatcher`.

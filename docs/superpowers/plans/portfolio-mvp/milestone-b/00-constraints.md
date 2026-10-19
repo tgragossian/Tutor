@@ -2,6 +2,9 @@
 
 [Milestone B plan](README.md) · [Spec](../../../specs/2026-10-13-portfolio-core/README.md)
 
+Updated 2026-10-19: read [execution rulings R7–R21](02-execution-rulings.md) with every task.
+They replace conflicting recipes below; [execution status](03-execution-status.md) records completion.
+
 Every task's requirements include this page. Milestone A's [constraints](../milestone-a/00-constraints.md) still apply.
 
 ## Global constraints

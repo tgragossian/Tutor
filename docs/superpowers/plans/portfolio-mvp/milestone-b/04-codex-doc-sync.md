@@ -2,6 +2,10 @@
 
 [Milestone B plan](README.md) · [Execution status](03-execution-status.md) · [Handoff](../../../../../handoff.md)
 
+**Completed 2026-10-19:** [execution status](03-execution-status.md), [follow-ups](05-follow-ups.md),
+and [new review](../../../../reviews/2026-10-19-milestone-b/README.md) record the outcome.
+Instructions below are retained as the scope of this documentation pass.
+
 Thomas asked Codex to bring every Markdown file in the milestone B plan tree up to date with
 the branch. The docs were last updated at d82fe72 (2026-10-18); three commits have landed since.
 

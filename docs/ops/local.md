@@ -17,7 +17,7 @@ cp deploy/.env.example deploy/.env   # deploy/.env is git-ignored; never commit 
 python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
-Paste the output after `MATHTUTOR_SECRET_KEY=` in `deploy/.env`. Keep `SITE_ADDRESS=localhost`.
+Paste the output after `MATHTUTOR_SECRET_KEY=` in `deploy/.env`. Set `SITE_ADDRESS=localhost` explicitly; the example leaves it empty.
 
 ## Run behind Caddy
 

@@ -2,6 +2,9 @@
 
 [Findings](01-code-review.md) · [Review index](README.md)
 
+Historical probes against 2f95748; their defect outputs are not expected after the fixes.
+B-C1/B-C2/B-C3 were fixed in 8346d2a/b7f23ad/10611a5; see [review disposition](README.md).
+
 Run each Python block with the milestone-B virtual environment from that worktree.
 These probes were run against 2f95748. They demonstrate current bugs, not desired assertions.
 They do not change application files. C2 deliberately leaves the huge outer power unevaluated.

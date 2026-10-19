@@ -2,6 +2,11 @@
 
 [Milestone B plan](../README.md) · [Spec 07](../../../../specs/2026-10-13-portfolio-core/07-application-and-web.md) · [Spec 02](../../../../specs/2026-10-13-portfolio-core/02-answer-contracts.md)
 
+**Status (2026-10-19):** not started; paths below are planned outputs.
+Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
+
+R15/R16: map every FormatIssue to friendly copy, preserving the `e·(x+1)` suggestion.
+
 **Files:**
 - Create: `src/mathtutor/web/api.py`, `src/mathtutor/web/logging.py`
 - Create: `tests/integration/test_api.py`, `tests/integration/test_no_leaks.py`, `tests/integration/test_process_boundary.py`
@@ -19,7 +24,7 @@
 - Routes (all JSON bodies ≤ 16 KB else 413, checked from `Content-Length` and the read body):
   - `POST /api/sessions` → 201 `{session_id}`
   - `GET /api/sessions/{id}/current` → `CurrentResponse`
-  - `POST /api/sessions/{id}/submit` → `SubmitResponse` (200), 409 `stale_item`, 422 kind mismatch / bad payload, 429, 503 `verifier_busy` with `Retry-After: 2`
+  - `POST /api/sessions/{id}/submit` → `SubmitResponse` (200), 409 `stale_item` or `submission_pending` (R13, `Retry-After: 1`), 422 kind mismatch / bad payload, 429, 503 `verifier_busy` with `Retry-After: 2`
   - `POST /api/sessions/{id}/{advance,skip,reveal}` → `CurrentResponse`
   - `GET /api/sessions` → session summaries (history)
   - `/readyz` now also requires: a `SELECT 1` succeeds and `pool.alive()`; otherwise 503 with the failing `reason`.

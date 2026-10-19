@@ -1,98 +1,71 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-19 (task 8 done; task 9 drafted; Codex asked to sync milestone B docs).
+Owner: Thomas Gragossian. Updated: 2026-10-19 (documentation sync and evaluation review).
 
-## Current state
+## Current state and next action
 
-- Independent review of Claude's handoff, specification and all 20 tasks is complete.
-- Milestone A skeleton is live at https://tutor.thomasgragossian.dev; milestone B practice work is underway.
-- The original design/tasks remain references; use the decisions below when they conflict.
-- Keep every Markdown file at most 100 lines, organized under linked parent indexes.
+- `main` bb15c91 contains milestone A. The host last recorded in [operations](docs/ops/host.md)
+  serves the skeleton at <https://tutor.thomasgragossian.dev>; deployment was not rechecked today.
+- Active work: branch `milestone-b`, worktree `.claude/worktrees/milestone-b`.
+  Reviewed through 2ad5514 (task 9 code a115846); B is not merged or deployed.
+- Tasks 1–8 complete. Task 9 steps 1–3 drafted: 131 cases, all `reviewer: pending`.
+  Tasks 10–16 are not started. See [execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
+- **Thomas next:** review every label in the [review sheet](evals/verifier/human/REVIEW.md).
+  Draft gate B fails: FR 2/52 (3.8%), coverage 43/52 (82.7%); FA 0/54
+  (95% Wilson upper bound 6.6%). These are unreviewed development results.
+- **Claude next:** address the [2026-10-19 review](docs/reviews/2026-10-19-milestone-b/README.md)
+  before completing task 9 steps 4–7 and enabling the reviewed dev CI gate.
+  Task 10 can proceed while human review is pending, as the delivery plan permits.
+- Documentation sync is complete. Keep every Markdown file at most 100 lines,
+  splitting by responsibility and linking each child from its parent.
 
-## Accepted direction: option B
+## What Claude needs to consider
 
-Use Codex's delivery order and retain the broader features in a gated queue.
-First: deployed skeleton -> full practice loop on three topics -> RAG hints ->
-operations and final evaluation. Build meaningful tests/evaluations throughout.
-Then: diagnostic -> exam conditions and recap -> all 15 topics ->
-extraction pipeline -> LoRA. Start each expansion only after the preceding stage works.
-Features are sequenced, not dropped; the full queue is not an eight-week promise.
+1. The runner accepts `pending` reviewers. Add a reviewed-dev release check and retain
+   a separate draft-measurement path; never change labels to pass a gate.
+2. Gate B accepts an all-correct dev set and an empty generated set. Add dataset-validity
+   checks and regressions; the current dataset is populated, so this is a guard gap.
+3. Resolve `d-log2-01`: a computed exponent equal to 3 acquires a positive-base restriction
+   and rejects x³ on negative x. Preserve B-C2 resource bounds when improving exact exponents.
+4. Resolve `d-181-05` with Thomas: displayed trig input and captured tree differ in meaning.
+   Record the input/label decision; track seven conservative domain abstentions separately.
+5. Tasks 12–14 still need atomic revisions, pending replay responses, 422 kind checks and
+   friendly format messages under R12–R16. These are planned, not implemented.
+6. Record actual hours before the 30-hour checkpoint; do not reduce accuracy or containment
+   to recover schedule. Linux memory, container/browser checks and host sizing remain gates.
 
-The first practice release targets basic derivative rules, trig derivatives and
-chain rule, with 20–30 reviewed problems, accounts, attempt history and one practice mode.
-Keep FastAPI/Jinja/HTMX, MathLive, SQLite and Docker.
-The 160-hour budget is a planning target for the initial shipped core, not the full roadmap.
-See the [active delivery plan](docs/superpowers/plans/portfolio-mvp/README.md)
-and [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).
+## Verification evidence
 
-## Verifier refinements from the Claude/Codex review
+- Fresh Windows run on 2026-10-19: **576 passed, 1 skipped** (Linux memory limit), one
+  existing Starlette/httpx warning. See [review evidence](docs/reviews/2026-10-19-milestone-b/README.md).
+- Earlier B-C1/B-C2/B-C3 fixes: 8346d2a, b7f23ad, 10611a5 respectively;
+  the [2026-10-15 review](docs/reviews/2026-10-15-milestone-b/README.md) is historical.
+- No code, case labels or result files changed in this documentation pass.
+- Markdown links/line limits and the maintained documentation tree pass validation.
 
-- Store a real mathematical domain for each problem.
-- Default: equality on that domain, ignoring provably removable holes.
-- A strict per-problem override is available when domain behavior is being assessed.
-- Preserve original restrictions; do not ignore poles, branch differences or intervals
-  where the student expression is undefined. Unknown domain checks must abstain.
-- Keep implicit differentiation for polynomial curves with supported rational answers.
-  Replace sampled acceptance with exact reduction of F_x + F_y * submitted_derivative.
-- A zero reduced numerator certifies the relation only after denominator and regularity
-  checks; F_y must be nonzero on the assessed curve region. Cover every included branch.
-- General/transcendental implicit curves and unproved domain cases remain unsupported.
-- Implement implicit-topic support at the all-15-topics stage; define its contract early.
-- Numeric sample agreement alone never proves exact equality.
+## Accepted direction and precedence
 
-The [decision record](docs/decisions/0001-delivery-verifier-attribution.md) defines these
-defaults and safeguards. It supersedes the review's blanket implicit-deferral suggestion.
+Option B: deployed skeleton → practice on three topics → evaluated RAG hints → operations
+and final evaluation. Then diagnostic → exam/recap → all 15 topics → extraction → LoRA.
+The initial 160-hour target does not promise the full expansion queue.
+First practice release: 20–30 reviewed problems, accounts, history and one mode;
+basic derivatives, trig derivatives and chain rule; FastAPI/Jinja, MathLive, SQLite, Docker.
+See the [delivery plan](docs/superpowers/plans/portfolio-mvp/README.md) and [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).
 
-## 2026-10-13 review findings: where they now live
+[Decision 0001](docs/decisions/0001-delivery-verifier-attribution.md) governs verifier semantics:
+equality on the real domain, ignoring only provably removable holes, with strict overrides.
+Keep raw restrictions; unknown domain proofs abstain; numerical agreement never proves equality.
+Polynomial implicit differentiation is retained for topic expansion, with exact reduction,
+denominator/regularity checks and coverage of every included branch.
 
-All seven are addressed by the approved [portfolio-core spec](docs/superpowers/specs/2026-10-13-portfolio-core/README.md)
-and assigned to milestone B: bounds (1) → tasks 2–3; precision, choice dispatch (2) → tasks 2, 5;
-presentations and idempotent submits (3) → task 12; MathLive pins and captures (4) → milestone A
-and task 14; human cases and family splits (5) → tasks 8–9; shared services, memory, latency (7)
-→ tasks 12–13, 16. Finding 6 (MathDial) applies to milestone C.
-Details: [review](docs/reviews/2026-10-13/README.md).
+Use the [approved spec](docs/superpowers/specs/2026-10-13-portfolio-core/README.md) and
+[execution rulings R7–R21](docs/superpowers/plans/portfolio-mvp/milestone-b/02-execution-rulings.md)
+with the active plan. Rulings supersede original task recipes; review suggestions are not rulings.
+Thomas approved milestone B and selected subagent-driven implementation; this pass is docs only.
+No assistant coauthor trailers; acknowledge assistance in the [README](README.md#acknowledgments).
 
-## Attribution decision
+## Preserved references
 
-Do not add assistant coauthor trailers to commits. Acknowledge Claude and OpenAI Codex
-in the [README footnote](README.md#acknowledgments). Existing commits are not rewritten.
-
-## Claude update (2026-10-15)
-
-Milestone A is merged to `main`, CI green, live at https://tutor.thomasgragossian.dev
-(host runs `main`; details in `docs/ops/host.md`). Thomas approved the milestone B plan and
-chose subagent-driven execution. Work runs on branch `milestone-b`
-(worktree `.claude/worktrees/milestone-b`).
-
-**Codex reviewed through 2f95748 on 2026-10-15; all three findings fixed 2026-10-18.**
-B-C1 8346d2a, B-C2 b7f23ad, task 7 pool fixes + B-C3 10611a5; each reviewed clean.
-Tasks 1–8 complete (task 8: 55744b8, 4138181). Task 9: 131 draft dev cases in a115846,
-unreviewed; draft gate B fails on FR (2 of 52) and coverage (82.7%), FA 0 of 54.
-[Execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md) is stale past task 7.
-
-**Codex, next:** update every Markdown file in the milestone B plan tree per the
-[doc-sync request](docs/superpowers/plans/portfolio-mvp/milestone-b/04-codex-doc-sync.md).
-**Then Thomas:** review the task 9 labels in `evals/verifier/human/REVIEW.md`.
-
-## Codex review notes for Claude
-
-- [Code review](docs/reviews/2026-10-15-milestone-b/01-code-review.md): B-C1/P1, inward-rounded
-  absolute-value enclosure produces a false refutation; B-C2/P1, computed logarithms bypass
-  exponent bounds; B-C3/P2, partial pool construction fails to clean up earlier workers.
-- [Reproductions](docs/reviews/2026-10-15-milestone-b/02-reproductions.md): focused probes and expected current output.
-- Verified: 474 tests pass, seven known pool tests fail, one Linux-only test skips.
-  Compiler tests (14), content check (6 problems), ruff and mypy pass; Docker not verified.
-- [Review index and earlier plan risks](docs/reviews/2026-10-15-milestone-b/README.md): ruling dispositions and schedule checkpoint.
-Human gates remain: dev-case labels (task 9), new problems (task 15), host deploy (task 16).
-
-Rulings R7–R21 made during execution (including Thomas's R14–R16) are recorded in
-[execution rulings](docs/superpowers/plans/portfolio-mvp/milestone-b/02-execution-rulings.md);
-they override the plan files where they differ.
-
-## Reference documents
-
-- [Original handoff](docs/handoff/README.md).
-- [Original design](docs/superpowers/specs/2026-10-13-core-practice-loop-design.md).
-- [Original tasks](docs/superpowers/plans/2026-10-13-core-practice-loop.md).
-- Reference wording is preserved except the explicitly replaced commit-attribution rule;
-  the preservation manifest records that amendment.
+- [Original handoff](docs/handoff/README.md), [original design](docs/superpowers/specs/2026-10-13-core-practice-loop-design.md),
+  [original tasks](docs/superpowers/plans/2026-10-13-core-practice-loop.md), [original review](docs/reviews/2026-10-13/README.md).
+- Original wording remains preserved except the recorded commit-attribution amendment.

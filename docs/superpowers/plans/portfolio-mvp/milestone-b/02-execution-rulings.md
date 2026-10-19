@@ -2,6 +2,9 @@
 
 [Milestone B plan](README.md) · [Constraints and R1–R6](00-constraints.md) · [Execution status](03-execution-status.md)
 
+Reconciled 2026-10-19 through a115846. No new R-numbered rulings were made in this sync.
+Task 8/9 implementation outcomes and open review proposals are in [follow-ups](05-follow-ups.md).
+
 These rulings add to the plan, and where they conflict with it, they replace it. Precedence: decisions > handoff > rulings > plan. Every ruling ends with what it costs if it is wrong.
 
 ## Setup and Codex plan review (R7–R13)
