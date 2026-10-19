@@ -27,7 +27,7 @@ A ✗ marks a disagreement (discussed in the index).
 - `d-253-23` · `\infty` · unsupported · Infinity is a limit token, not a numeric answer (outside the core allowlist). · format: unsupported_notation
 - `d-253-24` · `\mathrm{DNE}` · unsupported · DNE is a limit token (deferred kind), not a numeric answer. · format: unsupported_notation
 - `d-253-25` · `-0.583\,\mathrm{m/s}` · unsupported · Units typed after the number; unit symbols are outside the allowlist. · format: unsupported_notation
-- `d-csc-01` [expected `\csc x` on (1/2, 3)] · `\sin^{-1}(x)` · unsupported · sin^-1(x) is ambiguous (arcsin vs 1/sin); inverse trig is deferred, so unsupported_notation. · format: unsupported_notation
+- `d-csc-01` [expected `\csc(x)` on (1/2, 3)] · `\sin^{-1}(x)` · unsupported · sin^-1(x) is ambiguous (arcsin vs 1/sin); inverse trig is deferred, so unsupported_notation. · format: unsupported_notation
 - `d-r22-01` [expected `\sin(x)`] · `\sin x` · unsupported · R22: function input must be parenthesized. · format: unsupported_notation
 - `d-r22-02` [expected `\cos(x)(x+1)`] · `\cos x(x+1)` · unsupported · R22: function input must be parenthesized. · format: unsupported_notation
 - `d-r22-03` [expected `\cos^2(x)`] · `\cos^2x` · unsupported · R22: function input must be parenthesized. · format: unsupported_notation

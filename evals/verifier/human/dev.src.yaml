@@ -902,7 +902,7 @@
 - id: d-lnsq-03
   family: inline-ln-square
   category: domain
-  inline_spec: {kind: expression, latex: '2\ln x', domain: {intervals: [['0', 'inf', open, open]]}}
+  inline_spec: {kind: expression, latex: '2\ln(x)', domain: {intervals: [['0', 'inf', open, open]]}}
   latex: '\ln(x^2)'
   label: correct
   rationale: 'On (0, inf): ln(x^2) = 2 ln x.'
@@ -958,7 +958,7 @@
 - id: d-dtan-01
   family: inline-dtan
   category: tricky
-  inline_spec: {kind: expression, latex: '\sec^2x', domain: {intervals: [['-1', '1', open, open]]}}
+  inline_spec: {kind: expression, latex: '\sec^2(x)', domain: {intervals: [['-1', '1', open, open]]}}
   latex: '\frac{1}{\cos^2(x)}'
   label: correct
   rationale: 'd/dx tan x on (-1, 1): sec^2 x = 1/cos^2 x; cos x > 0 there.'
@@ -966,7 +966,7 @@
 - id: d-dtan-02
   family: inline-dtan
   category: tricky
-  inline_spec: {kind: expression, latex: '\sec^2x', domain: {intervals: [['-1', '1', open, open]]}}
+  inline_spec: {kind: expression, latex: '\sec^2(x)', domain: {intervals: [['-1', '1', open, open]]}}
   latex: '1+\tan^2(x)'
   label: correct
   rationale: 'Pythagorean identity 1 + tan^2 x = sec^2 x; tan is defined on (-1, 1).'
@@ -974,7 +974,7 @@
 - id: d-dtan-03
   family: inline-dtan
   category: error
-  inline_spec: {kind: expression, latex: '\sec^2x', domain: {intervals: [['-1', '1', open, open]]}}
+  inline_spec: {kind: expression, latex: '\sec^2(x)', domain: {intervals: [['-1', '1', open, open]]}}
   latex: '\sec(x^2)'
   label: incorrect
   rationale: 'sec(x^2) instead of (sec x)^2. At x = 1/2: sec(1/4) = 1.032 vs sec^2(1/2) = 1.298.'
@@ -982,7 +982,7 @@
 - id: d-dtan-04
   family: inline-dtan
   category: error
-  inline_spec: {kind: expression, latex: '\sec^2x', domain: {intervals: [['-1', '1', open, open]]}}
+  inline_spec: {kind: expression, latex: '\sec^2(x)', domain: {intervals: [['-1', '1', open, open]]}}
   latex: '-\csc^2(x)'
   label: incorrect
   rationale: 'Confused with d/dx cot x: negative wherever defined, while sec^2 x >= 1.'
@@ -990,7 +990,7 @@
 - id: d-tan-01
   family: inline-tan
   category: tricky
-  inline_spec: {kind: expression, latex: '\tan x', domain: {intervals: [['-1', '1', open, open]]}}
+  inline_spec: {kind: expression, latex: '\tan(x)', domain: {intervals: [['-1', '1', open, open]]}}
   latex: '\frac{\sin(x)}{\cos(x)}'
   label: correct
   rationale: 'tan x = sin x / cos x by definition; cos x > 0 on (-1, 1).'
@@ -1054,7 +1054,7 @@
 - id: d-csc-01
   family: inline-csc
   category: unsupported
-  inline_spec: {kind: expression, latex: '\csc x', domain: {intervals: [['1/2', '3', open, open]]}}
+  inline_spec: {kind: expression, latex: '\csc(x)', domain: {intervals: [['1/2', '3', open, open]]}}
   latex: '\sin^{-1}(x)'
   label: unsupported
   rationale: 'sin^-1(x) is ambiguous (arcsin vs 1/sin); inverse trig is deferred, so unsupported_notation.'
@@ -1062,7 +1062,7 @@
 - id: d-csc-02
   family: inline-csc
   category: tricky
-  inline_spec: {kind: expression, latex: '\csc x', domain: {intervals: [['1/2', '3', open, open]]}}
+  inline_spec: {kind: expression, latex: '\csc(x)', domain: {intervals: [['1/2', '3', open, open]]}}
   latex: '\frac{1}{\sin(x)}'
   label: correct
   rationale: 'csc x = 1/sin x; sin x > 0 on (1/2, 3).'

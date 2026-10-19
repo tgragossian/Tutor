@@ -16,13 +16,13 @@ A ✗ marks a disagreement (discussed in the index).
 - `d-hole-03` [expected `x+1`] · `\frac{x^2+x}{x}` · correct · (x^2 + x)/x = x + 1 for x != 0; the hole at 0 is removable (limit 1 = 0 + 1). · correct: proven
 - `d-lnsq-01` [expected `\ln(x^2)` x ≠ 0] · `2\ln(x)` · incorrect · On R \ {0}: 2 ln x is undefined for every x < 0, where ln(x^2) is defined. · incorrect: student_undefined
 - `d-lnsq-02` [expected `\ln(x^2)` x ≠ 0] · `2\ln\lvert x\rvert` · correct · ln(x^2) = ln(|x|^2) = 2 ln|x| for every x != 0. · correct: proven
-- `d-lnsq-03` [expected `2\ln x` on (0, inf)] · `\ln(x^2)` · correct · On (0, inf): ln(x^2) = 2 ln x. · correct: proven
+- `d-lnsq-03` [expected `2\ln(x)` on (0, inf)] · `\ln(x^2)` · correct · On (0, inf): ln(x^2) = 2 ln x. · correct: proven
 - `d-sqsq-01` [expected `x`] · `\sqrt{x^2}` · incorrect · sqrt(x^2) = |x|: at x = -1 it is 1, not -1. · incorrect: counterexample
 - `d-sqsq-02` [expected `x` on (0, inf)] · `\sqrt{x^2}` · correct · On (0, inf): sqrt(x^2) = |x| = x. · correct: proven
 - `d-sqsq-03` [expected `\lvert x\rvert`] · `\sqrt{x^2}` · correct · sqrt(x^2) = |x| for every real x. · correct: proven
 - `d-explog-01` [expected `x`] · `e^{\ln(x)}` · incorrect · On R: e^(ln x) is undefined for every x <= 0, a whole interval where x is defined. · incorrect: undefined_on_domain
 - `d-explog-02` [expected `x` on (0, inf)] · `e^{\ln(x)}` · correct · On (0, inf): e^(ln x) = x. · correct: proven
-- `d-explog-03` [expected `x`] · `\ln(e^x)` · correct · e^x > 0 for every real x, so ln(e^x) is defined on R and equals x. · abstain: domain_unproven ✗
+- `d-explog-03` [expected `x`] · `\ln(e^x)` · correct · e^x > 0 for every real x, so ln(e^x) is defined on R and equals x. · correct: proven
 - `d-cot-03` [expected `\frac{1}{3}\cot(\frac{x}{3})` on (0, 9)] · `\frac{1}{3\tan(\frac{x}{3})}` · correct · Equal to cot(x/3)/3 except at x = 3pi/2, where tan(x/3) is undefined; that hole is removable (limit 0 = the answer there). · correct: proven
 
 ## Near-equal perturbations (11)

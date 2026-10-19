@@ -2,8 +2,8 @@
 
 [Specs index](README.md) · [Portfolio core](2026-10-13-portfolio-core/README.md) · [Decision 0001](../../decisions/0001-delivery-verifier-attribution.md) · [Decision 0002](../../decisions/0002-mathlive-input.md) · [Review sheet](../../../evals/verifier/human/REVIEW.md)
 
-**Status:** approved by Thomas, 2026-10-19; implemented in ea6748b..6cc4853 and the dev-case recapture commit.
-Scope: milestone B, before task 10. Fixes review sheet disagreements 1 and 3–7, 9; 8 remains.
+**Status:** approved by Thomas, 2026-10-19; implemented in ea6748b..19db4ab (R23 follow-up) and the dev-case recapture commits.
+Scope: milestone B, before task 10. Fixes review sheet disagreements 1 and 3–9.
 Precedence: decision 0001 still wins; this amends ruling R18 and decision 0002 as stated.
 
 ## R22: function input always uses parentheses
@@ -72,6 +72,6 @@ recorded constraint with equivalent constraints on its inner argument, recursive
 - Failing test first for each R22 pattern (rejects and accepts), each R23 rule, and the
   still-abstains list (cos(x) > 0 on ℝ; |u| under x^(1/2)).
 - Content check test: an authored answer with `\sin x` fails the build.
-- Actual draft result (136 cases): FA 0/54, FR 0/52, coverage 51/52, agreement 135/136.
-  Disagreements 1–7 and 9 now agree; only 8 (`d-explog-03`, ln(e^x)) still abstains.
+- Actual draft result (136 cases): FA 0/54, FR 0/52, coverage 52/52, agreement 136/136.
+  All nine disagreements agree; 8 (`d-explog-03`) needed 19db4ab (typed e^x is Power(e, x)).
 - Full Python and tool suites, ruff, mypy and the docs checker pass before each commit.

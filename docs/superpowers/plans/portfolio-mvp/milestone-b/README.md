@@ -67,7 +67,7 @@ cut scope (never accuracy or containment, per the delivery plan) or draw on the 
 ## Exit evidence (from [02-practice](../02-practice.md) and spec 08)
 
 - Required: ≥ 80 human-reviewed dev cases; FA 0 observed, FR ≤ 2%, coverage ≥ 85%, generated-set FA 0, enforced in CI (tasks 8–9).
-  Current draft: 136 unreviewed cases, FA 0/54, FR 0/52, coverage 51/52 after [R22/R23](r22-r23/README.md); the release gate **fails** until review. Only generated evaluation runs in CI.
+  Current draft: 136 unreviewed cases, FA 0/54, FR 0/52, coverage 52/52 after [R22/R23](r22-r23/README.md); the release gate **fails** until review. Only generated evaluation runs in CI.
 - Same-pool recovery after timeout and death, bounded queue, 16-thread concurrency with no zombies (task 7).
 - Duplicate submissions, racing submissions, stale revisions, exhausted items and cross-user access tested (task 12).
 - No response, JSON or HTML, contains a private answer field (task 13).

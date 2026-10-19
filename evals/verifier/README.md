@@ -5,7 +5,7 @@
 **2026-10-19:** 136 dev cases remain unreviewed (`reviewer: pending`). After the
 [R22/R23 plan](../../docs/superpowers/plans/portfolio-mvp/milestone-b/r22-r23/README.md)
 (function input needs parentheses, [decision 0003](../../docs/decisions/0003-function-parentheses.md))
-a fresh `--draft` run gives FA 0/54, FR 0/52, coverage 51/52, agreement 135/136. The committed
+a fresh `--draft` run gives FA 0/54, FR 0/52, coverage 52/52, agreement 136/136. The committed
 [draft result](results/dev-draft.json) is the older 131-case run and was not overwritten.
 CI runs generated cases only; human review and the dev CI step remain task 9 work.
 

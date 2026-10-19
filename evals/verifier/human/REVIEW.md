@@ -17,25 +17,22 @@ Labels were written from the mathematics before the verifier ran and were not ch
   `(1-\sin(x))^2-\cos(x)(x+\cos(x))`, label `correct`, and the verifier agrees.
 - Five new `unsupported` regression cases `d-r22-01..05` (`\sin x`, `\cos x(x+1)`,
   `\cos^2x`, `\log_2 8`, `\operatorname{sin}x`): all rejected with `unsupported_notation`.
+- Inline-spec LaTeX (authored) follows R22 too; captured trees are unchanged.
 - Edited and new cases stay `reviewer: 'pending'` for your review.
 
-Fresh draft run (`evaluate --set dev --gate B --draft`, 2026-10-19, after R22/R23):
-FA 0 of 54 (95% upper bound 6.6%) · FR 0 of 52 (95% upper bound 6.9%) · coverage 51 of 52
-(98.1%) · unsupported graded correct 0 of 30 · agreement 135 of 136 (99.3%). Metrics pass
-gate B; the release gate still fails because no row is reviewed.
+Fresh draft run (`evaluate --set dev --gate B --draft`, 2026-10-19, after R22/R23 and 19db4ab):
+FA 0 of 54 (95% upper bound 6.6%) · FR 0 of 52 (95% upper bound 6.9%) · coverage 52 of 52
+(100%) · unsupported graded correct 0 of 30 · agreement 136 of 136. Metrics pass gate B;
+the release gate still fails because no row is reviewed.
 
-## Disagreements (1 left of the earlier 9)
+## Disagreements (none left of the earlier 9)
 
 Before R22/R23: 9 disagreements (FR 2/52, coverage 43/52, agreement 122/131 on 131 cases).
-
-- Now agree: 1 `d-181-05` (R22 option A), 2 `d-log2-01` (fixed in 832740f), 3 `d-tan-01`,
-  4 `d-dtan-01`, 5 `d-csc-02`, 6 `d-cot-01` (R23 decides their trig denominators),
-  7 `d-cot-03` (R23 plus the exact hole-limit check: the hole at 3pi/2 is removable, so it
-  grades correct), 9 `d-lnsq-02` (R23 rewrites |x| != 0 to x != 0).
-- Still disagrees: 8 `d-explog-03` ln(e^x) vs x on R. Label correct, verifier abstains
-  (`domain_unproven`, marked in REVIEW-3). The spec expected R23's rule "e^u > 0
-  always holds" to decide it; it does not yet. Tracked in the
-  [follow-ups](../../../docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md).
+All now agree: 1 `d-181-05` (R22 option A), 2 `d-log2-01` (fixed in 832740f), 3 `d-tan-01`,
+4 `d-dtan-01`, 5 `d-csc-02`, 6 `d-cot-01` (R23 decides their trig denominators),
+7 `d-cot-03` (R23 plus the exact hole-limit check: the hole at 3pi/2 is removable, so it
+grades correct), 8 `d-explog-03` (ln(e^x) = x on R, label correct as Thomas confirmed;
+19db4ab makes typed e^x count as always positive), 9 `d-lnsq-02` (|x| != 0 becomes x != 0).
 
 Not disagreements, but worth a look: `d-253-06` (−0.58349 is *correct* by the spec 02
 rounding rule), `d-253-02` (the trailing zero of −0.5830 is lost in capture), and the

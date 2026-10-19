@@ -33,14 +33,14 @@ A ✗ marks a disagreement (discussed in the index).
 - `d-253-11` · `\frac{-200}{343}` · correct · Sign in the numerator: -200/343. · correct: proven
 - `d-253-12` · `-200(6+1)^{-3}` · correct · v(t) = -200(t+1)^-3 evaluated at t = 6, unsimplified: -200/343. · correct: proven
 - `d-253-13` · `-\frac{200}{(6+1)^3}` · correct · (6+1)^3 = 343. · correct: proven
-- `d-dtan-01` [expected `\sec^2x` on (-1, 1)] · `\frac{1}{\cos^2(x)}` · correct · d/dx tan x on (-1, 1): sec^2 x = 1/cos^2 x; cos x > 0 there. · correct: proven
-- `d-dtan-02` [expected `\sec^2x` on (-1, 1)] · `1+\tan^2(x)` · correct · Pythagorean identity 1 + tan^2 x = sec^2 x; tan is defined on (-1, 1). · correct: proven
-- `d-tan-01` [expected `\tan x` on (-1, 1)] · `\frac{\sin(x)}{\cos(x)}` · correct · tan x = sin x / cos x by definition; cos x > 0 on (-1, 1). · correct: proven
+- `d-dtan-01` [expected `\sec^2(x)` on (-1, 1)] · `\frac{1}{\cos^2(x)}` · correct · d/dx tan x on (-1, 1): sec^2 x = 1/cos^2 x; cos x > 0 there. · correct: proven
+- `d-dtan-02` [expected `\sec^2(x)` on (-1, 1)] · `1+\tan^2(x)` · correct · Pythagorean identity 1 + tan^2 x = sec^2 x; tan is defined on (-1, 1). · correct: proven
+- `d-tan-01` [expected `\tan(x)` on (-1, 1)] · `\frac{\sin(x)}{\cos(x)}` · correct · tan x = sin x / cos x by definition; cos x > 0 on (-1, 1). · correct: proven
 - `d-cot-01` [expected `\frac{1}{3}\cot(\frac{x}{3})` on (0, 9)] · `\frac{\cos(\frac{x}{3})}{3\sin(\frac{x}{3})}` · correct · d/dx ln(sin(x/3)) on (0, 9): cot(x/3)/3 = cos(x/3)/(3 sin(x/3)); sin(x/3) > 0 there (3pi > 9). · correct: proven
 - `d-cot-04` [expected `\frac{1}{3}\cot(\frac{x}{3})` on (0, 9)] · `\frac{1}{3}\cot(\frac{x}{3})` · correct · The answer with the factor 1/3 in front of cot(x/3). · correct: proven
 - `d-log2-01` [expected `x^3`] · `x^{\log_2(8)}` · correct · log_2 8 = 3 exactly, so x^(log_2 8) = x^3 for every real x. · correct: proven
 - `d-negpow-01` [expected `-\frac{2}{x^3}` x ≠ 0] · `-2x^{-3}` · correct · d/dx x^-2 = -2x^-3 = -2/x^3 on R \ {0}. · correct: proven
-- `d-csc-02` [expected `\csc x` on (1/2, 3)] · `\frac{1}{\sin(x)}` · correct · csc x = 1/sin x; sin x > 0 on (1/2, 3). · correct: proven
+- `d-csc-02` [expected `\csc(x)` on (1/2, 3)] · `\frac{1}{\sin(x)}` · correct · csc x = 1/sin x; sin x > 0 on (1/2, 3). · correct: proven
 
 ## Baseline (1)
 

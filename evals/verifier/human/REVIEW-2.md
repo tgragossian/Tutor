@@ -37,7 +37,7 @@ A ✗ marks a disagreement (discussed in the index).
 - `d-x2cosx-02` · choice b · incorrect · Seed misconception: (cos x)' taken as +sin x. · incorrect: choice_mismatch
 - `d-x2cosx-03` · choice c · incorrect · Seed misconception: product of the derivatives, -2x sin x. · incorrect: choice_mismatch
 - `d-x2cosx-04` · choice d · incorrect · Seed misconception: cos x treated as a constant, second term dropped. · incorrect: choice_mismatch
-- `d-dtan-03` [expected `\sec^2x` on (-1, 1)] · `\sec(x^2)` · incorrect · sec(x^2) instead of (sec x)^2. At x = 1/2: sec(1/4) = 1.032 vs sec^2(1/2) = 1.298. · incorrect: counterexample
-- `d-dtan-04` [expected `\sec^2x` on (-1, 1)] · `-\csc^2(x)` · incorrect · Confused with d/dx cot x: negative wherever defined, while sec^2 x >= 1. · incorrect: counterexample
+- `d-dtan-03` [expected `\sec^2(x)` on (-1, 1)] · `\sec(x^2)` · incorrect · sec(x^2) instead of (sec x)^2. At x = 1/2: sec(1/4) = 1.032 vs sec^2(1/2) = 1.298. · incorrect: counterexample
+- `d-dtan-04` [expected `\sec^2(x)` on (-1, 1)] · `-\csc^2(x)` · incorrect · Confused with d/dx cot x: negative wherever defined, while sec^2 x >= 1. · incorrect: counterexample
 - `d-cot-02` [expected `\frac{1}{3}\cot(\frac{x}{3})` on (0, 9)] · `\cot(\frac{x}{3})` · incorrect · Inner derivative 1/3 missing: three times the answer, nonzero at x = 1. · incorrect: counterexample
 - `d-negpow-02` [expected `-\frac{2}{x^3}` x ≠ 0] · `-2x^{-1}` · incorrect · Exponent raised instead of lowered (-2 + 1). At x = 1: -2 vs -2, at x = 2: -1 vs -1/4. · incorrect: counterexample

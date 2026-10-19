@@ -4,7 +4,7 @@
 
 **Status (2026-10-19):** a115846 drafted 131 cases; the [R22/R23 plan](../r22-r23/README.md) recaptured them as 136 (52 correct, 54 incorrect, 30 unsupported).
 Steps 1–3 done; all reviewers are `pending` (replaces the empty-string draft convention).
-[Review sheet](../../../../../../evals/verifier/human/REVIEW.md): one disagreement left; FR 0/52, coverage 51/52, agreement 135/136; the release gate fails until review.
+[Review sheet](../../../../../../evals/verifier/human/REVIEW.md): no disagreements left; FR 0/52, coverage 52/52, agreement 136/136; the release gate fails until review.
 Steps 4–7 remain open; see [gate review](../../../../../reviews/2026-10-19-milestone-b/README.md).
 
 **Files:**

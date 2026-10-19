@@ -13,11 +13,11 @@ Keep release-relevant evaluation issues ahead of optional cleanup.
   the nearest small rational in its enclosure; enclosed-but-unproven abstains.
 - Done: `d-181-05` resolved by Thomas (R22 option A, parentheses required); the case is
   `(1-\sin(x))^2-\cos(x)(x+\cos(x))`, label `correct`. See [decision 0003](../../../../decisions/0003-function-parentheses.md).
-- Done: [R22/R23 plan](r22-r23/README.md) (ea6748b..6cc4853). Fresh draft: FA 0/54, FR 0/52,
-  coverage 51/52, agreement 135/136 on 136 cases. Of the nine review-sheet disagreements only
-  #8, `d-explog-03` (ln(e^x) vs x on R, `domain_unproven`), remains. The spec expected R23's
-  "e^u > 0 always holds" to decide it; investigate before reviewed labels are final.
-  Preserve abstention until the proof is justified.
+- Done: [R22/R23 plan](r22-r23/README.md) (ea6748b..19db4ab). Fresh draft: FA 0/54, FR 0/52,
+  coverage 52/52, agreement 136/136 on 136 cases. All nine review-sheet disagreements now
+  agree; #8 `d-explog-03` (ln(e^x) = x on R, label confirmed by Thomas) was resolved by 19db4ab
+  (typed e^x is Power(e, x) and counts as always positive). Inline-spec LaTeX follows R22 too.
+  The 25 rewritten inputs (not the scan's 26) exclude `d-lnsq-02`, whose `\lvert` bars R22 accepts.
 - Found and closed: the R22 pre-check missed `\operatorname{sin}x` and `\mathrm{sin}x`
   (Compute Engine parses both as `Sin`; MathLive produces the operatorname form from typing).
   Closed in 098b7ba with tests; regression case `d-r22-05`.

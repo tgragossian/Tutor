@@ -18,7 +18,7 @@ Implementation uses task-by-task spec/quality reviews and fix rounds.
 | 6 Content check, statement HTML | 9d06779..4ec38cb | complete after one fix round |
 | 7 Verifier pool | 4ec38cb..10611a5 | complete; pool fixes and B-C3 fixed |
 | 8 Evaluation runner and generated gate | 55744b8, 4138181 | complete; capture support refined in a115846 |
-| R22/R23 | ea6748b..6cc4853 | complete; [plan](r22-r23/README.md), [decision 0003](../../../../decisions/0003-function-parentheses.md) |
+| R22/R23 | ea6748b..19db4ab | complete; [plan](r22-r23/README.md), [decision 0003](../../../../decisions/0003-function-parentheses.md) |
 | 9 Human dev cases | a115846, recapture | steps 1–3 drafted (136 cases); step 4 human review pending |
 | 10–16 | — | not started |
 
@@ -27,15 +27,15 @@ execution of every old pseudocode example. Task 9 steps 4–7 and tasks 10–16 
 
 ## Current evidence and limits
 
-- Fresh `uv run pytest -q`: **671 passed, 1 skipped, 1 warning** on Windows, 2026-10-19.
+- Fresh `uv run pytest -q`: **673 passed, 1 skipped, 1 warning** on Windows, 2026-10-19.
   Skip: Linux-only memory limit. Warning: existing Starlette/httpx deprecation.
 - Fresh draft run after R22/R23: 136 cases; 52 correct, 54 incorrect, 30 unsupported,
   every reviewer `pending`. FA 0/54 (95% upper bound 6.6%); FR 0/52 (upper bound 6.9%);
-  coverage 51/52 (98.1%); unsupported accepts 0/30; agreement 135/136; no internal errors.
+  coverage 52/52 (100%); unsupported accepts 0/30; agreement 136/136; no internal errors.
   Draft metrics pass B; the release gate fails because no row is reviewed.
 - The committed [dev-draft.json](../../../../../evals/verifier/results/dev-draft.json) is the
   older 131-case run (FR 2/52, coverage 43/52) and was left unchanged.
-- One [disagreement](../../../../../evals/verifier/human/REVIEW.md) remains: `d-explog-03`.
+- No [disagreements](../../../../../evals/verifier/human/REVIEW.md) remain (`d-explog-03` resolved by 19db4ab).
 - CI currently runs the generated gate only; the reviewed dev gate belongs to task 9 step 5.
 - Linux containment, browser behavior, Docker build and host memory were not verified here.
 
@@ -46,8 +46,8 @@ execution of every old pseudocode example. Task 9 steps 4–7 and tasks 10–16 
   Old 474/531 test counts describe earlier commits, not the current branch.
 - [2026-10-19 review](../../../../reviews/2026-10-19-milestone-b/README.md): B-E1 and B-E2
   fixed in bdb1710; `d-log2-01` fixed in 832740f (fresh draft: FR 1/52, coverage 44/52).
-- `d-181-05` resolved by Thomas (R22 option A). Six domain abstentions now grade correct
-  under R23; `d-explog-03` still abstains. See [follow-ups](05-follow-ups.md).
+- `d-181-05` resolved by Thomas (R22 option A). The seven domain abstentions now grade correct
+  under R23 and 19db4ab. See [follow-ups](05-follow-ups.md).
 
 ## Next actions and human gates
 
