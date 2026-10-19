@@ -448,3 +448,14 @@ def test_cot_irrational_removable_hole_is_proven() -> None:  # d-cot-03
     spec = expression_spec(["Divide", ["Cot", third], 3], _open("0", "9"))
     # the hole at 3pi/2 is removable: both one-sided limits are 0, the reference value there
     assert outcome(submit(spec, ["Divide", 1, ["Multiply", 3, ["Tan", third]]])) == CORRECT
+
+
+def test_strict_trig_of_exp_and_abs_is_not_proven_correct() -> None:
+    # tan(e^x) is undefined at ln(pi/2) in (0, 1); cot(|x|) at pi in (1, 4).
+    exp_spec = expression_spec(["Sin", ["Exp", "x"]], _open("0", "1"), strict=True)
+    exp_sub = ["Multiply", ["Tan", ["Exp", "x"]], ["Cos", ["Exp", "x"]]]
+    abs_spec = expression_spec(["Cos", ["Abs", "x"]], _open("1", "4"), strict=True)
+    abs_sub = ["Multiply", ["Cot", ["Abs", "x"]], ["Sin", ["Abs", "x"]]]
+    for spec, sub in ((exp_spec, exp_sub), (abs_spec, abs_sub)):
+        result = outcome(submit(spec, sub))
+        assert isinstance(result, Verdict) and result.status != VerdictStatus.CORRECT

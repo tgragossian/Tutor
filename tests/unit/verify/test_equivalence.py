@@ -378,3 +378,10 @@ def test_sign_constraints_on_trig_and_abs_power_still_abstain() -> None:
         violation_set(Constraint("positive", sympy.cos(x)), x, Interval(-1, 1))
     with pytest.raises(DomainUnproven):
         violation_set(Constraint("positive", sympy.Abs(x) ** Rational(1, 2)), x, sympy.S.Reals)
+
+
+def test_nonlinear_trig_arguments_abstain_after_rewrite() -> None:
+    with pytest.raises(DomainUnproven):
+        violation_set(Constraint("nonzero", sympy.sin(sympy.exp(x))), x, Interval(0, 3))
+    with pytest.raises(DomainUnproven):
+        violation_set(Constraint("not_pi_multiple", sympy.Abs(x)), x, Interval(-4, 4))

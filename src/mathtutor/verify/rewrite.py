@@ -17,6 +17,8 @@ def reduce_constraint(c: Constraint) -> tuple[Constraint, ...]:
 
     A constraint no rule matches is returned unchanged as ``(c,)``.
     """
+    if c.kind in ("not_half_pi_odd", "not_pi_multiple"):
+        return (c,)  # lattice kinds are exact only for linear arguments: never rewritten
     expr = c.expr
     if expr.func is sympy.exp:
         return ()

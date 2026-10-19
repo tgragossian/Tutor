@@ -51,3 +51,10 @@ def test_unmatched_is_unchanged() -> None:
     ]
     for c in unmatched:
         assert reduce_constraint(c) == (c,)
+
+
+def test_trig_kinds_are_never_rewritten() -> None:
+    for kind in ("not_pi_multiple", "not_half_pi_odd"):
+        for inner in (sympy.exp(X), sympy.Abs(X)):
+            c = Constraint(kind, inner)  # type: ignore[arg-type]
+            assert reduce_constraint(c) == (c,)
