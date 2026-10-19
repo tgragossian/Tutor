@@ -151,6 +151,15 @@ def test_bare_function_in_misconception_is_an_error(tmp_path: Path) -> None:
     assert errors == [r"pow-001: misconceptions[0]: function input needs parentheses (\sin)"]
 
 
+def test_bare_function_in_uncompiled_misconception_is_an_error(tmp_path: Path) -> None:
+    def edit(problems: list[dict[str, Any]]) -> None:
+        problems[0]["misconceptions"] = [r"\sin x  # forgot the chain rule"]
+        problems[0]["misconceptions_mathjson"] = [None]
+
+    errors = check_bundle(_edited(tmp_path, edit))
+    assert errors == [r"pow-001: misconceptions[0]: function input needs parentheses (\sin)"]
+
+
 def test_rejected_misconception_is_an_error(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

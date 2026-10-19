@@ -25,7 +25,9 @@ cos(x(x + cos x)) (`d-181-05`). The tree cannot show which was meant: `\cos x(x+
    can never make a wrong answer correct; grading still uses MathJSON only.
 5. **Content:** text quoted from OpenStax (problem statements) keeps its original notation.
    LaTeX we author (expected answers, worked solutions, hints, feedback) must use
-   parentheses; the content check fails the build otherwise.
+   parentheses; the content check fails the build otherwise. Today it enforces expected
+   answers, choices and misconceptions; worked solutions, hints and feedback are enforced
+   when those fields land (the schema has none yet).
 
 ## R23: restrictions are solved on their inner argument
 

@@ -131,11 +131,11 @@ def _misconception_checks(problem: Problem) -> list[str]:
         else:
             trees = problem.misconceptions_mathjson
             tree = trees[i] if trees is not None else None
-            if tree is None:  # the compiler could not parse it: skipped by design
-                continue
             bare = _parens_error(field, head)
             if bare is not None:
                 errors.append(bare)
+                continue
+            if tree is None:  # the compiler could not parse it: skipped by design
                 continue
             submitted = SubmittedAnswer(AnswerKind(spec.kind), tree, head, None)
         outcome = check(CheckRequest(spec, submitted), deadline_s=_GRADE_SECONDS).outcome

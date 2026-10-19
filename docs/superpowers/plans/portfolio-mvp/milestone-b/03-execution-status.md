@@ -27,7 +27,7 @@ execution of every old pseudocode example. Task 9 steps 4–7 and tasks 10–16 
 
 ## Current evidence and limits
 
-- Fresh `uv run pytest -q`: **673 passed, 1 skipped, 1 warning** on Windows, 2026-10-19.
+- Fresh `uv run pytest -q`: **687 passed, 1 skipped, 1 warning** on Windows, 2026-10-19.
   Skip: Linux-only memory limit. Warning: existing Starlette/httpx deprecation.
 - Fresh draft run after R22/R23: 136 cases; 52 correct, 54 incorrect, 30 unsupported,
   every reviewer `pending`. FA 0/54 (95% upper bound 6.6%); FR 0/52 (upper bound 6.9%);

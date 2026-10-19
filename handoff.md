@@ -7,7 +7,7 @@ Owner: Thomas Gragossian. Updated: 2026-10-19 (documentation sync and evaluation
 - `main` bb15c91 contains milestone A. The host last recorded in [operations](docs/ops/host.md)
   serves the skeleton at <https://tutor.thomasgragossian.dev>; deployment was not rechecked today.
 - Active work: branch `milestone-b`, worktree `.claude/worktrees/milestone-b`.
-  Reviewed through 2ad5514 (task 9 code a115846); B is not merged or deployed.
+  Last reviewed at 2ad5514 (superseded; see the R22/R23 line below); B is not merged or deployed.
 - Tasks 1–8 complete. R22/R23 implemented (ea6748b..19db4ab: function input needs
   parentheses, [decision 0003](docs/decisions/0003-function-parentheses.md); domain
   restrictions decided on their inner argument). Task 9 steps 1–3 drafted: 136 cases, all
@@ -17,8 +17,8 @@ Owner: Thomas Gragossian. Updated: 2026-10-19 (documentation sync and evaluation
   agreement 136/136 (all nine old disagreements resolved). Unreviewed development results;
   the release gate fails until rows are `tg`.
 - **Claude done (2026-10-19):** review B-E1/B-E2 fixed in bdb1710 and `d-log2-01` in 832740f.
-  Fresh draft run: FA 0/54, FR 1/52, coverage 44/52; still fails B on coverage.
-  607 Python tests pass (1 Linux-only skip) and 19 tool tests pass on Windows.
+  Superseded by the R22/R23 numbers above (the older draft had FR 1/52, coverage 44/52).
+  Current: 687 Python tests pass (1 Linux-only skip) and 19 tool tests pass on Windows.
 - **Claude next:** after Thomas's label review, recapture and finish task 9 steps 5–7.
   Task 10 may start meanwhile. `d-181-05` is resolved (R22 option A).
 - Documentation sync is complete. Keep every Markdown file at most 100 lines,
