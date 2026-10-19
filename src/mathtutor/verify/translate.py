@@ -8,6 +8,7 @@ from the raw tree before anything could cancel them.
 from __future__ import annotations
 
 import math
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from decimal import Decimal
@@ -28,6 +29,9 @@ MAX_EXPONENT = 1000
 MAX_CONST_DIGITS = 1000
 MAX_DEGREE = 200
 MAX_ROOT_INDEX = 1000
+# A computed exponent is tried against the nearest rational with at most this denominator.
+MAX_EXACT_EXPONENT_DENOMINATOR = 1000
+EXACT_EXPONENT_BUDGET_S = 0.5
 _LOG10_2 = 0.30103  # slightly above log10(2), so digit estimates stay upper bounds
 
 
@@ -43,6 +47,9 @@ class Constraint:
 class Translated:
     expr: sympy.Expr
     constraints: tuple[Constraint, ...]
+    # A computed exponent encloses a small rational that could not be proven equal to it:
+    # its real-power restriction is unknown, so grading must abstain (d-log2-01).
+    exponent_unproven: bool = False
 
 
 @dataclass(frozen=True)
@@ -151,6 +158,7 @@ class _Builder:
         self.variable = ctx.variable
         self.symbol = sympy.Symbol(ctx.variable, **VARIABLE_ASSUMPTIONS)
         self.constraints: list[Constraint] = []
+        self.exponent_unproven = False
         self.heads: dict[str, tuple[int, int, Callable[[list[JsonValue]], _Node]]] = {
             "Add": (2, 200, self._add),
             "Subtract": (2, 2, self._subtract),
@@ -314,7 +322,9 @@ class _Builder:
             # Not rational arithmetic (pi, sqrt, exp, log, ...). Digits do not bound magnitude:
             # 1/ln(exp(1/N)) = N has few (review B-C2). Bound |exp| by a rigorous interval
             # enclosure instead, before anything evaluates.
-            bound = self._exponent_bound(exp.expr)
+            bound, box = self._exponent_bound(exp.expr)
+            # Bounded first (B-C2); only then try to prove the exponent rational (R14).
+            v = self._exact_exponent(exp.expr, box)
         if base.degree * bound > MAX_DEGREE:
             raise _too_large(f"polynomial degree may exceed {MAX_DEGREE}")
         digits = None
@@ -347,18 +357,37 @@ class _Builder:
                 value = base.value ** int(v)
         return _const(expr, value, digits)
 
-    def _exponent_bound(self, expr: Any) -> int:
-        """ceil(|expr|) for a constant exponent, from a rigorous enclosure, or reject."""
+    def _exponent_bound(self, expr: Any) -> tuple[int, tuple[Fraction, Fraction]]:
+        """ceil(|expr|) and its enclosure for a constant exponent, or reject."""
         # Imported here: refute imports this module (through equivalence) at load time.
         from mathtutor.verify.refute import enclose, to_fraction
 
         box = enclose(expr, self.symbol, sympy.Integer(0))
         if box is None:
             raise _too_large(f"exponent may exceed {MAX_EXPONENT}")
-        magnitude = max(abs(to_fraction(box[0])), abs(to_fraction(box[1])))
+        lo, hi = to_fraction(box[0]), to_fraction(box[1])
+        magnitude = max(abs(lo), abs(hi))
         if magnitude > MAX_EXPONENT:
             raise _too_large(f"exponent may exceed {MAX_EXPONENT}")
-        return math.ceil(magnitude)
+        return math.ceil(magnitude), (lo, hi)
+
+    def _exact_exponent(self, expr: Any, box: tuple[Fraction, Fraction]) -> Fraction | None:
+        """The exponent's exact rational value when proven (log_2 8 = 3), else None.
+
+        Only the nearest small-denominator rational inside the enclosure is tried. If one is
+        there but unproven, the real-power restriction is unknown: flag it so grading abstains.
+        """
+        from mathtutor.verify.equivalence import Budget, prove_equal
+
+        lo, hi = box
+        candidate = ((lo + hi) / 2).limit_denominator(MAX_EXACT_EXPONENT_DENOMINATOR)
+        if not lo <= candidate <= hi:
+            return None
+        budget = Budget(time.monotonic() + EXACT_EXPONENT_BUDGET_S)
+        if prove_equal(expr, _rational(candidate), budget):
+            return candidate
+        self.exponent_unproven = True
+        return None
 
     @staticmethod
     def _power_digits(base: _Node, bound: int) -> int:
@@ -486,7 +515,7 @@ def translate(tree: JsonValue, ctx: TranslateContext) -> Translated | Rejected:
             return Rejected(issue.code, issue.detail)
         builder = _Builder(ctx)
         node = builder.walk(tree)
-        return Translated(node.expr, tuple(builder.constraints))
+        return Translated(node.expr, tuple(builder.constraints), builder.exponent_unproven)
     except _Reject as rejection:
         return Rejected(rejection.code, rejection.detail)
     except Exception as error:  # any surprise in untrusted input is unsupported, never a crash

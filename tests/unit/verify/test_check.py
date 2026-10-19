@@ -387,3 +387,23 @@ def test_check_gap_without_point_after_deadline_is_timeout(
     assert result.outcome == Verdict(
         VerdictStatus.UNABLE_TO_VERIFY, VerdictReason.TIMEOUT, Method.NONE
     )
+
+
+def test_computed_exponent_log2_8_is_cubed_on_all_reals() -> None:
+    # dev case d-log2-01: x^(log_2 8) = x^3 for every real x, negative x included.
+    spec = expression_spec(["Power", "x", 3])
+    assert outcome(submit(spec, ["Power", "x", ["Log", 8, 2]])) == CORRECT
+
+
+def test_unprovable_near_rational_exponent_abstains() -> None:
+    # cos(2pi/7) + cos(4pi/7) + cos(6pi/7) = -1/2 (no strategy proves it), so the exponent
+    # below is exactly 1/3 and x^(1/3) is real for negative x: abstain, never reject.
+    seventh = ["Divide", "Pi", 7]
+    minus_half: Any = [
+        "Add",
+        *(["Cos", ["Multiply", k, seventh]] for k in (2, 4, 6)),
+    ]
+    third = ["Multiply", ["Rational", -2, 3], minus_half]
+    spec = expression_spec(["Root", "x", 3])
+    result = outcome(submit(spec, ["Power", "x", third]))
+    assert isinstance(result, Verdict) and result.status == VerdictStatus.UNABLE_TO_VERIFY

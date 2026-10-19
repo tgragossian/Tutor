@@ -138,6 +138,8 @@ def _grade_symbolic(spec: Answer, tree: JsonValue, budget: Budget) -> Verdict | 
     student = translate(tree, ctx)
     if isinstance(student, Rejected):
         return FormatIssue(student.code, student.detail)
+    if student.exponent_unproven:
+        return _abstain(budget, _DOMAIN_UNPROVEN)
     if isinstance(spec, NumericAnswer):
         domain, strict = _CONSTANT_DOMAIN, False
     else:

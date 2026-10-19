@@ -479,3 +479,35 @@ def test_function_application_rejection_suggests_product() -> None:
     result = translate(["InvisibleOperator", "e", ["Delimiter", ["Add", "x", 1]]], CTX)
     assert isinstance(result, Rejected) and result.code == "unsupported_notation"
     assert result.detail == "Did you mean e·(...)? Add a multiplication sign."
+
+
+# -- d-log2-01: a computed exponent proven equal to a rational is that rational (R14) -------
+# cos(pi/7) - cos(2pi/7) + cos(3pi/7) = 1/2, but no spec 04 strategy proves it.
+_UNPROVABLE_HALF: Any = [
+    "Add",
+    ["Cos", ["Divide", "Pi", 7]],
+    ["Negate", ["Cos", ["Divide", ["Multiply", 2, "Pi"], 7]]],
+    ["Cos", ["Divide", ["Multiply", 3, "Pi"], 7]],
+]
+
+
+@pytest.mark.parametrize("exponent", [["Log", 8, 2], ["Lb", 8], ["Ln", ["Exp", 3]]])
+def test_computed_integer_exponent_keeps_negative_base(exponent: Any) -> None:
+    t = _real_power(exponent)
+    assert not any(c.expr.has(X) for c in t.constraints) and not t.exponent_unproven
+    assert same(t.expr, X**3)
+
+
+def test_computed_rational_exponents_follow_r14() -> None:
+    assert _real_power(["Negate", ["Log", 8, 2]]).constraints == (Constraint("nonzero", X),)
+    assert has(_real_power(["Log", 8, 4]), "nonnegative", X)  # 3/2
+    assert _real_power(["Log", 2, 8]).constraints == ()  # 1/3: real cube root
+
+
+def test_irrational_exponent_still_needs_positive_base() -> None:
+    t = _real_power("Pi")
+    assert has(t, "positive", X) and not t.exponent_unproven
+
+
+def test_unprovable_near_rational_exponent_is_flagged() -> None:
+    assert _real_power(_UNPROVABLE_HALF).exponent_unproven
