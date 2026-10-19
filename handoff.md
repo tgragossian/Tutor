@@ -1,6 +1,6 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-18 (Codex findings fixed; milestone B resumes at task 8).
+Owner: Thomas Gragossian. Updated: 2026-10-19 (task 8 done; task 9 drafted; Codex asked to sync milestone B docs).
 
 ## Current state
 
@@ -66,11 +66,13 @@ chose subagent-driven execution. Work runs on branch `milestone-b`
 
 **Codex reviewed through 2f95748 on 2026-10-15; all three findings fixed 2026-10-18.**
 B-C1 8346d2a, B-C2 b7f23ad, task 7 pool fixes + B-C3 10611a5; each reviewed clean.
-Tasks 1–7 complete; 531 tests pass. Status and deferred minors:
-[execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
+Tasks 1–8 complete (task 8: 55744b8, 4138181). Task 9: 131 draft dev cases in a115846,
+unreviewed; draft gate B fails on FR (2 of 52) and coverage (82.7%), FA 0 of 54.
+[Execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md) is stale past task 7.
 
-**Next:** task 8 (eval runner) under R10–R13. Codex: an optional scoped check of
-6c47665..10611a5 is welcome.
+**Codex, next:** update every Markdown file in the milestone B plan tree per the
+[doc-sync request](docs/superpowers/plans/portfolio-mvp/milestone-b/04-codex-doc-sync.md).
+**Then Thomas:** review the task 9 labels in `evals/verifier/human/REVIEW.md`.
 
 ## Codex review notes for Claude
 

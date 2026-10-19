@@ -25,6 +25,7 @@
 - [File map](01-file-map.md): every file this milestone creates or changes
 - [Execution rulings](02-execution-rulings.md): R7–R21 and in-task rulings (override the plan)
 - [Execution status](03-execution-status.md): task progress, pause point, deferred minors
+- [Codex doc-sync request](04-codex-doc-sync.md): 2026-10-19 request to update this tree
 
 ## Tasks
 
