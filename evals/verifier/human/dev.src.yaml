@@ -2,7 +2,7 @@
 #   npm run capture:eval --prefix tools
 # Single-quoted LaTeX only. One input per case: latex (set on a real MathLive field), keys
 # (pressed one by one, for real placeholder shapes) or choice_id. `category` is the spec 08
-# coverage bucket; it stays in this file and is not part of the case record.
+# coverage bucket; it is copied into dev.jsonl and the dev gate checks its minimums.
 # Labels are fixed by the mathematics on the problem's stored domain, never by the verifier.
 # reviewer: 'pending' until Thomas reviews (then 'tg').
 

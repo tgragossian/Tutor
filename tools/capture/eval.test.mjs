@@ -31,7 +31,8 @@ test('formatRow splices the captured MathJSON text verbatim and keeps the raw in
   const row = JSON.parse(line);
   assert.equal(row.raw_latex, '18x(3x^2+1)^2');
   assert.equal(row.answer.latex, '18x\\left(3x^2+1\\right)^2');
-  assert.equal('category' in row || 'latex' in row, false);
+  assert.equal('latex' in row, false);
+  assert.equal(row.category, 'tricky'); // CI checks spec 08 coverage from the JSONL
   assert.deepEqual(Object.keys(row), [...Object.keys(row)].sort());
 });
 

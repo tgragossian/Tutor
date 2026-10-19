@@ -13,8 +13,6 @@ const LABELS = new Set(['correct', 'incorrect', 'unsupported']);
 const REQUIRED = ['id', 'family', 'category', 'label', 'rationale', 'reviewer'];
 const OPTIONAL = ['problem_id', 'inline_spec', 'latex', 'keys', 'choice_id'];
 const INPUTS = ['latex', 'keys', 'choice_id'];
-// Kept in the source for counting and review; not part of the spec 08 case record.
-const SOURCE_ONLY = new Set(['category']);
 const CRASH_RETRIES = 5;
 const CRASHED = /Target crashed|frame was detached|Target page, context or browser has been closed/;
 // Stands in for the captured MathJSON so the page's exact JSON text is spliced in verbatim.
@@ -65,7 +63,8 @@ export function compileInlineSpec(entry) {
  * passes through a JS float on the way out.
  */
 export function formatRow(entry, captured) {
-  const row = Object.fromEntries(Object.entries(entry).filter(([k]) => !SOURCE_ONLY.has(k)));
+  // `category` is copied so CI can check spec 08 coverage from dev.jsonl (review B-E2).
+  const row = { ...entry };
   delete row.latex;
   delete row.keys;
   delete row.choice_id;

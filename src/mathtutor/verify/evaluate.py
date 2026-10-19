@@ -1,9 +1,11 @@
 """Offline verifier evaluation (spec 08): metrics with Wilson intervals, gates, results JSON.
 
-``python -m mathtutor.verify.evaluate --set dev|generated [--gate B] [--out results/<name>.json]``
+``python -m mathtutor.verify.evaluate --set dev|generated [--gate B [--draft]] [--out <json>]``
 grades through a one-worker VerifierPool (3 s deadline); it imports SymPy-using modules and must
 never be imported by the web process.
-Exit 0 when every gate holds (or no gate was asked for), 1 otherwise.
+Exit 0 when every gate holds (or no gate was asked for), 1 otherwise. A dev gate is a release
+check: every row needs an approved human reviewer. ``--draft`` measures unreviewed rows against
+the same gates without that check, and its output is marked as never being a release result.
 """
 
 from __future__ import annotations
@@ -58,6 +60,20 @@ _UNSUPPORTED_ISSUES = {
     FormatIssueCode.INCOMPLETE,
 }
 _ANSWER_ADAPTER: TypeAdapter[Any] = TypeAdapter(Answer)
+# Spec 08 coverage minimums for the human dev set (task 9 table); `baseline` has no minimum.
+CATEGORY_MIN: dict[str, int] = {
+    "tricky": 15,
+    "error": 20,
+    "domain": 12,
+    "near": 8,
+    "partial": 6,
+    "unsupported": 8,
+    "resource": 5,
+    "rounding": 6,
+}
+KNOWN_CATEGORIES = frozenset(CATEGORY_MIN) | {"baseline"}
+# Human reviewers whose sign-off makes a dev row release-eligible. Never `pending`/`generated`.
+APPROVED_REVIEWERS = frozenset({"tg"})
 
 Rate = tuple[int, int]
 
@@ -89,6 +105,8 @@ class Case(BaseModel):
     label: Literal["correct", "incorrect", "unsupported"]
     rationale: str
     reviewer: str
+    # Spec 08 coverage bucket, copied from dev.src.yaml; required for a dev release gate.
+    category: str | None = None
     # The authored input behind a browser capture: LaTeX set on the field, or keys typed.
     raw_latex: str | None = None
     raw_keys: list[str] | None = None
@@ -265,11 +283,46 @@ def _metrics(results: list[CaseResult], breakdown: Counter[str]) -> Metrics:
     )
 
 
+def dataset_failures(cases: list[Case], mode: str, *, draft: bool = False) -> list[str]:
+    """Set-validity gates (review B-E1, B-E2), independent of what the verifier outputs.
+
+    Generated: must not be empty. Dev: every label present, every row in a known category with
+    each spec 08 minimum met, and (unless ``draft``) every row signed by an approved reviewer.
+    """
+    if not cases:
+        return [f"empty {mode} set: no cases to evaluate"]
+    if mode != "dev":
+        return []
+    failures: list[str] = []
+    labels: Counter[str] = Counter(c.label for c in cases)
+    failures += [f"no {label} cases in the dev set" for label in LABELS if not labels[label]]
+    missing = [c.id for c in cases if c.category is None]
+    if missing:
+        failures.append(f"category missing on {len(missing)} rows: {', '.join(missing[:5])}")
+    unknown = sorted({c.category for c in cases if c.category is not None} - KNOWN_CATEGORIES)
+    if unknown:
+        failures.append(f"unknown categories: {', '.join(unknown)}")
+    counts = Counter(c.category for c in cases)
+    for category, need in CATEGORY_MIN.items():
+        if counts[category] < need:
+            failures.append(f"category {category}: {counts[category]} cases (need {need})")
+    if not draft:
+        unreviewed = [c.id for c in cases if c.reviewer not in APPROVED_REVIEWERS]
+        if unreviewed:
+            failures.append(
+                f"unreviewed: {len(unreviewed)} rows lack an approved reviewer "
+                f"({', '.join(unreviewed[:5])}{', ...' if len(unreviewed) > 5 else ''})"
+            )
+    return failures
+
+
 def gate_failures(
     metrics: Metrics, n_cases: int, mode: str, gates: dict[str, float] = GATES_B
 ) -> list[str]:
     """Which gates fail. The generated set is regression-only: zero false accepts, no min_cases."""
     failures: list[str] = []
+    if metrics.fa[1] == 0:
+        failures.append("no incorrect cases graded: FA 0 of 0 proves nothing")
     fa_max = gates["generated_fa_max"] if mode == "generated" else gates["fa_max"]
     if metrics.fa[0] > fa_max:
         failures.append(f"false accept: {metrics.fa[0]} of {metrics.fa[1]} (max {fa_max})")
@@ -319,14 +372,27 @@ def _rate_json(rate: Rate) -> dict[str, Any]:
     return {"k": rate[0], "n": rate[1], "wilson": list(wilson(*rate))}
 
 
+def reviewed(cases: list[Case]) -> Rate:
+    return (sum(c.reviewer in APPROVED_REVIEWERS for c in cases), len(cases))
+
+
 def results_json(
-    metrics: Metrics, results: list[CaseResult], set_name: str, sha: str, content_version: str
+    metrics: Metrics,
+    results: list[CaseResult],
+    set_name: str,
+    sha: str,
+    content_version: str,
+    *,
+    draft: bool = False,
+    reviewed_rate: Rate = (0, 0),
 ) -> dict[str, Any]:
     return {
         "verifier_version": VERIFIER_VERSION,
         "content_version": content_version,
         "set": set_name,
         "set_sha256": sha,
+        "draft": draft,
+        "reviewed": {"k": reviewed_rate[0], "n": reviewed_rate[1]},
         "metrics": {
             "fa": _rate_json(metrics.fa),
             "fr": _rate_json(metrics.fr),
@@ -345,6 +411,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="mathtutor.verify.evaluate")
     parser.add_argument("--set", dest="set_name", choices=sorted(SET_PATHS), required=True)
     parser.add_argument("--gate", choices=["B"])
+    parser.add_argument(
+        "--draft", action="store_true", help="measure unreviewed rows; never a release result"
+    )
     parser.add_argument("--out", type=Path)
     parser.add_argument("--cases", type=Path, help="override the set's JSONL path")
     parser.add_argument("--content", type=Path, default=DEFAULT_CONTENT)
@@ -370,17 +439,33 @@ def main(argv: list[str] | None = None) -> int:
     sha = hashlib.sha256(raw).hexdigest()
     print(f"set: {args.set_name} ({len(cases)} cases, sha256 {sha[:12]}) {VERIFIER_VERSION}")
     print(render_summary(metrics))
+    reviewed_rate = reviewed(cases)
+    if args.draft:
+        k, n = reviewed_rate
+        print(f"DRAFT: {k} of {n} rows reviewed; this run is never a release result")
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
-        payload = results_json(metrics, results, args.set_name, sha, content.bundle_version)
+        payload = results_json(
+            metrics,
+            results,
+            args.set_name,
+            sha,
+            content.bundle_version,
+            draft=args.draft,
+            reviewed_rate=reviewed_rate,
+        )
         args.out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8", newline="\n")
     if args.gate:
-        failures = gate_failures(metrics, len(cases), args.set_name)
+        failures = dataset_failures(cases, args.set_name, draft=args.draft)
+        failures += gate_failures(metrics, len(cases), args.set_name)
         for failure in failures:
             print(f"GATE FAILED: {failure}")
         if failures:
             return 1
-        print(f"gate {args.gate}: ok")
+        if args.draft:
+            print(f"gate {args.gate} (draft, not a release): metrics ok")
+        else:
+            print(f"gate {args.gate}: ok")
     return 0
 
 
