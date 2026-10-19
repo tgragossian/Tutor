@@ -30,6 +30,7 @@ tasks 10–16 not started. Draft gate B fails; see [execution status](03-executi
 - [Execution status](03-execution-status.md): task progress, pause point, deferred minors
 - [Codex doc-sync request](04-codex-doc-sync.md): completed 2026-10-19; original scope retained
 - [Follow-ups](05-follow-ups.md): evaluation issues and deferred observations
+- [R22/R23 plan](r22-r23/README.md): function parentheses and domain rewrites, before task 10
 
 ## Tasks
 
