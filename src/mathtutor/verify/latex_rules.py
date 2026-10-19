@@ -68,7 +68,7 @@ def _has_opener(tex: str, i: int) -> bool:
 
 
 def _wrapped_function(tex: str, end: int) -> tuple[str, int] | None:
-    """The ``{NAME}`` group at ``end`` after ``\\operatorname``/``\\mathrm``: (NAME, index after)."""
+    """The ``{NAME}`` group at ``end`` after an operatorname or mathrm command: (NAME, after)."""
     start = _skip_blanks(tex, end)
     if start >= len(tex) or tex[start] != "{":
         return None
