@@ -42,11 +42,10 @@ execution of every old pseudocode example. Task 9 steps 4–7 and tasks 10–16 
 - Historical [2026-10-15 code review](../../../../reviews/2026-10-15-milestone-b/01-code-review.md):
   B-C1 8346d2a, B-C2 b7f23ad, B-C3 plus seven pool failures 10611a5; fixed 2026-10-18.
   Old 474/531 test counts describe earlier commits, not the current branch.
-- [2026-10-19 review](../../../../reviews/2026-10-19-milestone-b/README.md): reviewer placeholders
-  pass validation; dev can pass without negative cases; empty generated sets pass.
-  These remain code follow-ups, not fixes delivered by this documentation sync.
-- Computed-log exponent rejection and seven domain abstentions need assessment
-  against reviewed dev labels. See [follow-ups](05-follow-ups.md).
+- [2026-10-19 review](../../../../reviews/2026-10-19-milestone-b/README.md): B-E1 and B-E2
+  fixed in bdb1710; `d-log2-01` fixed in 832740f (fresh draft: FR 1/52, coverage 44/52).
+- Seven domain abstentions and `d-181-05` still need assessment against reviewed labels.
+  See [follow-ups](05-follow-ups.md).
 
 ## Next actions and human gates
 

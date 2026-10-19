@@ -2,8 +2,9 @@
 
 [Documentation index](../../docs/README.md) · [Spec 08](../../docs/superpowers/specs/2026-10-13-portfolio-core/08-verifier-evaluation.md)
 
-**2026-10-19:** 131 dev cases remain unreviewed (`reviewer: pending`). The
-[draft result](results/dev-draft.json) fails B: FR 2/52, coverage 43/52; FA 0/54 (95% upper bound 6.6%).
+**2026-10-19:** 131 dev cases remain unreviewed (`reviewer: pending`). The committed
+[draft result](results/dev-draft.json) (FR 2/52, coverage 43/52) predates 832740f; a fresh
+`--draft` run gives FA 0/54, FR 1/52, coverage 44/52 and still fails B on coverage.
 CI runs generated cases only; human review and the dev CI step remain task 9 work.
 
 Offline measurement of the SymPy verifier. It must never grade a wrong answer correct.
@@ -21,7 +22,8 @@ seed expression problems and is never cited as accuracy.
 ## Case record
 
 One JSON object per line: `id`, `family`, `problem_id` or `inline_spec`, `answer`, `label`,
-`rationale`, `reviewer`, and for captured cases `raw_latex` or `raw_keys` (the authored input).
+`rationale`, `reviewer`, `category` (dev only), and for captured cases `raw_latex` or
+`raw_keys` (the authored input).
 `answer` is `{"mathjson": ..., "latex": ...}` or `{"choice_id": "a"}`.
 `label` is `correct`, `incorrect` or `unsupported`. Decimals are read as exact literals.
 
@@ -34,11 +36,10 @@ One JSON object per line: `id`, `family`, `problem_id` or `inline_spec`, `answer
 - An `unsupported` case answered with a format issue (notation, size, empty, incomplete) agrees.
 - Rates carry 95% Wilson intervals; 0 of n is shown as an upper bound, never "0%".
 
-Gate B on `dev`: at least 80 cases, FA 0, FR at most 2%, coverage at least 85%.
-Both modes reject unsupported accepts and internal errors.
+Gate B on `dev`: at least 80 cases, FA 0, FR at most 2%, coverage at least 85%; every
+label present; spec 08 category minimums met; every reviewer `tg` (B-E1, B-E2, bdb1710).
+Both modes reject empty sets, FA 0 of 0, unsupported accepts and internal errors.
 Gate B on `generated` also requires every label to agree; there is no 80-case minimum.
-Current gaps: pending reviewers and empty generated sets are accepted; dev can pass without
-negative cases. See the [review and proposed fixes](../../docs/reviews/2026-10-19-milestone-b/README.md).
 
 ## Commands
 
@@ -48,10 +49,12 @@ MathLive field (`npm run capture:eval --prefix tools` rewrites `human/dev.jsonl`
 ```
 uv run python -m mathtutor.verify.mutate
 uv run python -m mathtutor.verify.evaluate --set generated --gate B
-uv run python -m mathtutor.verify.evaluate --set dev --gate B --out evals/verifier/results/dev.json
+uv run python -m mathtutor.verify.evaluate --set dev --gate B --draft   # unreviewed measurement
+uv run python -m mathtutor.verify.evaluate --set dev --gate B --out evals/verifier/results/dev-b.json
 ```
 
-The dev command currently measures a draft; it does not certify human review.
+`--draft` skips only the reviewer check, prints DRAFT and records `"draft": true`; it is
+never a release result.
 After Thomas reviews the source YAML, recapture JSONL before running the release gate.
 Set `MATHTUTOR_GIT_SHA` to the tested commit before publishing results.
 The commands exit 1 when a gate fails and print which. Results JSON records the verifier

@@ -48,6 +48,6 @@ Steps 4–7 remain open; see [gate review](../../../../../reviews/2026-10-19-mil
 - [x] **Step 3:** Run `npm run capture:eval --prefix tools`, then `uv run python -m mathtutor.verify.evaluate --set dev --gate B`.
   - Expected: a report. Every disagreement is either a verifier bug (fix it in the owning module with a unit test first) or a labelling question for Thomas. **Never edit a label to make it pass** (spec 08).
 - [ ] **Step 4: Human gate (Thomas).** Review every case: the LaTeX is what a student could type, the label is right, the rationale holds. Set `reviewer: 'tg'`. Disputed cases get a note and stay out until settled.
-- [ ] **Step 5:** Add `--set dev --gate B` to CI. Require human reviewer `tg` on every dev row; reject `pending`/blank/generated reviewers for release. Regenerate captured JSONL after source review; preserve a separate draft path. This enforcement is not implemented yet.
+- [ ] **Step 5:** Add `--set dev --gate B` to CI. Require human reviewer `tg` on every dev row; reject `pending`/blank/generated reviewers for release. Regenerate captured JSONL after source review; preserve a separate draft path. Enforcement, category checks and `--draft` landed in bdb1710; the CI step waits for step 4.
 - [ ] **Step 6:** Run `uv run python -m mathtutor.verify.evaluate --set dev --gate B --out evals/verifier/results/dev-b.json`. Expected: exit 0 with FA 0 observed, FR ≤ 2%, coverage ≥ 85%.
 - [ ] **Step 7: Commit** `test: 80+ human-reviewed verifier dev cases from real captures` (body: case counts per category and the metrics line).

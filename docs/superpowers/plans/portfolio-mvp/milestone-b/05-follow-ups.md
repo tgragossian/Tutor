@@ -7,10 +7,10 @@ Keep release-relevant evaluation issues ahead of optional cleanup.
 
 ## Resolve before task 9 is called complete
 
-- [Current review](../../../../reviews/2026-10-19-milestone-b/README.md): enforce reviewed-dev
-  provenance and valid evaluation sets; keep draft measurements distinct from release readiness.
-- `d-log2-01`: x^(log₂8) vs x³ on ℝ is rejected under an overly restrictive positive-base
-  constraint. Improve exact constant handling without undoing B-C2 magnitude bounds.
+- Done: [2026-10-19 review](../../../../reviews/2026-10-19-milestone-b/README.md) B-E1/B-E2
+  in bdb1710 (approved reviewer, label/category coverage, empty sets fail, `--draft`).
+- Done: `d-log2-01` in 832740f. After the B-C2 bound, a computed exponent is proven equal to
+  the nearest small rational in its enclosure; enclosed-but-unproven abstains.
 - `d-181-05`: ambiguous trig application changes the captured tree. Thomas must resolve
   notation/label semantics; do not silently relabel it to match the verifier.
 - Seven domain abstentions in the [review sheet](../../../../../evals/verifier/human/REVIEW.md)
