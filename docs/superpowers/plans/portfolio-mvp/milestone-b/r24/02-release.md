@@ -49,9 +49,9 @@ New wrong answers remain optional and need mathematical labels/human review befo
 
 ## Remaining merge steps
 
-- [ ] Commit/push this docs update and retain required green checks.
-- [ ] Thomas merges tasks 1–9 to `main`, keeping milestone-b's `handoff.md`.
-- [ ] Thomas confirms live health/readiness, then records the merge/check outcome.
+- [x] Commit/push this docs update and retain required green checks.
+- [x] Tasks 1–9 merged to `main` in 102a22f, keeping milestone-b's `handoff.md`; CI run 39506433419 green.
+- [x] Live `/healthz` and `/readyz` return 200 (2026-10-20); the host still runs milestone A.
 
 No assistant co-author trailers. Tasks 10–16 (practice loop, accounts, UI and deployment)
 remain separate; do not describe the full milestone B application as shipped.

@@ -28,6 +28,6 @@ See the [R24 spec](../../../../specs/2026-10-20-decimal-places-design.md).
   unsupported accepts 0/37, agreement 136/136; e995438 records `dev-b.json`.
 - [x] 8a0bb40 enables the dev CI gate; run 39504828416 is green after d673400's test fix.
 - [x] Status/docs report reviewed results; `dev-draft.json` is explicitly historical.
-- [ ] Thomas merges tasks 1–9 to `main`, preserving milestone-b's handoff, then checks live health.
+- [x] Tasks 1–9 merged to `main` in 102a22f; CI green on `main`; live health/readiness 200.
 
 Tasks 10–16 remain unfinished. Preserve reviewed labels, FA 0 and containment.

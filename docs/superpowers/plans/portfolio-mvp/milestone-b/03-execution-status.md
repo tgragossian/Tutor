@@ -2,7 +2,7 @@
 
 [Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md) · [Follow-ups](05-follow-ups.md)
 
-Updated 2026-10-20 against `milestone-b` d673400. Tasks 1–9 complete; merge to `main` pending.
+Updated 2026-10-20. Tasks 1–9 complete and merged to `main` in 102a22f.
 Worktree: `.claude/worktrees/milestone-b`; tasks 10–16 not started; no B deployment claimed.
 
 ## Tasks
@@ -58,9 +58,9 @@ Worktree: `.claude/worktrees/milestone-b`; tasks 10–16 not started; no B deplo
 
 ## Next actions
 
-1. Commit/push the documentation update and retain green checks. Thomas merges tasks 1–9
-   to `main`, keeping milestone-b's `handoff.md`, then confirms live health/readiness checks.
-2. Record the merge and live-check outcome afterward; no deployment is implied by this update.
+1. Done: merged to `main` in 102a22f; [CI run 39506433419](https://github.com/tgragossian/Tutor/actions/runs/39506433419)
+   green on `main`; live `/healthz` and `/readyz` 200. The host still runs milestone A.
+2. Optional: update the host to `main` (runbook); no B deployment is implied.
 3. Tasks 10–16 remain separate. Task 15 still depends on tasks 13–14; task 16 retains host
    sizing/deployment gates. Task 9's dependency is now satisfied.
 4. Resume claims may use the reviewed 0/50 result, clearly identified as dev-set evidence.

@@ -6,7 +6,7 @@
 49 correct, 50 incorrect, 37 unsupported. R24 is implemented; non-draft gate B passes.
 [dev-b.json](../../../../../../evals/verifier/results/dev-b.json): FA 0/50 (95% upper bound 7.1%),
 FR 0/49, coverage 49/49, unsupported accepts 0/37, agreement 136/136. CI is green;
-[release/merge checklist](../r24/02-release.md). Thomas merges tasks 1–9 next.
+[release/merge checklist](../r24/02-release.md). Merged to `main` in 102a22f.
 
 **Files:**
 - Create: `evals/verifier/human/dev.src.yaml`, `evals/verifier/human/dev.jsonl` (generated), `tools/capture/eval.mjs`

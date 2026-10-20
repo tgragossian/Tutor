@@ -1,12 +1,12 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-20 against `milestone-b` d673400.
-Keep this worktree's handoff when merging: `.claude/worktrees/milestone-b/handoff.md`.
+Owner: Thomas Gragossian. Updated: 2026-10-20 after merging tasks 1–9 to `main` (102a22f).
+Milestone B work continues in the `milestone-b` worktree: `.claude/worktrees/milestone-b`.
 
 ## Current state
 
-- Milestone B tasks 1–9 are complete on `milestone-b`; tasks 10–16 are not started.
-  The bounded SymPy verifier and reviewed evaluation have landed on this branch.
+- Milestone B tasks 1–9 are complete and merged to `main`; tasks 10–16 are not started.
+  The bounded SymPy verifier and reviewed evaluation are on `main`.
 - R24 was implemented with tests first in a76985d; problem 253 now says
   “Give an exact answer or round to 3 decimal places.”
 - b5ad4b2 recaptured all 136 reviewed cases (`tg`), matching source: 49 correct,
@@ -16,17 +16,19 @@ Keep this worktree's handoff when merging: `.claude/worktrees/milestone-b/handof
 - [CI run 39504828416](https://github.com/tgragossian/Tutor/actions/runs/39504828416) is green
   for Python, Node and container smoke after d673400 fixed Linux pool-test cleanup.
   Thomas reports 722 Linux tests passed, including the memory-limit test.
-- `main` still contains milestone A. The verifier track is ready for Thomas's merge;
-  the practice loop, accounts and UI remain unfinished. No B deployment is claimed.
+- Merged to `main` in 102a22f (handoff conflict resolved for milestone-b); the merged tree equals
+  milestone-b. [CI run 39506433419](https://github.com/tgragossian/Tutor/actions/runs/39506433419)
+  on `main` is green (Python incl. reviewed dev gate, Node, container smoke). The web process
+  still does not import SymPy (R8).
+- Live site, probed 2026-10-20 after the merge: `/healthz` 200, `/readyz` 200. The host still runs
+  milestone A; it has not pulled `main`. The practice loop, accounts and UI remain unfinished.
 
-## Next action: Thomas's merge
+## Next action: tasks 10–16
 
-1. Commit/push this documentation update and retain the required green checks.
-2. Thomas merges tasks 1–9 to `main`, keeping this milestone-b `handoff.md`.
-3. Thomas confirms the live site's health/readiness checks still pass. The last
-   [host record](docs/ops/host.md) serves the skeleton; this docs pass did not probe it.
-4. Update branch/merge status after that confirmation. Continue tasks 10–16 separately;
-   merging the verifier does not complete or deploy the full practice application.
+1. Optional: update the host to `main` with the [runbook](docs/ops/runbook.md) steps, then
+   re-check `/readyz`. No new `deploy/.env` settings are needed; the site looks the same.
+2. Continue milestone B at task 10 on `milestone-b`. Merging the verifier does not complete
+   or deploy the full practice application.
 
 ## Reviewed evidence
 

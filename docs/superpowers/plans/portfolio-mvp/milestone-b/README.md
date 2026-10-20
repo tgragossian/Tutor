@@ -3,7 +3,7 @@
 [Delivery plan](../README.md) · [Milestone B goals](../02-practice.md) · [Handoff](../../../../../handoff.md)
 
 **Status (2026-10-20):** tasks 1–9 complete, including R24, reviewed gate B and green CI.
-Next: Thomas merges to `main`; tasks 10–16 not started. See [execution status](03-execution-status.md).
+Merged to `main` in 102a22f. Next: task 10; tasks 10–16 not started. See [execution status](03-execution-status.md).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
