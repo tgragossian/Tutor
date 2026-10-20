@@ -6,7 +6,7 @@ from support.mathjson import latex, mj
 from mathtutor.content.schema import ChoiceAnswer, ExpressionAnswer, NumericAnswer
 from mathtutor.domain import AnswerKind, FormatIssueCode
 from mathtutor.verify.latex_rules import FUNCTION_PARENS_DETAIL
-from mathtutor.verify.precheck import decimal_literal, precheck
+from mathtutor.verify.precheck import CHOICE_ONLY_DETAIL, decimal_literal, precheck
 from mathtutor.verify.types import FormatIssue, SubmittedAnswer
 
 EXPR = ExpressionAnswer(kind="expression", latex="2x", mathjson=["Multiply", 2, "x"])
@@ -105,6 +105,20 @@ def test_choice_skips_expression_prechecks() -> None:
 def test_choice_without_selection_is_empty() -> None:
     issue = precheck(SubmittedAnswer(AnswerKind.CHOICE, None, "", None), CHOICE)
     assert issue is not None and issue.code == "empty"
+
+
+@pytest.mark.parametrize("choice_id", ["e", "A", " a", "a ", "", "ab", "2x\\cos(x)"])
+def test_unlisted_choice_is_unsupported(choice_id: str) -> None:
+    issue = precheck(SubmittedAnswer(AnswerKind.CHOICE, None, "", choice_id), CHOICE)
+    assert issue == FormatIssue(FormatIssueCode.UNSUPPORTED_NOTATION, CHOICE_ONLY_DETAIL)
+
+
+def test_choice_carrying_an_expression_is_unsupported() -> None:
+    with_tree = SubmittedAnswer(AnswerKind.CHOICE, 1, "", "a")
+    with_latex = SubmittedAnswer(AnswerKind.CHOICE, None, "1", "a")
+    for answer in (with_tree, with_latex):
+        issue = precheck(answer, CHOICE)
+        assert issue == FormatIssue(FormatIssueCode.UNSUPPORTED_NOTATION, CHOICE_ONLY_DETAIL)
 
 
 def test_kind_mismatch_raises() -> None:

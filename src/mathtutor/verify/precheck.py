@@ -6,10 +6,12 @@ import re
 
 from pydantic import JsonValue
 
-from mathtutor.content.schema import Answer, NumericAnswer
-from mathtutor.domain import AnswerKind, FormatIssueCode
+from mathtutor.content.schema import Answer, ChoiceAnswer, NumericAnswer
+from mathtutor.domain import FormatIssueCode
 from mathtutor.verify.latex_rules import FUNCTION_PARENS_DETAIL, unparenthesized_function
 from mathtutor.verify.types import FormatIssue, SubmittedAnswer
+
+CHOICE_ONLY_DETAIL = "Pick one of the listed choices."
 
 _EMPTY_GROUP = re.compile(r"\{\s*\}")
 _ESCAPED_BRACE = re.compile(r"\\[{}]")
@@ -67,8 +69,14 @@ def precheck(answer: SubmittedAnswer, spec: Answer) -> FormatIssue | None:
     """
     if answer.kind != spec.kind:
         raise ValueError(f"answer kind {answer.kind!s} does not match problem kind {spec.kind}")
-    if answer.kind == AnswerKind.CHOICE:
-        return FormatIssue(FormatIssueCode.EMPTY) if answer.choice_id is None else None
+    if isinstance(spec, ChoiceAnswer):
+        if answer.choice_id is None:
+            return FormatIssue(FormatIssueCode.EMPTY)
+        # Only a listed choice id, exactly as stored, and nothing else alongside it.
+        listed = {choice.id for choice in spec.choices}
+        if answer.choice_id not in listed or answer.mathjson is not None or answer.latex:
+            return FormatIssue(FormatIssueCode.UNSUPPORTED_NOTATION, CHOICE_ONLY_DETAIL)
+        return None
     mathjson = answer.mathjson
     if mathjson is None or _is_empty(mathjson):
         return FormatIssue(FormatIssueCode.EMPTY)
