@@ -2,8 +2,8 @@
 
 [Delivery plan](../README.md) · [Milestone B goals](../02-practice.md) · [Handoff](../../../../../handoff.md)
 
-**Status (2026-10-19):** tasks 1–8 complete; R22/R23 implemented; task 9 has 136 pending-review draft cases;
-tasks 10–16 not started. Draft metrics pass B but no row is reviewed; see [execution status](03-execution-status.md).
+**Status (2026-10-20):** tasks 1–8 and R22/R23 implemented; all 136 task 9 source cases reviewed.
+R24, recapture and the release gate remain; tasks 10–16 not started. See [execution status](03-execution-status.md).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -26,11 +26,12 @@ tasks 10–16 not started. Draft metrics pass B but no row is reviewed; see [exe
 
 - [Global constraints, rulings and review focus](00-constraints.md): applies to every task
 - [File map](01-file-map.md): every file this milestone creates or changes
-- [Execution rulings](02-execution-rulings.md): R7–R23 and in-task rulings (override the plan)
+- [Execution rulings](02-execution-rulings.md): R7–R24 and in-task rulings (override the plan)
 - [Execution status](03-execution-status.md): task progress, pause point, deferred minors
 - [Codex doc-sync request](04-codex-doc-sync.md): completed 2026-10-19; original scope retained
 - [Follow-ups](05-follow-ups.md): evaluation issues and deferred observations
-- [R22/R23 plan](r22-r23/README.md): function parentheses and domain rewrites, before task 10
+- [R22/R23 plan](r22-r23/README.md): implemented function parentheses and domain rewrites
+- [R24 checklist](r24/README.md): numeric precision, debugging, capture and task 9 release
 
 ## Tasks
 
@@ -67,7 +68,7 @@ cut scope (never accuracy or containment, per the delivery plan) or draw on the 
 ## Exit evidence (from [02-practice](../02-practice.md) and spec 08)
 
 - Required: ≥ 80 human-reviewed dev cases; FA 0 observed, FR ≤ 2%, coverage ≥ 85%, generated-set FA 0, enforced in CI (tasks 8–9).
-  Current draft: 136 unreviewed cases, FA 0/54, FR 0/52, coverage 52/52 after [R22/R23](r22-r23/README.md); the release gate **fails** until review. Only generated evaluation runs in CI.
+  Current source: 136 `tg`, 49 correct / 50 incorrect / 37 unsupported. Captures are stale; no reviewed R24 result exists. Only generated evaluation runs in CI.
 - Same-pool recovery after timeout and death, bounded queue, 16-thread concurrency with no zombies (task 7).
 - Duplicate submissions, racing submissions, stale revisions, exhausted items and cross-user access tested (task 12).
 - No response, JSON or HTML, contains a private answer field (task 13).

@@ -2,7 +2,8 @@
 
 [Milestone B plan](README.md) · [Structure review](../../../../reviews/2026-10-13/structure.md)
 
-Updated 2026-10-19: tasks 1–8 exist; task 9 is drafted; tasks 10–16 are planned.
+Updated 2026-10-20: tasks 1–8 exist; task 9 source review is complete; R24/release remain.
+Tasks 10–16 are planned. [R24 ownership and debugging](r24/01-precheck.md).
 Task numbers in the right column identify ownership, not proof of completion.
 
 ```text
@@ -54,8 +55,8 @@ tools/
   e2e/smoke.mjs                 Playwright browser smoke                             15
 evals/verifier/
   README.md                     how cases are written, captured and reviewed        8
-  human/dev.src.yaml            authored cases (latex, label, rationale)             9
-  human/dev.jsonl               136 captured cases; all pending human review         9
+  human/dev.src.yaml            136 reviewed cases (latex, label, rationale)             9
+  human/dev.jsonl               136 stale captures; recapture reviewed source         9
   human/REVIEW.md, REVIEW-*.md   linked human-review sheets                            9
   generated/mutations.jsonl     SymPy-generated regression cases                     8
   results/                      .gitkeep (8), dev-draft.json (9), release (16)   8,9,16

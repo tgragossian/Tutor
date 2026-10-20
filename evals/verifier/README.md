@@ -2,12 +2,16 @@
 
 [Documentation index](../../docs/README.md) · [Spec 08](../../docs/superpowers/specs/2026-10-13-portfolio-core/08-verifier-evaluation.md)
 
-**2026-10-19:** 136 dev cases remain unreviewed (`reviewer: pending`). After the
-[R22/R23 plan](../../docs/superpowers/plans/portfolio-mvp/milestone-b/r22-r23/README.md)
-(function input needs parentheses, [decision 0003](../../docs/decisions/0003-function-parentheses.md))
-a fresh `--draft` run gives FA 0/54, FR 0/52, coverage 52/52, agreement 136/136. The committed
-[draft result](results/dev-draft.json) is the older 131-case run and was not overwritten.
-CI runs generated cases only; human review and the dev CI step remain task 9 work.
+**2026-10-20:** all 136 source cases are reviewed (`tg`, 9b2e1f2): 49 correct,
+50 incorrect, 37 unsupported. [R24](../../docs/superpowers/specs/2026-10-20-decimal-places-design.md)
+is approved but not implemented. Captured `dev.jsonl` still has old labels and pending markers.
+Follow the [R24 checklist](../../docs/superpowers/plans/portfolio-mvp/milestone-b/r24/README.md)
+for implementation, content, recapture and the release gate; CI still runs generated cases only.
+
+Historical post-R22/R23 draft: FA 0/54, FR 0/52, coverage 52/52, agreement 136/136.
+The stored [draft result](results/dev-draft.json) is older (131 cases). Neither is an R24
+release result. With 50 incorrect labels, FA 0 would imply a 95% upper bound about 7.1%;
+only actual reviewed gate metrics may be published on the resume.
 
 Offline measurement of the SymPy verifier. It must never grade a wrong answer correct.
 
@@ -35,7 +39,8 @@ One JSON object per line: `id`, `family`, `problem_id` or `inline_spec`, `answer
 - FR: correct-labelled cases graded incorrect, over correct-labelled cases.
 - Coverage: correct-labelled cases graded correct, over correct-labelled cases.
 - An `unsupported` case graded correct is a zero-tolerance gate of its own.
-- An `unsupported` case answered with a format issue (notation, size, empty, incomplete) agrees.
+- An `unsupported` case answered with a recognized format issue agrees (notation, size, empty,
+  incomplete; R24 must add `wrong_decimal_places` to this mapping).
 - Rates carry 95% Wilson intervals; 0 of n is shown as an upper bound, never "0%".
 
 Gate B on `dev`: at least 80 cases, FA 0, FR at most 2%, coverage at least 85%; every

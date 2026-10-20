@@ -4,7 +4,8 @@
 
 **Completed 2026-10-19:** [execution status](03-execution-status.md), [follow-ups](05-follow-ups.md),
 and [new review](../../../../reviews/2026-10-19-milestone-b/README.md) record the outcome.
-Instructions below are retained as the scope of this documentation pass.
+Instructions below are a historical request, not current status or a new commit instruction.
+For the 2026-10-20 source review and R24 work, use [execution status](03-execution-status.md).
 
 Thomas asked Codex to bring every Markdown file in the milestone B plan tree up to date with
 the branch. The docs were last updated at d82fe72 (2026-10-18); three commits have landed since.

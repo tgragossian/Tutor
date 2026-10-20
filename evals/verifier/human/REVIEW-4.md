@@ -3,7 +3,7 @@
 [Review index](REVIEW.md)
 
 One line per case: id · input as typed · label · rationale · verifier verdict.
-A ✗ marks a disagreement (discussed in the index).
+Verdicts are historical pre-R24 evidence. Source review is complete; see the index for recapture/release status.
 
 ## Partial / placeholder input (7)
 

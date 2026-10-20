@@ -7,7 +7,9 @@ practice loop and verifier contracts remain for milestone B.
 
 **What this replaces:** the [reference design](../2026-10-13-core-practice-loop-design.md), for milestones A and B (deployed skeleton + three-topic practice loop). Where the two conflict, this spec wins.
 
-**What takes precedence over this spec:** decision 0001.
+**What takes precedence over this spec:** decision 0001. Approved amendments include
+[R22/R23](../2026-10-19-function-input-and-domain-rewrite-design.md) and
+[R24](../2026-10-20-decimal-places-design.md) (numeric precision; implementation pending).
 
 **Not covered here:**
 - RAG hints (milestone C) get their own spec.

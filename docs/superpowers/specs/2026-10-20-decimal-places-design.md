@@ -3,12 +3,13 @@
 [Specs index](README.md) · [Spec 02](2026-10-13-portfolio-core/02-answer-contracts.md) · [Decision 0001](../../decisions/0001-delivery-verifier-attribution.md) · [Decision 0002](../../decisions/0002-mathlive-input.md) · [Review sheet](../../../evals/verifier/human/REVIEW.md)
 
 **Status:** rule approved by Thomas, 2026-10-20, during the task 9 case review.
-Not yet implemented; implementation waits until the review is finished.
+Not yet implemented. Thomas completed all 136 source reviews in 9b2e1f2.
+Next: [implementation and release checklist](../plans/portfolio-mvp/milestone-b/r24/README.md).
 Precedence: decision 0001 still wins; this amends spec 02 "Decimal precision" as stated.
 
 ## Why
 
-Spec 02 grades any decimal by rounding it to N places, with no minimum or maximum, because
+The original spec 02 graded any decimal by rounding it to N places, without place limits:
 MathJSON drops trailing zeros (decision 0002: `0.780` arrives as `0.78`). Thomas wants the
 instruction to mean what it says: "round to 3 decimal places" means 3 places. `-0.5830` has
 four, even though it is equal in value. The raw LaTeX keeps the zero (`d-253-02` captures
@@ -53,9 +54,10 @@ Only `numeric` problems whose statement explicitly requests N decimal places
 | d-253-02, -06, -08 | −0.5830, −0.58349, −0.58309 | correct | unsupported |
 | d-253-03, -04, -05, -19 | −0.5835, −0.58, −0.5825, 0.5833 | incorrect | unsupported |
 
-The seven relabelled cases cite R24 and stay `reviewer: 'pending'` for Thomas.
+The seven relabelled cases cite R24 and are now `reviewer: 'tg'` in 9b2e1f2.
+All 136 source rows are reviewed: 49 correct, 50 incorrect, 37 unsupported. Captures are stale.
 
-## Implementation (after the review)
+## Implementation (review complete; still pending)
 
 - Add `WRONG_DECIMAL_PLACES` to `FormatIssueCode` and to `_UNSUPPORTED_ISSUES` in
   `src/mathtutor/verify/evaluate.py`; check places in the pre-check.
@@ -63,4 +65,5 @@ The seven relabelled cases cite R24 and stay `reviewer: 'pending'` for Thomas.
   decimal inside a fraction (still exact).
 - Update the problem 253 statement and compiled content, and the REVIEW.md notes on
   `d-253-02` and `d-253-06`.
-- Recapture the dev set, run gate B, and record the before and after metrics.
+- Recapture the reviewed dev set, run gate B without `--draft`, and record actual metrics.
+  The old FA denominator was 54; R24 has 50 incorrect labels. No reviewed R24 result exists yet.

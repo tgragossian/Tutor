@@ -2,13 +2,24 @@
 
 [Verifier evaluation](../README.md) · [Spec 08](../../../docs/superpowers/specs/2026-10-13-portfolio-core/08-verifier-evaluation.md) · [R22/R23 spec](../../../docs/superpowers/specs/2026-10-19-function-input-and-domain-rewrite-design.md)
 
-136 draft cases in [`dev.src.yaml`](dev.src.yaml), captured from real MathLive into
-[`dev.jsonl`](dev.jsonl). Every case has `reviewer: 'pending'`. For each case check that the
-input is something a student could type, the label is right on the stored domain, and the
-rationale holds; then set `reviewer: 'tg'`. A disputed case gets a note and stays out until settled.
-Labels were written from the mathematics before the verifier ran and were not changed after.
+**2026-10-20:** Thomas reviewed all 136 rows in [`dev.src.yaml`](dev.src.yaml), commit
+9b2e1f2: every source reviewer is `tg`. [`dev.jsonl`](dev.jsonl) is stale: old labels and
+136 pending reviewers. Preserve the reviewed source; recapture after implementing R24.
+Labels follow the mathematics and approved input contract, never verifier outcomes.
 
-## What changed under R22 and R23
+## R24 and review completion
+
+- [R24](../../../docs/superpowers/specs/2026-10-20-decimal-places-design.md) remains approved:
+  numeric problems explicitly requesting N places require exactly N on standalone decimals.
+  Other lengths produce `wrong_decimal_places`, not incorrect. Exact expressions are allowed.
+- No universal decimal cap; expression decimals remain exact. Removable-hole rules are unchanged.
+- `d-253-02/03/04/05/06/08/19` are reviewed `unsupported`; `d-sqsq-02` now includes zero.
+- `d-253-02`: MathJSON loses the zero, but `raw_latex: "-0.5830"` preserves four places.
+  `d-253-06`: `-0.58349` has five places, so R24 requires a format issue despite old rounding.
+- R24 is not implemented; follow the [checklist](../../../docs/superpowers/plans/portfolio-mvp/milestone-b/r24/README.md).
+  Review-sheet verdicts below and in child files are pre-R24 evidence, not new release results.
+
+## Historical changes under R22 and R23
 
 - 25 inputs with an unparenthesized function were rewritten to parenthesized LaTeX, keeping
   label and meaning (`\sec x^2` became `\sec(x^2)`). `d-lnsq-02` (`\ln\lvert x\rvert`) was
@@ -18,12 +29,12 @@ Labels were written from the mathematics before the verifier ran and were not ch
 - Five new `unsupported` regression cases `d-r22-01..05` (`\sin x`, `\cos x(x+1)`,
   `\cos^2x`, `\log_2 8`, `\operatorname{sin}x`): all rejected with `unsupported_notation`.
 - Inline-spec LaTeX (authored) follows R22 too; captured trees are unchanged.
-- Edited and new cases stay `reviewer: 'pending'` for your review.
+- Those cases were pending at capture; Thomas has now reviewed every source row.
 
-Fresh draft run (`evaluate --set dev --gate B --draft`, 2026-10-19, after R22/R23 and 19db4ab):
+Historical draft run (`evaluate --set dev --gate B --draft`, 2026-10-19, after R22/R23 and 19db4ab):
 FA 0 of 54 (95% upper bound 6.6%) · FR 0 of 52 (95% upper bound 6.9%) · coverage 52 of 52
 (100%) · unsupported graded correct 0 of 30 · agreement 136 of 136. Metrics pass gate B;
-the release gate still fails because no row is reviewed.
+that run preceded human review and R24. The current captures must still be regenerated.
 
 ## Disagreements (none left of the earlier 9)
 
@@ -33,10 +44,6 @@ All now agree: 1 `d-181-05` (R22 option A), 2 `d-log2-01` (fixed in 832740f), 3 
 7 `d-cot-03` (R23 plus the exact hole-limit check: the hole at 3pi/2 is removable, so it
 grades correct), 8 `d-explog-03` (ln(e^x) = x on R, label correct as Thomas confirmed;
 19db4ab makes typed e^x count as always positive), 9 `d-lnsq-02` (|x| != 0 becomes x != 0).
-
-Not disagreements, but worth a look: `d-253-06` (−0.58349 is *correct* by the spec 02
-rounding rule), `d-253-02` (the trailing zero of −0.5830 is lost in capture), and the
-partial-input cases (labelled `unsupported`; see the harness note below).
 
 ## Cases by category
 
@@ -52,7 +59,7 @@ partial-input cases (labelled `unsupported`; see the harness note below).
 | Unsupported notation | 16 | 8 | [REVIEW-4](REVIEW-4.md) |
 | Resource limits | 7 | 5 | [REVIEW-4](REVIEW-4.md) |
 
-Labels: 52 correct, 54 incorrect, 30 unsupported. Families: the six seed problems plus ten
+Reviewed source labels: 49 correct, 50 incorrect, 37 unsupported. Families: the six seed problems plus ten
 `inline-*` families (inline specs for holes, log/root/exp domains, and trig identities).
 
 ## Notes for the reviewer
@@ -62,7 +69,7 @@ Labels: 52 correct, 54 incorrect, 30 unsupported. Families: the six seed problem
   3 decimals; x2cosx is choice a.
 - **Harness note:** `unsupported` now also agrees with `empty` and `incomplete` format issues,
   so partial input can be labelled `unsupported` (task 8 had only notation and size).
-- `reviewer: 'pending'` passes the row schema (non-blank). The task 9 step-5 gate must require `tg`; it is not implemented yet.
-  After review, recapture JSONL from the reviewed YAML before release evaluation.
+- The release reviewer gate already requires `tg` (bdb1710); CI dev enablement remains open.
+  After R24, recapture reviewed YAML and run gate B without `--draft`.
 - Chromium's renderer sometimes crashes on deeply nested roots (`d-221-26`). The capture tool
   retries on a fresh page, which is why that case has 31 levels rather than more.

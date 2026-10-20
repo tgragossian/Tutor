@@ -2,7 +2,7 @@
 
 [Execution status](03-execution-status.md) · [Plan](README.md) · [Rulings](02-execution-rulings.md)
 
-Updated 2026-10-19. Observations are not new rulings or completed fixes.
+Updated 2026-10-20. Historical observations below are not new rulings or fresh test results.
 Keep release-relevant evaluation issues ahead of optional cleanup.
 
 ## Resolve before task 9 is called complete
@@ -13,7 +13,7 @@ Keep release-relevant evaluation issues ahead of optional cleanup.
   the nearest small rational in its enclosure; enclosed-but-unproven abstains.
 - Done: `d-181-05` resolved by Thomas (R22 option A, parentheses required); the case is
   `(1-\sin(x))^2-\cos(x)(x+\cos(x))`, label `correct`. See [decision 0003](../../../../decisions/0003-function-parentheses.md).
-- Done: [R22/R23 plan](r22-r23/README.md) (ea6748b..19db4ab). Fresh draft: FA 0/54, FR 0/52,
+- Done: [R22/R23 plan](r22-r23/README.md) (ea6748b..19db4ab). Historical pre-R24 draft: FA 0/54, FR 0/52,
   coverage 52/52, agreement 136/136 on 136 cases. All nine review-sheet disagreements now
   agree; #8 `d-explog-03` (ln(e^x) = x on R, label confirmed by Thomas) was resolved by 19db4ab
   (typed e^x is Power(e, x) and counts as always positive). Inline-spec LaTeX follows R22 too.
@@ -21,8 +21,9 @@ Keep release-relevant evaluation issues ahead of optional cleanup.
 - Found and closed: the R22 pre-check missed `\operatorname{sin}x` and `\mathrm{sin}x`
   (Compute Engine parses both as `Sin`; MathLive produces the operatorname form from typing).
   Closed in 098b7ba with tests; regression case `d-r22-05`.
-- Reviewer placeholder is `pending`, replacing the plan's empty string. Nonblank validation
-  does not establish human review. Regenerate captures after Thomas records review in YAML.
+- Human review completed in 9b2e1f2: all 136 source rows are `tg`, including seven R24 labels.
+  Captures still carry old labels and pending markers. Follow the [R24 checklist](r24/README.md)
+  before recapture, non-draft gate B and dev CI enablement. Do not reset reviewed marks.
 - `dev-draft.json` reports `0.1.0+dev`; published runs should record the actual code SHA
   through `MATHTUTOR_GIT_SHA`. Keep the existing draft result unchanged.
 
@@ -31,9 +32,9 @@ Keep release-relevant evaluation issues ahead of optional cleanup.
 - Task 1: repeated lowercase header-set construction; string-replace loader test setup.
 - Task 2: `\d` accepts Unicode digits; deep-tree test alone does not establish iterative traversal.
 - Task 3: document x⁰ / 0⁰ convention; assertions in input paths; conservative digit rule.
-- Task 4: conservative abstentions for cot(x/3), π/e/ln 2 denominators, ln(x^(1/3)) on
-  positive reals, ln(eˣ), and sin x/cos x. `real_roots` and trig enumeration lack soft
-  budget checks; the pool still enforces the hard deadline.
+- Task 4: R23 resolved the listed cot(x/3), ln(eˣ) and sin x/cos x dev abstentions.
+  Other observations (π/e/ln 2 denominators and ln(x^(1/3))) need case-specific review.
+  `real_roots` and trig enumeration lack soft budget checks; the pool enforces the hard deadline.
 - Task 5: duplicated interval helpers in `sample_points`; rounding `doit()` has no soft
   budget; existing Starlette/httpx deprecation warning.
 - Task 6: emphasis spanning `$...$` renders literal asterisks; choice translation fixes

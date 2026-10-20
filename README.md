@@ -37,8 +37,9 @@ Every Markdown file must remain at most 100 lines. Split by responsibility and l
 from a parent index; keep results and proposed work visibly distinct.
 
 The branch adds bounded SymPy verification and an evaluation runner (B tasks 1–8).
-Task 9 has 131 unreviewed draft cases and fails FR/coverage gates; accounts and practice UI
-remain tasks 10–16. RAG hints and final evaluation follow in later milestones.
+Task 9 has 136 human-reviewed source cases; numeric precision rule R24, recapture and the
+reviewed release gate remain open. See the [R24 checklist](docs/superpowers/plans/portfolio-mvp/milestone-b/r24/README.md).
+Accounts and practice UI remain tasks 10–16. RAG hints and final evaluation follow later.
 
 ## Development
 

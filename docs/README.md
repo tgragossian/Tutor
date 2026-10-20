@@ -4,7 +4,8 @@
 - [Decisions](decisions/README.md): accepted direction and precedence.
 - [Active portfolio-core spec](superpowers/specs/2026-10-13-portfolio-core/README.md): approved contracts for milestones A–B.
 - [Active option B delivery plan](superpowers/plans/portfolio-mvp/README.md): milestones and gates.
-  - [Milestone B tasks](superpowers/plans/portfolio-mvp/milestone-b/README.md): tasks 1–8 done; task 9 draft; human review pending.
+  - [Milestone B tasks](superpowers/plans/portfolio-mvp/milestone-b/README.md): tasks 1–8 done; task 9 source review complete; R24 and release gate pending.
+  - [R24 implementation](superpowers/plans/portfolio-mvp/milestone-b/r24/README.md): scoped precision, debugging and release checklist.
 - [Reviews](reviews/README.md): historical findings and the 2026-10-19 evaluation review.
 - Historical references:
   - [Original handoff](handoff/README.md).

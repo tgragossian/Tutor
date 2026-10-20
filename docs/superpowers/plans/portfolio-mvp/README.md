@@ -2,7 +2,7 @@
 
 [Handoff](../../../../handoff.md) · [Review](../../../reviews/2026-10-13/README.md)
 
-2026-10-19: B tasks 1–8 complete; task 9 drafted and awaiting human labels; 10–16 pending.
+2026-10-20: B tasks 1–8 complete; all 136 task 9 source cases reviewed; R24 and release gate pending; 10–16 not started.
 See [execution status](milestone-b/03-execution-status.md) and [review follow-ups](milestone-b/05-follow-ups.md).
 
 Status: option B selected; [milestone A](milestone-a/README.md) complete and live.

@@ -2,7 +2,7 @@
 
 [Milestone B plan](README.md) · [Constraints and R1–R6](00-constraints.md) · [Execution status](03-execution-status.md)
 
-Reconciled 2026-10-19 through a115846. No new R-numbered rulings were made in this sync.
+Updated 2026-10-20: R24 approved in dee61a0; source review complete in 9b2e1f2.
 Task 8/9 implementation outcomes and open review proposals are in [follow-ups](05-follow-ups.md).
 
 These rulings add to the plan, and where they conflict with it, they replace it. Precedence: decisions > handoff > rulings > plan. Every ruling ends with what it costs if it is wrong.
@@ -47,6 +47,15 @@ These rulings add to the plan, and where they conflict with it, they replace it.
   See [decision 0003](../../../../decisions/0003-function-parentheses.md) and the [spec](../../../specs/2026-10-19-function-input-and-domain-rewrite-design.md#r22-function-input-always-uses-parentheses).
 - **R23:** restrictions are rewritten and decided on their inner argument before the R19 solvers.
   Amends R18 for Abs at the top of a constraint. See the [spec](../../../specs/2026-10-19-function-input-and-domain-rewrite-design.md#r23-restrictions-are-solved-on-their-inner-argument).
+
+## Numeric precision (R24)
+
+- **R24:** only numeric problems explicitly requesting N places require exactly N places
+  on standalone decimals; otherwise return `wrong_decimal_places`, not incorrect.
+  Exact expressions remain allowed. Count original LaTeX; value mismatch with MathJSON abstains.
+  No universal cap or coefficient rounding; expression decimals and removable holes are unchanged.
+  Approved, not implemented: [spec](../../../specs/2026-10-20-decimal-places-design.md), [checklist](r24/README.md).
+  Cost if wrong: input friction and mislabeled cases; preserve human review and FA 0.
 
 ## Rulings made inside tasks
 

@@ -1,73 +1,76 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-19 (documentation sync and evaluation review).
+Owner: Thomas Gragossian. Updated: 2026-10-20 against `milestone-b` 9b2e1f2.
+Use this worktree's handoff: `.claude/worktrees/milestone-b/handoff.md`.
 
-## Current state and next action
+## Current state
 
-- `main` bb15c91 contains milestone A. The host last recorded in [operations](docs/ops/host.md)
-  serves the skeleton at <https://tutor.thomasgragossian.dev>; deployment was not rechecked today.
-- Active work: branch `milestone-b`, worktree `.claude/worktrees/milestone-b`.
-  Last reviewed at 2ad5514 (superseded; see the R22/R23 line below); B is not merged or deployed.
-- Tasks 1–8 complete. R22/R23 implemented (ea6748b..19db4ab: function input needs
-  parentheses, [decision 0003](docs/decisions/0003-function-parentheses.md); domain
-  restrictions decided on their inner argument). Task 9 steps 1–3 drafted: 136 cases, all
-  `reviewer: pending`. Tasks 10–16 are not started. See [execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
-- **Thomas next:** review every label of all 136 cases in the [review sheet](evals/verifier/human/REVIEW.md).
-  Fresh draft after R22/R23: FA 0/54 (95% upper bound 6.6%), FR 0/52, coverage 52/52,
-  agreement 136/136 (all nine old disagreements resolved). Unreviewed development results;
-  the release gate fails until rows are `tg`.
-- **Claude done (2026-10-19):** review B-E1/B-E2 fixed in bdb1710 and `d-log2-01` in 832740f.
-  Superseded by the R22/R23 numbers above (the older draft had FR 1/52, coverage 44/52).
-  Current: 687 Python tests pass (1 Linux-only skip) and 19 tool tests pass on Windows.
-- **Claude next:** after Thomas's label review, recapture and finish task 9 steps 5–7.
-  Task 10 may start meanwhile. `d-181-05` is resolved (R22 option A).
-- Documentation sync is complete. Keep every Markdown file at most 100 lines,
-  splitting by responsibility and linking each child from its parent.
+- `main` contains milestone A. Milestone B is not merged or deployed; the last
+  [host record](docs/ops/host.md) serves the skeleton. Deployment was not rechecked here.
+- Tasks 1–8 and R22/R23 are implemented. Tasks 10–16 are not started.
+- Task 9's human review is complete: 9b2e1f2 records all 136 source rows as `tg`.
+  Reviewed labels: 49 correct, 50 incorrect, 37 unsupported. Preserve those marks.
+- R24 is approved and restored in dee61a0, but not implemented. Captured `dev.jsonl`
+  still has pre-R24 labels and 136 `pending` reviewers; it must be regenerated.
+- Task 9 is not complete: R24, content updates, recapture, dev CI gate and release evidence
+  remain. See [execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
 
-## What Claude needs to consider
+## Next action
 
-1. Done in bdb1710: release dev gate needs reviewer `tg`; `--draft` measures unreviewed rows.
-2. Done in bdb1710: empty sets, FA 0 of 0, missing labels and category shortfalls fail.
-3. Done in 832740f: computed exponents proven rational follow R14; unproven ones abstain.
-4. Done: `d-181-05` resolved (R22 option A); the seven domain abstentions now grade
-   correct under R23 and 19db4ab (`d-explog-03`, ln(e^x) = x on R, label confirmed).
-5. Tasks 12–14 still need atomic revisions, pending replay responses, 422 kind checks and
-   friendly format messages under R12–R16. These are planned, not implemented.
-6. Record actual hours before the 30-hour checkpoint; do not reduce accuracy or containment
-   to recover schedule. Linux memory, container/browser checks and host sizing remain gates.
+Follow the [R24 checklist](docs/superpowers/plans/portfolio-mvp/milestone-b/r24/README.md):
 
-## Verification evidence
+1. Write failing tests, then implement the approved numeric-only precision pre-check.
+2. Update problem 253's statement and compiled content; recapture the reviewed dev set.
+3. Run `evaluate --set dev --gate B` without `--draft`, record actual results and enable CI.
+4. Complete task 9 and merge tasks 1–9 to `main` after checks pass, so the repository link
+   exposes the verifier. The practice application still needs tasks 10–16 before deployment.
 
-- Fresh Windows run on 2026-10-19 after bdb1710: **607 passed, 1 skipped** (Linux memory limit), one
-  existing Starlette/httpx warning. See [review evidence](docs/reviews/2026-10-19-milestone-b/README.md).
-- Earlier B-C1/B-C2/B-C3 fixes: 8346d2a, b7f23ad, 10611a5 respectively;
-  the [2026-10-15 review](docs/reviews/2026-10-15-milestone-b/README.md) is historical.
-- No code, case labels or result files changed in this documentation pass.
-- Markdown links/line limits and the maintained documentation tree pass validation.
+## R24 scope: do not reinterpret
 
-## Accepted direction and precedence
+- Only numeric problems explicitly requesting N decimal places enforce exactly N places
+  on standalone decimals. Exact fractions/expressions remain allowed.
+- Too many or too few places produce `wrong_decimal_places`, a format issue, not incorrect.
+- Read original LaTeX to preserve trailing zeros; value disagreement with MathJSON abstains.
+- **No universal decimal-place cap.** Decimals inside expressions stay exact rationals.
+  Do not round coefficients or fractions; the eight decimal near-miss traps stay incorrect.
+- Removable holes follow [decision 0001](docs/decisions/0001-delivery-verifier-attribution.md):
+  ignore only provably removable holes by default; domain/range problems use `strict_domain`,
+  including undefined nested denominators such as `1/tan`.
+- Dropping R24 was a misunderstanding. The approved
+  [R24 spec](docs/superpowers/specs/2026-10-20-decimal-places-design.md) remains in force.
 
-Option B: deployed skeleton → practice on three topics → evaluated RAG hints → operations
-and final evaluation. Then diagnostic → exam/recap → all 15 topics → extraction → LoRA.
-The initial 160-hour target does not promise the full expansion queue.
-First practice release: 20–30 reviewed problems, accounts, history and one mode;
-basic derivatives, trig derivatives and chain rule; FastAPI/Jinja, MathLive, SQLite, Docker.
-See the [delivery plan](docs/superpowers/plans/portfolio-mvp/README.md) and [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).
+## Evidence and limits
 
-[Decision 0001](docs/decisions/0001-delivery-verifier-attribution.md) governs verifier semantics:
-equality on the real domain, ignoring only provably removable holes, with strict overrides.
-Keep raw restrictions; unknown domain proofs abstain; numerical agreement never proves equality.
-Polynomial implicit differentiation is retained for topic expansion, with exact reduction,
-denominator/regularity checks and coverage of every included branch.
+- The pre-R24 136-case draft reported FA 0/54, FR 0/52, coverage 52/52 and agreement 136/136.
+  Stored `dev-draft.json` is an older 131-case artifact; neither is release evidence.
+- No reviewed R24 gate result exists yet. With 50 incorrect labels, **if** FA stays zero,
+  the result would be 0/50 with a 95% Wilson upper bound about 7.1%. This is not measured yet.
+- Only the reviewed release result may go on the resume. Do not reuse 0/54 for R24.
+  Additional realistic errors are optional; label and human-review them before evaluation.
+- Historical tests and review dispositions are in
+  [execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
+  No verifier tests or release evaluation were rerun in this documentation-only update.
+- Linux containment, container/browser checks and host sizing remain release obligations.
 
-Use the [approved spec](docs/superpowers/specs/2026-10-13-portfolio-core/README.md) and
-[execution rulings R7–R23](docs/superpowers/plans/portfolio-mvp/milestone-b/02-execution-rulings.md)
-with the active plan. Rulings supersede original task recipes; review suggestions are not rulings.
-Thomas approved milestone B and selected subagent-driven implementation; this pass is docs only.
-No assistant coauthor trailers; acknowledge assistance in the [README](README.md#acknowledgments).
+## Navigation and working rules
+
+- [Documentation](docs/README.md) → [delivery plan](docs/superpowers/plans/portfolio-mvp/README.md)
+  → [milestone B tasks](docs/superpowers/plans/portfolio-mvp/milestone-b/README.md).
+- [Approved contracts](docs/superpowers/specs/2026-10-13-portfolio-core/README.md),
+  [rulings R7–R24](docs/superpowers/plans/portfolio-mvp/milestone-b/02-execution-rulings.md),
+  [review sheet](evals/verifier/human/REVIEW.md), [follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md).
+- Tasks 12–14 still need atomic revisions, pending replay responses, 422 kind checks and
+  friendly format messages. Task 15 adds reviewed content; task 16 owns deployment/sizing.
+- Never relax FA 0 or containment. Record actual hours in [hours](docs/ops/hours.md);
+  at the 30-hour checkpoint, resolve scope/date/contingency with Thomas.
+- Keep every Markdown file at most 100 lines; split by responsibility and link each child
+  from its parent. Keep historical evidence dated and separate from current status.
+- No assistant co-author trailers; acknowledge assistance in [README](README.md#acknowledgments).
+  Describe the verifier as proof-based/SymPy; do not call the tutor LLM-based.
 
 ## Preserved references
 
 - [Original handoff](docs/handoff/README.md), [original design](docs/superpowers/specs/2026-10-13-core-practice-loop-design.md),
-  [original tasks](docs/superpowers/plans/2026-10-13-core-practice-loop.md), [original review](docs/reviews/2026-10-13/README.md).
-- Original wording remains preserved except the recorded commit-attribution amendment.
+  [original tasks](docs/superpowers/plans/2026-10-13-core-practice-loop.md), [reviews](docs/reviews/README.md).
+- Option B remains: practice on three topics → evaluated RAG hints → operations/final
+  evaluation, then the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).

@@ -2,9 +2,8 @@
 
 [Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md) · [Follow-ups](05-follow-ups.md)
 
-Updated 2026-10-19 against `milestone-b` 2ad5514; implementation through a115846.
-Worktree: `.claude/worktrees/milestone-b`; no milestone B deployment or merge is claimed.
-Implementation uses task-by-task spec/quality reviews and fix rounds.
+Updated 2026-10-20 against `milestone-b` 9b2e1f2.
+Worktree: `.claude/worktrees/milestone-b`; B is not merged or deployed.
 
 ## Tasks
 
@@ -17,45 +16,57 @@ Implementation uses task-by-task spec/quality reviews and fix rounds.
 | 5 Refute and check | dbeea51..9d06779, 8346d2a | complete; B-C1 fixed |
 | 6 Content check, statement HTML | 9d06779..4ec38cb | complete after one fix round |
 | 7 Verifier pool | 4ec38cb..10611a5 | complete; pool fixes and B-C3 fixed |
-| 8 Evaluation runner and generated gate | 55744b8, 4138181 | complete; capture support refined in a115846 |
-| R22/R23 | ea6748b..19db4ab | complete; [plan](r22-r23/README.md), [decision 0003](../../../../decisions/0003-function-parentheses.md) |
-| 9 Human dev cases | a115846, recapture | steps 1–3 drafted (136 cases); step 4 human review pending |
+| 8 Evaluation runner and generated gate | 55744b8, 4138181, bdb1710 | complete; reviewer/category checks included |
+| R22/R23 | ea6748b..19db4ab, fe6bd4a | complete; [plan](r22-r23/README.md) |
+| R24 | dee61a0 | approved spec; implementation pending; [checklist](r24/README.md) |
+| 9 Human dev cases | a115846..9b2e1f2 | steps 1–4 done; recapture and steps 5–7 remain |
 | 10–16 | — | not started |
 
-Checked steps in tasks 1–8 record completion under rulings/review fixes, not literal
-execution of every old pseudocode example. Task 9 steps 4–7 and tasks 10–16 stay unchecked.
+Task 9 step 4 is complete in source YAML, including the seven R24 labels. Steps 5–7
+remain open; stale captures do not satisfy the release gate.
 
-## Current evidence and limits
+## Source, captures and evidence
 
-- Fresh `uv run pytest -q`: **687 passed, 1 skipped, 1 warning** on Windows, 2026-10-19.
-  Skip: Linux-only memory limit. Warning: existing Starlette/httpx deprecation.
-- Fresh draft run after R22/R23: 136 cases; 52 correct, 54 incorrect, 30 unsupported,
-  every reviewer `pending`. FA 0/54 (95% upper bound 6.6%); FR 0/52 (upper bound 6.9%);
-  coverage 52/52 (100%); unsupported accepts 0/30; agreement 136/136; no internal errors.
-  Draft metrics pass B; the release gate fails because no row is reviewed.
-- The committed [dev-draft.json](../../../../../evals/verifier/results/dev-draft.json) is the
-  older 131-case run (FR 2/52, coverage 43/52) and was left unchanged.
-- No [disagreements](../../../../../evals/verifier/human/REVIEW.md) remain (`d-explog-03` resolved by 19db4ab).
-- CI currently runs the generated gate only; the reviewed dev gate belongs to task 9 step 5.
-- Linux containment, browser behavior, Docker build and host memory were not verified here.
+| Artifact | Observed state at 9b2e1f2 |
+|---|---|
+| `human/dev.src.yaml` | 136 `tg`; 49 correct, 50 incorrect, 37 unsupported |
+| `human/dev.jsonl` | stale: 136 `pending`; 52 correct, 54 incorrect, 30 unsupported |
+| `results/dev-draft.json` | historical 131-case artifact: FA 0/54, FR 2/52, coverage 43/52 |
+| `results/dev-b.json` | no reviewed release result recorded yet |
 
-## Codex review dispositions
+Paths above are relative to [evals/verifier](../../../../../evals/verifier/README.md).
+Reviewed source also changes `d-sqsq-02` to `[0, inf)`; recapture must carry this domain.
 
-- Historical [2026-10-15 code review](../../../../reviews/2026-10-15-milestone-b/01-code-review.md):
-  B-C1 8346d2a, B-C2 b7f23ad, B-C3 plus seven pool failures 10611a5; fixed 2026-10-18.
-  Old 474/531 test counts describe earlier commits, not the current branch.
-- [2026-10-19 review](../../../../reviews/2026-10-19-milestone-b/README.md): B-E1 and B-E2
-  fixed in bdb1710; `d-log2-01` fixed in 832740f (fresh draft: FR 1/52, coverage 44/52).
-- `d-181-05` resolved by Thomas (R22 option A). The seven domain abstentions now grade correct
-  under R23 and 19db4ab. See [follow-ups](05-follow-ups.md).
+- Historical post-R22/R23 draft: FA 0/54 (95% upper bound 6.6%), FR 0/52, coverage 52/52,
+  unsupported accepts 0/30, agreement 136/136. This does not measure R24.
+- New labels imply an FA denominator of 50. If FA remains zero, its 95% Wilson upper bound
+  is about 7.1%; do not publish this conditional estimate as a reviewed result.
+- CI currently runs the generated gate only. Add the dev gate after R24 and recapture.
+- Last documented 2026-10-19 Windows test run: 687 passed, 1 Linux-only skip, 1 existing
+  Starlette/httpx warning. Subsequent fixes exist; this count is not a test of current HEAD.
+- This docs pass did not run verifier tests, evaluation, Linux containment or deployment.
 
-## Next actions and human gates
+## Review dispositions
 
-1. Thomas reviews every label of the 136 task 9 cases; record resolutions independently of verifier outcomes.
-2. Claude addresses review gaps, regenerates reviewed captures, enables the dev CI gate,
-   records passing `dev-b.json`, and finishes task 9. Do not count pending cases as reviewed.
-3. Task 10 may start during review; task 15 waits for task 9 and tasks 13–14.
-4. Thomas reviews new problems in task 15 and performs host deployment/sizing in task 16.
+- [2026-10-15 review](../../../../reviews/2026-10-15-milestone-b/01-code-review.md):
+  B-C1 8346d2a, B-C2 b7f23ad, B-C3 and pool fixes 10611a5.
+- [2026-10-19 review](../../../../reviews/2026-10-19-milestone-b/README.md):
+  B-E1/B-E2 fixed in bdb1710; `d-log2-01` fixed in 832740f.
+- R22/R23 resolved the nine earlier disagreements; those outcomes remain historical.
+  R24 changes seven expected labels and must be implemented before the next release run.
+- 86cac1d restricts choice answers to listed IDs; 634c968 suggests both readings of `sin^-1(x)`.
+- Thomas completed all 136 source reviews in 9b2e1f2. Preserve `tg` marks and reviewed labels.
+
+## Next actions
+
+1. Follow the [R24 pre-check checklist](r24/01-precheck.md), with failing tests first.
+2. Follow [content, capture and release](r24/02-release.md): update content, recapture,
+   verify source/capture agreement, run non-draft gate B, enable CI and record results.
+3. Finish task 9, then merge tasks 1–9 to `main` after required checks pass. No B application
+   deployment is implied; tasks 10–16 remain separate.
+4. Only reviewed gate metrics belong on the resume. More realistic wrong cases are optional
+   and require math-based labels plus human review before evaluation.
+5. Task 15 waits for task 9 and tasks 13–14; task 16 retains deployment/sizing gates.
 
 Record actual hours in the [hours log](../../../../ops/hours.md); no B actuals are supplied.
 At 30 h, stop at the next task boundary for a scope/date/contingency decision with Thomas.
