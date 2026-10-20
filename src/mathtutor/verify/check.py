@@ -14,7 +14,7 @@ from mathtutor.content.schema import Answer, ChoiceAnswer, Decimals, Domain, Num
 from mathtutor.domain import Method, VerdictReason, VerdictStatus
 from mathtutor.verify.equivalence import Budget, Gap, equivalent, to_sympy_set
 from mathtutor.verify.numeric import round_half_even, round_matches, rounded_cell
-from mathtutor.verify.precheck import decimal_literal, precheck
+from mathtutor.verify.precheck import decimal_literal, latex_decimal_places, precheck
 from mathtutor.verify.refute import (
     enclose,
     rational_inside,
@@ -174,6 +174,8 @@ def _grade(spec: Answer, answer: SubmittedAnswer, budget: Budget) -> Verdict | F
         return issue
     literal = decimal_literal(tree)
     if isinstance(spec, NumericAnswer) and isinstance(spec.precision, Decimals) and literal:
+        if latex_decimal_places(answer.latex, literal) is None:
+            return _NOT_PROVEN  # R24: the LaTeX is not the decimal that was parsed
         return _grade_rounding(spec, literal, spec.precision.decimals, budget)
     return _grade_symbolic(spec, tree, budget)
 

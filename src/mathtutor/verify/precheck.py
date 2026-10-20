@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import re
+from decimal import Decimal, InvalidOperation
 
 from pydantic import JsonValue
 
-from mathtutor.content.schema import Answer, ChoiceAnswer, NumericAnswer
+from mathtutor.content.schema import Answer, ChoiceAnswer, Decimals, NumericAnswer
 from mathtutor.domain import FormatIssueCode
 from mathtutor.verify.latex_rules import FUNCTION_PARENS_DETAIL, unparenthesized_function
 from mathtutor.verify.types import FormatIssue, SubmittedAnswer
@@ -15,6 +16,34 @@ CHOICE_ONLY_DETAIL = "Pick one of the listed choices."
 
 _EMPTY_GROUP = re.compile(r"\{\s*\}")
 _ESCAPED_BRACE = re.compile(r"\\[{}]")
+# Spacing and grouping around a typed number: \left( ... \right), braces, thin spaces.
+_LATEX_NUMBER_NOISE = re.compile(r"\\left|\\right|\\[,;:! ]|[\s(){}]")
+_LATEX_DECIMAL = re.compile(r"[+-]?\d+(?:\.(\d+))?")
+
+
+def decimal_places_detail(decimals: int) -> str:
+    if decimals == 0:
+        return "Give an exact answer or round to the nearest whole number."
+    unit = "place" if decimals == 1 else "places"
+    return f"Give an exact answer or round to {decimals} decimal {unit}."
+
+
+def latex_decimal_places(latex: str, literal: str) -> int | None:
+    """Decimal places as typed (R24), or None unless the LaTeX is the same number as ``literal``.
+
+    MathJSON drops trailing zeros (``-0.5830`` arrives as 0.583), so places are counted from the
+    LaTeX. Grouping is ignored: ``(-0.583)`` and ``-(0.583)`` are the decimal -0.583.
+    """
+    text = _LATEX_NUMBER_NOISE.sub("", latex)
+    match = _LATEX_DECIMAL.fullmatch(text)
+    if match is None:
+        return None
+    try:
+        if Decimal(text) != Decimal(literal):
+            return None
+    except InvalidOperation:
+        return None
+    return len(match.group(1) or "")
 
 
 def _has_error_node(tree: JsonValue) -> bool:
@@ -90,4 +119,11 @@ def precheck(answer: SubmittedAnswer, spec: Answer) -> FormatIssue | None:
         and decimal_literal(mathjson) is not None
     ):
         return FormatIssue(FormatIssueCode.EXACT_REQUIRED)
+    if isinstance(spec, NumericAnswer) and isinstance(spec.precision, Decimals):
+        literal = decimal_literal(mathjson)
+        places = None if literal is None else latex_decimal_places(answer.latex, literal)
+        # None (LaTeX and MathJSON disagree) is left to check(), which abstains.
+        if places is not None and places != spec.precision.decimals:
+            detail = decimal_places_detail(spec.precision.decimals)
+            return FormatIssue(FormatIssueCode.WRONG_DECIMAL_PLACES, detail)
     return None

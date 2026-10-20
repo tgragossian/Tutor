@@ -84,6 +84,17 @@ def test_unsupported_label_counts_only_in_abstain() -> None:
     assert not placeholder.agrees
 
 
+def test_wrong_decimal_places_agrees_with_unsupported(tmp_path: Path) -> None:
+    """R24: -0.5830 on problem 253 (3 places requested) is a format issue, not a verdict."""
+    row = {
+        **case("r24-1", "unsupported", ["Negate", {"num": "0.583"}], "-0.5830"),
+        "family": "openstax-c1-3.6-253",
+        "problem_id": "openstax-c1-3.6-253",
+    }
+    _, results = evaluate(load_cases(write(tmp_path / "r24.jsonl", [row])), REAL)
+    assert results[0].status == "format_issue" and results[0].agrees
+
+
 def test_breakdown_by_kind_reason_method() -> None:
     m, _ = evaluate(load_cases(TINY), REAL)
     assert sum(m.by_kind_reason_method.values()) == 7

@@ -55,6 +55,7 @@ GATES_B: dict[str, float] = {
 # Format issues an `unsupported` label expects: notation, size, and partial (placeholder) input.
 _UNSUPPORTED_ISSUES = {
     FormatIssueCode.UNSUPPORTED_NOTATION,
+    FormatIssueCode.WRONG_DECIMAL_PLACES,
     FormatIssueCode.INPUT_TOO_LARGE,
     FormatIssueCode.EMPTY,
     FormatIssueCode.INCOMPLETE,

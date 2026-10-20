@@ -24,6 +24,7 @@ from mathtutor.domain import AnswerKind, FormatIssueCode, Method, VerdictReason,
 from mathtutor.verify import check as check_module
 from mathtutor.verify.check import VERIFIER_VERSION, check
 from mathtutor.verify.numeric import round_matches
+from mathtutor.verify.precheck import decimal_places_detail
 from mathtutor.verify.types import (
     CheckRequest,
     CheckResult,
@@ -112,28 +113,76 @@ def test_check_numeric_decimal() -> None:
     assert outcome(submit(spec, {"num": "-0.583"}, "-0.583")) == Verdict(
         VerdictStatus.CORRECT, VerdictReason.ROUNDED_MATCH, Method.ROUNDING
     )
-    assert outcome(submit(spec, {"num": "-0.58"}, "-0.58")) == Verdict(
+    assert outcome(submit(spec, {"num": "-0.584"}, "-0.584")) == Verdict(
         VerdictStatus.INCORRECT, VerdictReason.ROUNDED_MISMATCH, Method.ROUNDING
     )
+
+
+def wrong_places(n: int) -> FormatIssue:
+    return FormatIssue(FormatIssueCode.WRONG_DECIMAL_PLACES, decimal_places_detail(n))
+
+
+@pytest.mark.parametrize(
+    "literal", ["-0.5830", "-0.58349", "-0.58309", "-0.5835", "-0.58", "-0.5825", "0.5833"]
+)
+def test_r24_wrong_number_of_places_is_a_format_issue(literal: str) -> None:
+    """R24: the problem asks for 3 places, so other lengths are never graded right or wrong."""
+    spec = BY_ID["openstax-c1-3.6-253"].answer
+    magnitude = {"num": literal.lstrip("-")}
+    tree = ["Negate", magnitude] if literal.startswith("-") else magnitude
+    assert outcome(submit(spec, tree, literal)) == wrong_places(3)
+
+
+def test_r24_trailing_zero_counts_from_latex() -> None:
+    # MathJSON drops the zero of -0.5830; the LaTeX keeps it.
+    spec = BY_ID["openstax-c1-3.6-253"].answer
+    assert outcome(submit(spec, ["Negate", {"num": "0.583"}], "-0.5830")) == wrong_places(3)
+
+
+@pytest.mark.parametrize("latex", ["-0.584", "0.583", "x", "", "-0.583x"])
+def test_r24_latex_and_mathjson_disagree_abstains(latex: str) -> None:
+    spec = BY_ID["openstax-c1-3.6-253"].answer
+    assert outcome(submit(spec, ["Negate", {"num": "0.583"}], latex)) == NOT_PROVEN
+
+
+@pytest.mark.parametrize(
+    "n,tree,latex,expected",
+    [
+        (2, {"num": "3.14"}, "3.14", ROUNDED_MATCH),
+        (2, {"num": "3.1"}, "3.1", None),
+        (2, {"num": "3.142"}, "3.142", None),
+        (0, {"num": "3"}, "3", ROUNDED_MATCH),
+        (0, {"num": "3.0"}, "3.0", None),
+        (4, {"num": "3.1416"}, "3.1416", ROUNDED_MATCH),
+        (4, {"num": "3.142"}, "3.142", None),
+    ],
+)
+def test_r24_places_follow_each_problem(n: int, tree: Any, latex: str, expected: Any) -> None:
+    result = outcome(submit(decimals_spec("Pi", n), tree, latex))
+    assert result == (expected if expected is not None else wrong_places(n))
 
 
 RATIONAL_253 = Rational(-200, 343)
 
 
 @pytest.mark.parametrize(
-    "tree,verdict",
+    "tree,latex,verdict",
     [
         # Compute Engine raw form sends every negative decimal as Negate of a decimal.
-        (["Negate", {"num": "0.583"}], ROUNDED_MATCH),
-        (["Negate", {"num": "0.58"}], ROUNDED_MISMATCH),
-        (["Delimiter", ["Negate", {"num": "0.583"}]], ROUNDED_MATCH),  # (-0.583)
-        (["Negate", ["Delimiter", {"num": "0.583"}]], ROUNDED_MATCH),  # -(0.583)
-        (["Delimiter", ["Delimiter", ["Negate", {"num": "0.5831"}]]], ROUNDED_MATCH),
+        (["Negate", {"num": "0.583"}], "-0.583", ROUNDED_MATCH),
+        (["Negate", {"num": "0.584"}], "-0.584", ROUNDED_MISMATCH),
+        (["Delimiter", ["Negate", {"num": "0.583"}]], "(-0.583)", ROUNDED_MATCH),
+        (["Negate", ["Delimiter", {"num": "0.583"}]], "-(0.583)", ROUNDED_MATCH),
+        (
+            ["Delimiter", ["Delimiter", ["Negate", {"num": "0.583"}]]],
+            r"\left(\left(-0.583\right)\right)",
+            ROUNDED_MATCH,
+        ),
     ],
 )
-def test_check_numeric_negative_decimal_shapes(tree: Any, verdict: Verdict) -> None:
+def test_check_numeric_negative_decimal_shapes(tree: Any, latex: str, verdict: Verdict) -> None:
     spec = BY_ID["openstax-c1-3.6-253"].answer
-    assert outcome(submit(spec, tree, "-0.583")) == verdict
+    assert outcome(submit(spec, tree, latex)) == verdict
 
 
 def test_check_numeric_parenthesised_decimal() -> None:
@@ -210,7 +259,7 @@ def test_check_numeric_unenclosable_abstains(monkeypatch: pytest.MonkeyPatch) ->
 
 
 def test_check_numeric_non_constant_expected_is_internal_error() -> None:
-    assert outcome(submit(decimals_spec("x", 2), {"num": "1.5"}, "1.5")) == INTERNAL_ERROR
+    assert outcome(submit(decimals_spec("x", 2), {"num": "1.50"}, "1.50")) == INTERNAL_ERROR
 
 
 # -- expression ------------------------------------------------------------------------------
@@ -351,15 +400,17 @@ def test_check_never_raises(tree: Any, latex: str) -> None:
         assert isinstance(result.outcome, Verdict | FormatIssue)
 
 
-_DECIMAL_TEXT = st.decimals(
-    min_value=Decimal("-2"), max_value=Decimal("2"), allow_nan=False, places=4
-).map(str)
+_DECIMAL_TEXT = st.tuples(
+    st.decimals(min_value=Decimal("-2"), max_value=Decimal("2"), allow_nan=False, places=4),
+    st.integers(min_value=0, max_value=5),
+).map(lambda pair: f"{pair[0]:.{pair[1]}f}")
 
 
 @settings(max_examples=80, deadline=None)
 @given(text=_DECIMAL_TEXT, shape=st.sampled_from(["bare", "negate", "delimiter"]))
 def test_check_decimal_rounding_property(text: str, shape: str) -> None:
-    """Seed 253: correct exactly when the typed decimal rounds like -200/343 at 3 places."""
+    """Seed 253: a 3-place decimal is correct exactly when it rounds like -200/343 (spec 02);
+    any other number of places is a format issue (R24)."""
     value = Decimal(text)
     magnitude = str(abs(value))
     if shape == "bare":
@@ -372,6 +423,9 @@ def test_check_decimal_rounding_property(text: str, shape: str) -> None:
         tree = ["Delimiter", tree]
     spec = BY_ID["openstax-c1-3.6-253"].answer
     result = check(CheckRequest(spec, SubmittedAnswer(spec.kind, tree, text, None)), 2.0)
+    if len(text.partition(".")[2]) != 3:
+        assert result.outcome == wrong_places(3)
+        return
     expected = ROUNDED_MATCH if round_matches(RATIONAL_253, value, 3) else ROUNDED_MISMATCH
     assert result.outcome == expected
 

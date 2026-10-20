@@ -43,6 +43,7 @@ class FormatIssueCode(StrEnum):
     EMPTY = "empty"
     INCOMPLETE = "incomplete"
     EXACT_REQUIRED = "exact_required"
+    WRONG_DECIMAL_PLACES = "wrong_decimal_places"
     INPUT_TOO_LARGE = "input_too_large"
     UNSUPPORTED_NOTATION = "unsupported_notation"
 
