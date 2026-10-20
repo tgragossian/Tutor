@@ -2,6 +2,9 @@
 
 [Milestone B plan](../README.md) · [Spec 06](../../../../specs/2026-10-13-portfolio-core/06-session-state.md) · Ruling R2
 
+**Status (2026-10-19):** not started; paths below are planned outputs.
+Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
+
 **Files:**
 - Create: `src/mathtutor/store/__init__.py`, `db.py`, `models.py`
 - Create: `alembic.ini`, `migrations/env.py`, `migrations/script.py.mako`, `migrations/versions/0001_initial.py`

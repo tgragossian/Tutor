@@ -1,0 +1,1407 @@
+{
+  "verifier_version": "0.1.0+dev",
+  "content_version": "e066d5f34fb1",
+  "set": "dev",
+  "set_sha256": "eb8e7756cc50010eda3096f15ae74b76f4895ae07ddb5c55be1406ed6f3e2916",
+  "metrics": {
+    "fa": {
+      "k": 0,
+      "n": 54,
+      "wilson": [
+        6.938893903907228e-18,
+        0.06641586678100189
+      ]
+    },
+    "fr": {
+      "k": 2,
+      "n": 52,
+      "wilson": [
+        0.010611488322077554,
+        0.12981428744365978
+      ]
+    },
+    "coverage": {
+      "k": 43,
+      "n": 52,
+      "wilson": [
+        0.7026887630639471,
+        0.9061763124353222
+      ]
+    },
+    "unsupported_accept": {
+      "k": 0,
+      "n": 25,
+      "wilson": [
+        0.0,
+        0.13319649395317873
+      ]
+    },
+    "agreement": {
+      "k": 122,
+      "n": 131,
+      "wilson": [
+        0.8745824447828028,
+        0.9634378694229022
+      ]
+    },
+    "internal_errors": 0,
+    "abstain": {
+      "correct": {
+        "k": 7,
+        "n": 52,
+        "wilson": [
+          0.06676796994292626,
+          0.2527357692049491
+        ]
+      },
+      "incorrect": {
+        "k": 0,
+        "n": 54,
+        "wilson": [
+          6.938893903907228e-18,
+          0.06641586678100189
+        ]
+      },
+      "unsupported": {
+        "k": 0,
+        "n": 25,
+        "wilson": [
+          0.0,
+          0.13319649395317873
+        ]
+      }
+    },
+    "by_kind_reason_method": {
+      "choice|choice_match|exact": 1,
+      "choice|choice_mismatch|exact": 3,
+      "expression|counterexample|refutation": 37,
+      "expression|domain_unproven|domain": 7,
+      "expression|format:incomplete|none": 5,
+      "expression|format:input_too_large|none": 3,
+      "expression|format:unsupported_notation|none": 7,
+      "expression|proven|symbolic": 33,
+      "expression|student_undefined|refutation": 1,
+      "expression|undefined_on_domain|domain": 3,
+      "numeric|counterexample|refutation": 6,
+      "numeric|format:empty|none": 1,
+      "numeric|format:incomplete|none": 1,
+      "numeric|format:input_too_large|none": 4,
+      "numeric|format:unsupported_notation|none": 4,
+      "numeric|proven|symbolic": 5,
+      "numeric|rounded_match|rounding": 4,
+      "numeric|rounded_mismatch|rounding": 6
+    }
+  },
+  "cases": [
+    {
+      "id": "d-111-01",
+      "family": "openstax-c1-3.3-111",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 62
+    },
+    {
+      "id": "d-111-02",
+      "family": "openstax-c1-3.3-111",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 141
+    },
+    {
+      "id": "d-111-03",
+      "family": "openstax-c1-3.3-111",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-111-04",
+      "family": "openstax-c1-3.3-111",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 202
+    },
+    {
+      "id": "d-111-05",
+      "family": "openstax-c1-3.3-111",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-111-06",
+      "family": "openstax-c1-3.3-111",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 125
+    },
+    {
+      "id": "d-111-07",
+      "family": "openstax-c1-3.3-111",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 156
+    },
+    {
+      "id": "d-111-08",
+      "family": "openstax-c1-3.3-111",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 30
+    },
+    {
+      "id": "d-111-09",
+      "family": "openstax-c1-3.3-111",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 32
+    },
+    {
+      "id": "d-111-10",
+      "family": "openstax-c1-3.3-111",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 15
+    },
+    {
+      "id": "d-111-11",
+      "family": "openstax-c1-3.3-111",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 77
+    },
+    {
+      "id": "d-111-12",
+      "family": "openstax-c1-3.3-111",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-111-13",
+      "family": "openstax-c1-3.3-111",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 16
+    },
+    {
+      "id": "d-111-14",
+      "family": "openstax-c1-3.3-111",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:unsupported_notation",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 16
+    },
+    {
+      "id": "d-111-15",
+      "family": "openstax-c1-3.3-111",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:incomplete",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-115-01",
+      "family": "openstax-c1-3.3-115",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 140
+    },
+    {
+      "id": "d-115-02",
+      "family": "openstax-c1-3.3-115",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 109
+    },
+    {
+      "id": "d-115-03",
+      "family": "openstax-c1-3.3-115",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 15
+    },
+    {
+      "id": "d-115-04",
+      "family": "openstax-c1-3.3-115",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 141
+    },
+    {
+      "id": "d-115-05",
+      "family": "openstax-c1-3.3-115",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-115-06",
+      "family": "openstax-c1-3.3-115",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 31
+    },
+    {
+      "id": "d-115-07",
+      "family": "openstax-c1-3.3-115",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 62
+    },
+    {
+      "id": "d-115-08",
+      "family": "openstax-c1-3.3-115",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 15
+    },
+    {
+      "id": "d-115-09",
+      "family": "openstax-c1-3.3-115",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 63
+    },
+    {
+      "id": "d-115-10",
+      "family": "openstax-c1-3.3-115",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 61
+    },
+    {
+      "id": "d-115-11",
+      "family": "openstax-c1-3.3-115",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 32
+    },
+    {
+      "id": "d-115-12",
+      "family": "openstax-c1-3.3-115",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 140
+    },
+    {
+      "id": "d-115-13",
+      "family": "openstax-c1-3.3-115",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-115-14",
+      "family": "openstax-c1-3.3-115",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:unsupported_notation",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-115-15",
+      "family": "openstax-c1-3.3-115",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:unsupported_notation",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-115-16",
+      "family": "openstax-c1-3.3-115",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:incomplete",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-181-01",
+      "family": "openstax-c1-3.5-181",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 16
+    },
+    {
+      "id": "d-181-02",
+      "family": "openstax-c1-3.5-181",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-181-03",
+      "family": "openstax-c1-3.5-181",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-181-04",
+      "family": "openstax-c1-3.5-181",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 61
+    },
+    {
+      "id": "d-181-05",
+      "family": "openstax-c1-3.5-181",
+      "label": "correct",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": false,
+      "worker_ms": 313
+    },
+    {
+      "id": "d-181-06",
+      "family": "openstax-c1-3.5-181",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 61
+    },
+    {
+      "id": "d-181-07",
+      "family": "openstax-c1-3.5-181",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 250
+    },
+    {
+      "id": "d-181-08",
+      "family": "openstax-c1-3.5-181",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 157
+    },
+    {
+      "id": "d-181-09",
+      "family": "openstax-c1-3.5-181",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 92
+    },
+    {
+      "id": "d-181-10",
+      "family": "openstax-c1-3.5-181",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 63
+    },
+    {
+      "id": "d-181-11",
+      "family": "openstax-c1-3.5-181",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-181-12",
+      "family": "openstax-c1-3.5-181",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 61
+    },
+    {
+      "id": "d-181-13",
+      "family": "openstax-c1-3.5-181",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:incomplete",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-01",
+      "family": "openstax-c1-3.6-221",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-02",
+      "family": "openstax-c1-3.6-221",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 16
+    },
+    {
+      "id": "d-221-03",
+      "family": "openstax-c1-3.6-221",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-04",
+      "family": "openstax-c1-3.6-221",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-05",
+      "family": "openstax-c1-3.6-221",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-06",
+      "family": "openstax-c1-3.6-221",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 93
+    },
+    {
+      "id": "d-221-07",
+      "family": "openstax-c1-3.6-221",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 47
+    },
+    {
+      "id": "d-221-08",
+      "family": "openstax-c1-3.6-221",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 31
+    },
+    {
+      "id": "d-221-09",
+      "family": "openstax-c1-3.6-221",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 30
+    },
+    {
+      "id": "d-221-10",
+      "family": "openstax-c1-3.6-221",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 31
+    },
+    {
+      "id": "d-221-11",
+      "family": "openstax-c1-3.6-221",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 47
+    },
+    {
+      "id": "d-221-12",
+      "family": "openstax-c1-3.6-221",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 30
+    },
+    {
+      "id": "d-221-13",
+      "family": "openstax-c1-3.6-221",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 16
+    },
+    {
+      "id": "d-221-14",
+      "family": "openstax-c1-3.6-221",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 47
+    },
+    {
+      "id": "d-221-15",
+      "family": "openstax-c1-3.6-221",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-16",
+      "family": "openstax-c1-3.6-221",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-17",
+      "family": "openstax-c1-3.6-221",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 31
+    },
+    {
+      "id": "d-221-18",
+      "family": "openstax-c1-3.6-221",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 46
+    },
+    {
+      "id": "d-221-19",
+      "family": "openstax-c1-3.6-221",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:unsupported_notation",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-20",
+      "family": "openstax-c1-3.6-221",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:unsupported_notation",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-21",
+      "family": "openstax-c1-3.6-221",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:unsupported_notation",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-22",
+      "family": "openstax-c1-3.6-221",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:incomplete",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-23",
+      "family": "openstax-c1-3.6-221",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:incomplete",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-24",
+      "family": "openstax-c1-3.6-221",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:input_too_large",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-25",
+      "family": "openstax-c1-3.6-221",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:input_too_large",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-221-26",
+      "family": "openstax-c1-3.6-221",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:input_too_large",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-01",
+      "family": "openstax-c1-3.6-253",
+      "label": "correct",
+      "status": "correct",
+      "reason": "rounded_match",
+      "method": "rounding",
+      "agrees": true,
+      "worker_ms": 16
+    },
+    {
+      "id": "d-253-02",
+      "family": "openstax-c1-3.6-253",
+      "label": "correct",
+      "status": "correct",
+      "reason": "rounded_match",
+      "method": "rounding",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-03",
+      "family": "openstax-c1-3.6-253",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "rounded_mismatch",
+      "method": "rounding",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-04",
+      "family": "openstax-c1-3.6-253",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "rounded_mismatch",
+      "method": "rounding",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-05",
+      "family": "openstax-c1-3.6-253",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "rounded_mismatch",
+      "method": "rounding",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-06",
+      "family": "openstax-c1-3.6-253",
+      "label": "correct",
+      "status": "correct",
+      "reason": "rounded_match",
+      "method": "rounding",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-07",
+      "family": "openstax-c1-3.6-253",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "rounded_mismatch",
+      "method": "rounding",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-08",
+      "family": "openstax-c1-3.6-253",
+      "label": "correct",
+      "status": "correct",
+      "reason": "rounded_match",
+      "method": "rounding",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-09",
+      "family": "openstax-c1-3.6-253",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-10",
+      "family": "openstax-c1-3.6-253",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-11",
+      "family": "openstax-c1-3.6-253",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-12",
+      "family": "openstax-c1-3.6-253",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-13",
+      "family": "openstax-c1-3.6-253",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-14",
+      "family": "openstax-c1-3.6-253",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-15",
+      "family": "openstax-c1-3.6-253",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "rounded_mismatch",
+      "method": "rounding",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-16",
+      "family": "openstax-c1-3.6-253",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 15
+    },
+    {
+      "id": "d-253-17",
+      "family": "openstax-c1-3.6-253",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-18",
+      "family": "openstax-c1-3.6-253",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 16
+    },
+    {
+      "id": "d-253-19",
+      "family": "openstax-c1-3.6-253",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "rounded_mismatch",
+      "method": "rounding",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-20",
+      "family": "openstax-c1-3.6-253",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-21",
+      "family": "openstax-c1-3.6-253",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-22",
+      "family": "openstax-c1-3.6-253",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:unsupported_notation",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-23",
+      "family": "openstax-c1-3.6-253",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:unsupported_notation",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-24",
+      "family": "openstax-c1-3.6-253",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:unsupported_notation",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-25",
+      "family": "openstax-c1-3.6-253",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:unsupported_notation",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-26",
+      "family": "openstax-c1-3.6-253",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:input_too_large",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 16
+    },
+    {
+      "id": "d-253-27",
+      "family": "openstax-c1-3.6-253",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:input_too_large",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-28",
+      "family": "openstax-c1-3.6-253",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:input_too_large",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-29",
+      "family": "openstax-c1-3.6-253",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:input_too_large",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-30",
+      "family": "openstax-c1-3.6-253",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:empty",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-253-31",
+      "family": "openstax-c1-3.6-253",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:incomplete",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-cot-01",
+      "family": "inline-dlnsin",
+      "label": "correct",
+      "status": "unable_to_verify",
+      "reason": "domain_unproven",
+      "method": "domain",
+      "agrees": false,
+      "worker_ms": 45
+    },
+    {
+      "id": "d-cot-02",
+      "family": "inline-dlnsin",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 32
+    },
+    {
+      "id": "d-cot-03",
+      "family": "inline-dlnsin",
+      "label": "correct",
+      "status": "unable_to_verify",
+      "reason": "domain_unproven",
+      "method": "domain",
+      "agrees": false,
+      "worker_ms": 31
+    },
+    {
+      "id": "d-cot-04",
+      "family": "inline-dlnsin",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-csc-01",
+      "family": "inline-csc",
+      "label": "unsupported",
+      "status": "format_issue",
+      "reason": "format:unsupported_notation",
+      "method": "none",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-csc-02",
+      "family": "inline-csc",
+      "label": "correct",
+      "status": "unable_to_verify",
+      "reason": "domain_unproven",
+      "method": "domain",
+      "agrees": false,
+      "worker_ms": 31
+    },
+    {
+      "id": "d-dtan-01",
+      "family": "inline-dtan",
+      "label": "correct",
+      "status": "unable_to_verify",
+      "reason": "domain_unproven",
+      "method": "domain",
+      "agrees": false,
+      "worker_ms": 30
+    },
+    {
+      "id": "d-dtan-02",
+      "family": "inline-dtan",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 32
+    },
+    {
+      "id": "d-dtan-03",
+      "family": "inline-dtan",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 125
+    },
+    {
+      "id": "d-dtan-04",
+      "family": "inline-dtan",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 125
+    },
+    {
+      "id": "d-explog-01",
+      "family": "inline-exp-log",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "undefined_on_domain",
+      "method": "domain",
+      "agrees": true,
+      "worker_ms": 47
+    },
+    {
+      "id": "d-explog-02",
+      "family": "inline-exp-log",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 45
+    },
+    {
+      "id": "d-explog-03",
+      "family": "inline-exp-log",
+      "label": "correct",
+      "status": "unable_to_verify",
+      "reason": "domain_unproven",
+      "method": "domain",
+      "agrees": false,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-hole-01",
+      "family": "inline-hole",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 63
+    },
+    {
+      "id": "d-hole-02",
+      "family": "inline-hole",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "undefined_on_domain",
+      "method": "domain",
+      "agrees": true,
+      "worker_ms": 16
+    },
+    {
+      "id": "d-hole-03",
+      "family": "inline-hole",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 15
+    },
+    {
+      "id": "d-lnsq-01",
+      "family": "inline-ln-square",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "student_undefined",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 16
+    },
+    {
+      "id": "d-lnsq-02",
+      "family": "inline-ln-square",
+      "label": "correct",
+      "status": "unable_to_verify",
+      "reason": "domain_unproven",
+      "method": "domain",
+      "agrees": false,
+      "worker_ms": 14
+    },
+    {
+      "id": "d-lnsq-03",
+      "family": "inline-ln-square",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 47
+    },
+    {
+      "id": "d-log2-01",
+      "family": "inline-log2",
+      "label": "correct",
+      "status": "incorrect",
+      "reason": "undefined_on_domain",
+      "method": "domain",
+      "agrees": false,
+      "worker_ms": 47
+    },
+    {
+      "id": "d-negpow-01",
+      "family": "inline-negpow",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 155
+    },
+    {
+      "id": "d-negpow-02",
+      "family": "inline-negpow",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 47
+    },
+    {
+      "id": "d-sqsq-01",
+      "family": "inline-sqrt-square",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "counterexample",
+      "method": "refutation",
+      "agrees": true,
+      "worker_ms": 16
+    },
+    {
+      "id": "d-sqsq-02",
+      "family": "inline-sqrt-square",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 47
+    },
+    {
+      "id": "d-sqsq-03",
+      "family": "inline-sqrt-square",
+      "label": "correct",
+      "status": "correct",
+      "reason": "proven",
+      "method": "symbolic",
+      "agrees": true,
+      "worker_ms": 14
+    },
+    {
+      "id": "d-tan-01",
+      "family": "inline-tan",
+      "label": "correct",
+      "status": "unable_to_verify",
+      "reason": "domain_unproven",
+      "method": "domain",
+      "agrees": false,
+      "worker_ms": 32
+    },
+    {
+      "id": "d-x2cosx-01",
+      "family": "adapted-c1-3.5-x2cosx",
+      "label": "correct",
+      "status": "correct",
+      "reason": "choice_match",
+      "method": "exact",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-x2cosx-02",
+      "family": "adapted-c1-3.5-x2cosx",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "choice_mismatch",
+      "method": "exact",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-x2cosx-03",
+      "family": "adapted-c1-3.5-x2cosx",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "choice_mismatch",
+      "method": "exact",
+      "agrees": true,
+      "worker_ms": 0
+    },
+    {
+      "id": "d-x2cosx-04",
+      "family": "adapted-c1-3.5-x2cosx",
+      "label": "incorrect",
+      "status": "incorrect",
+      "reason": "choice_mismatch",
+      "method": "exact",
+      "agrees": true,
+      "worker_ms": 0
+    }
+  ]
+}

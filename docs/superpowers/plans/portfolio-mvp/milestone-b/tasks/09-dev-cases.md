@@ -2,6 +2,12 @@
 
 [Milestone B plan](../README.md) · [Spec 08](../../../../specs/2026-10-13-portfolio-core/08-verifier-evaluation.md)
 
+**Status (2026-10-20): complete.** All 136 cases are reviewed and recaptured (`tg`):
+49 correct, 50 incorrect, 37 unsupported. R24 is implemented; non-draft gate B passes.
+[dev-b.json](../../../../../../evals/verifier/results/dev-b.json): FA 0/50 (95% upper bound 7.1%),
+FR 0/49, coverage 49/49, unsupported accepts 0/37, agreement 136/136. CI is green;
+[release/merge checklist](../r24/02-release.md). Thomas merges tasks 1–9 next.
+
 **Files:**
 - Create: `evals/verifier/human/dev.src.yaml`, `evals/verifier/human/dev.jsonl` (generated), `tools/capture/eval.mjs`
 - Modify: `tools/package.json` (script `capture:eval`), `.github/workflows/ci.yml`, `evals/verifier/README.md`
@@ -19,7 +25,7 @@
   latex: '\frac{39}{(x+1)^2}+270x^4'
   label: correct
   rationale: 'Terms reordered.'
-  reviewer: ''                        # Thomas fills "tg" when reviewed
+  reviewer: 'pending'                 # Thomas fills "tg" when reviewed
 ```
 
 **Required coverage (spec 08), at least these counts, 80+ total:**
@@ -38,11 +44,11 @@
 - Inline specs (`inline_spec: {kind, latex, domain, strict_domain, precision}`) cover cases the seeds cannot (e.g. the `(x²−1)/(x−1)` hole). They are compiled by the same compiler call the capture tool already makes.
 - `family` assignment rule: every case derived from one source problem shares its family (dev/final split is by family; final is milestone E).
 
-- [ ] **Step 1: Write `tools/capture/eval.mjs`.** It reads `dev.src.yaml`, types each `latex` into a real MathLive field in Chromium (same page as milestone A capture), reads `mf.getValue()` and the raw MathJSON with a fresh `ComputeEngine`, and writes `dev.jsonl` sorted by id. Partial-input cases use `keys` (as in `cases.json`) so the placeholder shapes are real.
-- [ ] **Step 2: Write the 80+ cases** in `dev.src.yaml` with `reviewer: ''`, each with a rationale that states why the label is right (worked check for `correct`, the specific error for `incorrect`).
-- [ ] **Step 3:** Run `npm run capture:eval --prefix tools`, then `uv run python -m mathtutor.verify.evaluate --set dev --gate B`.
+- [x] **Step 1: Write `tools/capture/eval.mjs`.** It reads `dev.src.yaml`, types each `latex` into a real MathLive field in Chromium (same page as milestone A capture), reads `mf.getValue()` and the raw MathJSON with a fresh `ComputeEngine`, and writes `dev.jsonl` sorted by id. Partial-input cases use `keys` (as in `cases.json`) so the placeholder shapes are real.
+- [x] **Step 2: Write the 80+ cases** in `dev.src.yaml` with `reviewer: 'pending'`, each with a rationale that states why the label is right (worked check for `correct`, the specific error for `incorrect`).
+- [x] **Step 3:** Run `npm run capture:eval --prefix tools`, then `uv run python -m mathtutor.verify.evaluate --set dev --gate B`.
   - Expected: a report. Every disagreement is either a verifier bug (fix it in the owning module with a unit test first) or a labelling question for Thomas. **Never edit a label to make it pass** (spec 08).
-- [ ] **Step 4: Human gate (Thomas).** Review every case: the LaTeX is what a student could type, the label is right, the rationale holds. Set `reviewer: 'tg'`. Disputed cases get a note and stay out until settled.
-- [ ] **Step 5:** Add `--set dev --gate B` to CI. The gate also fails if any case has an empty `reviewer`.
-- [ ] **Step 6:** Run `uv run python -m mathtutor.verify.evaluate --set dev --gate B --out evals/verifier/results/dev-b.json`. Expected: exit 0 with FA 0 observed, FR ≤ 2%, coverage ≥ 85%.
-- [ ] **Step 7: Commit** `test: 80+ human-reviewed verifier dev cases from real captures` (body: case counts per category and the metrics line).
+- [x] **Step 4: Human gate (Thomas).** All 136 source cases reviewed in 9b2e1f2, including the seven R24 relabels and `d-sqsq-02`'s `[0, inf)` domain. b5ad4b2 recaptures these marks and labels exactly.
+- [x] **Step 5:** 8a0bb40 adds `--set dev --gate B` to CI. Reviewed captures are in b5ad4b2; reviewer/category enforcement remains unchanged. CI run 39504828416 passes after d673400 fixes Linux test teardown.
+- [x] **Step 6:** Non-draft `evaluate --set dev --gate B --out evals/verifier/results/dev-b.json` passes at b5ad4b2. FA 0/50, FR 0/49, coverage 49/49; all 136 outcomes agree.
+- [x] **Step 7: Commit** reviewed captures (b5ad4b2), release evidence (e995438) and CI gate (8a0bb40). Task 9 is done; merge to `main` is Thomas's next action, preserving milestone-b's handoff. No assistant co-author trailers.

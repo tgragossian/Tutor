@@ -31,7 +31,8 @@ CONF
 
 # 1 GB swap so image builds on a 1 GB instance don't hit the OOM killer.
 if ! swapon --show | grep -q /swapfile; then
-  [ -f /swapfile ] || { fallocate -l 1G /swapfile; chmod 600 /swapfile; mkswap /swapfile; }
+  [ -f /swapfile ] || { fallocate -l 1G /swapfile; chmod 600 /swapfile; }
+  blkid /swapfile | grep -q 'TYPE="swap"' || mkswap /swapfile
   swapon /swapfile
   grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
 fi

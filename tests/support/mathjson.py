@@ -7,6 +7,8 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+from mathtutor.jsonio import loads_exact
+
 FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "mathjson" / "captured.json"
 
 
@@ -18,7 +20,12 @@ def _load() -> dict[str, Any]:
 
 def mj(key: str) -> Any:
     """The non-canonical MathJSON captured for ``key`` (stored as JSON text)."""
-    return json.loads(_load()["cases"][key]["mathjson"])
+    return loads_exact(_load()["cases"][key]["mathjson"])
+
+
+def keys() -> list[str]:
+    """Every captured case key."""
+    return list(_load()["cases"])
 
 
 def latex(key: str) -> str:

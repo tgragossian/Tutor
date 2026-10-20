@@ -2,6 +2,12 @@
 
 [Milestone B plan](../README.md) · [Spec 07 UI](../../../../specs/2026-10-13-portfolio-core/07-application-and-web.md) · [Spec 02](../../../../specs/2026-10-13-portfolio-core/02-answer-contracts.md) · Ruling R4
 
+R13: retry `submission_pending` with the same submission id after `Retry-After`.
+R15/R16: show the `e·(x+1)` suggestion and friendly per-format-issue copy.
+
+**Status (2026-10-19):** not started; paths below are planned outputs.
+Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
+
 **Files:**
 - Create: `src/mathtutor/web/pages.py`, `tools/vendor.mjs`
 - Create templates: `web/templates/login.html`, `register.html`, `practice.html`; rewrite `index.html`, `base.html`
@@ -20,6 +26,7 @@
 **`practice.js` behaviour (spec 02, 07):**
 - Renders `statement_html` (already safe HTML from the compiler) and the source line "OpenStax Calculus Volume 1, §3.6, exercise 221 — CC BY-NC-SA 4.0" linking `source.url`.
 - One `<math-field>` with a virtual-keyboard row: a/b, xⁿ, √, sin, cos, tan, ln, eˣ, π, |x| (insert commands), plus MathLive's built-in keyboard. Choice items render radio buttons whose labels are read-only `<math-field>`s.
+- R22 ([decision 0003](../../../../../decisions/0003-function-parentheses.md)): MathLive inline shortcuts for `sin cos tan sec csc cot ln log` insert `\fn\left(\placeholder{}\right)`; the keyboard buttons insert the same, so a student never types a bare `\sin x`.
 - **Check** is disabled while `mf.getValue()` contains `\placeholder` or an empty `{}` group (same test as the server, ADR 0002) or is empty.
 - On Check: `mathjson = new ComputeEngine().parse(mf.getValue(), {form: "raw"}).json` (a fresh engine every time); send `{submission_id: crypto.randomUUID(), session_item_id, item_revision, answer}` with `X-CSRF-Token`. On network failure or 503, resend the **same** `submission_id` after `Retry-After`.
 - Shows the precision hint and the verdict copy exactly: "Correct" / "Not quite — try again (N left)" / "We couldn't check this automatically. You can try another form or skip." Format issues show a short message and do not change the tries count.

@@ -29,6 +29,7 @@
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
       },
       "statement": "Find the derivative of $x^3$.",
+      "statement_html": "Find the derivative of <math-field read-only>x^3</math-field>.",
       "topic": "derivatives.trig"
     },
     {
@@ -60,6 +61,7 @@
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
       },
       "statement": "Find the derivative of $x^3$.",
+      "statement_html": "Find the derivative of <math-field read-only>x^3</math-field>.",
       "topic": "derivatives.basic_rules"
     },
     {
@@ -91,6 +93,7 @@
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
       },
       "statement": "Find the derivative of $x^3$.",
+      "statement_html": "Find the derivative of <math-field read-only>x^3</math-field>.",
       "topic": "derivatives.basic_rules"
     },
     {
@@ -122,6 +125,7 @@
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
       },
       "statement": "Find the derivative of $x^3$.",
+      "statement_html": "Find the derivative of <math-field read-only>x^3</math-field>.",
       "topic": "derivatives.basic_rules"
     },
     {
@@ -153,10 +157,11 @@
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
       },
       "statement": "Find the derivative of $x^3$.",
+      "statement_html": "Find the derivative of <math-field read-only>x^3</math-field>.",
       "topic": "derivatives.chain_rule"
     }
   ],
-  "schema_version": 1,
+  "schema_version": 2,
   "tools": {
     "compute_engine": "0.151.0",
     "mathlive": "0.111.1"

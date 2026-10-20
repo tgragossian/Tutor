@@ -4,11 +4,21 @@ services:
     image: ${MATHTUTOR_IMAGE:-mathtutor:local}
     env_file: .env
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     # No ports: 8000 must never be published (uvicorn trusts forwarded headers).
 
   caddy:
     image: caddy:2.11.6-alpine
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "80:80"
       - "443:443"

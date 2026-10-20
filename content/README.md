@@ -25,17 +25,29 @@ Problem content for the tutor: authored YAML in, one compiled JSON bundle out.
 5. Transcribed exercises: set `exercise` to the book's number and `url` to the section page. Author-written items: `adapted: true`, `exercise: null`.
 6. Start with `review: {status: needs_review, reviewer: '', date: '', notes: '<worked check>'}`. Only a human reviewer sets `human_verified`, with their initials and an ISO date. Only `human_verified` items are served.
 
+### Numeric precision
+
+For `numeric` answers with `precision: {decimals: N}`, the statement must say
+“Give an exact answer or round to N decimal places.” [R24](../docs/superpowers/specs/2026-10-20-decimal-places-design.md)
+is implemented in a76985d; problem 253 and compiled content include this instruction.
+Decimals inside expressions remain exact rationals with no universal place cap.
+
 ### LaTeX that parses differently than it reads
 
 - Compute Engine folds a factor written after `\cos x` into the argument, even with `\,` or `\cdot`: `\cos x\,(x+1)` is cos(x(x+1)).
-- Put the trig factor last, `(x+1)\cos x`, or use brackets, `\cos(x)(x+1)`.
+- Use explicit parentheses, `(x+1)\cos(x)` or `\cos(x)(x+1)`, as required by R22.
 - Check the compiled `mathjson` after editing.
 
 ## Compiling
 
 ```sh
 npm run compile --prefix tools   # writes content/compiled/problems.json
+uv run python -m mathtutor.verify.content_check  # offline math validation
 uv run pytest -q                 # loader and seed-content checks
 ```
 
 CI recompiles and fails if the committed bundle is out of date. Commit the YAML and the regenerated bundle together.
+
+Milestone B bundles use schema version 2 with compiled `statement_html` and
+`misconceptions_mathjson`. CI and Docker builds run the offline mathematical check;
+web startup loads the schema without importing SymPy. Six problems exist; expansion is task 15.

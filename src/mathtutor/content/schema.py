@@ -177,9 +177,20 @@ class Problem(_Model):
     difficulty: Annotated[int, Field(ge=1, le=5)]
     source: Source
     statement: str
+    statement_html: str
     answer: Answer
     misconceptions: list[str] = Field(default_factory=list)
+    # One entry per misconception, in order; null where the LaTeX did not parse cleanly.
+    misconceptions_mathjson: list[JsonValue] | None = None
     review: Review
+
+    @model_validator(mode="after")
+    def _mathjson_matches_misconceptions(self) -> Problem:
+        if self.misconceptions_mathjson is not None and len(self.misconceptions_mathjson) != len(
+            self.misconceptions
+        ):
+            raise ValueError("misconceptions_mathjson must match misconceptions in length")
+        return self
 
 
 class ToolVersions(_Model):
@@ -188,7 +199,7 @@ class ToolVersions(_Model):
 
 
 class ContentBundle(_Model):
-    schema_version: Literal[1]
+    schema_version: Literal[2]
     tools: ToolVersions
     topics: list[Topic]
     problems: list[Problem]

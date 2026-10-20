@@ -1,0 +1,56 @@
+{
+  "problems": [
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "\\mathrm{foo}(x)",
+        "mathjson": [
+          "Foo",
+          "x"
+        ]
+      },
+      "difficulty": 1,
+      "id": "untranslatable-001",
+      "review": {
+        "date": "2026-01-01",
+        "reviewer": "tester",
+        "status": "human_verified"
+      },
+      "source": {
+        "book": "Calculus Volume 1",
+        "exercise": 1,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.3",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
+      },
+      "statement": "Find the derivative of $x^3$.",
+      "statement_html": "Find the derivative of <math-field read-only>x^3</math-field>.",
+      "topic": "derivatives.basic_rules"
+    }
+  ],
+  "schema_version": 2,
+  "tools": {
+    "compute_engine": "0.151.0",
+    "mathlive": "0.111.1"
+  },
+  "topics": [
+    {
+      "order": 1,
+      "section": "3.3",
+      "title": "Basic differentiation rules",
+      "topic_id": "derivatives.basic_rules"
+    },
+    {
+      "order": 2,
+      "section": "3.5",
+      "title": "Derivatives of trigonometric functions",
+      "topic_id": "derivatives.trig"
+    },
+    {
+      "order": 3,
+      "section": "3.6",
+      "title": "The chain rule",
+      "topic_id": "derivatives.chain_rule"
+    }
+  ]
+}

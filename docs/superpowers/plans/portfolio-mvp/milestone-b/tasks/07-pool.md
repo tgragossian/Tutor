@@ -2,9 +2,12 @@
 
 [Milestone B plan](../README.md) · [Spec 05](../../../../specs/2026-10-13-portfolio-core/05-verifier-execution.md)
 
+**Status (2026-10-19):** Complete: 4ec38cb..10611a5; R8 uses worker-only imports; review fixes replace the original lifecycle recipe.
+See [rulings](../02-execution-rulings.md) and [execution status](../03-execution-status.md); checked steps include recorded replacements.
+
 **Files:**
 - Create: `src/mathtutor/verify/pool.py`, `tests/integration/test_pool.py`, `tests/support/checks.py`
-- Modify: `pyproject.toml` (`uv add psutil`)
+- Modify: `pyproject.toml` (`uv add --dev psutil`)
 
 **Interfaces:**
 - Consumes: `check`, `CheckRequest`, `CheckResult`, `VerifierBusy`, `Verdict` (tasks 2, 5).
@@ -14,7 +17,7 @@
 class VerifierPool:
     def __init__(self, size: int = 1, deadline_s: float = 3.0, queue_max: int = 8,
                  queue_wait_s: float = 2.0, memory_mb: int | None = 384,
-                 check_fn: Callable[[CheckRequest], CheckResult] = check) -> None: ...
+                 check_fn: Callable[[CheckRequest], CheckResult] | None = None) -> None: ...
     def submit(self, req: CheckRequest) -> CheckResult: ...   # raises VerifierBusy
     def alive(self) -> bool: ...                              # every worker process is running (for /readyz)
     def close(self) -> None: ...
@@ -22,7 +25,7 @@ class VerifierPool:
 
 - `tests/support/checks.py` holds module-level (picklable) check functions: `sleepy(req)` sleeps 10 s; `die(req)` calls `os._exit(1)`; `slow(req)` sleeps 1 s then returns correct; `ok(req)` returns correct immediately.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
 
 ```python
 def test_timeout_then_same_pool_recovers():
@@ -41,13 +44,13 @@ def test_memory_limit_applied_on_linux(): ...               # skipif not linux: 
 def test_real_check_through_pool(): ...                     # default check_fn grades a seed answer correct
 ```
 
-- [ ] **Step 2:** Run `uv run pytest tests/integration/test_pool.py -q`. Expected: FAIL (module missing).
-- [ ] **Step 3: Implement.**
+- [x] **Step 2:** Run `uv run pytest tests/integration/test_pool.py -q`. Expected: FAIL (module missing).
+- [x] **Step 3: Implement.**
   - `multiprocessing.get_context("spawn")`; each worker owns a `Pipe`; the worker loop receives `(fn, req)`, runs it, sends the result. On Linux the worker sets `resource.setrlimit(RLIMIT_AS, (memory_mb·2²⁰,)*2)` before its loop.
   - A `threading.BoundedSemaphore`-style admission: at most `queue_max` waiting callers; a caller that cannot get a worker within `queue_wait_s` raises `VerifierBusy`. A caller that cannot even enter the queue raises immediately.
   - `submit` sends the request and `poll(remaining_deadline)`; on timeout: `terminate()`, `join(1)`, `kill()` if still alive, `join()`, respawn, return `unable_to_verify/timeout`. On `EOFError`/`BrokenPipeError` or a dead process: reap, respawn, return `internal_error`. Log both with `req.request_id`.
   - `worker_ms` from dispatch to result; `queue_ms` from `submit` entry to dispatch.
   - `_check_fn_for_test` swaps the function without replacing workers (the function is sent with every job, so this is just an attribute).
   - Wording: comments and docs say "resource containment", never "sandbox" (spec 05).
-- [ ] **Step 4:** Run `uv run pytest tests/integration/test_pool.py -q` three times in a row. Expected: PASS every time (no flakes). Then `uv run pytest -q`.
-- [ ] **Step 5: Commit** `feat: bounded verifier pool with deadline, respawn and queue limits`.
+- [x] **Step 4:** Run `uv run pytest tests/integration/test_pool.py -q` three times in a row. Expected: PASS every time (no flakes). Then `uv run pytest -q`.
+- [x] **Step 5: Commit** `feat: bounded verifier pool with deadline, respawn and queue limits`.

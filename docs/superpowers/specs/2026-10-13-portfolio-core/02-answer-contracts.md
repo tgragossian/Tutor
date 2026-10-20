@@ -8,7 +8,7 @@
 - MathLive 0.111.1 bundles no Compute Engine. Pin `@cortex-js/compute-engine` **0.151.0** and attach it yourself ([ADR 0002](../../../decisions/0002-mathlive-input.md)).
 - `getValue('math-json')` was removed in 0.111.0. Instead use `new ComputeEngine().parse(mf.getValue(), {form: 'raw'}).json`.
 - **Use a fresh `ComputeEngine` for every parse.** Parsing is stateful: an earlier parse can auto-declare `f` and change how later input parses.
-- The browser sends **MathJSON for grading** and **LaTeX for display and logging only**. LaTeX is never graded; the server reads it only for the `incomplete` pre-check below, because placeholders vanish from MathJSON (`x^{}` parses to `x`).
+- The browser sends **MathJSON for mathematical grading**. LaTeX supports display/logging and reject-only format checks: incomplete input, R22 function parentheses and R24 decimal spelling. Never use LaTeX as a general symbolic grading parser.
 - The browser blocks submitting while the field has an empty slot.
 - Vendor files are self-hosted under `static/vendor/` with SRI hashes. There are no CDN calls at runtime.
 
@@ -31,14 +31,24 @@
 | Empty tree, or `Nothing` | `empty` |
 | `Error` node anywhere, or LaTeX containing `\placeholder` or an empty `{}` group | `incomplete` |
 | Decimal answer where `precision: exact` | `exact_required` |
+| Standalone decimal with other than N places, on a numeric problem requesting N (R24) | `wrong_decimal_places` |
 
 ## Decimal precision
 
-- Numbers are read from MathJSON as exact decimals (`json.loads(..., parse_float=Decimal)`; long literals arrive as `{"num": "..."}`), never as floats.
-- **Trailing zeros are lost** (ADR 0002: `0.780` arrives as `0.78`), so no minimum number of places is enforced. Any decimal is graded by rounding to N places; there is no `too_few_decimals` code.
-- A decimal anywhere other than as the top-level value of a `numeric` answer (inside a fraction, say) is graded symbolically as an exact rational.
-- **Rounding rule:** compute exactly with `decimal.Decimal` from the rational expected value, using ROUND_HALF_EVEN. The student's decimal is correct iff `round(expected, N) == round(student, N)` at N = `decimals`.
-- An **exact** student answer to a `numeric` problem is checked symbolically ([04](04-equivalence.md)).
+[R24](../2026-10-20-decimal-places-design.md) amends the original unlimited-place rounding
+rule. Implemented in a76985d on 2026-10-20; see the [checklist](../../plans/portfolio-mvp/milestone-b/r24/README.md).
+
+- Numbers are read from MathJSON as exact decimals, never floats.
+- Only `numeric` problems explicitly requesting N places (`precision: {decimals: N}`)
+  require exactly N places on standalone decimals. Other lengths get `wrong_decimal_places`;
+  they are not graded incorrect and consume no attempt.
+- Count places from original LaTeX: MathJSON loses trailing zeros. If the two values disagree,
+  abstain. Preserve the literal through capture/submission instead of reconstructing it.
+- With exactly N places, compare to the expected value rounded using ROUND_HALF_EVEN.
+  Rational expectations use exact arithmetic; irrational expectations use R21 certified rounding.
+- Exact expressions remain symbolically graded ([04](04-equivalence.md)). Decimals inside
+  fractions or larger expressions remain exact rationals; no universal cap or coefficient rounding.
+- Statements say: “Give an exact answer or round to N decimal places.”
 
 ## Deferred kinds (contracts fixed now, implemented with topic expansion)
 

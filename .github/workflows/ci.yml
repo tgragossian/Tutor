@@ -8,11 +8,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.13.0"
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy src
       - run: uv run pytest -q
+      - run: uv run python -m mathtutor.verify.content_check
+      - run: uv run python -m mathtutor.verify.evaluate --set generated --gate B
+      - run: uv run python -m mathtutor.verify.evaluate --set dev --gate B
       - run: uv run python tools/check_docs.py
   node:
     runs-on: ubuntu-latest

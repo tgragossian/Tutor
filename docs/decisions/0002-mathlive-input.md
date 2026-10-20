@@ -2,7 +2,7 @@
 
 [Decisions index](README.md)
 
-Status: accepted by Thomas, 2026-10-13. Placeholder resolution: client blocks submit; server pre-check also rejects LaTeX containing `\placeholder` or an empty `{}` group (format issue `incomplete`; LaTeX is read only for this, never graded).
+Status: accepted by Thomas, 2026-10-13. Placeholder resolution: client blocks submit; server pre-check also rejects LaTeX containing `\placeholder` or an empty `{}` group (format issue `incomplete`; LaTeX is not a symbolic grading parser). Later reject-only format checks: R22 and R24.
 
 Evidence: `tests/fixtures/mathjson/captured.json`, produced by `npm run capture --prefix tools` in
 real Chromium 156 (cases in `tools/capture/cases.json`). Snippets below are copied from it.
@@ -28,8 +28,8 @@ real Chromium 156 (cases in `tools/capture/cases.json`). Snippets below are copi
 - `dec_0780` (`0.780`): LaTeX stays `0.780`, but MathJSON is the bare number `0.78`. **The
   trailing zero is lost**, in raw and canonical form, setValue and typed (`typed_dec_0780`).
 - `toMathJson` options (`shorthands`, `digits`, `metadata`) do not restore it. `dec_250` (`2.50`) gives `2.5`.
-- **Decision: spec 02's fallback.** Do not enforce a minimum number of decimal places
-  (`too_few_decimals` is dropped for milestone A). Any decimal is graded by rounding to N places.
+- **Historical milestone A fallback:** no minimum places; any decimal was rounded to N.
+  [R24](../superpowers/specs/2026-10-20-decimal-places-design.md) supersedes it for numeric problems requesting N places, using preserved LaTeX; implemented in a76985d.
 - Decimals are bare JSON numbers (`0.785`, `["Divide",0.5,"x"]`) or `{"num": "..."}`: the number
   object appears for long literals. `long_int` is `{"num":"1234567890123456789012345678901234567890"}`.
 - Constants differ by form: raw gives `"e"` and `"Pi"`; canonical gives `"ExponentialE"`.

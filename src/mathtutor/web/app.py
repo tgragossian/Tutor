@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Awaitable, Callable
 from pathlib import Path
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from mathtutor import __version__
 from mathtutor.content.loader import LoadedContent, load_bundle, servable
@@ -30,6 +30,40 @@ SECURITY_HEADERS = {
     "Referrer-Policy": "same-origin",
 }
 
+
+class _SecureFastAPI(FastAPI):
+    """Wraps the whole stack, including Starlette's 500 handler, which sits outside
+    anything added with ``add_middleware``."""
+
+    def build_middleware_stack(self) -> ASGIApp:
+        return SecurityHeadersMiddleware(super().build_middleware_stack())
+
+
+class SecurityHeadersMiddleware:
+    """Pure ASGI: adds headers at ``http.response.start`` so error responses get them too."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def send_with_headers(message: Message) -> None:
+            if message["type"] == "http.response.start":
+                headers = [
+                    (k, v)
+                    for k, v in message.get("headers", [])
+                    if k.decode("latin-1").lower() not in {h.lower() for h in SECURITY_HEADERS}
+                ]
+                headers += [(k.lower().encode(), v.encode()) for k, v in SECURITY_HEADERS.items()]
+                message = {**message, "headers": headers}
+            await send(message)
+
+        await self.app(scope, receive, send_with_headers)
+
+
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 
@@ -40,17 +74,9 @@ def create_app(settings: Settings) -> FastAPI:
         env=Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
     )
 
-    app = FastAPI(title=APP_NAME, version=__version__)
+    app = _SecureFastAPI(title=APP_NAME, version=__version__)
     app.state.settings = settings
     app.state.content = content
-
-    @app.middleware("http")
-    async def security_headers(
-        request: Request, call_next: Callable[[Request], Awaitable[Response]]
-    ) -> Response:
-        response = await call_next(request)
-        response.headers.update(SECURITY_HEADERS)
-        return response
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:

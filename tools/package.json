@@ -5,10 +5,12 @@
   "scripts": {
     "capture": "node capture/capture.mjs",
     "test": "node --test",
-    "compile": "node compile_content/compile.mjs ../content ../content/compiled/problems.json"
+    "compile": "node compile_content/compile.mjs ../content ../content/compiled/problems.json",
+    "capture:eval": "node capture/eval.mjs"
   },
   "dependencies": {
     "@cortex-js/compute-engine": "0.151.0",
+    "markdown-it": "15.0.2",
     "mathlive": "0.111.1",
     "playwright": "1.64.0",
     "yaml": "2.9.1"

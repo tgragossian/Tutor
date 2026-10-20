@@ -1,0 +1,537 @@
+"""Allowlist translation of raw MathJSON into SymPy (spec 03). Runs only in verifier workers.
+
+This is the only place untrusted math becomes SymPy objects. Every node is built with
+``evaluate=False`` after a bottom-up cost estimate, and the domain constraints are read
+from the raw tree before anything could cancel them.
+"""
+
+from __future__ import annotations
+
+import math
+import time
+from collections.abc import Callable
+from dataclasses import dataclass
+from decimal import Decimal
+from fractions import Fraction
+from typing import Any, Literal
+
+import sympy
+from pydantic import JsonValue
+
+from mathtutor.domain import FormatIssueCode
+from mathtutor.verify.structure import check_structure
+
+ConstraintKind = Literal["nonzero", "positive", "nonnegative", "not_half_pi_odd", "not_pi_multiple"]
+
+VARIABLE_ASSUMPTIONS = {"real": True}
+
+MAX_EXPONENT = 1000
+MAX_CONST_DIGITS = 1000
+MAX_DEGREE = 200
+MAX_ROOT_INDEX = 1000
+# A computed exponent is tried against the nearest rational with at most this denominator.
+MAX_EXACT_EXPONENT_DENOMINATOR = 1000
+EXACT_EXPONENT_BUDGET_S = 0.5
+_LOG10_2 = 0.30103  # slightly above log10(2), so digit estimates stay upper bounds
+
+
+@dataclass(frozen=True)
+class Constraint:
+    """``expr`` must satisfy ``kind`` wherever the translated expression is defined."""
+
+    kind: ConstraintKind
+    expr: sympy.Expr
+
+
+@dataclass(frozen=True)
+class Translated:
+    expr: sympy.Expr
+    constraints: tuple[Constraint, ...]
+    # A computed exponent encloses a small rational that could not be proven equal to it:
+    # its real-power restriction is unknown, so grading must abstain (d-log2-01).
+    exponent_unproven: bool = False
+
+
+@dataclass(frozen=True)
+class Rejected:
+    code: FormatIssueCode
+    detail: str
+
+
+@dataclass(frozen=True)
+class TranslateContext:
+    variable: str = "x"
+
+
+class _Reject(Exception):
+    def __init__(self, code: FormatIssueCode, detail: str) -> None:
+        super().__init__(detail)
+        self.code = code
+        self.detail = detail
+
+
+_TRIG_NAMES = {"Sin", "Cos", "Tan", "Sec", "Csc", "Cot"}
+
+
+def _inverse_trig_hint(head: str, args: list[JsonValue]) -> str | None:
+    """Message for \\sin^{-1}(x), captured as Apply(InverseFunction(Sin), x): it is ambiguous."""
+    if head != "Apply" or not args or not isinstance(args[0], list) or len(args[0]) != 2:
+        return None
+    inverse, function = args[0]
+    if inverse != "InverseFunction" or function not in _TRIG_NAMES:
+        return None
+    name = str(function).lower()
+    return f"Did you mean arc{name}(x) or 1/{name}(x)? For 1/{name}(x), write ({name}(x))⁻¹."
+
+
+def _unsupported(detail: str) -> _Reject:
+    return _Reject(FormatIssueCode.UNSUPPORTED_NOTATION, detail)
+
+
+def _too_large(detail: str) -> _Reject:
+    return _Reject(FormatIssueCode.INPUT_TOO_LARGE, detail)
+
+
+@dataclass(frozen=True)
+class _Node:
+    """A translated subtree with its cost estimate.
+
+    ``value``: the exact value when the subtree is rational arithmetic on literals.
+    ``digits``: for a constant subtree, an upper bound on the decimal digits of any number
+    SymPy may materialise from it (numerator and denominator alike); None if not constant.
+    ``degree``: an upper bound on the polynomial degree in the variable (0 for constants).
+    """
+
+    expr: Any
+    value: Fraction | None
+    digits: int | None
+    degree: int
+
+    @property
+    def constant(self) -> bool:
+        return self.digits is not None
+
+
+def _int_digits(n: int) -> int:
+    return max(1, int(abs(n).bit_length() * _LOG10_2) + 1)
+
+
+def _frac_digits(v: Fraction) -> int:
+    return max(_int_digits(v.numerator), _int_digits(v.denominator))
+
+
+def _const(expr: Any, value: Fraction | None, digits: int) -> _Node:
+    """A constant node; no constant may exceed the digit bound, whatever head built it."""
+    if value is not None:
+        digits = _frac_digits(value)
+    if digits > MAX_CONST_DIGITS:
+        raise _too_large(f"constant may exceed {MAX_CONST_DIGITS} digits")
+    return _Node(expr, value, digits, 0)
+
+
+def _rational(v: Fraction) -> Any:
+    return sympy.Rational(v.numerator, v.denominator)
+
+
+def _is_named_constant(node: _Node) -> bool:
+    return node.expr is sympy.pi or node.expr is sympy.E
+
+
+def _satisfied(kind: ConstraintKind, node: _Node) -> bool:
+    """True only when the constraint is known to hold (pi and e are positive and not 1)."""
+    v = node.value
+    if _is_named_constant(node):
+        return kind != "not_half_pi_odd" and kind != "not_pi_multiple"
+    if v is None:
+        return False
+    if kind == "nonzero" or kind == "not_pi_multiple":
+        return v != 0
+    if kind == "positive":
+        return v > 0
+    if kind == "nonnegative":
+        return v >= 0
+    return True  # a rational is never pi/2 + k*pi
+
+
+def _is_literal(tree: JsonValue) -> bool:
+    return (isinstance(tree, int) and not isinstance(tree, bool)) or isinstance(tree, dict)
+
+
+def _is_literal_fraction(tree: JsonValue) -> bool:
+    return (
+        isinstance(tree, list)
+        and len(tree) == 3
+        and tree[0] in ("Divide", "Rational")
+        and _is_literal(tree[1])
+        and _is_literal(tree[2])
+    )
+
+
+class _Builder:
+    def __init__(self, ctx: TranslateContext) -> None:
+        self.variable = ctx.variable
+        self.symbol = sympy.Symbol(ctx.variable, **VARIABLE_ASSUMPTIONS)
+        self.constraints: list[Constraint] = []
+        self.exponent_unproven = False
+        self.heads: dict[str, tuple[int, int, Callable[[list[JsonValue]], _Node]]] = {
+            "Add": (2, 200, self._add),
+            "Subtract": (2, 2, self._subtract),
+            "Negate": (1, 1, self._negate),
+            "Multiply": (2, 200, self._multiply),
+            "InvisibleOperator": (2, 200, self._invisible),
+            "Divide": (2, 2, self._divide),
+            "Rational": (2, 2, self._rational_head),
+            "Power": (2, 2, self._power),
+            "Sqrt": (1, 1, self._sqrt),
+            "Root": (2, 2, self._root),
+            "Sin": (1, 1, self._trig(sympy.sin, None)),
+            "Cos": (1, 1, self._trig(sympy.cos, None)),
+            "Tan": (1, 1, self._trig(sympy.tan, "not_half_pi_odd")),
+            "Sec": (1, 1, self._trig(sympy.sec, "not_half_pi_odd")),
+            "Cot": (1, 1, self._trig(sympy.cot, "not_pi_multiple")),
+            "Csc": (1, 1, self._trig(sympy.csc, "not_pi_multiple")),
+            "Ln": (1, 1, self._ln),
+            "Log": (1, 2, self._log),
+            "Lb": (1, 1, self._lb),
+            "Exp": (1, 1, self._exp),
+            "Abs": (1, 1, self._abs),
+            "Delimiter": (1, 1, lambda args: self.walk(args[0])),
+        }
+
+    # -- constraints -------------------------------------------------------------------------
+
+    def require(self, kind: ConstraintKind, node: _Node) -> None:
+        if _satisfied(kind, node):
+            return
+        constraint = Constraint(kind, node.expr)
+        if constraint not in self.constraints:
+            self.constraints.append(constraint)
+
+    # -- dispatch ----------------------------------------------------------------------------
+
+    def walk(self, tree: JsonValue) -> _Node:
+        if isinstance(tree, bool) or tree is None or isinstance(tree, float):
+            raise _unsupported("unsupported value")
+        if isinstance(tree, int):
+            return _const(sympy.Integer(tree), Fraction(tree), 0)
+        if isinstance(tree, dict):
+            literal = tree.get("num")
+            if len(tree) != 1 or not isinstance(literal, str):
+                raise _unsupported("unsupported object")
+            value = Fraction(Decimal(literal))
+            return _const(_rational(value), value, 0)
+        if isinstance(tree, str):
+            return self._symbol(tree)
+        if not tree or not isinstance(tree[0], str):
+            raise _unsupported("operator must be a name")
+        head, args = tree[0], tree[1:]
+        entry = self.heads.get(head)
+        if entry is None:
+            hint = _inverse_trig_hint(head, args)
+            raise _unsupported(hint or f"unsupported operator {head[:40]!r}")
+        low, high, handler = entry
+        if not low <= len(args) <= high:
+            raise _unsupported(f"{head} takes {low}..{high} arguments")
+        return handler(args)
+
+    def _symbol(self, name: str) -> _Node:
+        if name == self.variable:
+            return _Node(self.symbol, None, None, 1)
+        if name == "Pi":
+            return _const(sympy.pi, None, 1)
+        if name in ("e", "ExponentialE"):
+            return _const(sympy.E, None, 1)
+        raise _unsupported(f"unknown symbol {name[:40]!r}")
+
+    # -- arithmetic --------------------------------------------------------------------------
+
+    def _sum(self, nodes: list[_Node]) -> _Node:
+        expr = sympy.Add(*(n.expr for n in nodes), evaluate=False)
+        if all(n.constant for n in nodes):
+            value: Fraction | None = Fraction(0)
+            for n in nodes:
+                value = value + n.value if value is not None and n.value is not None else None
+            return _const(expr, value, sum(n.digits or 0 for n in nodes) + 1)
+        return _Node(expr, None, None, max(n.degree for n in nodes))
+
+    def _product(self, expr: Any, nodes: list[_Node], value: Fraction | None) -> _Node:
+        if all(n.constant for n in nodes):
+            return _const(expr, value, sum(n.digits or 0 for n in nodes))
+        return _Node(expr, None, None, sum(n.degree for n in nodes))
+
+    def _add(self, args: list[JsonValue]) -> _Node:
+        return self._sum([self.walk(a) for a in args])
+
+    def _negated(self, node: _Node) -> _Node:
+        expr = sympy.Mul(sympy.Integer(-1), node.expr, evaluate=False)
+        value = -node.value if node.value is not None else None
+        return _Node(expr, value, node.digits, node.degree)
+
+    def _subtract(self, args: list[JsonValue]) -> _Node:
+        return self._sum([self.walk(args[0]), self._negated(self.walk(args[1]))])
+
+    def _negate(self, args: list[JsonValue]) -> _Node:
+        return self._negated(self.walk(args[0]))
+
+    def _multiply(self, args: list[JsonValue]) -> _Node:
+        nodes = [self.walk(a) for a in args]
+        value: Fraction | None = Fraction(1)
+        for n in nodes:
+            value = value * n.value if value is not None and n.value is not None else None
+        return self._product(sympy.Mul(*(n.expr for n in nodes), evaluate=False), nodes, value)
+
+    def _invisible(self, args: list[JsonValue]) -> _Node:
+        for prev, cur in zip(args, args[1:], strict=False):
+            letter = isinstance(prev, str) and len(prev) == 1 and prev.isalpha()
+            delimited = isinstance(cur, list) and cur[:1] == ["Delimiter"]
+            if letter and prev != self.variable and delimited:
+                # Function application (owner ruling R15): rejected, with a hint for the student.
+                raise _unsupported(f"Did you mean {prev}·(...)? Add a multiplication sign.")
+            if _is_literal(cur):
+                raise _unsupported("number after a factor in an implicit product")
+            if _is_literal(prev) and _is_literal_fraction(cur):
+                raise _unsupported("mixed number")
+        return self._multiply(args)
+
+    def _divide(self, args: list[JsonValue]) -> _Node:
+        num, den = self.walk(args[0]), self.walk(args[1])
+        self.require("nonzero", den)
+        inverse = sympy.Pow(den.expr, sympy.Integer(-1), evaluate=False)
+        expr = sympy.Mul(num.expr, inverse, evaluate=False)
+        value = None
+        if num.value is not None and den.value is not None and den.value != 0:
+            value = num.value / den.value
+        return self._product(expr, [num, den], value)
+
+    def _rational_head(self, args: list[JsonValue]) -> _Node:
+        p, q = args
+        if not (_is_int(p) and _is_int(q)) or q == 0:
+            raise _unsupported("Rational takes two integers, the second nonzero")
+        assert isinstance(p, int) and isinstance(q, int)
+        value = Fraction(p, q)
+        return _const(_rational(value), value, 0)
+
+    # -- powers and roots --------------------------------------------------------------------
+
+    def _power(self, args: list[JsonValue]) -> _Node:
+        return self._raise(self.walk(args[0]), self.walk(args[1]))
+
+    def _raise(self, base: _Node, exp: _Node, build: Callable[[Any], Any] | None = None) -> _Node:
+        """``base ** exp`` under the spec 03 cost bound.
+
+        ``build`` makes the expression from the exponent's SymPy form instead of ``Pow``;
+        ``Exp(a)`` uses it so that it shares the rule for ``Power(e, a)``.
+        """
+        if not exp.constant:
+            # Never expanded; real-valued only for a positive base.
+            self.require("positive", base)
+            if build is not None:
+                return _Node(build(exp.expr), None, None, 1)
+            return _Node(sympy.Pow(base.expr, exp.expr, evaluate=False), None, None, 1)
+        v = exp.value
+        if v is not None:
+            if abs(v) > MAX_EXPONENT:
+                raise _too_large(f"exponent exceeds {MAX_EXPONENT}")
+            bound = math.ceil(abs(v))
+        else:
+            # Not rational arithmetic (pi, sqrt, exp, log, ...). Digits do not bound magnitude:
+            # 1/ln(exp(1/N)) = N has few (review B-C2). Bound |exp| by a rigorous interval
+            # enclosure instead, before anything evaluates.
+            bound, box = self._exponent_bound(exp.expr)
+            # Bounded first (B-C2); only then try to prove the exponent rational (R14).
+            v = self._exact_exponent(exp.expr, box)
+        if base.degree * bound > MAX_DEGREE:
+            raise _too_large(f"polynomial degree may exceed {MAX_DEGREE}")
+        digits = None
+        if base.constant:
+            # The exponent stays in the tree (e^(1/N), 2^(1/N)), so its digits count too.
+            assert exp.digits is not None
+            digits = max(self._power_digits(base, bound), exp.digits)
+            if digits > MAX_CONST_DIGITS:
+                raise _too_large(f"constant may exceed {MAX_CONST_DIGITS} digits")
+        if v is None:
+            self.require("positive", base)
+        elif v.denominator % 2 == 1:
+            # Integer, or an odd reduced denominator: the real power (owner ruling R14).
+            if v < 0:
+                self.require("nonzero", base)
+        else:
+            self.require("positive" if v < 0 else "nonnegative", base)
+        exponent = _rational(v) if v is not None else exp.expr
+        if build is not None:
+            expr = build(exponent)
+        elif v is not None and v.denominator % 2 == 1 and v.denominator != 1:
+            expr = _real_power(base.expr, exponent, odd_numerator=v.numerator % 2 == 1)
+        else:
+            expr = sympy.Pow(base.expr, exponent, evaluate=False)
+        if digits is None:
+            return _Node(expr, None, None, base.degree * bound)
+        value = None
+        if base.value is not None and v is not None and v.denominator == 1:
+            if base.value != 0 or v >= 0:
+                value = base.value ** int(v)
+        return _const(expr, value, digits)
+
+    def _exponent_bound(self, expr: Any) -> tuple[int, tuple[Fraction, Fraction]]:
+        """ceil(|expr|) and its enclosure for a constant exponent, or reject."""
+        # Imported here: refute imports this module (through equivalence) at load time.
+        from mathtutor.verify.refute import enclose, to_fraction
+
+        box = enclose(expr, self.symbol, sympy.Integer(0))
+        if box is None:
+            raise _too_large(f"exponent may exceed {MAX_EXPONENT}")
+        lo, hi = to_fraction(box[0]), to_fraction(box[1])
+        magnitude = max(abs(lo), abs(hi))
+        if magnitude > MAX_EXPONENT:
+            raise _too_large(f"exponent may exceed {MAX_EXPONENT}")
+        return math.ceil(magnitude), (lo, hi)
+
+    def _exact_exponent(self, expr: Any, box: tuple[Fraction, Fraction]) -> Fraction | None:
+        """The exponent's exact rational value when proven (log_2 8 = 3), else None.
+
+        Only the nearest small-denominator rational inside the enclosure is tried. If one is
+        there but unproven, the real-power restriction is unknown: flag it so grading abstains.
+        """
+        from mathtutor.verify.equivalence import Budget, prove_equal
+
+        lo, hi = box
+        candidate = ((lo + hi) / 2).limit_denominator(MAX_EXACT_EXPONENT_DENOMINATOR)
+        if not lo <= candidate <= hi:
+            return None
+        budget = Budget(time.monotonic() + EXACT_EXPONENT_BUDGET_S)
+        if prove_equal(expr, _rational(candidate), budget):
+            return candidate
+        self.exponent_unproven = True
+        return None
+
+    @staticmethod
+    def _power_digits(base: _Node, bound: int) -> int:
+        if base.value is None:
+            assert base.digits is not None
+            return base.digits * bound
+        largest = max(abs(base.value.numerator), base.value.denominator)
+        if largest <= 1 or bound == 0:
+            return 1
+        return math.floor(bound * math.log10(largest)) + 1
+
+    def _sqrt(self, args: list[JsonValue]) -> _Node:
+        node = self.walk(args[0])
+        self.require("nonnegative", node)
+        return self._like(node, sympy.Pow(node.expr, sympy.Rational(1, 2), evaluate=False))
+
+    def _root(self, args: list[JsonValue]) -> _Node:
+        node, index = self.walk(args[0]), self.walk(args[1])
+        n = index.value
+        if n is None or n.denominator != 1 or n < 2:
+            raise _unsupported("root index must be an integer of at least 2")
+        if n > MAX_ROOT_INDEX:
+            raise _too_large(f"root index exceeds {MAX_ROOT_INDEX}")
+        exponent = sympy.Rational(1, int(n))
+        if n % 2 == 0:
+            self.require("nonnegative", node)
+            expr = sympy.Pow(node.expr, exponent, evaluate=False)
+        else:
+            expr = _real_power(node.expr, exponent, odd_numerator=True)
+        # 1/n stays in the tree: ln(2^(1/n)) = ln(2)/n, so the index's digits count too.
+        digits = None if node.digits is None else max(node.digits, _int_digits(int(n)))
+        return _Node(expr, None, digits, node.degree)
+
+    @staticmethod
+    def _like(node: _Node, expr: Any) -> _Node:
+        """Same cost estimate as ``node`` (roots and Abs do not grow digits or degree)."""
+        return _Node(expr, None, node.digits, node.degree)
+
+    # -- functions ---------------------------------------------------------------------------
+
+    @staticmethod
+    def _apply(fn: Any, node: _Node, digits: int) -> _Node:
+        expr = fn(node.expr, evaluate=False)
+        if node.constant:
+            return _const(expr, None, digits)
+        return _Node(expr, None, None, 1)
+
+    def _trig(self, fn: Any, kind: ConstraintKind | None) -> Callable[[list[JsonValue]], _Node]:
+        def handler(args: list[JsonValue]) -> _Node:
+            node = self.walk(args[0])
+            if kind is not None:
+                self.require(kind, node)
+            return self._apply(fn, node, (node.digits or 0) + 1)
+
+        return handler
+
+    def _ln(self, args: list[JsonValue]) -> _Node:
+        node = self.walk(args[0])
+        self.require("positive", node)
+        digits = (node.digits or 0) + 1
+        if node.value is not None:
+            # |ln(p/q)| <= ln(max(p, q)) < 2.31 * digits(p/q).
+            digits = _int_digits(math.ceil(Fraction(231, 100) * _frac_digits(node.value))) + 1
+        return self._apply(sympy.log, node, digits)
+
+    def _log_base(self, arg: _Node, base: _Node) -> _Node:
+        self.require("positive", arg)
+        self.require("positive", base)
+        if not (_is_named_constant(base) or (base.value is not None and base.value != 1)):
+            one_off = sympy.Add(base.expr, sympy.Integer(-1), evaluate=False)
+            self.require("nonzero", _Node(one_off, None, None, 0))
+        if base.expr is sympy.E:
+            return self._apply(sympy.log, arg, (arg.digits or 0) + 1)
+        expr = sympy.Mul(
+            sympy.log(arg.expr, evaluate=False),
+            sympy.Pow(sympy.log(base.expr, evaluate=False), sympy.Integer(-1), evaluate=False),
+            evaluate=False,
+        )
+        if arg.constant and base.constant:
+            return _const(expr, None, (arg.digits or 0) + (base.digits or 0) + 1)
+        return _Node(expr, None, None, 1)
+
+    def _log(self, args: list[JsonValue]) -> _Node:
+        arg = self.walk(args[0])
+        base = self.walk(args[1]) if len(args) == 2 else self.walk(10)
+        return self._log_base(arg, base)
+
+    def _lb(self, args: list[JsonValue]) -> _Node:
+        return self._log_base(self.walk(args[0]), self.walk(2))
+
+    def _exp(self, args: list[JsonValue]) -> _Node:
+        # Same cost rule as Power(e, a): exp(n*ln k) evaluates to k**n.
+        return self._raise(
+            self._symbol("e"), self.walk(args[0]), lambda a: sympy.exp(a, evaluate=False)
+        )
+
+    def _abs(self, args: list[JsonValue]) -> _Node:
+        node = self.walk(args[0])
+        expr = sympy.Abs(node.expr, evaluate=False)
+        if node.value is not None:
+            return _const(expr, abs(node.value), 0)
+        return self._like(node, expr)
+
+
+def _real_power(base: Any, exponent: Any, *, odd_numerator: bool) -> Any:
+    """Real ``base ** (p/q)`` for odd q: ``sign(a)*|a|^(p/q)`` (odd p) or ``|a|^(p/q)``.
+
+    Built unevaluated; ``sympy.real_root`` would evaluate eagerly and may build a Piecewise.
+    """
+    magnitude = sympy.Pow(sympy.Abs(base, evaluate=False), exponent, evaluate=False)
+    if not odd_numerator:
+        return magnitude
+    return sympy.Mul(sympy.sign(base, evaluate=False), magnitude, evaluate=False)
+
+
+def _is_int(tree: JsonValue) -> bool:
+    return isinstance(tree, int) and not isinstance(tree, bool)
+
+
+def translate(tree: JsonValue, ctx: TranslateContext) -> Translated | Rejected:
+    """Translate raw MathJSON through the allowlist. Never raises."""
+    try:
+        issue = check_structure(tree)
+        if issue is not None:
+            return Rejected(issue.code, issue.detail)
+        builder = _Builder(ctx)
+        node = builder.walk(tree)
+        return Translated(node.expr, tuple(builder.constraints), builder.exponent_unproven)
+    except _Reject as rejection:
+        return Rejected(rejection.code, rejection.detail)
+    except Exception as error:  # any surprise in untrusted input is unsupported, never a crash
+        return Rejected(FormatIssueCode.UNSUPPORTED_NOTATION, type(error).__name__)

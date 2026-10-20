@@ -2,6 +2,12 @@
 
 [Milestone B plan](../README.md) · [Spec 09](../../../../specs/2026-10-13-portfolio-core/09-operations.md) · [Spec 08](../../../../specs/2026-10-13-portfolio-core/08-verifier-evaluation.md)
 
+Release also needs resolved [evaluation follow-ups](../05-follow-ups.md), reviewed dev results,
+and Linux pool/memory evidence; the Windows suite does not establish these.
+
+**Status (2026-10-19):** not started; paths below are planned outputs.
+Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
+
 **Files:**
 - Create: `tools/load/submit_burst.py`, `docs/verifier/README.md`, `docs/verifier/supported.md`, `evals/verifier/results/dev-b.md`
 - Modify: `Dockerfile`, `deploy/compose.yaml`, `tests/container/smoke.sh`, `docs/ops/host.md`, `docs/ops/runbook.md`, `src/mathtutor/settings.py`, `README.md`, `docs/README.md`

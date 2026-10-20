@@ -2,6 +2,9 @@
 
 [Milestone B plan](../README.md) · [Spec 07](../../../../specs/2026-10-13-portfolio-core/07-application-and-web.md) · Ruling R2
 
+**Status (2026-10-19):** not started; paths below are planned outputs.
+Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
+
 **Files:**
 - Create: `src/mathtutor/application/__init__.py`, `errors.py`, `auth.py`
 - Create: `src/mathtutor/web/security.py`
@@ -10,7 +13,7 @@
 
 **Interfaces:**
 - Consumes: `make_sessionmaker`, `User`, `WebSession` (task 10); `Settings.secret_key`, `Settings.env`.
-- Produces (`application/errors.py`): `class AppError(Exception)` with subclasses `Unauthorized` (401), `Forbidden` (403), `NotFound` (404), `StaleItem` (409), `InvalidAction` (409), `Conflict` (409, e.g. username taken), `RateLimited` (429), `Busy` (503). Each has `code: str` used as the JSON `error`.
+- Produces (`application/errors.py`): `class AppError(Exception)` with subclasses `Unauthorized` (401), `Forbidden` (403), `NotFound` (404), `StaleItem` (409), `SubmissionPending` (409, R13), `InvalidAction` (409), `Conflict` (409, e.g. username taken), `RateLimited` (429), `Busy` (503). Each has `code: str` used as the JSON `error`.
 - Produces (`application/auth.py`):
   - `@dataclass(frozen=True) class LoginResult: user_id: int; token: str; csrf_token: str; expires_at: datetime`
   - `class AuthService: __init__(self, sessions: sessionmaker[Session], clock: Callable[[], datetime])`

@@ -102,3 +102,16 @@ def test_security_headers(client: TestClient) -> None:
         assert h["content-security-policy"] == "default-src 'self'"
         assert h["x-content-type-options"] == "nosniff"
         assert h["referrer-policy"] == "same-origin"
+
+
+def test_security_headers_on_500() -> None:
+    app = create_app(Settings(env="test", content_path=REAL_PATH))
+
+    @app.get("/boom")
+    def boom() -> None:
+        raise RuntimeError("boom")
+
+    r = TestClient(app, raise_server_exceptions=False).get("/boom")
+    assert r.status_code == 500
+    assert r.headers["content-security-policy"] == "default-src 'self'"
+    assert r.headers["x-content-type-options"] == "nosniff"

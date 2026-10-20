@@ -2,6 +2,9 @@
 
 [Milestone B plan](../README.md) · [Spec 01](../../../../specs/2026-10-13-portfolio-core/01-content-and-domains.md) · Rulings R1, R3
 
+**Status (2026-10-19):** Complete: 9d06779..4ec38cb; R9 migrates every fixture to schema 2; in-task rulings cover misconceptions.
+See [rulings](../02-execution-rulings.md) and [execution status](../03-execution-status.md); checked steps include recorded replacements.
+
 **Files:**
 - Create: `src/mathtutor/verify/content_check.py`, `tests/unit/verify/test_content_check.py`
 - Create fixtures: `tests/fixtures/content/bundles/{expected_pole,expected_untranslatable,choice_bad}.json`
@@ -17,7 +20,7 @@
   - CLI: `python -m mathtutor.verify.content_check [path]` → exit 0 and `ok: N problems`, or exit 1 and the error lines.
   - Compiled problems gain `statement_html` (consumed by task 13's `PublicItem`).
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
 
 ```python
 def test_seed_bundle_passes(): assert check_bundle(load_bundle(REAL)) == []
@@ -33,17 +36,17 @@ test("statement raw HTML is escaped", ...)                                 // "<
 test("statement links outside openstax.org are dropped", ...)
 ```
 
-- [ ] **Step 2:** Run `uv run pytest tests/unit/verify/test_content_check.py -q` and `npm test --prefix tools`. Expected: FAIL.
-- [ ] **Step 3: Implement `check_bundle`.** For every problem:
+- [x] **Step 2:** Run `uv run pytest tests/unit/verify/test_content_check.py -q` and `npm test --prefix tools`. Expected: FAIL.
+- [x] **Step 3: Implement `check_bundle`.** For every problem:
   - expression/numeric: the expected tree translates; it is proven equal to itself; each of its constraints has an empty violation set inside the declared domain (else `answer.domain: expected answer undefined on domain at <set>`; a `ConditionSet` → `domain unprovable`).
   - choice: every choice translates; the `correct` choice is not proven equal to any other choice.
   - misconceptions (the part before `  #`): if parseable as LaTeX they were compiled to MathJSON by task 6's compiler change; each must not grade `correct`.
-- [ ] **Step 4: Compiler.**
+- [x] **Step 4: Compiler.**
   - `statement_html`: split the statement on `$...$`; render text parts with `markdown-it({html: false, linkify: false})` inline rendering; drop any link whose href does not start with `https://openstax.org/`; render math parts as `<math-field read-only>` + HTML-escaped LaTeX + `</math-field>`.
   - Misconceptions: compile the LaTeX part to `misconceptions_mathjson` (list, same order). Add that optional field to `Problem` too.
   - Bump `schema_version` to 2 in compiler output and schema.
-- [ ] **Step 5: Wire it in.**
+- [x] **Step 5: Wire it in.**
   - CI `python` job: `uv run python -m mathtutor.verify.content_check` after pytest.
   - `Dockerfile` build stage: `RUN /app/.venv/bin/python -m mathtutor.verify.content_check /src/content/compiled/problems.json` (copy `content/compiled` into the build stage first). The image cannot be built from a bad bundle.
-- [ ] **Step 6:** Run `npm run compile --prefix tools && uv run pytest -q && npm test --prefix tools`. Expected: PASS, and `git diff content/compiled` shows only `statement_html`, `misconceptions_mathjson` and `schema_version`.
-- [ ] **Step 7: Commit** `feat: offline content math check; statement HTML at compile time`.
+- [x] **Step 6:** Run `npm run compile --prefix tools && uv run pytest -q && npm test --prefix tools`. Expected: PASS, and `git diff content/compiled` shows only `statement_html`, `misconceptions_mathjson` and `schema_version`.
+- [x] **Step 7: Commit** `feat: offline content math check; statement HTML at compile time`.

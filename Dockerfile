@@ -13,6 +13,9 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --locked --no-dev --no-install-project
 COPY src ./src
 RUN uv sync --locked --no-dev --no-editable
+# The image cannot be built from a bundle whose math fails the offline check (R1).
+COPY content/compiled ./content/compiled
+RUN /app/.venv/bin/python -m mathtutor.verify.content_check /src/content/compiled/problems.json
 
 FROM python:3.12.14-slim-trixie
 RUN groupadd --gid 10001 app \
