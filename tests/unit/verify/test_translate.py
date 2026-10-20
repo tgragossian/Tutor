@@ -253,6 +253,18 @@ def test_nonconstant_exponent_allowed() -> None:
     assert code(["Power", 2, ["Power", "x", 201]]) == "input_too_large"
 
 
+@pytest.mark.parametrize(
+    ("head", "name"), [("Sin", "sin"), ("Cos", "cos"), ("Tan", "tan"), ("Csc", "csc")]
+)
+def test_inverse_trig_power_suggests_both_readings(head: str, name: str) -> None:
+    # \sin^{-1}(x) as MathLive captures it: arcsin or 1/sin(x)? Never guess; say both.
+    result = translate(["Apply", ["InverseFunction", head], "x"], CTX)
+    assert isinstance(result, Rejected) and result.code == "unsupported_notation"
+    assert result.detail == (
+        f"Did you mean arc{name}(x) or 1/{name}(x)? For 1/{name}(x), write ({name}(x))⁻¹."
+    )
+
+
 def test_other_symbol_rejected() -> None:
     result = translate(["Add", "x", "y"], CTX)
     assert isinstance(result, Rejected) and result.code == "unsupported_notation"

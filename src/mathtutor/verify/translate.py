@@ -70,6 +70,20 @@ class _Reject(Exception):
         self.detail = detail
 
 
+_TRIG_NAMES = {"Sin", "Cos", "Tan", "Sec", "Csc", "Cot"}
+
+
+def _inverse_trig_hint(head: str, args: list[JsonValue]) -> str | None:
+    """Message for \\sin^{-1}(x), captured as Apply(InverseFunction(Sin), x): it is ambiguous."""
+    if head != "Apply" or not args or not isinstance(args[0], list) or len(args[0]) != 2:
+        return None
+    inverse, function = args[0]
+    if inverse != "InverseFunction" or function not in _TRIG_NAMES:
+        return None
+    name = str(function).lower()
+    return f"Did you mean arc{name}(x) or 1/{name}(x)? For 1/{name}(x), write ({name}(x))⁻¹."
+
+
 def _unsupported(detail: str) -> _Reject:
     return _Reject(FormatIssueCode.UNSUPPORTED_NOTATION, detail)
 
@@ -213,7 +227,8 @@ class _Builder:
         head, args = tree[0], tree[1:]
         entry = self.heads.get(head)
         if entry is None:
-            raise _unsupported(f"unsupported operator {head[:40]!r}")
+            hint = _inverse_trig_hint(head, args)
+            raise _unsupported(hint or f"unsupported operator {head[:40]!r}")
         low, high, handler = entry
         if not low <= len(args) <= high:
             raise _unsupported(f"{head} takes {low}..{high} arguments")
