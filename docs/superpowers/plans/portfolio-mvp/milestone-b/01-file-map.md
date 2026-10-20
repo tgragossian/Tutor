@@ -2,7 +2,7 @@
 
 [Milestone B plan](README.md) · [Structure review](../../../../reviews/2026-10-13/structure.md)
 
-Updated 2026-10-20: tasks 1–8 exist; task 9 source review is complete; R24/release remain.
+Updated 2026-10-20: tasks 1–9 and R24 complete; reviewed gate and CI pass; merge next.
 Tasks 10–16 are planned. [R24 ownership and debugging](r24/01-precheck.md).
 Task numbers in the right column identify ownership, not proof of completion.
 
@@ -56,10 +56,10 @@ tools/
 evals/verifier/
   README.md                     how cases are written, captured and reviewed        8
   human/dev.src.yaml            136 reviewed cases (latex, label, rationale)             9
-  human/dev.jsonl               136 stale captures; recapture reviewed source         9
+  human/dev.jsonl               136 reviewed captures; matches source exactly         9
   human/REVIEW.md, REVIEW-*.md   linked human-review sheets                            9
   generated/mutations.jsonl     SymPy-generated regression cases                     8
-  results/                      .gitkeep (8), dev-draft.json (9), release (16)   8,9,16
+  results/                      README, historical dev-draft.json, dev-b.json   8,9,16
 content/problems/*.yaml         14–24 new problems (20–30 total)                    15
 docs/ops/security.md            CSP and cookie decisions                              14
 docs/verifier/README.md         verifier documentation parent                        16

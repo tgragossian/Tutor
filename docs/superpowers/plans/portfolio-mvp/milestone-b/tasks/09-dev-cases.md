@@ -2,10 +2,11 @@
 
 [Milestone B plan](../README.md) · [Spec 08](../../../../specs/2026-10-13-portfolio-core/08-verifier-evaluation.md)
 
-**Status (2026-10-20):** steps 1–4 complete; 9b2e1f2 records 136 `tg` source cases:
-49 correct, 50 incorrect, 37 unsupported. Captures still have old labels and pending markers.
-[R24 implementation and release](../r24/README.md) must precede recapture and steps 5–7.
-No reviewed R24 gate result exists; see [review sheet](../../../../../../evals/verifier/human/REVIEW.md).
+**Status (2026-10-20): complete.** All 136 cases are reviewed and recaptured (`tg`):
+49 correct, 50 incorrect, 37 unsupported. R24 is implemented; non-draft gate B passes.
+[dev-b.json](../../../../../../evals/verifier/results/dev-b.json): FA 0/50 (95% upper bound 7.1%),
+FR 0/49, coverage 49/49, unsupported accepts 0/37, agreement 136/136. CI is green;
+[release/merge checklist](../r24/02-release.md). Thomas merges tasks 1–9 next.
 
 **Files:**
 - Create: `evals/verifier/human/dev.src.yaml`, `evals/verifier/human/dev.jsonl` (generated), `tools/capture/eval.mjs`
@@ -47,7 +48,7 @@ No reviewed R24 gate result exists; see [review sheet](../../../../../../evals/v
 - [x] **Step 2: Write the 80+ cases** in `dev.src.yaml` with `reviewer: 'pending'`, each with a rationale that states why the label is right (worked check for `correct`, the specific error for `incorrect`).
 - [x] **Step 3:** Run `npm run capture:eval --prefix tools`, then `uv run python -m mathtutor.verify.evaluate --set dev --gate B`.
   - Expected: a report. Every disagreement is either a verifier bug (fix it in the owning module with a unit test first) or a labelling question for Thomas. **Never edit a label to make it pass** (spec 08).
-- [x] **Step 4: Human gate (Thomas).** All 136 source cases reviewed in 9b2e1f2, including the seven R24 relabels and `d-sqsq-02`'s `[0, inf)` domain. Preserve `tg` marks; recapture remains pending.
-- [ ] **Step 5:** Add `--set dev --gate B` to CI. Require human reviewer `tg` on every dev row; reject `pending`/blank/generated reviewers for release. Regenerate captured JSONL after source review; preserve a separate draft path. Enforcement, category checks and `--draft` landed in bdb1710; source review is complete; the CI step now waits for R24 and recapture.
-- [ ] **Step 6:** Run `uv run python -m mathtutor.verify.evaluate --set dev --gate B --out evals/verifier/results/dev-b.json`. Expected: exit 0 with FA 0 observed, FR ≤ 2%, coverage ≥ 85%.
-- [ ] **Step 7: Commit** reviewed captures and actual gate evidence (body: category counts and metrics). Then merge tasks 1–9 to `main` after required checks. No assistant co-author trailers.
+- [x] **Step 4: Human gate (Thomas).** All 136 source cases reviewed in 9b2e1f2, including the seven R24 relabels and `d-sqsq-02`'s `[0, inf)` domain. b5ad4b2 recaptures these marks and labels exactly.
+- [x] **Step 5:** 8a0bb40 adds `--set dev --gate B` to CI. Reviewed captures are in b5ad4b2; reviewer/category enforcement remains unchanged. CI run 39504828416 passes after d673400 fixes Linux test teardown.
+- [x] **Step 6:** Non-draft `evaluate --set dev --gate B --out evals/verifier/results/dev-b.json` passes at b5ad4b2. FA 0/50, FR 0/49, coverage 49/49; all 136 outcomes agree.
+- [x] **Step 7: Commit** reviewed captures (b5ad4b2), release evidence (e995438) and CI gate (8a0bb40). Task 9 is done; merge to `main` is Thomas's next action, preserving milestone-b's handoff. No assistant co-author trailers.

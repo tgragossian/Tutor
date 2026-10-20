@@ -29,7 +29,7 @@ real Chromium 156 (cases in `tools/capture/cases.json`). Snippets below are copi
   trailing zero is lost**, in raw and canonical form, setValue and typed (`typed_dec_0780`).
 - `toMathJson` options (`shorthands`, `digits`, `metadata`) do not restore it. `dec_250` (`2.50`) gives `2.5`.
 - **Historical milestone A fallback:** no minimum places; any decimal was rounded to N.
-  [R24](../superpowers/specs/2026-10-20-decimal-places-design.md) supersedes it for numeric problems requesting N places, using original LaTeX; implementation pending.
+  [R24](../superpowers/specs/2026-10-20-decimal-places-design.md) supersedes it for numeric problems requesting N places, using preserved LaTeX; implemented in a76985d.
 - Decimals are bare JSON numbers (`0.785`, `["Divide",0.5,"x"]`) or `{"num": "..."}`: the number
   object appears for long literals. `long_int` is `{"num":"1234567890123456789012345678901234567890"}`.
 - Constants differ by form: raw gives `"e"` and `"Pi"`; canonical gives `"ExponentialE"`.

@@ -2,37 +2,32 @@
 
 [Milestone B plan](../README.md) · [Execution status](../03-execution-status.md) · [Task 9](../tasks/09-dev-cases.md)
 
-**2026-10-20:** approved, not implemented. Thomas's source review is complete (9b2e1f2).
-This checklist implements the [R24 spec](../../../../specs/2026-10-20-decimal-places-design.md).
+**2026-10-20:** implemented in a76985d with failing tests first. Reviewed captures, gate B
+and CI pass; task 9 is complete. Thomas's merge of tasks 1–9 to `main` remains next.
 
 ## Scope
 
-Only numeric problems explicitly requesting N decimal places enforce exactly N places on
-standalone decimals. Exact expressions remain allowed. Other decimal lengths produce
-`wrong_decimal_places` and are not graded. There is no universal cap inside expressions.
-Do not round coefficients or replace exact fractions with decimal approximations.
-Removable-hole behavior remains unchanged under decision 0001.
+Only numeric problems explicitly requesting N decimal places require exactly N places on
+standalone decimals. Exact expressions remain allowed; other lengths produce
+`wrong_decimal_places` and are not graded. No universal cap applies inside expressions.
+Coefficients and fractions stay exact. Removable-hole behavior follows decision 0001.
+See the [R24 spec](../../../../specs/2026-10-20-decimal-places-design.md).
 
-## Modules and order
+## Modules
 
-1. [Pre-check and regression tests](01-precheck.md): original input, place counting,
-   mismatch abstention, evaluator agreement and debugging by layer.
-2. [Content, capture and release](02-release.md): reviewed source/capture consistency,
-   required checks, non-draft gate, CI and merge readiness.
-
-## Starting state
-
-- `dev.src.yaml`: 136 `tg`; 49 correct, 50 incorrect, 37 unsupported.
-- `dev.jsonl`: pre-R24 labels and pending markers; not release-ready.
-- `d-sqsq-02` now includes zero, `[0, inf)`, in reviewed source; recapture it too.
-- No reviewed R24 metrics exist. Preserve historical results as dated evidence.
-- Keep FA 0 and containment unchanged. Never change labels to fit verifier output.
+1. [Pre-check and regressions](01-precheck.md): implementation ownership and debugging.
+2. [Content, capture and release](02-release.md): completed checks and remaining merge steps.
+3. [Result evidence](../../../../../../evals/verifier/results/README.md): metrics, CI and historical artifacts.
 
 ## Completion evidence
 
-- [ ] R24 tests fail before implementation and pass afterward.
-- [ ] Problem wording, compiled content and reviewed captures agree.
-- [ ] Required checks and `evaluate --set dev --gate B` pass without `--draft`.
-- [ ] CI enforces the dev gate; results identify tested code/content/dataset versions.
-- [ ] Task 9 status and resume metrics reflect the actual reviewed run.
-- [ ] Tasks 1–9 are merged to `main` after checks; tasks 10–16 remain unfinished.
+- [x] Tests failed before a76985d and passed after implementation.
+- [x] Problem 253 wording and compiled content updated in a76985d.
+- [x] b5ad4b2 recaptured 136 `tg` cases matching source, including `[0, inf)` for `d-sqsq-02`.
+- [x] Non-draft gate B passed: FA 0/50 (95% upper bound 7.1%), FR 0/49, coverage 49/49,
+  unsupported accepts 0/37, agreement 136/136; e995438 records `dev-b.json`.
+- [x] 8a0bb40 enables the dev CI gate; run 39504828416 is green after d673400's test fix.
+- [x] Status/docs report reviewed results; `dev-draft.json` is explicitly historical.
+- [ ] Thomas merges tasks 1–9 to `main`, preserving milestone-b's handoff, then checks live health.
+
+Tasks 10–16 remain unfinished. Preserve reviewed labels, FA 0 and containment.

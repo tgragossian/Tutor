@@ -2,8 +2,8 @@
 
 [Delivery plan](../README.md) · [Milestone B goals](../02-practice.md) · [Handoff](../../../../../handoff.md)
 
-**Status (2026-10-20):** tasks 1–8 and R22/R23 implemented; all 136 task 9 source cases reviewed.
-R24, recapture and the release gate remain; tasks 10–16 not started. See [execution status](03-execution-status.md).
+**Status (2026-10-20):** tasks 1–9 complete, including R24, reviewed gate B and green CI.
+Next: Thomas merges to `main`; tasks 10–16 not started. See [execution status](03-execution-status.md).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -68,7 +68,7 @@ cut scope (never accuracy or containment, per the delivery plan) or draw on the 
 ## Exit evidence (from [02-practice](../02-practice.md) and spec 08)
 
 - Required: ≥ 80 human-reviewed dev cases; FA 0 observed, FR ≤ 2%, coverage ≥ 85%, generated-set FA 0, enforced in CI (tasks 8–9).
-  Current source: 136 `tg`, 49 correct / 50 incorrect / 37 unsupported. Captures are stale; no reviewed R24 result exists. Only generated evaluation runs in CI.
+  Achieved for the verifier track: 136 `tg`, FA 0/50 (95% upper bound 7.1%), FR 0/49, coverage 49/49; both gates run in green CI. [Reviewed result](../../../../../evals/verifier/results/dev-b.json).
 - Same-pool recovery after timeout and death, bounded queue, 16-thread concurrency with no zombies (task 7).
 - Duplicate submissions, racing submissions, stale revisions, exhausted items and cross-user access tested (task 12).
 - No response, JSON or HTML, contains a private answer field (task 13).

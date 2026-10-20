@@ -5,7 +5,7 @@
 Updated 2026-10-20. Historical observations below are not new rulings or fresh test results.
 Keep release-relevant evaluation issues ahead of optional cleanup.
 
-## Resolve before task 9 is called complete
+## Resolved for task 9
 
 - Done: [2026-10-19 review](../../../../reviews/2026-10-19-milestone-b/README.md) B-E1/B-E2
   in bdb1710 (approved reviewer, label/category coverage, empty sets fail, `--draft`).
@@ -22,8 +22,10 @@ Keep release-relevant evaluation issues ahead of optional cleanup.
   (Compute Engine parses both as `Sin`; MathLive produces the operatorname form from typing).
   Closed in 098b7ba with tests; regression case `d-r22-05`.
 - Human review completed in 9b2e1f2: all 136 source rows are `tg`, including seven R24 labels.
-  Captures still carry old labels and pending markers. Follow the [R24 checklist](r24/README.md)
-  before recapture, non-draft gate B and dev CI enablement. Do not reset reviewed marks.
+  R24 landed in a76985d; b5ad4b2 recaptures source exactly. e995438 records passing non-draft
+  [dev-b.json](../../../../../evals/verifier/results/dev-b.json); 8a0bb40 enables the dev CI gate.
+- d673400 fixes Linux pool-test teardown (competing worker reap). CI run 39504828416 is green;
+  Thomas reports 722 Linux tests passed, including memory containment. Task 9 is complete.
 - `dev-draft.json` reports `0.1.0+dev`; published runs should record the actual code SHA
   through `MATHTUTOR_GIT_SHA`. Keep the existing draft result unchanged.
 

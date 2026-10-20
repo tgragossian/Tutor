@@ -2,8 +2,8 @@
 
 [Review index](REVIEW.md)
 
-One line per case: id · input as typed · label · rationale · verifier verdict.
-Verdicts are historical pre-R24 evidence. Source review is complete; see the index for recapture/release status.
+One line per case: id · input as typed · reviewed label · rationale · measured verdict.
+Verdicts are from [dev-b.json](../results/dev-b.json), the reviewed non-draft run at b5ad4b2.
 
 ## Typical errors (34)
 

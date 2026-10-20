@@ -68,7 +68,7 @@ recorded constraint with equivalent constraints on its inner argument, recursive
   `d-181-05` becomes `(1-\sin(x))^2-\cos(x)(x+\cos(x))`, label `correct`.
 - New `unsupported` regression cases: `\sin x`, `\cos x(x+1)`, `\cos^2x`, `\log_2 8`, and `\operatorname{sin}x` (the operatorname/mathrm bypass, closed in 098b7ba).
 - At authoring, edited/new cases stayed `pending`. Thomas reviewed all 136 in 9b2e1f2;
-  preserve those `tg` marks. R24 implementation and recapture remain; see [R24](2026-10-20-decimal-places-design.md).
+  preserve those `tg` marks. R24, recapture and reviewed gate now pass; see [R24](2026-10-20-decimal-places-design.md).
 
 ## Testing and evidence
 

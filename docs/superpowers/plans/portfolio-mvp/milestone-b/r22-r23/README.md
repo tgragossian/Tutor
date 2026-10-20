@@ -3,7 +3,7 @@
 [Milestone B plan](../README.md) · [Spec](../../../../specs/2026-10-19-function-input-and-domain-rewrite-design.md) · [Rulings](../02-execution-rulings.md) · [Review sheet](../../../../../../evals/verifier/human/REVIEW.md)
 
 **Historical implementation plan:** R22/R23 are complete; all source cases were reviewed
-in 9b2e1f2. Preserve `tg`; use the [R24 checklist](../r24/README.md) for remaining work.
+in 9b2e1f2. Preserve `tg`; see the completed [R24 checklist](../r24/README.md) and pending merge.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

@@ -9,7 +9,7 @@ practice loop and verifier contracts remain for milestone B.
 
 **What takes precedence over this spec:** decision 0001. Approved amendments include
 [R22/R23](../2026-10-19-function-input-and-domain-rewrite-design.md) and
-[R24](../2026-10-20-decimal-places-design.md) (numeric precision; implementation pending).
+[R24](../2026-10-20-decimal-places-design.md) (numeric precision; implemented in a76985d).
 
 **Not covered here:**
 - RAG hints (milestone C) get their own spec.

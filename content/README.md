@@ -29,7 +29,7 @@ Problem content for the tutor: authored YAML in, one compiled JSON bundle out.
 
 For `numeric` answers with `precision: {decimals: N}`, the statement must say
 “Give an exact answer or round to N decimal places.” [R24](../docs/superpowers/specs/2026-10-20-decimal-places-design.md)
-is approved; problem 253's wording and enforcement still await implementation.
+is implemented in a76985d; problem 253 and compiled content include this instruction.
 Decimals inside expressions remain exact rationals with no universal place cap.
 
 ### LaTeX that parses differently than it reads

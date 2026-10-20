@@ -31,7 +31,7 @@ Actual hours remain blank for Thomas; no elapsed agent runtime is treated as own
 | 6 | 2 | | complete |
 | 7 | 2.5 | | complete including B-C3 |
 | 8 | 2 | | complete |
-| 9 | 3 | | 136 source cases reviewed; R24, recapture and release gate pending |
+| 9 | 3 | | complete; 136 reviewed captures, gate B and Linux CI pass |
 | 10 | 2 | | not started |
 | 11 | 3 | | not started |
 | 12 | 4 | | not started |

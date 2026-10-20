@@ -3,7 +3,7 @@
 [R22/R23 plan](README.md) · [Spec: dev cases](../../../../specs/2026-10-19-function-input-and-domain-rewrite-design.md#dev-cases) · [Task 9](../tasks/09-dev-cases.md)
 
 **Historical implementation plan:** R22/R23 are complete; all source cases were reviewed
-in 9b2e1f2. Preserve `tg`; use the [R24 checklist](../r24/README.md) for remaining work.
+in 9b2e1f2. Preserve `tg`; see the completed [R24 checklist](../r24/README.md) and pending merge.
 
 **Files:**
 - Modify: `evals/verifier/human/dev.src.yaml`, `dev.jsonl` (generated), `REVIEW.md` and its parts

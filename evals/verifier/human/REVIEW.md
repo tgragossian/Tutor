@@ -2,22 +2,24 @@
 
 [Verifier evaluation](../README.md) · [Spec 08](../../../docs/superpowers/specs/2026-10-13-portfolio-core/08-verifier-evaluation.md) · [R22/R23 spec](../../../docs/superpowers/specs/2026-10-19-function-input-and-domain-rewrite-design.md)
 
-**2026-10-20:** Thomas reviewed all 136 rows in [`dev.src.yaml`](dev.src.yaml), commit
-9b2e1f2: every source reviewer is `tg`. [`dev.jsonl`](dev.jsonl) is stale: old labels and
-136 pending reviewers. Preserve the reviewed source; recapture after implementing R24.
+**2026-10-20:** task 9 complete. Thomas reviewed all 136 source rows in 9b2e1f2;
+b5ad4b2 recaptures [`dev.src.yaml`](dev.src.yaml) into [`dev.jsonl`](dev.jsonl) with all `tg`.
+[dev-b.json](../results/dev-b.json) records non-draft gate B: FA 0/50 (95% upper bound 7.1%),
+FR 0/49 (7.3%), coverage 49/49, unsupported accepts 0/37 (9.4%), agreement 136/136.
+[Result and CI evidence](../results/README.md): all three jobs pass; the dev gate is enforced.
 Labels follow the mathematics and approved input contract, never verifier outcomes.
 
 ## R24 and review completion
 
-- [R24](../../../docs/superpowers/specs/2026-10-20-decimal-places-design.md) remains approved:
+- [R24](../../../docs/superpowers/specs/2026-10-20-decimal-places-design.md) is implemented in a76985d:
   numeric problems explicitly requesting N places require exactly N on standalone decimals.
   Other lengths produce `wrong_decimal_places`, not incorrect. Exact expressions are allowed.
 - No universal decimal cap; expression decimals remain exact. Removable-hole rules are unchanged.
 - `d-253-02/03/04/05/06/08/19` are reviewed `unsupported`; `d-sqsq-02` now includes zero.
 - `d-253-02`: MathJSON loses the zero, but `raw_latex: "-0.5830"` preserves four places.
   `d-253-06`: `-0.58349` has five places, so R24 requires a format issue despite old rounding.
-- R24 is not implemented; follow the [checklist](../../../docs/superpowers/plans/portfolio-mvp/milestone-b/r24/README.md).
-  Review-sheet verdicts below and in child files are pre-R24 evidence, not new release results.
+- All seven R24 labels now agree with `wrong_decimal_places`; the closed-endpoint case also agrees.
+  Child-sheet verdicts come from `dev-b.json`. [Completed checklist](../../../docs/superpowers/plans/portfolio-mvp/milestone-b/r24/README.md).
 
 ## Historical changes under R22 and R23
 
@@ -34,7 +36,7 @@ Labels follow the mathematics and approved input contract, never verifier outcom
 Historical draft run (`evaluate --set dev --gate B --draft`, 2026-10-19, after R22/R23 and 19db4ab):
 FA 0 of 54 (95% upper bound 6.6%) · FR 0 of 52 (95% upper bound 6.9%) · coverage 52 of 52
 (100%) · unsupported graded correct 0 of 30 · agreement 136 of 136. Metrics pass gate B;
-that run preceded human review and R24. The current captures must still be regenerated.
+that run preceded human review and R24 and is superseded by the reviewed release above.
 
 ## Disagreements (none left of the earlier 9)
 
@@ -69,7 +71,7 @@ Reviewed source labels: 49 correct, 50 incorrect, 37 unsupported. Families: the 
   3 decimals; x2cosx is choice a.
 - **Harness note:** `unsupported` now also agrees with `empty` and `incomplete` format issues,
   so partial input can be labelled `unsupported` (task 8 had only notation and size).
-- The release reviewer gate already requires `tg` (bdb1710); CI dev enablement remains open.
-  After R24, recapture reviewed YAML and run gate B without `--draft`.
+- The release reviewer gate requires `tg` (bdb1710); CI enforces the dev gate since 8a0bb40.
+  `dev-draft.json` is historical; all current captures and the release result are reviewed.
 - Chromium's renderer sometimes crashes on deeply nested roots (`d-221-26`). The capture tool
   retries on a fresh page, which is why that case has 31 levels rather than more.

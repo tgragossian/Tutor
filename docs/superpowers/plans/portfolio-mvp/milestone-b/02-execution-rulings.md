@@ -2,7 +2,7 @@
 
 [Milestone B plan](README.md) · [Constraints and R1–R6](00-constraints.md) · [Execution status](03-execution-status.md)
 
-Updated 2026-10-20: R24 approved in dee61a0; source review complete in 9b2e1f2.
+Updated 2026-10-20: R24 implemented in a76985d; reviewed gate and CI pass through d673400.
 Task 8/9 implementation outcomes and open review proposals are in [follow-ups](05-follow-ups.md).
 
 These rulings add to the plan, and where they conflict with it, they replace it. Precedence: decisions > handoff > rulings > plan. Every ruling ends with what it costs if it is wrong.
@@ -54,7 +54,7 @@ These rulings add to the plan, and where they conflict with it, they replace it.
   on standalone decimals; otherwise return `wrong_decimal_places`, not incorrect.
   Exact expressions remain allowed. Count original LaTeX; value mismatch with MathJSON abstains.
   No universal cap or coefficient rounding; expression decimals and removable holes are unchanged.
-  Approved, not implemented: [spec](../../../specs/2026-10-20-decimal-places-design.md), [checklist](r24/README.md).
+  Implemented in a76985d: [spec](../../../specs/2026-10-20-decimal-places-design.md), [checklist](r24/README.md).
   Cost if wrong: input friction and mislabeled cases; preserve human review and FA 0.
 
 ## Rulings made inside tasks

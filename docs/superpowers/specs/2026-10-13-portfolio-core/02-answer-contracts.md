@@ -31,12 +31,12 @@
 | Empty tree, or `Nothing` | `empty` |
 | `Error` node anywhere, or LaTeX containing `\placeholder` or an empty `{}` group | `incomplete` |
 | Decimal answer where `precision: exact` | `exact_required` |
-| Standalone decimal with other than N places, on a numeric problem requesting N (R24; pending implementation) | `wrong_decimal_places` |
+| Standalone decimal with other than N places, on a numeric problem requesting N (R24) | `wrong_decimal_places` |
 
 ## Decimal precision
 
 [R24](../2026-10-20-decimal-places-design.md) amends the original unlimited-place rounding
-rule. Approved on 2026-10-20, not yet implemented; see the [checklist](../../plans/portfolio-mvp/milestone-b/r24/README.md).
+rule. Implemented in a76985d on 2026-10-20; see the [checklist](../../plans/portfolio-mvp/milestone-b/r24/README.md).
 
 - Numbers are read from MathJSON as exact decimals, never floats.
 - Only `numeric` problems explicitly requesting N places (`precision: {decimals: N}`)

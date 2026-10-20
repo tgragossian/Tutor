@@ -2,9 +2,8 @@
 
 [Review index](REVIEW.md)
 
-One line per case: id · input as typed · reviewed label · rationale · historical verdict.
-All source rows are `tg` (9b2e1f2). R24 outcomes are pending implementation and recapture;
-old verdicts below are explicitly pre-R24, not a release evaluation.
+One line per case: id · input as typed · reviewed label · rationale · measured verdict.
+Verdicts are from [dev-b.json](../results/dev-b.json), the reviewed non-draft run at b5ad4b2.
 
 ## Domain traps (17)
 
@@ -19,7 +18,7 @@ old verdicts below are explicitly pre-R24, not a release evaluation.
 - `d-lnsq-02` [expected `\ln(x^2)` x ≠ 0] · `2\ln\lvert x\rvert` · correct · ln(x^2) = ln(|x|^2) = 2 ln|x| for every x != 0. · correct: proven
 - `d-lnsq-03` [expected `2\ln(x)` on (0, inf)] · `\ln(x^2)` · correct · On (0, inf): ln(x^2) = 2 ln x. · correct: proven
 - `d-sqsq-01` [expected `x`] · `\sqrt{x^2}` · incorrect · sqrt(x^2) = |x|: at x = -1 it is 1, not -1. · incorrect: counterexample
-- `d-sqsq-02` [expected `x` on [0, inf)] · `\sqrt{x^2}` · correct · On [0, inf): sqrt(x^2) = |x| = x. · pre-review capture: correct: proven; closed endpoint recapture pending
+- `d-sqsq-02` [expected `x` on [0, inf)] · `\sqrt{x^2}` · correct · On [0, inf): sqrt(x^2) = |x| = x. · correct: proven
 - `d-sqsq-03` [expected `\lvert x\rvert`] · `\sqrt{x^2}` · correct · sqrt(x^2) = |x| for every real x. · correct: proven
 - `d-explog-01` [expected `x`] · `e^{\ln(x)}` · incorrect · On R: e^(ln x) is undefined for every x <= 0, a whole interval where x is defined. · incorrect: undefined_on_domain
 - `d-explog-02` [expected `x` on (0, inf)] · `e^{\ln(x)}` · correct · On (0, inf): e^(ln x) = x. · correct: proven
@@ -36,18 +35,18 @@ old verdicts below are explicitly pre-R24, not a release evaluation.
 - `d-221-16` · `18x(3x^2+1)^2+10^{-9}` · incorrect · Differs by the constant 10^-9 everywhere. · incorrect: counterexample
 - `d-221-17` · `18.000000001x(3x^2+1)^2` · incorrect · Differs by 10^-9 x(3x^2 + 1)^2, nonzero for x != 0. · incorrect: counterexample
 - `d-221-18` · `18x(3x^2+1.0000001)^2` · incorrect · Inner constant off by 10^-7; at x = 1 the value differs by about 18 * 2 * 4 * 10^-7. · incorrect: counterexample
-- `d-253-19` · `0.5833` · unsupported · R24: 4 decimal places; exactly 3 requested. Format issue, not incorrect. · pre-R24: incorrect: rounded_mismatch; R24 expected: wrong_decimal_places (not yet run)
+- `d-253-19` · `0.5833` · unsupported · R24: 4 decimal places; exactly 3 requested. Format issue, not incorrect. · format: wrong_decimal_places
 - `d-253-20` · `-\frac{200}{343}+0.000000001` · incorrect · Not a plain decimal, so graded exactly: differs from -200/343 by 10^-9. · incorrect: counterexample
 - `d-253-21` · `-\frac{200.000001}{343}` · incorrect · Inner decimal is exact: differs from -200/343 by 10^-6/343. · incorrect: counterexample
 
 ## Decimals at rounding boundaries (9)
 
 - `d-253-01` · `-0.583` · correct · -200/343 = -0.583090...; rounds to -0.583 at 3 places, same as the student. · correct: rounded_match
-- `d-253-02` · `-0.5830` · unsupported · R24: 4 decimal places; exactly 3 requested. Format issue, not incorrect. The trailing zero survives in raw_latex, not MathJSON. · pre-R24: correct: rounded_match; R24 expected: wrong_decimal_places (not yet run)
-- `d-253-03` · `-0.5835` · unsupported · R24: 4 decimal places; exactly 3 requested. Format issue, not incorrect. · pre-R24: incorrect: rounded_mismatch; R24 expected: wrong_decimal_places (not yet run)
-- `d-253-04` · `-0.58` · unsupported · R24: 2 decimal places; exactly 3 requested. Format issue, not incorrect. · pre-R24: incorrect: rounded_mismatch; R24 expected: wrong_decimal_places (not yet run)
-- `d-253-05` · `-0.5825` · unsupported · R24: 4 decimal places; exactly 3 requested. Format issue, not incorrect. · pre-R24: incorrect: rounded_mismatch; R24 expected: wrong_decimal_places (not yet run)
-- `d-253-06` · `-0.58349` · unsupported · R24: 5 decimal places; exactly 3 requested. Format issue, not incorrect. · pre-R24: correct: rounded_match; R24 expected: wrong_decimal_places (not yet run)
+- `d-253-02` · `-0.5830` · unsupported · R24: 4 decimal places; exactly 3 requested. Format issue, not incorrect. The trailing zero survives in raw_latex, not MathJSON. · format: wrong_decimal_places
+- `d-253-03` · `-0.5835` · unsupported · R24: 4 decimal places; exactly 3 requested. Format issue, not incorrect. · format: wrong_decimal_places
+- `d-253-04` · `-0.58` · unsupported · R24: 2 decimal places; exactly 3 requested. Format issue, not incorrect. · format: wrong_decimal_places
+- `d-253-05` · `-0.5825` · unsupported · R24: 4 decimal places; exactly 3 requested. Format issue, not incorrect. · format: wrong_decimal_places
+- `d-253-06` · `-0.58349` · unsupported · R24: 5 decimal places; exactly 3 requested. Format issue, not incorrect. · format: wrong_decimal_places
 - `d-253-07` · `-0.584` · incorrect · Rounded the wrong way: -0.58309 rounds to -0.583. · incorrect: rounded_mismatch
-- `d-253-08` · `-0.58309` · unsupported · R24: 5 decimal places; exactly 3 requested. Format issue, not incorrect. · pre-R24: correct: rounded_match; R24 expected: wrong_decimal_places (not yet run)
+- `d-253-08` · `-0.58309` · unsupported · R24: 5 decimal places; exactly 3 requested. Format issue, not incorrect. · format: wrong_decimal_places
 - `d-253-09` · `-\frac{200}{343}` · correct · The exact value v(6) = -200/(6+1)^3; checked symbolically. · correct: proven

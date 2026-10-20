@@ -1,60 +1,57 @@
 # R24: content, capture and release
 
-[R24 checklist](README.md) · [Pre-check](01-precheck.md) · [Evaluation guide](../../../../../../evals/verifier/README.md)
+[R24 checklist](README.md) · [Pre-check](01-precheck.md) · [Result evidence](../../../../../../evals/verifier/results/README.md)
 
-Status: planned. Run commands from `.claude/worktrees/milestone-b` after implementing R24.
+**Completed 2026-10-20:** task 9 release gate and CI pass. Merge/live checks remain Thomas's next step.
 
-## Content and capture
+## Completed content and capture
 
-- [ ] Add “Give an exact answer or round to 3 decimal places.” to problem 253's statement.
-  Audit other numeric problems with `precision.decimals` for matching instructions.
-- [ ] Recompile with `npm run compile --prefix tools`; never hand-edit compiled JSON.
-- [ ] Preserve 136 `tg` source reviews: 49 correct, 50 incorrect, 37 unsupported.
-  The seven R24 labels and `d-sqsq-02`'s `[0, inf)` domain were reviewed in 9b2e1f2.
-- [ ] Run `npm run capture:eval --prefix tools` using real MathLive/Chromium.
-- [ ] Compare source/capture IDs, reviewers, labels, rationales and inline domains.
-  Confirm all captured reviewers are `tg`; inspect `raw_latex` for `d-253-02`.
-- [ ] Refresh review-sheet outcomes from actual results, keeping pre-R24 evidence dated.
+- [x] a76985d updates problem 253: “Give an exact answer or round to 3 decimal places.”
+  Its compiled content is regenerated; it is the current numeric seed with decimal precision.
+- [x] b5ad4b2 recaptures reviewed YAML through MathLive: 136 `tg`, 49 correct, 50 incorrect,
+  37 unsupported; source/capture IDs, labels, reviewers, rationales and domains agree.
+- [x] `d-sqsq-02` includes zero. `d-253-02` keeps `-0.5830` in both authored and field LaTeX,
+  while MathJSON loses the zero. R24 counts the preserved field LaTeX.
+- [x] Review sheets reflect the measured release outcomes, including all seven format issues.
 
-## Checks and release gate
+## Reviewed gate
 
-Run repository checks after the focused R24 tests:
-
-```text
-uv run ruff check .
-uv run ruff format --check .
-uv run mypy src
-uv run pytest -q
-npm test --prefix tools
-uv run python -m mathtutor.verify.content_check
-uv run python -m mathtutor.verify.evaluate --set generated --gate B
-uv run python tools/check_docs.py
-```
-
-Set `MATHTUTOR_GIT_SHA` to the tested implementation commit; do not label uncommitted code
-as that commit. Run the release evaluation without `--draft`:
+[dev-b.json](../../../../../../evals/verifier/results/dev-b.json), committed in e995438,
+records this command at tested verifier `0.1.0+b5ad4b2`, with `draft: false`:
 
 ```text
 uv run python -m mathtutor.verify.evaluate --set dev --gate B --out evals/verifier/results/dev-b.json
 ```
 
-- [ ] Require exit 0: FA 0, unsupported accepts 0, FR ≤ 2%, coverage ≥ 85%, no crashes,
-  required labels/categories and approved reviewers. Do not weaken these gates.
-- [ ] Inspect every disagreement; fix bugs or obtain a human label ruling.
-  Never relabel solely to agree with the verifier.
-- [ ] Add `evaluate --set dev --gate B` to `.github/workflows/ci.yml`; obtain required CI
-  results including Linux containment and container checks. Windows skips are not evidence.
-- [ ] Record code/content/dataset versions and measured counts in task 9, status and handoff.
-  Keep the old draft artifact explicitly historical.
+- [x] FA 0/50 (95% upper bound 7.1%); FR 0/49 (7.3%); coverage 49/49.
+- [x] Unsupported accepts 0/37 (9.4%); agreement 136/136; no internal errors.
+- [x] All labels/categories and approved-reviewer gates pass; thresholds are unchanged.
+- [x] Results record tested code, content and dataset versions. `dev-draft.json` stays historical.
 
-## Metrics and merge
+## CI verification
 
-- Before R24: the 136-case draft reported FA 0/54 (95% upper bound 6.6%).
-- Reviewed labels now have 50 incorrect cases. If FA stays zero, the upper bound is about
-  7.1%; only the actual reviewed gate result may go on the resume.
-- More realistic wrong answers are optional, not a release requirement or a way to select
-  a preferred denominator. Establish math labels and human review before evaluation.
-- [ ] Finish task 9 steps 5–7, commit without assistant co-author trailers, and merge tasks
-  1–9 to `main` after checks pass. Verify the repository link exposes those commits.
-- Tasks 10–16 and public practice deployment remain unfinished; merging the verifier track
-  does not mean milestone B is fully shipped.
+- [x] 8a0bb40 adds `evaluate --set dev --gate B` to the Python job without `--draft`.
+- [x] [Run 39504828416](https://github.com/tgragossian/Tutor/actions/runs/39504828416)
+  succeeds for Python, Node and container smoke after d673400 fixes pool-test teardown.
+- Thomas reports 722 Linux tests passed, including the memory-limit test. Earlier assertions
+  passed too; the test's competing worker reap caused the cleanup failure, now fixed.
+- Python CI covers lint, formatting, types, tests, content, generated/dev gates and docs.
+  Node covers tool tests and compiled-content consistency; container smoke also passes.
+- Remaining GitHub Node 20/Ubuntu deprecation notices are warnings, not gate failures.
+
+## Reproducing and publishing
+
+Run from `.claude/worktrees/milestone-b`; use the commands in the workflow and
+[evaluation guide](../../../../../../evals/verifier/README.md). Set `MATHTUTOR_GIT_SHA` to
+the tested code commit before recording a new release result. Do not relabel to fit output.
+Only reviewed dev results may appear on the resume; this is not held-out final evaluation.
+New wrong answers remain optional and need mathematical labels/human review before evaluation.
+
+## Remaining merge steps
+
+- [ ] Commit/push this docs update and retain required green checks.
+- [ ] Thomas merges tasks 1–9 to `main`, keeping milestone-b's `handoff.md`.
+- [ ] Thomas confirms live health/readiness, then records the merge/check outcome.
+
+No assistant co-author trailers. Tasks 10–16 (practice loop, accounts, UI and deployment)
+remain separate; do not describe the full milestone B application as shipped.
