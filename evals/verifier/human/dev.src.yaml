@@ -14,7 +14,7 @@
   latex: '\frac{39}{(x+1)^2}+270x^4'
   label: correct
   rationale: 'Same two terms, reordered.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-02
   family: openstax-c1-3.3-111
   category: tricky
@@ -22,7 +22,7 @@
   latex: '270x^4+39(x+1)^{-2}'
   label: correct
   rationale: '39(x+1)^(-2) = 39/(x+1)^2; the only restriction, x != -1, is already excluded.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-03
   family: openstax-c1-3.3-111
   category: tricky
@@ -30,7 +30,7 @@
   latex: '\frac{270x^4(x+1)^2+39}{(x+1)^2}'
   label: correct
   rationale: 'Common denominator: 270x^4(x+1)^2/(x+1)^2 + 39/(x+1)^2; same restriction x != -1.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-04
   family: openstax-c1-3.3-111
   category: tricky
@@ -38,7 +38,7 @@
   latex: '270x^4+\frac{39}{x^2+2x+1}'
   label: correct
   rationale: 'x^2+2x+1 = (x+1)^2, zero only at the excluded x = -1.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-05
   family: openstax-c1-3.3-111
   category: tricky
@@ -46,7 +46,7 @@
   latex: '3\left(90x^4+\frac{13}{(x+1)^2}\right)'
   label: correct
   rationale: 'Factor 3 pulled out: 3*90x^4 = 270x^4 and 3*13 = 39.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-06
   family: openstax-c1-3.3-111
   category: tricky
@@ -54,7 +54,7 @@
   latex: '3\left(18x^4+\frac{13}{x+1}\right)+3x\left(72x^3-\frac{13}{(x+1)^2}\right)'
   label: correct
   rationale: 'Unsimplified product rule: 54x^4 + 39/(x+1) + 216x^4 - 39x/(x+1)^2 = 270x^4 + 39[(x+1)-x]/(x+1)^2.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-07
   family: openstax-c1-3.3-111
   category: error
@@ -62,7 +62,7 @@
   latex: '270x^4+39'
   label: incorrect
   rationale: 'Seed misconception: d/dx[39x/(x+1)] taken as 39. At x = 1: 309 vs 270 + 39/4.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-08
   family: openstax-c1-3.3-111
   category: error
@@ -70,7 +70,7 @@
   latex: '270x^4+\frac{39}{x+1}'
   label: incorrect
   rationale: 'Quotient rule skipped (denominator not squared). At x = 1: 270 + 19.5 vs 270 + 9.75.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-09
   family: openstax-c1-3.3-111
   category: error
@@ -78,7 +78,7 @@
   latex: '270x^4-\frac{39}{(x+1)^2}'
   label: incorrect
   rationale: 'Sign slip from the quotient-rule numerator taken as x-(x+1). At x = 0: -39 vs 39.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-10
   family: openstax-c1-3.3-111
   category: error
@@ -86,7 +86,7 @@
   latex: '270x^5+\frac{39}{(x+1)^2}'
   label: incorrect
   rationale: 'Power-rule exponent not lowered (54x^5 -> 270x^5). At x = 2: 8640 vs 4320 in the first term.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-11
   family: openstax-c1-3.3-111
   category: error
@@ -94,7 +94,7 @@
   latex: '3\left(72x^3-\frac{13}{(x+1)^2}\right)'
   label: incorrect
   rationale: 'Product of the derivatives (3x)''g''(x) instead of the product rule. At x = 0: -39 vs 39.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-12
   family: openstax-c1-3.3-111
   category: near
@@ -102,7 +102,7 @@
   latex: '270x^4+\frac{39}{(x+1)^2}+0.000000001'
   label: incorrect
   rationale: 'Differs from the answer by the constant 10^-9 everywhere; no tolerance applies.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-13
   family: openstax-c1-3.3-111
   category: near
@@ -110,7 +110,7 @@
   latex: '270.0000001x^4+\frac{39}{(x+1)^2}'
   label: incorrect
   rationale: 'Differs by 10^-7 x^4, nonzero for every x != 0.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-14
   family: openstax-c1-3.3-111
   category: unsupported
@@ -118,7 +118,7 @@
   latex: '\begin{pmatrix}270x^4&\frac{39}{(x+1)^2}\end{pmatrix}'
   label: unsupported
   rationale: 'Terms entered in a matrix (virtual-keyboard slip); a Matrix is outside the allowlist.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-111-15
   family: openstax-c1-3.3-111
   category: partial
@@ -126,7 +126,7 @@
   keys: ['2', '7', '0', 'x', '^', '4', 'ArrowRight', '+', '3', '9', '/']
   label: unsupported
   rationale: 'Submitted mid-typing: the fraction 39/[ ] has an empty denominator slot -> incomplete.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 
 # --- openstax-c1-3.3-115: f'(x) = 4 + 2/x^2 - 2/x^3 on R \ {0} --------------------------
 - id: d-115-01
@@ -136,7 +136,7 @@
   latex: '\frac{4x^4+2x^2-2x}{x^4}'
   label: correct
   rationale: 'The OpenStax key form; dividing through by x^4 gives 4 + 2/x^2 - 2/x^3; hole only at excluded 0.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-02
   family: openstax-c1-3.3-115
   category: tricky
@@ -144,7 +144,7 @@
   latex: '4+2x^{-2}-2x^{-3}'
   label: correct
   rationale: 'Negative exponents: 2x^-2 = 2/x^2, 2x^-3 = 2/x^3.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-03
   family: openstax-c1-3.3-115
   category: tricky
@@ -152,7 +152,7 @@
   latex: '\frac{4x^3+2x-2}{x^3}'
   label: correct
   rationale: '(4x^3 + 2x - 2)/x^3 = 4 + 2/x^2 - 2/x^3.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-04
   family: openstax-c1-3.3-115
   category: tricky
@@ -160,7 +160,7 @@
   latex: '\frac{(12x^2-2)x^2-(4x^3-2x+1)(2x)}{x^4}'
   label: correct
   rationale: 'Unsimplified quotient rule: numerator 12x^4 - 2x^2 - 8x^4 + 4x^2 - 2x = 4x^4 + 2x^2 - 2x.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-05
   family: openstax-c1-3.3-115
   category: tricky
@@ -168,7 +168,7 @@
   latex: '\frac{2(2x^3+x-1)}{x^3}'
   label: correct
   rationale: '2(2x^3 + x - 1) = 4x^3 + 2x - 2, as in d-115-03.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-06
   family: openstax-c1-3.3-115
   category: error
@@ -176,7 +176,7 @@
   latex: '4-\frac{2}{x^2}+\frac{2}{x^3}'
   label: incorrect
   rationale: 'Both power-rule signs flipped. At x = 2: 3.75 vs 4.25 (x = 1 happens to agree).'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-07
   family: openstax-c1-3.3-115
   category: error
@@ -184,7 +184,7 @@
   latex: '\frac{12x^2-2}{2x}'
   label: incorrect
   rationale: 'Quotient of the derivatives f''/g''. At x = 1: 5 vs 4.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-08
   family: openstax-c1-3.3-115
   category: error
@@ -192,7 +192,7 @@
   latex: '4+\frac{2}{x^2}-\frac{1}{x^3}'
   label: incorrect
   rationale: 'd/dx x^-2 = -2x^-3; the coefficient 2 was dropped. At x = 1: 5 vs 4.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-09
   family: openstax-c1-3.3-115
   category: error
@@ -200,7 +200,7 @@
   latex: '\frac{(12x^2-2)x^2+(4x^3-2x+1)(2x)}{x^4}'
   label: incorrect
   rationale: 'Quotient rule with + instead of -. At x = 1: 16 vs 4.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-10
   family: openstax-c1-3.3-115
   category: error
@@ -208,7 +208,7 @@
   latex: '\frac{(4x^3-2x+1)(2x)-(12x^2-2)x^2}{x^4}'
   label: incorrect
   rationale: 'Quotient-rule numerator in the wrong order: the negative of the answer. At x = 1: -4 vs 4.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-11
   family: openstax-c1-3.3-115
   category: error
@@ -216,7 +216,7 @@
   latex: '4+\frac{2}{x}-\frac{2}{x^2}'
   label: incorrect
   rationale: 'Exponents not lowered: -2x^-1 -> 2x^-1 and x^-2 -> -2x^-2. At x = 2: 4.5 vs 4.25.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-12
   family: openstax-c1-3.3-115
   category: domain
@@ -224,7 +224,7 @@
   latex: '\frac{4x^5+2x^3-2x^2}{x^5}'
   label: correct
   rationale: 'An extra factor x top and bottom; its only hole is x = 0, which the domain already excludes.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-13
   family: openstax-c1-3.3-115
   category: near
@@ -232,7 +232,7 @@
   latex: '4+\frac{2}{x^2}-\frac{2.000001}{x^3}'
   label: incorrect
   rationale: 'Differs by 10^-6/x^3, nonzero on the whole domain; the inner decimal is an exact rational.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-14
   family: openstax-c1-3.3-115
   category: unsupported
@@ -240,7 +240,7 @@
   latex: '4+\frac{2}{x^2}-\frac{2}{x^3}+C'
   label: unsupported
   rationale: 'A +C habit from antiderivatives; C is only allowed for antiderivative items (spec 02).'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-15
   family: openstax-c1-3.3-115
   category: unsupported
@@ -248,7 +248,7 @@
   latex: 'f''(x)=4+\frac{2}{x^2}-\frac{2}{x^3}'
   label: unsupported
   rationale: 'An equation f''(x) = ... rather than an expression; Equal and f are outside the allowlist.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-115-16
   family: openstax-c1-3.3-115
   category: partial
@@ -256,7 +256,7 @@
   keys: ['4', '+', '2', '/']
   label: unsupported
   rationale: 'Submitted mid-typing: 4 + 2/[ ] has an empty denominator slot -> incomplete.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 
 # --- openstax-c1-3.5-181: dy/dx = (1 - sin x)^2 - (x + cos x)cos x on R ----------------
 - id: d-181-01
@@ -266,7 +266,7 @@
   latex: '(1-\sin(x))^2-x\cos(x)-\cos^2(x)'
   label: correct
   rationale: 'Second term distributed: (x + cos x)cos x = x cos x + cos^2 x.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-181-02
   family: openstax-c1-3.5-181
   category: tricky
@@ -274,7 +274,7 @@
   latex: '1-2\sin(x)+\sin^2(x)-x\cos(x)-\cos^2(x)'
   label: correct
   rationale: 'Fully expanded: (1 - sin x)^2 = 1 - 2 sin x + sin^2 x.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-181-03
   family: openstax-c1-3.5-181
   category: tricky
@@ -282,7 +282,7 @@
   latex: '(1-\sin(x))(1-\sin(x))-(x+\cos(x))\cos(x)'
   label: correct
   rationale: 'Product rule u''v + uv'' left unsquared: (1 - sin x)(1 - sin x) = (1 - sin x)^2.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-181-04
   family: openstax-c1-3.5-181
   category: tricky
@@ -290,7 +290,7 @@
   latex: '1-2\sin(x)-\cos(2x)-x\cos(x)'
   label: correct
   rationale: 'Expanded, with sin^2 x - cos^2 x = -cos 2x (double angle).'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-181-05
   family: openstax-c1-3.5-181
   category: tricky
@@ -298,7 +298,7 @@
   latex: '(1-\sin(x))^2-\cos(x)(x+\cos(x))'
   label: correct
   rationale: 'cos(x) times (x + cos(x)): the answer with the factor moved first. (Originally typed without parentheses; R22 resolution, option A.)'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-181-06
   family: openstax-c1-3.5-181
   category: error
@@ -306,7 +306,7 @@
   latex: '(1-\sin(x))^2+(x+\cos(x))\cos(x)'
   label: incorrect
   rationale: 'Seed misconception: d/dx(-sin x) taken as +cos x. At x = 0: 2 vs 0.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-181-07
   family: openstax-c1-3.5-181
   category: error
@@ -314,7 +314,7 @@
   latex: '-(1-\sin(x))\cos(x)'
   label: incorrect
   rationale: 'Product of the derivatives u''v'' = (1 - sin x)(-cos x). At x = 0: -1 vs 0.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-181-08
   family: openstax-c1-3.5-181
   category: error
@@ -322,7 +322,7 @@
   latex: '(1-\sin(x))^2-(x+\cos(x))\sin(x)'
   label: incorrect
   rationale: 'd/dx(1 - sin x) taken as -sin x. At x = 0: 1 vs 0.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-181-09
   family: openstax-c1-3.5-181
   category: error
@@ -330,7 +330,7 @@
   latex: '(1+\sin(x))(1-\sin(x))-(x+\cos(x))\cos(x)'
   label: incorrect
   rationale: 'd/dx cos x taken as +sin x; differs by 2 sin x(1 - sin x). At x = -pi/2: -4.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-181-10
   family: openstax-c1-3.5-181
   category: error
@@ -338,7 +338,7 @@
   latex: '(1-\sin(x))^2'
   label: incorrect
   rationale: 'Second product-rule term dropped. At x = 0: 1 vs 0.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-181-11
   family: openstax-c1-3.5-181
   category: near
@@ -346,7 +346,7 @@
   latex: '(1-\sin(x))^2-(x+\cos(x))\cos(x)+10^{-9}'
   label: incorrect
   rationale: 'Differs by the constant 10^-9 everywhere.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-181-12
   family: openstax-c1-3.5-181
   category: near
@@ -354,7 +354,7 @@
   latex: '(1-\sin(x))^2-(1.000001x+\cos(x))\cos(x)'
   label: incorrect
   rationale: 'Differs by 10^-6 x cos x, nonzero at x = 1.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-181-13
   family: openstax-c1-3.5-181
   category: partial
@@ -362,7 +362,7 @@
   latex: '(1-\sin(x))^{\placeholder{}}-(x+\cos(x))\cos(x)'
   label: unsupported
   rationale: 'Exponent slot left empty (a placeholder) -> incomplete.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 
 # --- openstax-c1-3.6-221: dy/dx = 18x(3x^2 + 1)^2 on R ----------------------------------
 - id: d-221-01
@@ -372,7 +372,7 @@
   latex: '162x^5+108x^3+18x'
   label: correct
   rationale: '(3x^2+1)^2 = 9x^4 + 6x^2 + 1; times 18x gives 162x^5 + 108x^3 + 18x.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-02
   family: openstax-c1-3.6-221
   category: tricky
@@ -380,7 +380,7 @@
   latex: '3(3x^2+1)^2\cdot6x'
   label: correct
   rationale: 'Chain rule left unsimplified: 3u^2 * 6x with u = 3x^2 + 1.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-03
   family: openstax-c1-3.6-221
   category: tricky
@@ -388,7 +388,7 @@
   latex: '18x\left(9x^4+6x^2+1\right)'
   label: correct
   rationale: 'Square expanded inside: (3x^2 + 1)^2 = 9x^4 + 6x^2 + 1.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-04
   family: openstax-c1-3.6-221
   category: tricky
@@ -396,7 +396,7 @@
   latex: '2x(9x^2+3)^2'
   label: correct
   rationale: '(9x^2 + 3)^2 = 9(3x^2 + 1)^2, so 2x * 9(3x^2 + 1)^2 = 18x(3x^2 + 1)^2.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-05
   family: openstax-c1-3.6-221
   category: tricky
@@ -404,7 +404,7 @@
   latex: '(3x^2+1)^2\cdot18x'
   label: correct
   rationale: 'Factors reordered with an explicit dot.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-06
   family: openstax-c1-3.6-221
   category: tricky
@@ -412,7 +412,7 @@
   latex: '18x\sqrt{(3x^2+1)^4}'
   label: correct
   rationale: 'sqrt((3x^2 + 1)^4) = |(3x^2 + 1)^2| = (3x^2 + 1)^2 since 3x^2 + 1 > 0 for all real x.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-07
   family: openstax-c1-3.6-221
   category: error
@@ -420,7 +420,7 @@
   latex: '3(3x^2+1)^2'
   label: incorrect
   rationale: 'Seed misconception: inner derivative 6x missing. At x = 1: 48 vs 288.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-08
   family: openstax-c1-3.6-221
   category: error
@@ -428,7 +428,7 @@
   latex: '18x(3x^2+1)^3'
   label: incorrect
   rationale: 'Outer exponent not lowered. At x = 1: 1152 vs 288.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-09
   family: openstax-c1-3.6-221
   category: error
@@ -436,7 +436,7 @@
   latex: '6x(3x^2+1)^2'
   label: incorrect
   rationale: 'Outer factor 3 from the power rule dropped. At x = 1: 96 vs 288.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-10
   family: openstax-c1-3.6-221
   category: error
@@ -444,7 +444,7 @@
   latex: '3(3x^2+1)^2\cdot6'
   label: incorrect
   rationale: 'Inner derivative taken as 6 instead of 6x. At x = 2: 3042 vs 6084 (x = 1 happens to agree).'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-11
   family: openstax-c1-3.6-221
   category: error
@@ -452,7 +452,7 @@
   latex: '(6x)^3'
   label: incorrect
   rationale: 'Inner function differentiated, then cubed. At x = 1: 216 vs 288.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-12
   family: openstax-c1-3.6-221
   category: error
@@ -460,7 +460,7 @@
   latex: '18x(3x^2+1)'
   label: incorrect
   rationale: 'Square lost. At x = 1: 72 vs 288.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-13
   family: openstax-c1-3.6-221
   category: domain
@@ -468,7 +468,7 @@
   latex: '\frac{18x^2(3x^2+1)^2}{x}'
   label: correct
   rationale: 'Hole at x = 0 only; it is removable (limit 0 = the answer at 0), so the default rule accepts it.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-14
   family: openstax-c1-3.6-221
   category: domain
@@ -476,7 +476,7 @@
   latex: '18\sqrt{x^2}(3x^2+1)^2'
   label: incorrect
   rationale: 'sqrt(x^2) = |x|, not x: at x = -1 it gives 288 vs -288.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-15
   family: openstax-c1-3.6-221
   category: domain
@@ -484,7 +484,7 @@
   latex: '\frac{18x(3x^2+1)^3}{3x^2+1}'
   label: correct
   rationale: 'Cancels to the answer; the denominator 3x^2 + 1 has no real zero, so no hole at all.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-16
   family: openstax-c1-3.6-221
   category: near
@@ -492,7 +492,7 @@
   latex: '18x(3x^2+1)^2+10^{-9}'
   label: incorrect
   rationale: 'Differs by the constant 10^-9 everywhere.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-17
   family: openstax-c1-3.6-221
   category: near
@@ -500,7 +500,7 @@
   latex: '18.000000001x(3x^2+1)^2'
   label: incorrect
   rationale: 'Differs by 10^-9 x(3x^2 + 1)^2, nonzero for x != 0.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-18
   family: openstax-c1-3.6-221
   category: near
@@ -508,7 +508,7 @@
   latex: '18x(3x^2+1.0000001)^2'
   label: incorrect
   rationale: 'Inner constant off by 10^-7; at x = 1 the value differs by about 18 * 2 * 4 * 10^-7.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-19
   family: openstax-c1-3.6-221
   category: unsupported
@@ -516,7 +516,7 @@
   latex: '3u^2\cdot6x'
   label: unsupported
   rationale: 'Left in terms of the decomposition variable u; only the item variable x is allowed.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-20
   family: openstax-c1-3.6-221
   category: unsupported
@@ -524,7 +524,7 @@
   latex: 'y''=18x(3x^2+1)^2'
   label: unsupported
   rationale: 'An equation y'' = ... rather than an expression; Equal and y are outside the allowlist.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-21
   family: openstax-c1-3.6-221
   category: unsupported
@@ -532,7 +532,7 @@
   latex: '\frac{d}{dx}(3x^2+1)^3'
   label: unsupported
   rationale: 'Restates the question with the d/dx operator; a derivative operator is not an answer form.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-22
   family: openstax-c1-3.6-221
   category: partial
@@ -540,7 +540,7 @@
   keys: ['1', '8', 'x', '(', '3', 'x', '^', '2', 'ArrowRight', '+', '1', ')', '^']
   label: unsupported
   rationale: 'Submitted with the outer exponent slot still empty -> incomplete.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-23
   family: openstax-c1-3.6-221
   category: partial
@@ -548,7 +548,7 @@
   keys: ['x', '^']
   label: unsupported
   rationale: 'x^[ ]: MathLive sends x^{} (MathJSON just x), so only the LaTeX shows it is incomplete.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-24
   family: openstax-c1-3.6-221
   category: resource
@@ -556,7 +556,7 @@
   latex: 'x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x'
   label: unsupported
   rationale: 'A sum of 201 terms x: 202 MathJSON nodes, over the 200-node bound -> input_too_large.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-25
   family: openstax-c1-3.6-221
   category: resource
@@ -564,7 +564,7 @@
   latex: '(3x^2+1)^{1001}'
   label: unsupported
   rationale: 'Exponent 1001 exceeds the 1000 bound (and degree 2002 exceeds 200) -> input_too_large.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-221-26
   family: openstax-c1-3.6-221
   category: resource
@@ -572,7 +572,7 @@
   latex: '\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{\sqrt{x}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}'
   label: unsupported
   rationale: '31 nested square roots of x: depth 31, over the depth-30 bound -> input_too_large.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 
 # --- openstax-c1-3.6-253: v(6) = -200/343 (= -0.58309...), 3 decimals ------------------
 - id: d-253-01
@@ -582,47 +582,47 @@
   latex: '-0.583'
   label: correct
   rationale: '-200/343 = -0.583090...; rounds to -0.583 at 3 places, same as the student.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-02
   family: openstax-c1-3.6-253
   category: rounding
   problem_id: openstax-c1-3.6-253
   latex: '-0.5830'
-  label: correct
-  rationale: 'Trailing zero is lost in capture (-0.583); -0.5830 rounds to -0.583 either way.'
-  reviewer: 'pending'
+  label: unsupported
+  rationale: 'R24: four decimal places, not 3. Equal in value (-0.583), but the problem asks for exactly 3; raw LaTeX keeps the zero.'
+  reviewer: 'tg'
 - id: d-253-03
   family: openstax-c1-3.6-253
   category: rounding
   problem_id: openstax-c1-3.6-253
   latex: '-0.5835'
-  label: incorrect
-  rationale: 'Exact tie: half-even rounds -0.5835 to -0.584 (3 is odd), not -0.583.'
-  reviewer: 'pending'
+  label: unsupported
+  rationale: 'R24: four decimal places, not 3 (would round to -0.584, wrong, but places are checked first).'
+  reviewer: 'tg'
 - id: d-253-04
   family: openstax-c1-3.6-253
   category: rounding
   problem_id: openstax-c1-3.6-253
   latex: '-0.58'
-  label: incorrect
-  rationale: 'At 3 places -0.58 is -0.580, not -0.583 (too coarse is a different value, spec 02).'
-  reviewer: 'pending'
+  label: unsupported
+  rationale: 'R24: two decimal places, not 3.'
+  reviewer: 'tg'
 - id: d-253-05
   family: openstax-c1-3.6-253
   category: rounding
   problem_id: openstax-c1-3.6-253
   latex: '-0.5825'
-  label: incorrect
-  rationale: 'Exact tie: half-even rounds -0.5825 to -0.582 (2 is even), not -0.583.'
-  reviewer: 'pending'
+  label: unsupported
+  rationale: 'R24: four decimal places, not 3 (would round to -0.582, wrong, but places are checked first).'
+  reviewer: 'tg'
 - id: d-253-06
   family: openstax-c1-3.6-253
   category: rounding
   problem_id: openstax-c1-3.6-253
   latex: '-0.58349'
-  label: correct
-  rationale: 'Rounds to -0.583 at 3 places, the same cell as -0.58309..., so correct under the rounding rule.'
-  reviewer: 'pending'
+  label: unsupported
+  rationale: 'R24: five decimal places, not 3 (would round to -0.583).'
+  reviewer: 'tg'
 - id: d-253-07
   family: openstax-c1-3.6-253
   category: rounding
@@ -630,15 +630,15 @@
   latex: '-0.584'
   label: incorrect
   rationale: 'Rounded the wrong way: -0.58309 rounds to -0.583.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-08
   family: openstax-c1-3.6-253
   category: rounding
   problem_id: openstax-c1-3.6-253
   latex: '-0.58309'
-  label: correct
-  rationale: 'Extra places: -0.58309 rounds to -0.583.'
-  reviewer: 'pending'
+  label: unsupported
+  rationale: 'R24: five decimal places, not 3 (the unrounded value).'
+  reviewer: 'tg'
 - id: d-253-09
   family: openstax-c1-3.6-253
   category: rounding
@@ -646,7 +646,7 @@
   latex: '-\frac{200}{343}'
   label: correct
   rationale: 'The exact value v(6) = -200/(6+1)^3; checked symbolically.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-10
   family: openstax-c1-3.6-253
   category: tricky
@@ -654,7 +654,7 @@
   latex: '-\frac{200}{7^3}'
   label: correct
   rationale: '7^3 = 343.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-11
   family: openstax-c1-3.6-253
   category: tricky
@@ -662,7 +662,7 @@
   latex: '\frac{-200}{343}'
   label: correct
   rationale: 'Sign in the numerator: -200/343.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-12
   family: openstax-c1-3.6-253
   category: tricky
@@ -670,7 +670,7 @@
   latex: '-200(6+1)^{-3}'
   label: correct
   rationale: 'v(t) = -200(t+1)^-3 evaluated at t = 6, unsimplified: -200/343.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-13
   family: openstax-c1-3.6-253
   category: tricky
@@ -678,7 +678,7 @@
   latex: '-\frac{200}{(6+1)^3}'
   label: correct
   rationale: '(6+1)^3 = 343.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-14
   family: openstax-c1-3.6-253
   category: error
@@ -686,7 +686,7 @@
   latex: '-\frac{200}{49}'
   label: incorrect
   rationale: 'Seed misconception: exponent not lowered, -200(t+1)^-2 at t = 6. -4.08 vs -0.583.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-15
   family: openstax-c1-3.6-253
   category: error
@@ -694,7 +694,7 @@
   latex: '0.583'
   label: incorrect
   rationale: 'Sign dropped (speed, not velocity): +0.583 vs -0.583.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-16
   family: openstax-c1-3.6-253
   category: error
@@ -702,7 +702,7 @@
   latex: '-\frac{100}{343}'
   label: incorrect
   rationale: 'Factor 2 from the power rule dropped: half the answer.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-17
   family: openstax-c1-3.6-253
   category: error
@@ -710,7 +710,7 @@
   latex: '-\frac{200}{216}'
   label: incorrect
   rationale: 'Used t = 6 for t + 1 (6^3 = 216): -0.926 vs -0.583.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-18
   family: openstax-c1-3.6-253
   category: error
@@ -718,15 +718,15 @@
   latex: '\frac{100}{49}'
   label: incorrect
   rationale: 'Position s(6) = 100/7^2 given instead of velocity.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-19
   family: openstax-c1-3.6-253
   category: near
   problem_id: openstax-c1-3.6-253
   latex: '0.5833'
-  label: incorrect
-  rationale: 'Right digits, wrong sign: 0.5833 rounds to +0.583, not -0.583.'
-  reviewer: 'pending'
+  label: unsupported
+  rationale: 'R24: four decimal places, not 3 (also the wrong sign, but places are checked first).'
+  reviewer: 'tg'
 - id: d-253-20
   family: openstax-c1-3.6-253
   category: near
@@ -734,7 +734,7 @@
   latex: '-\frac{200}{343}+0.000000001'
   label: incorrect
   rationale: 'Not a plain decimal, so graded exactly: differs from -200/343 by 10^-9.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-21
   family: openstax-c1-3.6-253
   category: near
@@ -742,7 +742,7 @@
   latex: '-\frac{200.000001}{343}'
   label: incorrect
   rationale: 'Inner decimal is exact: differs from -200/343 by 10^-6/343.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-22
   family: openstax-c1-3.6-253
   category: unsupported
@@ -750,7 +750,7 @@
   latex: '-200(t+1)^{-3}'
   label: unsupported
   rationale: 'The velocity function v(t), not its value at t = 6; t is not the item variable.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-23
   family: openstax-c1-3.6-253
   category: unsupported
@@ -758,7 +758,7 @@
   latex: '\infty'
   label: unsupported
   rationale: 'Infinity is a limit token, not a numeric answer (outside the core allowlist).'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-24
   family: openstax-c1-3.6-253
   category: unsupported
@@ -766,7 +766,7 @@
   latex: '\mathrm{DNE}'
   label: unsupported
   rationale: 'DNE is a limit token (deferred kind), not a numeric answer.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-25
   family: openstax-c1-3.6-253
   category: unsupported
@@ -774,7 +774,7 @@
   latex: '-0.583\,\mathrm{m/s}'
   label: unsupported
   rationale: 'Units typed after the number; unit symbols are outside the allowlist.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-26
   family: openstax-c1-3.6-253
   category: resource
@@ -782,7 +782,7 @@
   latex: '10^{10^{10}}'
   label: unsupported
   rationale: 'Tower: the inner 10^10 exceeds the exponent bound 1000 -> input_too_large.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-27
   family: openstax-c1-3.6-253
   category: resource
@@ -790,7 +790,7 @@
   latex: '1234567890123456789012345678901234567890'
   label: unsupported
   rationale: '40-digit integer, over the 30-digit bound -> input_too_large.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-28
   family: openstax-c1-3.6-253
   category: resource
@@ -798,7 +798,7 @@
   latex: '-0.5830903790087463556851311953352769679300'
   label: unsupported
   rationale: '40 significant digits, over the 30-digit decimal bound -> input_too_large (even though it rounds right).'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-29
   family: openstax-c1-3.6-253
   category: resource
@@ -806,7 +806,7 @@
   latex: '2^{2^{2^{2^2}}}'
   label: unsupported
   rationale: '2^65536 has 19729 digits, over the 1000-digit constant bound -> input_too_large.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-30
   family: openstax-c1-3.6-253
   category: partial
@@ -814,7 +814,7 @@
   latex: ''
   label: unsupported
   rationale: 'Empty field submitted -> empty.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-253-31
   family: openstax-c1-3.6-253
   category: partial
@@ -822,7 +822,7 @@
   keys: ['-', '2', '0', '0', '/']
   label: unsupported
   rationale: 'Submitted mid-typing: -200/[ ] has an empty denominator slot -> incomplete.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 
 # --- adapted-c1-3.5-x2cosx: choice, correct a -----------------------------------------
 - id: d-x2cosx-01
@@ -832,7 +832,7 @@
   choice_id: a
   label: correct
   rationale: 'Choice a = 2x cos x - x^2 sin x, the product rule result.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-x2cosx-02
   family: adapted-c1-3.5-x2cosx
   category: error
@@ -840,7 +840,7 @@
   choice_id: b
   label: incorrect
   rationale: 'Seed misconception: (cos x)'' taken as +sin x.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-x2cosx-03
   family: adapted-c1-3.5-x2cosx
   category: error
@@ -848,7 +848,7 @@
   choice_id: c
   label: incorrect
   rationale: 'Seed misconception: product of the derivatives, -2x sin x.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-x2cosx-04
   family: adapted-c1-3.5-x2cosx
   category: error
@@ -856,25 +856,28 @@
   choice_id: d
   label: incorrect
   rationale: 'Seed misconception: cos x treated as a constant, second term dropped.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 
 # --- inline specs (cases the seeds cannot cover) ---------------------------------------
+# Removable holes. Reference x + 1 on R; student (x^2-1)/(x-1) or (x^2+x)/x.
+# 01, 03: default rule (strict_domain off): a provably removable hole is ignored -> correct.
+# 02: same input as 01 but strict_domain ON: undefined at x = 1, inside R -> incorrect.
 - id: d-hole-01
   family: inline-hole
   category: domain
   inline_spec: {kind: expression, latex: 'x+1'}
   latex: '\frac{x^2-1}{x-1}'
   label: correct
-  rationale: '(x^2-1)/(x-1) = x + 1 for x != 1; the hole at 1 is removable (limit 2 = 1 + 1), default rule.'
-  reviewer: 'pending'
+  rationale: '(x^2-1)/(x-1) = x + 1 for x != 1. Default rule (strict_domain off): the hole at 1 is removable (limit 2 = 1 + 1), so it is ignored.'
+  reviewer: 'tg'
 - id: d-hole-02
   family: inline-hole
   category: domain
   inline_spec: {kind: expression, latex: 'x+1', strict_domain: true}
   latex: '\frac{x^2-1}{x-1}'
   label: incorrect
-  rationale: 'Strict domain R: the student expression is undefined at x = 1, which is in the domain.'
-  reviewer: 'pending'
+  rationale: 'strict_domain ON, domain R: the student expression is undefined at x = 1, which is in the domain, so the hole is not ignored.'
+  reviewer: 'tg'
 - id: d-hole-03
   family: inline-hole
   category: domain
@@ -882,7 +885,9 @@
   latex: '\frac{x^2+x}{x}'
   label: correct
   rationale: '(x^2 + x)/x = x + 1 for x != 0; the hole at 0 is removable (limit 1 = 0 + 1).'
-  reviewer: 'pending'
+  reviewer: 'tg'
+# ln(x^2) vs 2 ln x: equal only for x > 0.
+# 01, 02: reference ln(x^2) on R \ {0} (negative x included). 03: reference 2 ln x on (0, inf).
 - id: d-lnsq-01
   family: inline-ln-square
   category: domain
@@ -890,7 +895,7 @@
   latex: '2\ln(x)'
   label: incorrect
   rationale: 'On R \ {0}: 2 ln x is undefined for every x < 0, where ln(x^2) is defined.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-lnsq-02
   family: inline-ln-square
   category: domain
@@ -898,7 +903,7 @@
   latex: '2\ln\lvert x\rvert'
   label: correct
   rationale: 'ln(x^2) = ln(|x|^2) = 2 ln|x| for every x != 0.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-lnsq-03
   family: inline-ln-square
   category: domain
@@ -906,7 +911,9 @@
   latex: '\ln(x^2)'
   label: correct
   rationale: 'On (0, inf): ln(x^2) = 2 ln x.'
-  reviewer: 'pending'
+  reviewer: 'tg'
+# sqrt(x^2) = |x|, which equals x only for x >= 0.
+# 01: reference x on R. 02: reference x on [0, inf). 03: reference |x| on R.
 - id: d-sqsq-01
   family: inline-sqrt-square
   category: domain
@@ -914,15 +921,15 @@
   latex: '\sqrt{x^2}'
   label: incorrect
   rationale: 'sqrt(x^2) = |x|: at x = -1 it is 1, not -1.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-sqsq-02
   family: inline-sqrt-square
   category: domain
-  inline_spec: {kind: expression, latex: 'x', domain: {intervals: [['0', 'inf', open, open]]}}
+  inline_spec: {kind: expression, latex: 'x', domain: {intervals: [['0', 'inf', closed, open]]}}
   latex: '\sqrt{x^2}'
   label: correct
-  rationale: 'On (0, inf): sqrt(x^2) = |x| = x.'
-  reviewer: 'pending'
+  rationale: 'On [0, inf): sqrt(x^2) = |x| = x.'
+  reviewer: 'tg'
 - id: d-sqsq-03
   family: inline-sqrt-square
   category: domain
@@ -930,7 +937,9 @@
   latex: '\sqrt{x^2}'
   label: correct
   rationale: 'sqrt(x^2) = |x| for every real x.'
-  reviewer: 'pending'
+  reviewer: 'tg'
+# Exp/log inverses: ln(e^x) = x on all of R, but e^(ln x) = x only for x > 0.
+# 01, 03: reference x on R. 02: reference x on (0, inf).
 - id: d-explog-01
   family: inline-exp-log
   category: domain
@@ -938,7 +947,7 @@
   latex: 'e^{\ln(x)}'
   label: incorrect
   rationale: 'On R: e^(ln x) is undefined for every x <= 0, a whole interval where x is defined.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-explog-02
   family: inline-exp-log
   category: domain
@@ -946,7 +955,7 @@
   latex: 'e^{\ln(x)}'
   label: correct
   rationale: 'On (0, inf): e^(ln x) = x.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-explog-03
   family: inline-exp-log
   category: domain
@@ -954,7 +963,8 @@
   latex: '\ln(e^x)'
   label: correct
   rationale: 'e^x > 0 for every real x, so ln(e^x) is defined on R and equals x.'
-  reviewer: 'pending'
+  reviewer: 'tg'
+# Problem: d/dx tan(x) on (-1, 1). Reference sec^2(x). Trig identities and near-miss notation.
 - id: d-dtan-01
   family: inline-dtan
   category: tricky
@@ -962,7 +972,7 @@
   latex: '\frac{1}{\cos^2(x)}'
   label: correct
   rationale: 'd/dx tan x on (-1, 1): sec^2 x = 1/cos^2 x; cos x > 0 there.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-dtan-02
   family: inline-dtan
   category: tricky
@@ -970,7 +980,7 @@
   latex: '1+\tan^2(x)'
   label: correct
   rationale: 'Pythagorean identity 1 + tan^2 x = sec^2 x; tan is defined on (-1, 1).'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-dtan-03
   family: inline-dtan
   category: error
@@ -978,7 +988,7 @@
   latex: '\sec(x^2)'
   label: incorrect
   rationale: 'sec(x^2) instead of (sec x)^2. At x = 1/2: sec(1/4) = 1.032 vs sec^2(1/2) = 1.298.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-dtan-04
   family: inline-dtan
   category: error
@@ -986,7 +996,8 @@
   latex: '-\csc^2(x)'
   label: incorrect
   rationale: 'Confused with d/dx cot x: negative wherever defined, while sec^2 x >= 1.'
-  reviewer: 'pending'
+  reviewer: 'tg'
+# Reference tan(x) on (-1, 1): the definition sin/cos.
 - id: d-tan-01
   family: inline-tan
   category: tricky
@@ -994,7 +1005,9 @@
   latex: '\frac{\sin(x)}{\cos(x)}'
   label: correct
   rationale: 'tan x = sin x / cos x by definition; cos x > 0 on (-1, 1).'
-  reviewer: 'pending'
+  reviewer: 'tg'
+# Problem: d/dx ln(sin(x/3)) on (0, 9). Reference (1/3)cot(x/3). Default rule (strict off).
+# 01 is the raw chain-rule output; 03 (1/tan) has a removable hole at x = 3pi/2.
 - id: d-cot-01
   family: inline-dlnsin
   category: tricky
@@ -1002,7 +1015,7 @@
   latex: '\frac{\cos(\frac{x}{3})}{3\sin(\frac{x}{3})}'
   label: correct
   rationale: 'd/dx ln(sin(x/3)) on (0, 9): cot(x/3)/3 = cos(x/3)/(3 sin(x/3)); sin(x/3) > 0 there (3pi > 9).'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-cot-02
   family: inline-dlnsin
   category: error
@@ -1010,7 +1023,7 @@
   latex: '\cot(\frac{x}{3})'
   label: incorrect
   rationale: 'Inner derivative 1/3 missing: three times the answer, nonzero at x = 1.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-cot-03
   family: inline-dlnsin
   category: domain
@@ -1018,7 +1031,7 @@
   latex: '\frac{1}{3\tan(\frac{x}{3})}'
   label: correct
   rationale: 'Equal to cot(x/3)/3 except at x = 3pi/2, where tan(x/3) is undefined; that hole is removable (limit 0 = the answer there).'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-cot-04
   family: inline-dlnsin
   category: tricky
@@ -1026,7 +1039,8 @@
   latex: '\frac{1}{3}\cot(\frac{x}{3})'
   label: correct
   rationale: 'The answer with the factor 1/3 in front of cot(x/3).'
-  reviewer: 'pending'
+  reviewer: 'tg'
+# Reference x^3 on R: an exponent written as a logarithm (log_2 8 = 3).
 - id: d-log2-01
   family: inline-log2
   category: tricky
@@ -1034,7 +1048,8 @@
   latex: 'x^{\log_2(8)}'
   label: correct
   rationale: 'log_2 8 = 3 exactly, so x^(log_2 8) = x^3 for every real x.'
-  reviewer: 'pending'
+  reviewer: 'tg'
+# Problem: d/dx x^(-2) on R \ {0}. Reference -2/x^3: negative-exponent forms.
 - id: d-negpow-01
   family: inline-negpow
   category: tricky
@@ -1042,7 +1057,7 @@
   latex: '-2x^{-3}'
   label: correct
   rationale: 'd/dx x^-2 = -2x^-3 = -2/x^3 on R \ {0}.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-negpow-02
   family: inline-negpow
   category: error
@@ -1050,7 +1065,8 @@
   latex: '-2x^{-1}'
   label: incorrect
   rationale: 'Exponent raised instead of lowered (-2 + 1). At x = 1: -2 vs -2, at x = 2: -1 vs -1/4.'
-  reviewer: 'pending'
+  reviewer: 'tg'
+# Reference csc(x) on (1/2, 3), where sin x > 0: reciprocal trig and ambiguous sin^-1.
 - id: d-csc-01
   family: inline-csc
   category: unsupported
@@ -1058,7 +1074,7 @@
   latex: '\sin^{-1}(x)'
   label: unsupported
   rationale: 'sin^-1(x) is ambiguous (arcsin vs 1/sin); inverse trig is deferred, so unsupported_notation.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-csc-02
   family: inline-csc
   category: tricky
@@ -1066,7 +1082,7 @@
   latex: '\frac{1}{\sin(x)}'
   label: correct
   rationale: 'csc x = 1/sin x; sin x > 0 on (1/2, 3).'
-  reviewer: 'pending'
+  reviewer: 'tg'
 
 # --- R22: function input must be parenthesized (reject-only LaTeX pre-check) -------------
 - id: d-r22-01
@@ -1076,7 +1092,7 @@
   latex: '\sin x'
   label: unsupported
   rationale: 'R22: function input must be parenthesized.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-r22-02
   family: inline-r22
   category: unsupported
@@ -1084,7 +1100,7 @@
   latex: '\cos x(x+1)'
   label: unsupported
   rationale: 'R22: function input must be parenthesized.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-r22-03
   family: inline-r22
   category: unsupported
@@ -1092,7 +1108,7 @@
   latex: '\cos^2x'
   label: unsupported
   rationale: 'R22: function input must be parenthesized.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-r22-04
   family: inline-r22
   category: unsupported
@@ -1100,7 +1116,7 @@
   latex: '\log_2 8'
   label: unsupported
   rationale: 'R22: function input must be parenthesized.'
-  reviewer: 'pending'
+  reviewer: 'tg'
 - id: d-r22-05
   family: inline-r22
   category: unsupported
@@ -1108,4 +1124,4 @@
   latex: '\operatorname{sin}x'
   label: unsupported
   rationale: 'R22: function input must be parenthesized (also when the name is written with operatorname).'
-  reviewer: 'pending'
+  reviewer: 'tg'
