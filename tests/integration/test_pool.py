@@ -201,7 +201,11 @@ def test_alive_false_after_worker_killed_externally(make_pool: Callable[..., Ver
     assert p.alive()
     for worker in live_workers():
         worker.kill()
-        worker.wait(5)
+    # Wait without reaping: psutil's wait() would collect the exit status on Linux, and then
+    # multiprocessing could never see the worker exit (close() raises "still running").
+    deadline = time.monotonic() + 5
+    while p.alive() and time.monotonic() < deadline:
+        time.sleep(0.05)
     assert not p.alive()
 
 
