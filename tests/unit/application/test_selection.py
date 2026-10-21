@@ -98,3 +98,12 @@ def test_skip_does_not_erase_an_earlier_incorrect() -> None:
         (ORDER[4], VerdictStatus.CORRECT, t(3)),
     ]
     assert next_item_id(CONTENT, ["derivatives.basic_rules"], history) == ORDER[0]
+
+
+def test_exclude_skips_items_already_shown_this_session() -> None:
+    history: list[tuple[str, VerdictStatus | None, datetime]] = [
+        (ORDER[1], VerdictStatus.INCORRECT, t(1)),
+    ]
+    topics = ["derivatives.basic_rules"]
+    assert next_item_id(CONTENT, topics, history, exclude={ORDER[0]}) == ORDER[1]
+    assert next_item_id(CONTENT, topics, history, exclude={ORDER[0], ORDER[1]}) is None

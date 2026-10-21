@@ -45,7 +45,8 @@ from mathtutor.verify.types import (
 
 MAX_TRIES = 3
 ORPHAN_AFTER = timedelta(seconds=10)  # ruling R5 / R13
-ALL_CORRECT = "all_correct"
+ALL_CORRECT = "all_correct"  # every problem in the topics has been answered correctly
+SESSION_COMPLETE = "session_complete"  # every unsolved problem was shown in this session
 
 ALLOWED: dict[ItemState, list[Action]] = {
     ItemState.ACTIVE: [Action.SUBMIT, Action.SKIP],
@@ -183,7 +184,7 @@ class PracticeService:
             session = self._owned(db, user_id, session_id)
             item = self._current(db, session)
             if session.ended_at is not None or item is None or item.state is ItemState.COMPLETED:
-                return Done(ALL_CORRECT)
+                return Done(self._done_reason(db, session))
             return self._view(db, item)
 
     def session_summary(self, user_id: int) -> list[SessionSummary]:
@@ -264,7 +265,7 @@ class PracticeService:
             item.completed_at = now
             db.flush()
             nxt = self._present_next(db, session, sequence=item.sequence + 1)
-            return Done(ALL_CORRECT) if nxt is None else self._view(db, nxt)
+            return Done(self._done_reason(db, session)) if nxt is None else self._view(db, nxt)
 
     # -- submit (spec 06 "Submission protocol") ---------------------------------------------
 
@@ -494,11 +495,20 @@ class PracticeService:
             latest[presentation_id] = status
         return [(item_id, latest.get(pk), served_at) for pk, item_id, served_at in items]
 
+    def _done_reason(self, db: Session, session: StudySession) -> str:
+        """Why a session ended: nothing left to solve at all, or nothing left for this session."""
+        history = self._history(db, session.user_id)
+        unsolved = next_item_id(self._content, list(session.topics), history)
+        return ALL_CORRECT if unsolved is None else SESSION_COMPLETE
+
     def _present_next(
         self, db: Session, session: StudySession, sequence: int
     ) -> SessionItem | None:
+        shown = set(
+            db.scalars(select(SessionItem.item_id).where(SessionItem.session_id == session.id))
+        )
         item_id = next_item_id(
-            self._content, list(session.topics), self._history(db, session.user_id)
+            self._content, list(session.topics), self._history(db, session.user_id), shown
         )
         now = self._clock()
         if item_id is None:

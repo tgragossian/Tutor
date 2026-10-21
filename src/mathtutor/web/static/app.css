@@ -42,7 +42,8 @@ th, td { text-align: left; padding: 0.4rem; border-bottom: 1px solid var(--line)
 .statement { font-size: 1.1rem; }
 .source { color: var(--muted); font-size: 0.85rem; }
 .hint { color: var(--muted); font-size: 0.9rem; }
-math-field { display: block; width: 100%; box-sizing: border-box; font-size: 1.3rem;
+/* MathLive closes "(" automatically; draw the closing ")" solid rather than as a faint hint. */
+math-field { --smart-fence-opacity: 1; display: block; width: 100%; box-sizing: border-box; font-size: 1.3rem;
   border: 1px solid var(--line); border-radius: 6px; padding: 0.4rem; }
 math-field[read-only] { display: inline-block; width: auto; border: none; padding: 0; font-size: inherit; }
 .keys { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.5rem 0; }

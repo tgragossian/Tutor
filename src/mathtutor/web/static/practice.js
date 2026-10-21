@@ -26,6 +26,34 @@ const KEYS = [
 
 const BUTTONS = { submit: 'check', advance: 'next', skip: 'skip', reveal: 'reveal' };
 
+const DONE_MESSAGES = {
+  all_correct: "You've answered every problem in these topics correctly.",
+  session_complete: "You've worked through every problem in these topics.",
+};
+
+// Typing a function name inserts its parentheses with the cursor inside: "sinx" → sin(x).
+const FUNCTIONS = ['sin', 'cos', 'tan', 'sec', 'csc', 'cot', 'arcsin', 'arccos', 'arctan', 'ln', 'log', 'exp'];
+
+function functionShortcuts(defaults) {
+  const shortcuts = { ...defaults };
+  // Drop longer names that start with a function (sinh, cosh, …): unsupported, and while they
+  // exist MathLive waits before expanding "sin", which breaks the "(" handling below.
+  for (const key of Object.keys(shortcuts)) {
+    if (FUNCTIONS.some((f) => key !== f && key.startsWith(f))) delete shortcuts[key];
+  }
+  for (const f of FUNCTIONS) shortcuts[f] = `\\${f}\\left(#?\\right)`;
+  return shortcuts;
+}
+
+// A "(" typed straight after a function name would nest a second pair: sin((x)). Swallow it
+// while the cursor sits in the function's still-empty argument.
+function skipRedundantParen(event) {
+  if (event.key !== '(' || !field) return;
+  const before = field.getValue(0, field.position);
+  const emptyArgument = /\\left\(\\placeholder\{\}\\right\)/.test(field.value);
+  if (emptyArgument && /\\placeholder\{\}$/.test(before)) event.preventDefault();
+}
+
 let item = null;
 let field = null;
 let pending = null; // {submission_id, body} kept while a submit is retried
@@ -136,11 +164,13 @@ function renderAnswer(current) {
   field.id = 'answer-field';
   field.setAttribute('aria-label', 'Your answer');
   field.mathVirtualKeyboardPolicy = 'auto';
+  field.addEventListener('keydown', skipRedundantParen, { capture: true });
   field.addEventListener('input', updateCheck);
   field.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' && !$('check').disabled) check();
   });
   area.append(field);
+  field.inlineShortcuts = functionShortcuts(field.inlineShortcuts); // needs a mounted field
   renderKeys();
 }
 
@@ -168,6 +198,7 @@ function render(current, revealedLatex) {
   root.setAttribute('aria-busy', 'false');
   if (current.done) {
     $('problem').hidden = true;
+    $('done-message').textContent = DONE_MESSAGES[current.reason] || DONE_MESSAGES.session_complete;
     $('done').hidden = false;
     return;
   }

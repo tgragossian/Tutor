@@ -53,3 +53,12 @@ Made during inline execution on 2026-10-21. Each costs little if wrong; Thomas m
 
 - **A18:** Playwright's zero-length click does not focus a MathLive field; the smoke clicks with
   an 80 ms press. The smoke and its CI job were committed before the new content.
+
+## Thomas's UI feedback (2026-10-21, after the first deploy)
+
+- **A19:** typing a function name (sin, cos, tan, sec, csc, cot, arcsin, arccos, arctan, ln,
+  log, exp) inserts its parentheses with the cursor inside; a habitual "(" right after is
+  swallowed. MathLive's auto-closed ")" is drawn solid. Hyperbolic shortcuts are removed.
+- **A20:** a session never repeats a problem: it ends (`session_complete`) once every unsolved
+  problem in its topics was shown; missed problems return in a later session. The end screen
+  says "Next features under construction, thank you for using this tutor!" US spelling.

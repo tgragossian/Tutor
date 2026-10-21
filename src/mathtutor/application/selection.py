@@ -11,7 +11,12 @@ from mathtutor.domain import VerdictStatus
 History = list[tuple[str, VerdictStatus | None, datetime]]
 
 
-def next_item_id(content: LoadedContent, topics: list[str], history: History) -> str | None:
+def next_item_id(
+    content: LoadedContent,
+    topics: list[str],
+    history: History,
+    exclude: set[str] | frozenset[str] = frozenset(),
+) -> str | None:
     """The next item in the chosen topics, or ``None`` when every one was answered correctly.
 
     Candidates are the items never answered correctly, in three tiers:
@@ -19,11 +24,12 @@ def next_item_id(content: LoadedContent, topics: list[str], history: History) ->
     2. latest result incorrect, the oldest first;
     3. seen without a usable result (skipped, unable to verify), the oldest first.
     The most recently presented item is skipped while any other candidate remains.
+    Items in ``exclude`` (already shown in this session) are never chosen.
     """
     order = {t.topic_id: t.order for t in content.bundle.topics}
     chosen = set(topics)
     items = sorted(
-        (p for p in servable(content) if p.topic in chosen),
+        (p for p in servable(content) if p.topic in chosen and p.id not in exclude),
         key=lambda p: (order[p.topic], p.difficulty, p.id),
     )
 

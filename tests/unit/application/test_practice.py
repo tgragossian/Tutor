@@ -231,11 +231,25 @@ def test_revisit_gets_fresh_presentation(w: World) -> None:
     first = w.view(sid)
     w.svc.skip(w.alice, sid, *_at(first))
     w.submit(sid, CORRECT)  # SECOND
-    again = w.svc.advance(w.alice, sid, *_at(w.view(sid)))
-    assert isinstance(again, ItemView)
+    # Every problem in the topic was shown in this session: it ends instead of repeating.
+    assert w.svc.advance(w.alice, sid, *_at(w.view(sid))) == Done("session_complete")
+    # A later session brings back what was not answered correctly, fresh.
+    later = w.svc.start_session(w.alice, [BASIC])
+    again = w.view(later)
     assert again.item_id == FIRST
     assert again.session_item_id != first.session_item_id
     assert again.tries_left == 3 and again.last_outcome is None
+
+
+def test_session_ends_after_last_unsolved_problem(w: World) -> None:
+    """Exhausting the last problem must not re-serve it in the same session (Next "did nothing")."""
+    sid = w.svc.start_session(w.alice, [BASIC])
+    w.submit(sid, CORRECT)  # FIRST
+    w.svc.advance(w.alice, sid, *_at(w.view(sid)))
+    for _ in range(3):
+        w.submit(sid, INCORRECT)  # SECOND, exhausted
+    assert w.svc.advance(w.alice, sid, *_at(w.view(sid))) == Done("session_complete")
+    assert w.svc.current_item(w.alice, sid) == Done("session_complete")
 
 
 def test_duplicate_submission_id_returns_stored_result(w: World) -> None:
