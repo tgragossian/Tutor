@@ -3,9 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if csrf_token %}<meta name="csrf-token" content="{{ csrf_token }}">{% endif %}
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  {% block head %}{% endblock %}
 </head>
 <body>
+  <header class="bar">
+    <a class="brand" href="/">{{ app_name }}</a>
+    <nav>
+      {% if username %}
+      <span class="who">Signed in as {{ username }}</span>
+      <form method="post" action="/logout" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="link">Sign out</button>
+      </form>
+      {% else %}
+      <a href="/login">Sign in</a>
+      <a href="/register">Create account</a>
+      {% endif %}
+    </nav>
+  </header>
   <main>
     {% block content %}{% endblock %}
   </main>

@@ -1,9 +1,23 @@
 # Production stack: the app is reachable only through Caddy on the compose network.
 services:
+  # One-shot: bring the SQLite schema up to date before the app starts.
+  migrate:
+    image: ${MATHTUTOR_IMAGE:-mathtutor:local}
+    env_file: .env
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    volumes:
+      - app_data:/data
+
   app:
     image: ${MATHTUTOR_IMAGE:-mathtutor:local}
     env_file: .env
     restart: unless-stopped
+    volumes:
+      - app_data:/data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     logging:
       driver: json-file
       options:
@@ -32,5 +46,6 @@ services:
       - app
 
 volumes:
+  app_data:
   caddy_data:
   caddy_config:

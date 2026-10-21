@@ -2,6 +2,9 @@
 
 [Plan index](README.md) · Budget target: 30 hours.
 
+Current progress: tasks 1–14 complete on the active branch; content expansion and release
+remain. [Execution status](milestone-b/03-execution-status.md) owns the detailed gates.
+
 ## Build sequence
 
 1. Implement allowlisted translation and domain-aware checks for the narrow answer types.
@@ -28,7 +31,7 @@ Use textbook order initially; save enough history to evaluate a later selection 
 
 Numeric/choice checks avoid unnecessary general symbolic machinery.
 Keep the UI simple: problem, answer editor, feedback, next/skip, and source attribution.
-Use a normal page/form flow or a deliberate HTMX HTML-fragment adapter.
+Implemented: server-rendered pages/forms with fetch to the JSON API on the practice page.
 
 ## Verification gate
 

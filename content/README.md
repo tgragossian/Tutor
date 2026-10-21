@@ -16,6 +16,14 @@ Problem content for the tutor: authored YAML in, one compiled JSON bundle out.
 | `sources/` | One manifest per source book |
 | `compiled/problems.json` | The generated bundle the server loads (committed; never edit by hand) |
 
+## Milestone B expansion status
+
+Six reviewed problems exist. Task 15 needs 14–24 additions and Thomas's review.
+The prior handoff leaves sourcing open: author-written `adapted` items, human-transcribed
+statements, or a permitted source. The [source manifest](sources/openstax-calculus-v1.md)
+records the book notice that prompted this pause; no sourcing decision is made by this docs pass.
+Browser smoke exists in `tools/e2e/smoke.mjs`; it does not complete the content gate.
+
 ## Authoring a problem
 
 1. Create `problems/<id>.yaml`. Transcribed exercises use `openstax-c1-<section>-<exercise>`; author-written items use `adapted-c1-<section>-<slug>`.

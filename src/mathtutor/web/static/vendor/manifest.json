@@ -1,0 +1,17 @@
+{
+  "generated_by": "tools/vendor.mjs",
+  "versions": {
+    "mathlive": "0.111.1",
+    "compute_engine": "0.151.0"
+  },
+  "entries": [
+    "mathlive/mathlive.min.mjs",
+    "compute-engine/compute-engine.js"
+  ],
+  "integrity": {
+    "compute-engine/chunks/chunk-4UN5AGPK.js": "sha384-YZEW/l5bo2FbaV7JDtR5QSqlPFjcyS12qjkBRJahYwStYYOqzacCoOYS61W5aMHF",
+    "compute-engine/chunks/chunk-WCI5KY6P.js": "sha384-f9iKd94j9QfWZZKj6EoaptybbWXroHxaPSbsoVXLPQfl8v2DVk1loC/ZieTNKZdd",
+    "compute-engine/compute-engine.js": "sha384-wJbvLtd6x+SP9DEhmURzwsa7OYfxUak5pq2Ds0Q0T7RUkGGnwvppEyBGlUGtjhUa",
+    "mathlive/mathlive.min.mjs": "sha384-VElc+/InxKKEVoBMUm/QmuYa6STaJ0mQUPkz/keb6/BGjnVBl28KF/2HUEGT3+AT"
+  }
+}

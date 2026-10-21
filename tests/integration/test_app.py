@@ -8,11 +8,12 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
+from support.webapp import SpyPool, make_settings
 
 from mathtutor import __version__
 from mathtutor.content.loader import ContentError, load_bundle
 from mathtutor.settings import Settings
-from mathtutor.web.app import create_app
+from mathtutor.web.app import CSP, create_app
 
 ROOT = Path(__file__).resolve().parents[2]
 REAL_PATH = ROOT / "content" / "compiled" / "problems.json"
@@ -22,8 +23,8 @@ TITLES = [t.title for t in sorted(REAL.bundle.topics, key=lambda t: t.order)]
 
 
 @pytest.fixture
-def client() -> TestClient:
-    return TestClient(create_app(Settings(env="test", content_path=REAL_PATH)))
+def client(tmp_path: Path) -> TestClient:
+    return TestClient(create_app(make_settings(tmp_path), pool=SpyPool()))
 
 
 @pytest.fixture
@@ -49,7 +50,7 @@ def test_readyz_ready_with_real_content(client: TestClient) -> None:
 
 
 def test_readyz_503_when_nothing_servable(needs_review_only: Path) -> None:
-    app = create_app(Settings(env="test", content_path=needs_review_only))
+    app = create_app(Settings(env="test", content_path=needs_review_only), pool=SpyPool())
     r = TestClient(app).get("/readyz")
     assert r.status_code == 503
     assert r.json() == {"status": "not_ready", "reason": "no_servable_problems"}
@@ -99,7 +100,7 @@ def test_index_leaks_no_answers(client: TestClient) -> None:
 def test_security_headers(client: TestClient) -> None:
     for path in ("/healthz", "/readyz", "/"):
         h = client.get(path).headers
-        assert h["content-security-policy"] == "default-src 'self'"
+        assert h["content-security-policy"] == CSP
         assert h["x-content-type-options"] == "nosniff"
         assert h["referrer-policy"] == "same-origin"
 
@@ -113,5 +114,5 @@ def test_security_headers_on_500() -> None:
 
     r = TestClient(app, raise_server_exceptions=False).get("/boom")
     assert r.status_code == 500
-    assert r.headers["content-security-policy"] == "default-src 'self'"
+    assert r.headers["content-security-policy"] == CSP
     assert r.headers["x-content-type-options"] == "nosniff"

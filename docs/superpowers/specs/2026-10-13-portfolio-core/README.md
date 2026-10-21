@@ -2,8 +2,8 @@
 
 [Specs index](../README.md) · [Handoff](../../../../handoff.md) · [Decision 0001](../../../decisions/0001-delivery-verifier-attribution.md) · [Delivery plan](../../plans/portfolio-mvp/README.md)
 
-**Status:** approved by Thomas on 2026-10-13. Milestone A skeleton is live; the
-practice loop and verifier contracts remain for milestone B.
+**Status:** approved by Thomas on 2026-10-13. For implementation and release progress,
+see [milestone B status](../../plans/portfolio-mvp/milestone-b/03-execution-status.md).
 
 **What this replaces:** the [reference design](../2026-10-13-core-practice-loop-design.md), for milestones A and B (deployed skeleton + three-topic practice loop). Where the two conflict, this spec wins.
 

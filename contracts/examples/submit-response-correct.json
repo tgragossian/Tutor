@@ -1,0 +1,28 @@
+{
+  "outcome": {
+    "status": "correct",
+    "reason": "proven",
+    "method": "symbolic"
+  },
+  "item": {
+    "session_item_id": 42,
+    "revision": 4,
+    "statement_html": "<p>Find \\(\\frac{dy}{dx}\\) for \\(y = \\sin(3x^2)\\).</p>",
+    "answer_kind": "expression",
+    "precision_hint": null,
+    "choices": null,
+    "source": {
+      "book": "OpenStax Calculus Volume 1",
+      "section": "3.6",
+      "exercise": 221,
+      "url": "https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule",
+      "license": "CC BY-NC-SA 4.0",
+      "adapted": false
+    },
+    "allowed_actions": [
+      "advance"
+    ],
+    "tries_left": 3
+  },
+  "replayed": false
+}

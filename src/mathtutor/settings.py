@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     env: Literal["development", "test", "production"] = "development"
     secret_key: SecretStr | None = None
     content_path: Path = Path("content/compiled/problems.json")
+    database_url: str = "sqlite:///data/mathtutor.db"
 
     @model_validator(mode="after")
     def _production_needs_secret(self) -> Self:

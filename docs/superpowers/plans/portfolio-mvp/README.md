@@ -2,8 +2,8 @@
 
 [Handoff](../../../../handoff.md) · [Review](../../../reviews/2026-10-13/README.md)
 
-2026-10-21: tasks 1–9 merged to `main`; tasks 10–14 complete on `milestone-b`; task 15 partial.
-This is the main plan snapshot. Use the [handoff](../../../../handoff.md) to find current branch docs.
+2026-10-21: B tasks 1–14 merged to `main` with review fixes and container storage; task 15
+partial; task 16 (host memory sizing, deploy) pending. See the [handoff](../../../../handoff.md).
 See [execution status](milestone-b/03-execution-status.md) and [review follow-ups](milestone-b/05-follow-ups.md).
 
 Status: option B selected; [milestone A](milestone-a/README.md) complete and live.
@@ -19,7 +19,7 @@ hints, reproducible retrieval experiments and clear operational limits.
 - One practice mode, accounts/attempt history and a textbook-order baseline.
 - Numeric, bounded symbolic-expression and multiple-choice answers first.
 - One OpenStax Volume 1 subset for both problems and explanation retrieval.
-- FastAPI, Jinja/HTMX, MathLive, SQLite and Docker; small AWS deployment.
+- FastAPI, Jinja forms/fetch, MathLive, SQLite and Docker; small AWS deployment.
 - Progressive hints, citations, documented correctness/abstention behavior.
 
 After the core works, restore features in this order:

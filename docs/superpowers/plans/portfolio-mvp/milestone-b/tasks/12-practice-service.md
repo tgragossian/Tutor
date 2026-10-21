@@ -2,8 +2,9 @@
 
 [Milestone B plan](../README.md) · [Spec 06](../../../../specs/2026-10-13-portfolio-core/06-session-state.md) · Ruling R5
 
-**Status (2026-10-19):** not started; paths below are planned outputs.
-Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
+**Status (2026-10-21):** complete in 458f2ca.
+Completed recipe below; [app rulings A1–A18](../06-app-track-rulings.md) record amendments.
+Validation is recorded in [evidence](../07-verification-evidence.md); commands below are the execution recipe.
 
 **Files:**
 - Create: `src/mathtutor/application/selection.py`, `practice.py`
@@ -12,7 +13,7 @@ Dependencies checked against the [file map](../01-file-map.md) and [rulings](../
 **Interfaces:**
 - Consumes: `LoadedContent`, `servable` (content); `VerifierPool`, `CheckRequest`, `SubmittedAnswer`, `VerifierBusy` (verify); models and `make_sessionmaker` (store); errors (task 11).
 - Produces:
-  - `def next_item_id(content: LoadedContent, topics: list[str], history: list[tuple[str, VerdictStatus | None, datetime]]) -> str | None` — spec 06 selection: textbook order; first never answered correctly; unseen first, then latest-incorrect oldest first.
+  - `def next_item_id(content: LoadedContent, topics: list[str], history: list[tuple[str, VerdictStatus | None, datetime]]) -> str | None` — spec 06 selection: textbook order; first never answered correctly; unseen first, then latest-incorrect oldest first, then seen without usable results; avoid the last item when alternatives exist (A11).
   - `@dataclass(frozen=True) class ItemView` — `session_item_id, revision, state, item_id, statement_html, answer_kind, precision_hint, choices: list[tuple[str, str]] | None, source: Source, allowed_actions: list[Action], tries_left: int, last_outcome: Verdict | FormatIssue | None, revealed_latex: str | None`
   - `@dataclass(frozen=True) class SubmitView` — `outcome: Verdict | FormatIssue, item: ItemView, replayed: bool`
   - `class PracticeService(sessions, content, pool, clock)` with methods (every one takes `user_id`; another user's session → `Forbidden`; unknown → `NotFound`):
@@ -29,7 +30,7 @@ Dependencies checked against the [file map](../01-file-map.md) and [rulings](../
 - R12: transaction B conditionally updates `WHERE revision=:expected AND state='active'`; no changed row → `StaleItem`. Map SQLite lock failures to `StaleItem`/`Busy`.
 - Rulings require race tests for in-flight duplicate ids as well as distinct-id revision races.
 
-- [ ] **Step 1: Write the failing tests** (pool replaced by a fake `submit` returning scripted results; races use the real pool with `tests/support/checks.slow`).
+- [x] **Step 1: Write the failing tests** (pool replaced by a fake `submit` returning scripted results; races use the real pool with `tests/support/checks.slow`).
 
 ```python
 def test_selection_textbook_order_and_retry_policy(): ...   # unseen first; then latest-incorrect, oldest first; correct items never return
@@ -51,7 +52,7 @@ def test_sixteen_concurrent_submits(): ...                  # 16 threads, real S
 def test_done_when_all_answered(): ...                      # Done("all_correct"), study_sessions.ended_at set
 ```
 
-- [ ] **Step 2:** Run `uv run pytest tests/unit/application tests/integration/test_submit_races.py -q`. Expected: FAIL.
-- [ ] **Step 3: Implement** `selection.py`, then `PracticeService`. Every transaction is a `with self.sessions.begin() as db:` block; the pool is called with no transaction open. `revision` increments on every state change; `served_at` is set once, at row creation.
-- [ ] **Step 4:** Run `uv run pytest -q && uv run mypy src`. Expected: PASS; run the race file three times to catch flakes.
-- [ ] **Step 5: Commit** `feat: practice service with atomic idempotent submissions`.
+- [x] **Step 2:** Run `uv run pytest tests/unit/application tests/integration/test_submit_races.py -q`. Expected: FAIL.
+- [x] **Step 3: Implement** `selection.py`, then `PracticeService`. Every transaction is a `with self.sessions.begin() as db:` block; the pool is called with no transaction open. `revision` increments on every state change; `served_at` is set once, at row creation.
+- [x] **Step 4:** Run `uv run pytest -q && uv run mypy src`. Expected: PASS; run the race file three times to catch flakes.
+- [x] **Step 5: Commit** `feat: practice service with atomic idempotent submissions`.

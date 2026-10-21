@@ -13,7 +13,7 @@ from pydantic import ValidationError
 from mathtutor.web.schemas import ErrorBody, PublicItem, SubmissionRequest
 
 EXAMPLES = Path(__file__).resolve().parents[2] / "contracts" / "examples"
-SUBMITS = sorted(EXAMPLES.glob("submit-*.json"))
+SUBMITS = sorted(p for p in EXAMPLES.glob("submit-*.json") if "response" not in p.name)
 ITEMS = sorted(EXAMPLES.glob("item-*.json"))
 
 

@@ -2,9 +2,9 @@
 
 [Milestone B plan](README.md) · [Structure review](../../../../reviews/2026-10-13/structure.md)
 
-Main snapshot: tasks 1–9 and R24 are merged. Tasks 10–14 exist on `milestone-b`; task 15
-is partial. Use the [handoff](../../../../../handoff.md) for the current branch file map.
-Paths for tasks 10–16 below are not yet present on main.
+Updated 2026-10-21: tasks 1–14 implemented and merged; task 15 smoke exists, new content
+pending. Task 16: container storage done, load tool and docs planned.
+[Debugging tree](../../../../ops/debugging/README.md).
 Task numbers in the right column identify ownership, not proof of completion.
 
 ```text
@@ -40,9 +40,10 @@ src/mathtutor/
     security.py                 cookies, CSRF dependency, RateLimiter                11
     api.py                      JSON routes                                          13
     pages.py                    HTML routes                                          14
-    logging.py                  JSON request logging middleware                      13
+    logging.py                  request logs, ASGI body-size limit                   13
+    messages.py                 friendly FormatIssue copy                            13
     schemas.py                  + auth DTOs, SubmitResponse                          13
-    templates/                  login, register, index, practice                     14
+    templates/                  base, login, register, index, practice, error        14
     static/practice.js          MathLive field, fetch submit, render feedback        14
     static/app.css              minimal responsive styles                            14
     static/vendor/              mathlive + compute-engine files, SRI in manifest     14
@@ -61,7 +62,7 @@ evals/verifier/
   human/REVIEW.md, REVIEW-*.md   linked human-review sheets                            9
   generated/mutations.jsonl     SymPy-generated regression cases                     8
   results/                      README, historical dev-draft.json, dev-b.json   8,9,16
-content/problems/*.yaml         14–24 new problems (20–30 total)                    15
+content/problems/*.yaml         six reviewed; 14–24 additions still planned          15
 docs/ops/security.md            CSP and cookie decisions                              14
 docs/verifier/README.md         verifier documentation parent                        16
 docs/verifier/supported.md      supported expressions and limitations                16

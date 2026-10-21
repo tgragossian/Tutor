@@ -1,49 +1,60 @@
-# Calculus Tutor handoff: main checkout
+# Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-21 after reading milestone B through d428bd7.
+Owner: Thomas Gragossian. Updated: 2026-10-21 after merging `milestone-b` (tasks 10–14, review
+fixes, container storage) into `main`. The `milestone-b` worktree remains for tasks 15–16:
+`.claude/worktrees/milestone-b`.
 
-## Where current work lives
+## Current state
 
-Active worktree: `.claude/worktrees/milestone-b`, branch `milestone-b`.
-Its `handoff.md` and `docs/README.md` are the current documentation entry points.
-The documentation sync is in that worktree; main retains the verifier-only implementation.
-For the committed branch handoff: `git show milestone-b:handoff.md`.
-For uncommitted documentation updates, read the worktree files directly.
-
-## Current project state
-
-- Tasks 1–9 are complete and merged to `main` in 102a22f: bounded SymPy verifier,
-  reviewed development evaluation and CI gates.
-- Tasks 10–14 are complete on `milestone-b` (d865179..c52305d): store, accounts,
-  practice service, JSON API and MathLive pages. The prior handoff records them as not pushed.
-- Task 15 is partial: smoke script and e2e CI job in 5fd8952; six reviewed problems remain.
+- Tasks 1–9 (bounded SymPy verifier, reviewed evaluation, CI gates) merged in 102a22f.
+- Tasks 10–14 (store, accounts, practice service, JSON API, MathLive pages) are merged:
+  d865179..c52305d, [rulings A1–A18](docs/superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md).
+- [2026-10-21 review](docs/reviews/2026-10-21-milestone-b/README.md) B-A1–B-A5 fixed in 4eba48f
+  with regression tests ([dispositions](docs/reviews/2026-10-21-milestone-b/04-dispositions.md)).
+- e6da0e5 adds container storage: `/data` volume (uid 10001), a one-shot `migrate` service
+  (`alembic upgrade head`) before `app`, and a container smoke that grades one real answer.
+- [CI run 39657984302](https://github.com/tgragossian/Tutor/actions/runs/39657984302) on
+  `milestone-b` at e6da0e5: Python, Node, browser e2e and container smoke all green.
+- Task 15 is partial: browser smoke and its CI job (5fd8952); six reviewed problems remain.
   The additional 14–24 problems and Thomas's review are pending.
-- Task 16 has not started. The branch container needs database migrations/storage before
-  readiness succeeds; host memory measurements and deployment are still required.
-- Last recorded live check (2026-10-20): milestone A skeleton, health/readiness both 200.
-  No fresh live probe or milestone B deployment is claimed by this documentation update.
+- Last recorded live check (2026-10-20): milestone A skeleton. The milestone B deploy is next.
 
-## Next action
+## Next actions
 
-Continue in `milestone-b`, at task 15 content sourcing/review, then task 16 release work.
-The branch handoff records a pending choice between author-written adapted items,
-human-transcribed statements or a permitted source. This docs pass makes no sourcing decision.
-Do not restart task 10 from the older main plan snapshot.
+1. **Deploy (Thomas, Lightsail browser SSH):** follow the [runbook](docs/ops/runbook.md)
+   "Update to the latest `main`" block. No `deploy/.env` changes are needed. Then check
+   `/readyz`, sign up and answer one problem on the live site.
+2. Right after deploying, record `sudo docker stats --no-stream` and `free -m` (1 GB host);
+   task 16 step 3 sizes the verifier pool from these numbers.
+3. Task 15 content: choose the sourcing route. OpenStax's notice forbids feeding the book to
+   LLMs: human-transcribed statements, author-written `adapted` items, or a mix.
+   See [content](content/README.md) and the [source manifest](content/sources/openstax-calculus-v1.md).
+4. Draft and check the new problems, then Thomas's content review (gate).
+5. Rest of task 16: load tool, e2e on the image, verifier docs. Then one fresh whole-branch review.
+6. Record actual hours with Thomas before the 30-hour scope/date/contingency decision.
 
-## Evidence and documentation tree
+## Evidence and navigation
 
-- [Main documentation snapshot](docs/README.md) → [delivery plan](docs/superpowers/plans/portfolio-mvp/README.md)
-  → [milestone B snapshot](docs/superpowers/plans/portfolio-mvp/milestone-b/README.md).
-- [Reviewed verifier evidence](evals/verifier/results/README.md): FA 0/50 (95% upper bound 7.1%),
-  FR 0/49, coverage 49/49, agreement 136/136. These are development-set results.
-- The branch's `07-verification-evidence.md` separates reported local app tests from old CI.
-  Its `docs/ops/debugging/README.md` links application and release troubleshooting.
-- Main's older task recipes describe its implementation snapshot; current completion,
-  app rulings and debugging documentation live in the branch until merged.
+- [Documentation tree](docs/README.md) → [delivery plan](docs/superpowers/plans/portfolio-mvp/README.md)
+  → [milestone B](docs/superpowers/plans/portfolio-mvp/milestone-b/README.md).
+- [Execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md)
+  owns task completion and outstanding gates.
+- [Verification evidence](docs/superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md)
+  separates browser/CI evidence from the [review validation](docs/reviews/2026-10-21-milestone-b/03-validation.md).
+- [Reviewed verifier result](evals/verifier/results/README.md): FA 0/50 (95% upper bound 7.1%),
+  FR 0/49, coverage 49/49, agreement 136/136; no internal errors. This is a dev set.
+- [File map](docs/superpowers/plans/portfolio-mvp/milestone-b/01-file-map.md),
+  [debugging tree](docs/ops/debugging/README.md), [security](docs/ops/security.md),
+  [API contracts](contracts/README.md).
+- [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md)
+  distinguish release gates from deferred cleanup.
 
 ## Working rules
 
-Keep Markdown at most 100 lines and link each child from a parent index.
-Preserve [historical references](docs/handoff/README.md) and [dated reviews](docs/reviews/README.md).
-Never relax false-accept or containment gates. Record actual effort in [hours](docs/ops/hours.md).
-No assistant co-author trailers; [README](README.md#acknowledgments) acknowledges assistance.
+- Every Markdown file stays at most 100 lines, split by responsibility with a parent link.
+- Preserve [original references](docs/handoff/README.md) and [dated reviews](docs/reviews/README.md).
+- Never relax false-accept or containment gates; describe the verifier as proof-based/SymPy.
+- No assistant co-author trailers; assistance is acknowledged in [README](README.md#acknowledgments).
+- Actual hours belong in the [hours log](docs/ops/hours.md); do not infer them from agent runtime.
+- RAG hints, operations/final evaluation and the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md)
+  follow the deployed practice loop.

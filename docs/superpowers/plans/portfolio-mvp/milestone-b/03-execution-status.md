@@ -2,8 +2,8 @@
 
 [Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md) · [Follow-ups](05-follow-ups.md)
 
-Updated 2026-10-20. Tasks 1–9 complete and merged to `main` in 102a22f.
-Worktree: `.claude/worktrees/milestone-b`; tasks 10–16 not started; no B deployment claimed.
+Updated 2026-10-21. Tasks 1–9 merged to `main` (102a22f); tasks 10–14 complete on `milestone-b`
+(not pushed); task 15 partial; task 16 not started. No B deployment claimed.
 
 Current project status (2026-10-21): tasks 10–14 are complete on `milestone-b`; task 15
 is partial and task 16 pending. The table below records main only. Follow the
@@ -24,32 +24,20 @@ is partial and task 16 pending. The table below records main only. Follow the
 | R22/R23 | ea6748b..19db4ab, fe6bd4a | complete; [plan](r22-r23/README.md) |
 | R24 | a76985d | implemented with tests first; [checklist](r24/README.md) |
 | 9 Human dev cases | 9b2e1f2..8a0bb40 | complete: review, recapture, release result and CI |
-| 10–16 | — | not started |
+| 10 Store | d865179 | complete; amended in 11–12 ([rulings](06-app-track-rulings.md)) |
+| 11 Auth | 73ae3af | complete |
+| 12 Practice service | 458f2ca | complete; races run 3× clean |
+| 13 JSON API | abda25e | complete |
+| 14 Pages, MathLive | c52305d | complete; manual browser check passed |
+| 15 Content, smoke | 5fd8952 | smoke + CI job done; new problems blocked (see below) |
+| 16 Release | — | not started; needs Docker and host |
 
-## Release evidence
+## Evidence and debugging
 
-- Reviewed source and b5ad4b2 captures match: 136 `tg`, 49 correct / 50 incorrect /
-  37 unsupported. `d-sqsq-02` includes zero, `[0, inf)`.
-- [dev-b.json](../../../../../evals/verifier/results/dev-b.json), committed in e995438,
-  records `evaluate --set dev --gate B` without `--draft` at verifier `0.1.0+b5ad4b2`.
-- FA 0/50 (95% upper bound 7.1%), FR 0/49 (7.3%), coverage 49/49,
-  unsupported graded correct 0/37 (9.4%), agreement 136/136; no internal errors.
-- All seven R24 cases return `wrong_decimal_places`. Problem 253 and compiled content
-  explicitly permit an exact answer or rounding to 3 places.
-- [Results index](../../../../../evals/verifier/results/README.md) records versions and
-  provenance. `dev-draft.json` is historical (131 unreviewed cases), not release evidence.
-
-## CI and containment
-
-- 8a0bb40 adds the reviewed dev gate to Python CI alongside the generated regression gate.
-- [Run 39504828416](https://github.com/tgragossian/Tutor/actions/runs/39504828416) at d673400:
-  Python, Node and container smoke succeeded; first green milestone-b run.
-- Thomas reports 722 tests passed on Linux, including the memory-limit test skipped on Windows.
-  Earlier runs failed at pool-test cleanup after passing assertions: `psutil.wait()` reaped
-  the killed worker before multiprocessing could. d673400 fixes the test, not production limits.
-- Remaining Node 20/Ubuntu deprecation notices are warnings. FA 0 and containment are intact.
-- This docs pass inspected commits, workflow and result artifacts; it did not rerun Linux CI
-  or live checks. Host sizing and practice-browser validation remain tasks 15–16.
+- [Verification evidence](07-verification-evidence.md): reviewed verifier results, historical
+  CI runs and the app-track checks reported in the 2026-10-21 handoff.
+- [Debugging tree](../../../../ops/debugging/README.md): local setup, symptoms, files and tests.
+- [App rulings A1–A18](06-app-track-rulings.md) amend task recipes for persistence and UI.
 
 ## Review dispositions
 
@@ -60,14 +48,29 @@ is partial and task 16 pending. The table below records main only. Follow the
 - 86cac1d restricts choices to listed IDs; 634c968 suggests both readings of `sin^-1(x)`.
 - Thomas reviewed all 136 source rows in 9b2e1f2. R24 and recapture now agree with every label.
 
-## Next actions
+## Review follow-up (2026-10-21)
 
-1. Done: merged to `main` in 102a22f; [CI run 39506433419](https://github.com/tgragossian/Tutor/actions/runs/39506433419)
-   green on `main`; live `/healthz` and `/readyz` 200. The host still runs milestone A.
-2. Optional: update the host to `main` (runbook); no B deployment is implied.
-3. Tasks 10–16 remain separate. Task 15 still depends on tasks 13–14; task 16 retains host
-   sizing/deployment gates. Task 9's dependency is now satisfied.
-4. Resume claims may use the reviewed 0/50 result, clearly identified as dev-set evidence.
+[Code review](../../../../reviews/2026-10-21-milestone-b/README.md): B-A1 (P1), B-A2–B-A5 (P2)
+are reproduced and open. Tasks 10–14 are implemented, but need these correctness fixes before
+release. Existing suite: 839 passed/1 skipped; Node 19 passed; five review probes fail.
+Claude should fix the linked findings and add normal regression coverage before release.
+
+## Remaining content and release actions
+
+1. **Thomas:** decide how to source task 15's 14–24 new problems. The previous handoff deferred
+   automated fetching because of the book's recorded notice ([source](../../../../../content/sources/openstax-calculus-v1.md)):
+   Thomas transcribes statements, or Claude writes `adapted` problems, or written permission.
+2. Then draft, `content_check`, Thomas reviews (gate), commit (task 15 steps 1–3, 7).
+3. The current `container` job is expected to fail `/readyz` (`database_unavailable`) until task 16 adds the
+   `/data` volume and migrate step; the branch has no recorded green container run after the app changes.
+4. The prior handoff requests a whole-branch review after task 16; it remains outstanding.
 
 Record actual hours in the [hours log](../../../../ops/hours.md); no B actuals are supplied.
 At 30 h, stop at the next task boundary for a scope/date/contingency decision with Thomas.
+
+## Documentation sync (2026-10-21)
+
+Synced handoff, indexes, task recipes and operations against d428bd7 and the local code.
+Added evidence and debugging children; preserved original references and dated reviews.
+The initial sync changed Markdown only. The later [code review](../../../../reviews/2026-10-21-milestone-b/03-validation.md)
+reran local checks and added isolated probes; no production code was changed.

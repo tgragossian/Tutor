@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Practice · {{ app_name }}{% endblock %}
+{% block head %}
+  {% for p in vendor.preloads %}<link rel="modulepreload" href="{{ p.href }}" integrity="{{ p.integrity }}">
+  {% endfor %}{% for s in vendor.scripts %}<script type="module" src="{{ s.src }}" integrity="{{ s.integrity }}"></script>
+  {% endfor %}<script type="module" src="/static/practice.js"></script>
+{% endblock %}
+{% block content %}
+<section id="practice" data-session-id="{{ session_id }}" aria-busy="true">
+  <p id="loading">Loading…</p>
+  <div id="problem" hidden>
+    <div id="statement" class="statement"></div>
+    <p id="source" class="source"></p>
+    <p id="hint" class="hint" hidden></p>
+    <p id="tries" class="hint" hidden></p>
+    <div id="answer"></div>
+    <div id="keys" class="keys" hidden></div>
+    <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+    <div id="revealed" hidden><p>Answer:</p><math-field id="revealed-field" read-only></math-field></div>
+    <div class="actions">
+      <button type="button" id="check" data-action="submit" hidden disabled>Check</button>
+      <button type="button" id="next" data-action="advance" hidden>Next</button>
+      <button type="button" id="skip" data-action="skip" class="secondary" hidden>Skip</button>
+      <button type="button" id="reveal" data-action="reveal" class="secondary" hidden>Show answer</button>
+    </div>
+  </div>
+  <div id="done" hidden>
+    <p>You've answered every problem in these topics correctly.</p>
+    <p><a href="/">Back to topics</a></p>
+  </div>
+  <p id="error" class="error" role="alert" hidden></p>
+</section>
+{% endblock %}

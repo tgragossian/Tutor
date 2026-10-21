@@ -6,7 +6,9 @@
     "capture": "node capture/capture.mjs",
     "test": "node --test",
     "compile": "node compile_content/compile.mjs ../content ../content/compiled/problems.json",
-    "capture:eval": "node capture/eval.mjs"
+    "capture:eval": "node capture/eval.mjs",
+    "vendor": "node vendor.mjs",
+    "e2e": "node e2e/smoke.mjs"
   },
   "dependencies": {
     "@cortex-js/compute-engine": "0.151.0",

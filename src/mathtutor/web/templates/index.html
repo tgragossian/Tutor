@@ -1,10 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>{{ app_name }}</h1>
-<p>Practice is coming soon. Topics in this release:</p>
+{% if username %}
+<h2>Practice</h2>
+<form method="post" action="/sessions" class="stack">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <fieldset>
+    <legend>Choose topics</legend>
+    {% for t in topics %}
+    <label class="choice"><input type="checkbox" name="topics" value="{{ t.id }}"{% if loop.first %} checked{% endif %}>
+      {{ t.title }} (&sect;{{ t.section }}): {{ t.servable }} problem{{ "" if t.servable == 1 else "s" }}</label>
+    {% endfor %}
+  </fieldset>
+  <button type="submit">Start practising</button>
+</form>
+<h2>History</h2>
+{% if history %}
+<table>
+  <thead><tr><th>Started</th><th>Topics</th><th>Answered</th><th>Correct</th></tr></thead>
+  <tbody>
+    {% for s in history %}
+    <tr>
+      <td><a href="/practice/{{ s.session_id }}">{{ s.started }}</a></td>
+      <td>{{ s.topics }}</td><td>{{ s.answered }}</td><td>{{ s.correct }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No sessions yet.</p>
+{% endif %}
+{% else %}
+<p>Practise Calculus I derivatives with answers checked by a proof-based verifier.
+<a href="/login">Sign in</a> or <a href="/register">create an account</a> to start.</p>
+<p>Topics in this release:</p>
 <ol>
   {% for t in topics %}
   <li>{{ t.title }} (&sect;{{ t.section }}): {{ t.servable }} problem{{ "" if t.servable == 1 else "s" }}</li>
   {% endfor %}
 </ol>
+{% endif %}
 {% endblock %}
