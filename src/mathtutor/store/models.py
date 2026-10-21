@@ -162,6 +162,8 @@ class AttemptResult(Base):
     queue_ms: Mapped[int] = mapped_column(Integer)
     seconds_on_item: Mapped[int] = mapped_column(Integer)
     counts_as_try: Mapped[bool] = mapped_column(Boolean)
+    # False when the presentation changed while grading (spec 06 step 4): stored, not applied.
+    applied: Mapped[bool] = mapped_column(Boolean)
 
     submission: Mapped[Submission] = relationship(back_populates="result")
 

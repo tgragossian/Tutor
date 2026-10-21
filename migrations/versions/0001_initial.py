@@ -125,6 +125,7 @@ def upgrade() -> None:
         sa.Column("queue_ms", sa.Integer(), nullable=False),
         sa.Column("seconds_on_item", sa.Integer(), nullable=False),
         sa.Column("counts_as_try", sa.Boolean(), nullable=False),
+        sa.Column("applied", sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(
             ["submission_pk"],
             ["submissions.id"],

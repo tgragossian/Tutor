@@ -7,7 +7,7 @@ from typing import Any
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import Engine, create_engine, event
+from sqlalchemy import Connection, Engine, create_engine, event
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -17,6 +17,8 @@ BUSY_TIMEOUT_MS = 5000
 
 
 def _set_sqlite_pragmas(dbapi_connection: Any, _record: Any) -> None:
+    # Let SQLAlchemy's "begin" event issue BEGIN instead of the driver (see _begin_immediate).
+    dbapi_connection.isolation_level = None
     cursor = dbapi_connection.cursor()
     try:
         cursor.execute("PRAGMA journal_mode=WAL")
@@ -26,12 +28,21 @@ def _set_sqlite_pragmas(dbapi_connection: Any, _record: Any) -> None:
         cursor.close()
 
 
+def _begin_immediate(conn: Connection) -> None:
+    """Take the write lock when a transaction starts. A deferred transaction that reads and
+    then writes can fail at once with "database is locked"; an immediate one waits up to
+    busy_timeout for the lock instead."""
+    conn.exec_driver_sql("BEGIN IMMEDIATE")
+
+
 def make_engine(url: str) -> Engine:
-    """Build an engine. SQLite gets WAL, a 5 s busy timeout and enforced foreign keys."""
+    """Build an engine. SQLite gets WAL, a 5 s busy timeout, enforced foreign keys and
+    ``BEGIN IMMEDIATE`` transactions."""
     if make_url(url).get_backend_name() != "sqlite":
         return create_engine(url)
     engine = create_engine(url, connect_args={"check_same_thread": False, "timeout": 5})
     event.listen(engine, "connect", _set_sqlite_pragmas)
+    event.listen(engine, "begin", _begin_immediate)
     return engine
 
 

@@ -62,3 +62,11 @@ class RateLimited(AppError):
 class Busy(AppError):
     status = 503
     code = "verifier_busy"
+
+
+class SubmissionPending(AppError):
+    """The same submission id is still being graded (ruling R13); retry shortly."""
+
+    status = 409
+    code = "submission_pending"
+    retry_after_s = 1

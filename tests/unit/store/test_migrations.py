@@ -1,3 +1,6 @@
+import sqlite3
+
+import pytest
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
 from sqlalchemy import inspect, text
@@ -64,3 +67,22 @@ def test_downgrade_then_upgrade(db_url: str) -> None:
     assert _tables(url) <= {"alembic_version"}
     upgrade(url)
     assert _tables(url) >= TABLES
+
+
+def test_transactions_begin_immediate(db_url: str) -> None:
+    """A transaction takes the write lock when it begins, so writers queue on busy_timeout
+    instead of failing when a read lock cannot be upgraded."""
+    upgrade(db_url)
+    engine = make_engine(db_url)
+    path = db_url.removeprefix("sqlite:///")
+    try:
+        with engine.connect() as conn, conn.begin():
+            conn.execute(text("SELECT 1"))
+            other = sqlite3.connect(path, timeout=0)
+            try:
+                with pytest.raises(sqlite3.OperationalError, match="locked"):
+                    other.execute("BEGIN IMMEDIATE")
+            finally:
+                other.close()
+    finally:
+        engine.dispose()

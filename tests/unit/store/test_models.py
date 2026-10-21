@@ -69,6 +69,7 @@ def _result(submission: Submission) -> AttemptResult:
         queue_ms=0,
         seconds_on_item=30,
         counts_as_try=False,
+        applied=True,
     )
 
 
@@ -97,6 +98,7 @@ def test_round_trip_all_models(db: Session) -> None:
     assert loaded.session.topics == ["derivatives.basic_rules"]
     assert loaded.submissions[0].result is not None
     assert loaded.submissions[0].result.reason is VerdictReason.PROVEN
+    assert loaded.submissions[0].result.applied is True
 
 
 def test_submission_id_unique(db: Session) -> None:
