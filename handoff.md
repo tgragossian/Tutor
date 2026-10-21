@@ -1,8 +1,8 @@
 # Calculus Tutor handoff
 
 Owner: Thomas Gragossian. Updated: 2026-10-21 end of day. Work continues in the `milestone-b`
-worktree (`.claude/worktrees/milestone-b`); `main` is behind it only by task 15 drafts and the
-content-check endpoint rule (a4fed5c, ba2575b, CI green).
+worktree (`.claude/worktrees/milestone-b`). `main` and `milestone-b` are identical at the end of
+the day; the host still runs 78bbcd6 (the newer commits add only unserved drafts and checks).
 
 ## Live site (https://tutor.thomasgragossian.dev)
 
