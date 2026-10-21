@@ -18,6 +18,8 @@ sudo docker image prune -f
 curl -fsS https://<domain>/readyz        # expect "status":"ready"
 ```
 
+Database migrations run with `alembic upgrade head` before the app starts (wired into the container in milestone B task 16).
+
 ## Logs and status
 
 ```bash
