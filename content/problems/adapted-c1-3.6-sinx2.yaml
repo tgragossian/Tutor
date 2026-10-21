@@ -1,0 +1,32 @@
+id: adapted-c1-3.6-sinx2
+topic: derivatives.chain_rule
+difficulty: 1
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.6'
+  exercise: null
+  url: https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule
+  license: CC BY-NC-SA 4.0
+  adapted: true
+statement: 'Which is the derivative of $y = \sin(x^2)$?'
+answer:
+  kind: choice
+  choices:
+    - id: a
+      latex: '2x\cos(x^2)'
+    - id: b
+      latex: '\cos(x^2)'
+    - id: c
+      latex: '\cos(2x)'
+    - id: d
+      latex: '2x\sin(x^2)'
+  correct: a
+misconceptions:
+  - 'b  # missing inner derivative 2x'
+  - 'c  # differentiated the inside in place'
+  - 'd  # derivative of sin taken as sin'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Author-written, modelled on the 3.6 chain-rule exercises (e.g. 217, 235). Chain rule: cos(x^2) * 2x, so a. Each distractor is genuinely wrong, e.g. at x = 1: y'' = 2cos 1 = 1.0806; b = cos 1 = 0.5403; c = cos 2 = -0.4161; d = 2 sin 1 = 1.6829.'

@@ -18,7 +18,7 @@ Problem content for the tutor: authored YAML in, one compiled JSON bundle out.
 
 ## Milestone B expansion status
 
-Six reviewed problems exist. Task 15 needs 14–24 additions and Thomas's review.
+Six reviewed problems are served. Task 15 adds 16 drafts awaiting Thomas's [review](review/README.md).
 The prior handoff leaves sourcing open: author-written `adapted` items, human-transcribed
 statements, or a permitted source. The [source manifest](sources/openstax-calculus-v1.md)
 records the book notice that prompted this pause; no sourcing decision is made by this docs pass.

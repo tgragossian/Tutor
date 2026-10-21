@@ -1,0 +1,23 @@
+id: openstax-c1-3.3-145
+topic: derivatives.basic_rules
+difficulty: 3
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.3'
+  exercise: 145
+  url: https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules
+  license: CC BY-NC-SA 4.0
+statement: 'A herring swimming along a straight line has traveled $s(t) = \frac{t^2}{t^2 + 2}$ feet in $t$ seconds. Determine the velocity of the herring, in ft/s, when it has traveled 3 seconds. Give an exact answer or round to 4 decimal places.'
+answer:
+  kind: numeric
+  latex: '\frac{12}{121}'
+  precision:
+    decimals: 4
+misconceptions:
+  - '\frac{9}{11}  # reported the position s(3) instead of the velocity'
+  - '\frac{6}{11}  # quotient rule numerator terms subtracted the wrong way'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'The [T] (technology) tag is dropped. Quotient rule: s''(t) = [2t(t^2+2) - t^2(2t)]/(t^2+2)^2 = 4t/(t^2+2)^2. s''(3) = 12/121 = 0.099173..., 0.0992 to 4 decimals, matching the OpenStax answer key for 145 (12/121 or 0.0992 ft/s). R24 wording added: exact or 4 decimal places.'

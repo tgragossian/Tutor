@@ -65,6 +65,13 @@ Resolve before milestone B exit; passing existing tests does not cover these cas
   Keep this browser limitation visible when task 14 handles adversarial input.
 - Tasks 12–14 implement atomic writes/replay, friendly messages and pre-pool kind checks;
   see [A1–A18](06-app-track-rulings.md) and [app debugging](../../../../ops/debugging/01-app.md).
-- Task 15: new content and Thomas's review remain open; smoke and CI job are implemented.
+- Task 15: 16 drafts written and checked; Thomas's [content review](../../../../../content/review/README.md) is open.
+- **Verifier speed (2026-10-21):** wrong answers to nested trig compositions such as
+  `sin(cos 7x)` time out (3 s) and return `unable_to_verify` instead of `incorrect`; the
+  correct answer proves in 0.03 s. Exercise 235 was dropped for this. Safe (never a false
+  accept) but poor feedback; look at refutation cost for nested compositions.
+- **content_check has no hard deadline:** in-process `check()` overruns its soft budget, so a
+  slow problem hangs the CLI (and CI/Docker build) instead of reporting it. Run each problem
+  through the pool, or a subprocess with a timeout, and report `timeout` as a defect.
 - Task 16: container migrations/storage, container e2e, host memory sizing, supported-expression
   documentation and deployment evidence remain open. See [release debugging](../../../../ops/debugging/02-release.md).

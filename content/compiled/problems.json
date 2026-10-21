@@ -124,6 +124,257 @@
     },
     {
       "answer": {
+        "choices": [
+          {
+            "id": "a",
+            "latex": "2x\\cos(x^2)",
+            "mathjson": [
+              "InvisibleOperator",
+              2,
+              "x",
+              [
+                "Cos",
+                [
+                  "Power",
+                  "x",
+                  2
+                ]
+              ]
+            ]
+          },
+          {
+            "id": "b",
+            "latex": "\\cos(x^2)",
+            "mathjson": [
+              "Cos",
+              [
+                "Power",
+                "x",
+                2
+              ]
+            ]
+          },
+          {
+            "id": "c",
+            "latex": "\\cos(2x)",
+            "mathjson": [
+              "Cos",
+              [
+                "InvisibleOperator",
+                2,
+                "x"
+              ]
+            ]
+          },
+          {
+            "id": "d",
+            "latex": "2x\\sin(x^2)",
+            "mathjson": [
+              "InvisibleOperator",
+              2,
+              "x",
+              [
+                "Sin",
+                [
+                  "Power",
+                  "x",
+                  2
+                ]
+              ]
+            ]
+          }
+        ],
+        "correct": "a",
+        "kind": "choice"
+      },
+      "difficulty": 1,
+      "id": "adapted-c1-3.6-sinx2",
+      "misconceptions": [
+        "b  # missing inner derivative 2x",
+        "c  # differentiated the inside in place",
+        "d  # derivative of sin taken as sin"
+      ],
+      "misconceptions_mathjson": [
+        null,
+        null,
+        null
+      ],
+      "review": {
+        "date": "",
+        "notes": "Author-written, modelled on the 3.6 chain-rule exercises (e.g. 217, 235). Chain rule: cos(x^2) * 2x, so a. Each distractor is genuinely wrong, e.g. at x = 1: y' = 2cos 1 = 1.0806; b = cos 1 = 0.5403; c = cos 2 = -0.4161; d = 2 sin 1 = 1.6829.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "adapted": true,
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": null,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.6",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule"
+      },
+      "statement": "Which is the derivative of $y = \\sin(x^2)$?",
+      "statement_html": "Which is the derivative of <math-field read-only>y = \\sin(x^2)</math-field>?",
+      "topic": "derivatives.chain_rule"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "15x^2-1",
+        "mathjson": [
+          "Subtract",
+          [
+            "InvisibleOperator",
+            15,
+            [
+              "Power",
+              "x",
+              2
+            ]
+          ],
+          1
+        ],
+        "variable": "x"
+      },
+      "difficulty": 1,
+      "id": "openstax-c1-3.3-107",
+      "misconceptions": [
+        "15x^2  # dropped the derivative of -x",
+        "15x^2-x  # differentiated only the cubic term"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "InvisibleOperator",
+          15,
+          [
+            "Power",
+            "x",
+            2
+          ]
+        ],
+        [
+          "Subtract",
+          [
+            "InvisibleOperator",
+            15,
+            [
+              "Power",
+              "x",
+              2
+            ]
+          ],
+          "x"
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Group 106-117 instruction: find f'(x). Power rule term by term: 15x^2 - 1 + 0 = 15x^2 - 1, matching the OpenStax answer key for 107. Domain: all reals (polynomial).",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 107,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.3",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
+      },
+      "statement": "Find $f'(x)$ for $f(x) = 5x^3 - x + 1$.",
+      "statement_html": "Find <math-field read-only>f'(x)</math-field> for <math-field read-only>f(x) = 5x^3 - x + 1</math-field>.",
+      "topic": "derivatives.basic_rules"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "32x^3+18x",
+        "mathjson": [
+          "Add",
+          [
+            "InvisibleOperator",
+            32,
+            [
+              "Power",
+              "x",
+              3
+            ]
+          ],
+          [
+            "InvisibleOperator",
+            18,
+            "x"
+          ]
+        ],
+        "variable": "x"
+      },
+      "difficulty": 1,
+      "id": "openstax-c1-3.3-109",
+      "misconceptions": [
+        "32x^3+18x-1  # constant term not dropped",
+        "32x^4+18x^2  # exponent not lowered"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "Add",
+          [
+            "InvisibleOperator",
+            32,
+            [
+              "Power",
+              "x",
+              3
+            ]
+          ],
+          [
+            "Subtract",
+            [
+              "InvisibleOperator",
+              18,
+              "x"
+            ],
+            1
+          ]
+        ],
+        [
+          "Add",
+          [
+            "InvisibleOperator",
+            32,
+            [
+              "Power",
+              "x",
+              4
+            ]
+          ],
+          [
+            "InvisibleOperator",
+            18,
+            [
+              "Power",
+              "x",
+              2
+            ]
+          ]
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Group 106-117 instruction: find f'(x). Power rule: 32x^3 + 18x, matching the OpenStax answer key for 109. Domain: all reals (polynomial).",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 109,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.3",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
+      },
+      "statement": "Find $f'(x)$ for $f(x) = 8x^4 + 9x^2 - 1$.",
+      "statement_html": "Find <math-field read-only>f'(x)</math-field> for <math-field read-only>f(x) = 8x^4 + 9x^2 - 1</math-field>.",
+      "topic": "derivatives.basic_rules"
+    },
+    {
+      "answer": {
         "domain": {
           "exclude": [
             "-1"
@@ -222,6 +473,103 @@
           ]
         },
         "kind": "expression",
+        "latex": "-\\frac{5}{x^2}",
+        "mathjson": [
+          "Negate",
+          [
+            "Divide",
+            5,
+            [
+              "Power",
+              "x",
+              2
+            ]
+          ]
+        ],
+        "variable": "x"
+      },
+      "difficulty": 2,
+      "id": "openstax-c1-3.3-113",
+      "misconceptions": [
+        "\\frac{5}{x^2}  # sign error: derivative of 1/x taken as +1/x^2",
+        "2x\\left(-\\frac{4}{x^3}-\\frac{15}{x^4}\\right)  # product of the derivatives"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "Divide",
+          5,
+          [
+            "Power",
+            "x",
+            2
+          ]
+        ],
+        [
+          "InvisibleOperator",
+          2,
+          "x",
+          [
+            "Delimiter",
+            [
+              "Subtract",
+              [
+                "Negate",
+                [
+                  "Divide",
+                  4,
+                  [
+                    "Power",
+                    "x",
+                    3
+                  ]
+                ]
+              ],
+              [
+                "Divide",
+                15,
+                [
+                  "Power",
+                  "x",
+                  4
+                ]
+              ]
+            ]
+          ]
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Group 106-117 instruction: find f'(x). Expand: f(x) = 2 + 5/x, so f'(x) = -5/x^2, matching the OpenStax answer key for 113 (-5/x^2). Domain: f is undefined at x = 0, so R minus {0}.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 113,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.3",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
+      },
+      "statement": "Find $f'(x)$ for $f(x) = x^2\\left(\\frac{2}{x^2} + \\frac{5}{x^3}\\right)$.",
+      "statement_html": "Find <math-field read-only>f'(x)</math-field> for <math-field read-only>f(x) = x^2\\left(\\frac{2}{x^2} + \\frac{5}{x^3}\\right)</math-field>.",
+      "topic": "derivatives.basic_rules"
+    },
+    {
+      "answer": {
+        "domain": {
+          "exclude": [
+            "0"
+          ],
+          "intervals": [
+            [
+              "-inf",
+              "inf",
+              "open",
+              "open"
+            ]
+          ]
+        },
+        "kind": "expression",
         "latex": "4+\\frac{2}{x^2}-\\frac{2}{x^3}",
         "mathjson": [
           "Add",
@@ -267,6 +615,117 @@
       },
       "statement": "Find $f'(x)$ for $f(x) = \\frac{4x^3 - 2x + 1}{x^2}$.",
       "statement_html": "Find <math-field read-only>f'(x)</math-field> for <math-field read-only>f(x) = \\frac{4x^3 - 2x + 1}{x^2}</math-field>.",
+      "topic": "derivatives.basic_rules"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "-7x-3",
+        "mathjson": [
+          "Subtract",
+          [
+            "InvisibleOperator",
+            [
+              "Negate",
+              7
+            ],
+            "x"
+          ],
+          3
+        ],
+        "variable": "x"
+      },
+      "difficulty": 3,
+      "id": "openstax-c1-3.3-137",
+      "misconceptions": [
+        "-7x+4  # used f(-1) = 4 as the y-intercept",
+        "-7x  # left out the point entirely"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "Add",
+          [
+            "InvisibleOperator",
+            [
+              "Negate",
+              7
+            ],
+            "x"
+          ],
+          4
+        ],
+        [
+          "InvisibleOperator",
+          [
+            "Negate",
+            7
+          ],
+          "x"
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "f(-1) = -2 + 4 + 5 - 3 = 4. f'(x) = 6x^2 + 8x - 5, so f'(-1) = 6 - 8 - 5 = -7. y - 4 = -7(x + 1) gives y = -7x - 3, matching the OpenStax answer key for 137. The graded answer is the right-hand side -7x - 3 (instruction added). Domain: all reals.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 137,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.3",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
+      },
+      "statement": "Find an equation of the tangent line to the graph of $f(x) = 2x^3 + 4x^2 - 5x - 3$ at $x = -1$. Enter the right-hand side of $y = \\dots$.",
+      "statement_html": "Find an equation of the tangent line to the graph of <math-field read-only>f(x) = 2x^3 + 4x^2 - 5x - 3</math-field> at <math-field read-only>x = -1</math-field>. Enter the right-hand side of <math-field read-only>y = \\dots</math-field>.",
+      "topic": "derivatives.basic_rules"
+    },
+    {
+      "answer": {
+        "kind": "numeric",
+        "latex": "\\frac{12}{121}",
+        "mathjson": [
+          "Divide",
+          12,
+          121
+        ],
+        "precision": {
+          "decimals": 4
+        }
+      },
+      "difficulty": 3,
+      "id": "openstax-c1-3.3-145",
+      "misconceptions": [
+        "\\frac{9}{11}  # reported the position s(3) instead of the velocity",
+        "\\frac{6}{11}  # quotient rule numerator terms subtracted the wrong way"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "Divide",
+          9,
+          11
+        ],
+        [
+          "Divide",
+          6,
+          11
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "The [T] (technology) tag is dropped. Quotient rule: s'(t) = [2t(t^2+2) - t^2(2t)]/(t^2+2)^2 = 4t/(t^2+2)^2. s'(3) = 12/121 = 0.099173..., 0.0992 to 4 decimals, matching the OpenStax answer key for 145 (12/121 or 0.0992 ft/s). R24 wording added: exact or 4 decimal places.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 145,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.3",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
+      },
+      "statement": "A herring swimming along a straight line has traveled $s(t) = \\frac{t^2}{t^2 + 2}$ feet in $t$ seconds. Determine the velocity of the herring, in ft/s, when it has traveled 3 seconds. Give an exact answer or round to 4 decimal places.",
+      "statement_html": "A herring swimming along a straight line has traveled <math-field read-only>s(t) = \\frac{t^2}{t^2 + 2}</math-field> feet in <math-field read-only>t</math-field> seconds. Determine the velocity of the herring, in ft/s, when it has traveled 3 seconds. Give an exact answer or round to 4 decimal places.",
       "topic": "derivatives.basic_rules"
     },
     {
@@ -374,6 +833,514 @@
     {
       "answer": {
         "kind": "expression",
+        "latex": "-x",
+        "mathjson": [
+          "Negate",
+          "x"
+        ],
+        "variable": "x"
+      },
+      "difficulty": 2,
+      "id": "openstax-c1-3.5-185",
+      "misconceptions": [
+        "x  # sign error: derivative of -sin x taken as +cos x",
+        "-1  # slope only, no line"
+      ],
+      "misconceptions_mathjson": [
+        "x",
+        [
+          "Negate",
+          1
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Group 185-190 instruction: tangent line at the indicated x. f(0) = 0, f'(x) = -cos x, f'(0) = -1, so y = -x, matching the OpenStax answer key for 185. Graded answer is the right-hand side (instruction added). Domain: all reals.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 185,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.5",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions"
+      },
+      "statement": "Find an equation of the tangent line to $f(x) = -\\sin x$ at $x = 0$. Enter the right-hand side of $y = \\dots$.",
+      "statement_html": "Find an equation of the tangent line to <math-field read-only>f(x) = -\\sin x</math-field> at <math-field read-only>x = 0</math-field>. Enter the right-hand side of <math-field read-only>y = \\dots</math-field>.",
+      "topic": "derivatives.trig"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "x+1-\\frac{3\\pi}{2}",
+        "mathjson": [
+          "Add",
+          "x",
+          [
+            "Subtract",
+            1,
+            [
+              "Divide",
+              [
+                "InvisibleOperator",
+                3,
+                "Pi"
+              ],
+              2
+            ]
+          ]
+        ],
+        "variable": "x"
+      },
+      "difficulty": 3,
+      "id": "openstax-c1-3.5-187",
+      "misconceptions": [
+        "x-\\frac{3\\pi}{2}  # left out f(3pi/2) = 1",
+        "-x+1+\\frac{3\\pi}{2}  # sign error: derivative of cos x taken as +sin x"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "Subtract",
+          "x",
+          [
+            "Divide",
+            [
+              "InvisibleOperator",
+              3,
+              "Pi"
+            ],
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            "Negate",
+            "x"
+          ],
+          1,
+          [
+            "Divide",
+            [
+              "InvisibleOperator",
+              3,
+              "Pi"
+            ],
+            2
+          ]
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Group 185-190 instruction. f(3pi/2) = 1 + 0 = 1; f'(x) = -sin x, f'(3pi/2) = -(-1) = 1. y - 1 = x - 3pi/2 gives y = x + 1 - 3pi/2 = x + (2 - 3pi)/2, matching the OpenStax answer key for 187. Domain: all reals.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 187,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.5",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions"
+      },
+      "statement": "Find an equation of the tangent line to $f(x) = 1 + \\cos x$ at $x = \\frac{3\\pi}{2}$. Enter the right-hand side of $y = \\dots$.",
+      "statement_html": "Find an equation of the tangent line to <math-field read-only>f(x) = 1 + \\cos x</math-field> at <math-field read-only>x = \\frac{3\\pi}{2}</math-field>. Enter the right-hand side of <math-field read-only>y = \\dots</math-field>.",
+      "topic": "derivatives.trig"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "3\\cos(x)-x\\sin(x)",
+        "mathjson": [
+          "Subtract",
+          [
+            "InvisibleOperator",
+            3,
+            [
+              "Cos",
+              "x"
+            ]
+          ],
+          [
+            "InvisibleOperator",
+            "x",
+            [
+              "Sin",
+              "x"
+            ]
+          ]
+        ],
+        "variable": "x"
+      },
+      "difficulty": 3,
+      "id": "openstax-c1-3.5-191",
+      "misconceptions": [
+        "2\\sin(x)+x\\cos(x)  # stopped at the first derivative",
+        "\\cos(x)-x\\sin(x)  # product rule applied only once in the second derivative"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "Add",
+          [
+            "InvisibleOperator",
+            2,
+            [
+              "Sin",
+              "x"
+            ]
+          ],
+          [
+            "InvisibleOperator",
+            "x",
+            [
+              "Cos",
+              "x"
+            ]
+          ]
+        ],
+        [
+          "Subtract",
+          [
+            "Cos",
+            "x"
+          ],
+          [
+            "InvisibleOperator",
+            "x",
+            [
+              "Sin",
+              "x"
+            ]
+          ]
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Group 191-195 instruction: find d^2y/dx^2. y' = sin x + x cos x + sin x = 2 sin x + x cos x; y'' = 2 cos x + cos x - x sin x = 3 cos x - x sin x, matching the OpenStax answer key for 191. Domain: all reals.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 191,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.5",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions"
+      },
+      "statement": "Find $\\frac{d^2y}{dx^2}$ for $y = x\\sin x - \\cos x$.",
+      "statement_html": "Find <math-field read-only>\\frac{d^2y}{dx^2}</math-field> for <math-field read-only>y = x\\sin x - \\cos x</math-field>.",
+      "topic": "derivatives.trig"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "\\frac{1}{2}\\sin(x)",
+        "mathjson": [
+          "InvisibleOperator",
+          [
+            "Divide",
+            1,
+            2
+          ],
+          [
+            "Sin",
+            "x"
+          ]
+        ],
+        "variable": "x"
+      },
+      "difficulty": 2,
+      "id": "openstax-c1-3.5-193",
+      "misconceptions": [
+        "-\\frac{1}{2}\\sin(x)  # sign error in the second derivative of sin x",
+        "1-\\frac{1}{2}\\cos(x)  # stopped at the first derivative"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "InvisibleOperator",
+          [
+            "Negate",
+            [
+              "Divide",
+              1,
+              2
+            ]
+          ],
+          [
+            "Sin",
+            "x"
+          ]
+        ],
+        [
+          "Subtract",
+          1,
+          [
+            "InvisibleOperator",
+            [
+              "Divide",
+              1,
+              2
+            ],
+            [
+              "Cos",
+              "x"
+            ]
+          ]
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Group 191-195 instruction. y' = 1 - (1/2)cos x; y'' = (1/2) sin x, matching the OpenStax answer key for 193. Domain: all reals.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 193,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.5",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions"
+      },
+      "statement": "Find $\\frac{d^2y}{dx^2}$ for $y = x - \\frac{1}{2}\\sin x$.",
+      "statement_html": "Find <math-field read-only>\\frac{d^2y}{dx^2}</math-field> for <math-field read-only>y = x - \\frac{1}{2}\\sin x</math-field>.",
+      "topic": "derivatives.trig"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "3\\sin(x)",
+        "mathjson": [
+          "InvisibleOperator",
+          3,
+          [
+            "Sin",
+            "x"
+          ]
+        ],
+        "variable": "x"
+      },
+      "difficulty": 2,
+      "id": "openstax-c1-3.5-209",
+      "misconceptions": [
+        "-3\\sin(x)  # stopped at the first derivative",
+        "-3\\cos(x)  # stopped at the second derivative"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "InvisibleOperator",
+          [
+            "Negate",
+            3
+          ],
+          [
+            "Sin",
+            "x"
+          ]
+        ],
+        [
+          "InvisibleOperator",
+          [
+            "Negate",
+            3
+          ],
+          [
+            "Cos",
+            "x"
+          ]
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Group 209-213 instruction: requested higher-order derivative. y' = -3 sin x, y'' = -3 cos x, y''' = 3 sin x, matching the OpenStax answer key for 209. Domain: all reals.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 209,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.5",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions"
+      },
+      "statement": "Find $\\frac{d^3y}{dx^3}$ for $y = 3\\cos x$.",
+      "statement_html": "Find <math-field read-only>\\frac{d^3y}{dx^3}</math-field> for <math-field read-only>y = 3\\cos x</math-field>.",
+      "topic": "derivatives.trig"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "126(7x-4)^2",
+        "mathjson": [
+          "InvisibleOperator",
+          126,
+          [
+            "Power",
+            [
+              "Delimiter",
+              [
+                "Subtract",
+                [
+                  "InvisibleOperator",
+                  7,
+                  "x"
+                ],
+                4
+              ]
+            ],
+            2
+          ]
+        ],
+        "variable": "x"
+      },
+      "difficulty": 2,
+      "id": "openstax-c1-3.6-215",
+      "misconceptions": [
+        "18(7x-4)^2  # missing du/dx = 7",
+        "42(7x-4)^2  # forgot the factor 3 from the power rule"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "InvisibleOperator",
+          18,
+          [
+            "Power",
+            [
+              "Delimiter",
+              [
+                "Subtract",
+                [
+                  "InvisibleOperator",
+                  7,
+                  "x"
+                ],
+                4
+              ]
+            ],
+            2
+          ]
+        ],
+        [
+          "InvisibleOperator",
+          42,
+          [
+            "Power",
+            [
+              "Delimiter",
+              [
+                "Subtract",
+                [
+                  "InvisibleOperator",
+                  7,
+                  "x"
+                ],
+                4
+              ]
+            ],
+            2
+          ]
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Group 214-219 instruction: find dy/dx with Leibniz notation. dy/du = 18u^2, du/dx = 7, so dy/dx = 18(7x - 4)^2 * 7 = 126(7x - 4)^2, matching the OpenStax answer key for 215. Domain: all reals.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 215,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.6",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule"
+      },
+      "statement": "Given $y = 6u^3$ and $u = 7x - 4$, find $\\frac{dy}{dx}$ as a function of $x$.",
+      "statement_html": "Given <math-field read-only>y = 6u^3</math-field> and <math-field read-only>u = 7x - 4</math-field>, find <math-field read-only>\\frac{dy}{dx}</math-field> as a function of <math-field read-only>x</math-field>.",
+      "topic": "derivatives.chain_rule"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "-\\frac{1}{8}\\sin\\left(\\frac{x}{8}\\right)",
+        "mathjson": [
+          "InvisibleOperator",
+          [
+            "Negate",
+            [
+              "Divide",
+              1,
+              8
+            ]
+          ],
+          [
+            "Sin",
+            [
+              "Divide",
+              "x",
+              8
+            ]
+          ]
+        ],
+        "variable": "x"
+      },
+      "difficulty": 2,
+      "id": "openstax-c1-3.6-217",
+      "misconceptions": [
+        "-\\sin\\left(-\\frac{x}{8}\\right)  # missing du/dx = -1/8",
+        "\\frac{1}{8}\\sin\\left(\\frac{x}{8}\\right)  # sign error in the inner derivative"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "Negate",
+          [
+            "Sin",
+            [
+              "Negate",
+              [
+                "Divide",
+                "x",
+                8
+              ]
+            ]
+          ]
+        ],
+        [
+          "InvisibleOperator",
+          [
+            "Divide",
+            1,
+            8
+          ],
+          [
+            "Sin",
+            [
+              "Divide",
+              "x",
+              8
+            ]
+          ]
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Group 214-219 instruction: find dy/dx with Leibniz notation. dy/du = -sin u, du/dx = -1/8, so dy/dx = -sin(-x/8) * (-1/8), matching the OpenStax answer key for 217. Since sin is odd, this equals -(1/8) sin(x/8), the stored form. Domain: all reals. Replaces a 235 draft (y = sin(cos 7x)): its correct answer proves instantly but wrong answers time out in the verifier, so students would see \"could not check\" instead of \"not quite\".",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 217,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.6",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule"
+      },
+      "statement": "Given $y = \\cos u$ and $u = \\frac{-x}{8}$, find $\\frac{dy}{dx}$ as a function of $x$.",
+      "statement_html": "Given <math-field read-only>y = \\cos u</math-field> and <math-field read-only>u = \\frac{-x}{8}</math-field>, find <math-field read-only>\\frac{dy}{dx}</math-field> as a function of <math-field read-only>x</math-field>.",
+      "topic": "derivatives.chain_rule"
+    },
+    {
+      "answer": {
+        "kind": "expression",
         "latex": "18x(3x^2+1)^2",
         "mathjson": [
           "InvisibleOperator",
@@ -448,6 +1415,429 @@
       },
       "statement": "Find $\\frac{dy}{dx}$ as a function of $x$ for $y = (3x^2 + 1)^3$.",
       "statement_html": "Find <math-field read-only>\\frac{dy}{dx}</math-field> as a function of <math-field read-only>x</math-field> for <math-field read-only>y = (3x^2 + 1)^3</math-field>.",
+      "topic": "derivatives.chain_rule"
+    },
+    {
+      "answer": {
+        "domain": {
+          "exclude": [
+            "0"
+          ],
+          "intervals": [
+            [
+              "-inf",
+              "inf",
+              "open",
+              "open"
+            ]
+          ]
+        },
+        "kind": "expression",
+        "latex": "7\\left(\\frac{x}{7}+\\frac{7}{x}\\right)^6\\left(\\frac{1}{7}-\\frac{7}{x^2}\\right)",
+        "mathjson": [
+          "InvisibleOperator",
+          7,
+          [
+            "Power",
+            [
+              "Delimiter",
+              [
+                "Add",
+                [
+                  "Divide",
+                  "x",
+                  7
+                ],
+                [
+                  "Divide",
+                  7,
+                  "x"
+                ]
+              ]
+            ],
+            6
+          ],
+          [
+            "Delimiter",
+            [
+              "Subtract",
+              [
+                "Divide",
+                1,
+                7
+              ],
+              [
+                "Divide",
+                7,
+                [
+                  "Power",
+                  "x",
+                  2
+                ]
+              ]
+            ]
+          ]
+        ],
+        "variable": "x"
+      },
+      "difficulty": 3,
+      "id": "openstax-c1-3.6-223",
+      "misconceptions": [
+        "7\\left(\\frac{x}{7}+\\frac{7}{x}\\right)^6  # missing inner derivative",
+        "7\\left(\\frac{x}{7}+\\frac{7}{x}\\right)^6\\left(\\frac{1}{7}+\\frac{7}{x^2}\\right)  # sign error: derivative of 7/x taken as +7/x^2"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "InvisibleOperator",
+          7,
+          [
+            "Power",
+            [
+              "Delimiter",
+              [
+                "Add",
+                [
+                  "Divide",
+                  "x",
+                  7
+                ],
+                [
+                  "Divide",
+                  7,
+                  "x"
+                ]
+              ]
+            ],
+            6
+          ]
+        ],
+        [
+          "InvisibleOperator",
+          7,
+          [
+            "Power",
+            [
+              "Delimiter",
+              [
+                "Add",
+                [
+                  "Divide",
+                  "x",
+                  7
+                ],
+                [
+                  "Divide",
+                  7,
+                  "x"
+                ]
+              ]
+            ],
+            6
+          ],
+          [
+            "Delimiter",
+            [
+              "Add",
+              [
+                "Divide",
+                1,
+                7
+              ],
+              [
+                "Divide",
+                7,
+                [
+                  "Power",
+                  "x",
+                  2
+                ]
+              ]
+            ]
+          ]
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Exercise 223 also asks to decompose (part a: f(u) = u^7, u = x/7 + 7/x); only part b is graded here, as for 221. Chain rule: 7u^6 * u' with u' = 1/7 - 7/x^2, matching the OpenStax answer key for 223. Domain: undefined at x = 0, so R minus {0}.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 223,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.6",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule"
+      },
+      "statement": "Find $\\frac{dy}{dx}$ as a function of $x$ for $y = \\left(\\frac{x}{7} + \\frac{7}{x}\\right)^7$.",
+      "statement_html": "Find <math-field read-only>\\frac{dy}{dx}</math-field> as a function of <math-field read-only>x</math-field> for <math-field read-only>y = \\left(\\frac{x}{7} + \\frac{7}{x}\\right)^7</math-field>.",
+      "topic": "derivatives.chain_rule"
+    },
+    {
+      "answer": {
+        "domain": {
+          "exclude": [
+            "5/2"
+          ],
+          "intervals": [
+            [
+              "-inf",
+              "inf",
+              "open",
+              "open"
+            ]
+          ]
+        },
+        "kind": "expression",
+        "latex": "\\frac{4}{(5-2x)^3}",
+        "mathjson": [
+          "Divide",
+          4,
+          [
+            "Power",
+            [
+              "Delimiter",
+              [
+                "Subtract",
+                5,
+                [
+                  "InvisibleOperator",
+                  2,
+                  "x"
+                ]
+              ]
+            ],
+            3
+          ]
+        ],
+        "variable": "x"
+      },
+      "difficulty": 2,
+      "id": "openstax-c1-3.6-229",
+      "misconceptions": [
+        "-\\frac{2}{(5-2x)^3}  # missing inner derivative -2",
+        "-\\frac{4}{(5-2x)^3}  # sign error in the inner derivative"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "Negate",
+          [
+            "Divide",
+            2,
+            [
+              "Power",
+              [
+                "Delimiter",
+                [
+                  "Subtract",
+                  5,
+                  [
+                    "InvisibleOperator",
+                    2,
+                    "x"
+                  ]
+                ]
+              ],
+              3
+            ]
+          ]
+        ],
+        [
+          "Negate",
+          [
+            "Divide",
+            4,
+            [
+              "Power",
+              [
+                "Delimiter",
+                [
+                  "Subtract",
+                  5,
+                  [
+                    "InvisibleOperator",
+                    2,
+                    "x"
+                  ]
+                ]
+              ],
+              3
+            ]
+          ]
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Group 228-238 instruction: find dy/dx. -2(5 - 2x)^(-3) * (-2) = 4/(5 - 2x)^3, matching the OpenStax answer key for 229. Domain: undefined at x = 5/2, so R minus {5/2}.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 229,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.6",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule"
+      },
+      "statement": "Find $\\frac{dy}{dx}$ for $y = (5 - 2x)^{-2}$.",
+      "statement_html": "Find <math-field read-only>\\frac{dy}{dx}</math-field> for <math-field read-only>y = (5 - 2x)^{-2}</math-field>.",
+      "topic": "derivatives.chain_rule"
+    },
+    {
+      "answer": {
+        "kind": "expression",
+        "latex": "6(2x^3-x^2+6x+1)^2(3x^2-x+3)",
+        "mathjson": [
+          "InvisibleOperator",
+          6,
+          [
+            "Power",
+            [
+              "Delimiter",
+              [
+                "Add",
+                [
+                  "Subtract",
+                  [
+                    "InvisibleOperator",
+                    2,
+                    [
+                      "Power",
+                      "x",
+                      3
+                    ]
+                  ],
+                  [
+                    "Power",
+                    "x",
+                    2
+                  ]
+                ],
+                [
+                  "InvisibleOperator",
+                  6,
+                  "x"
+                ],
+                1
+              ]
+            ],
+            2
+          ],
+          [
+            "Delimiter",
+            [
+              "Add",
+              [
+                "Subtract",
+                [
+                  "InvisibleOperator",
+                  3,
+                  [
+                    "Power",
+                    "x",
+                    2
+                  ]
+                ],
+                "x"
+              ],
+              3
+            ]
+          ]
+        ],
+        "variable": "x"
+      },
+      "difficulty": 2,
+      "id": "openstax-c1-3.6-231",
+      "misconceptions": [
+        "3(2x^3-x^2+6x+1)^2  # missing inner derivative",
+        "3(6x^2-2x+6)^2  # differentiated inside the power instead of using the chain rule"
+      ],
+      "misconceptions_mathjson": [
+        [
+          "InvisibleOperator",
+          3,
+          [
+            "Power",
+            [
+              "Delimiter",
+              [
+                "Add",
+                [
+                  "Subtract",
+                  [
+                    "InvisibleOperator",
+                    2,
+                    [
+                      "Power",
+                      "x",
+                      3
+                    ]
+                  ],
+                  [
+                    "Power",
+                    "x",
+                    2
+                  ]
+                ],
+                [
+                  "InvisibleOperator",
+                  6,
+                  "x"
+                ],
+                1
+              ]
+            ],
+            2
+          ]
+        ],
+        [
+          "InvisibleOperator",
+          3,
+          [
+            "Power",
+            [
+              "Delimiter",
+              [
+                "Add",
+                [
+                  "Subtract",
+                  [
+                    "InvisibleOperator",
+                    6,
+                    [
+                      "Power",
+                      "x",
+                      2
+                    ]
+                  ],
+                  [
+                    "InvisibleOperator",
+                    2,
+                    "x"
+                  ]
+                ],
+                6
+              ]
+            ],
+            2
+          ]
+        ]
+      ],
+      "review": {
+        "date": "",
+        "notes": "Group 228-238 instruction. 3(2x^3 - x^2 + 6x + 1)^2 (6x^2 - 2x + 6) = 6(2x^3 - x^2 + 6x + 1)^2 (3x^2 - x + 3), matching the OpenStax answer key for 231. Domain: all reals.",
+        "reviewer": "",
+        "status": "needs_review"
+      },
+      "source": {
+        "book": "OpenStax Calculus Volume 1",
+        "exercise": 231,
+        "license": "CC BY-NC-SA 4.0",
+        "section": "3.6",
+        "url": "https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule"
+      },
+      "statement": "Find $\\frac{dy}{dx}$ for $y = (2x^3 - x^2 + 6x + 1)^3$.",
+      "statement_html": "Find <math-field read-only>\\frac{dy}{dx}</math-field> for <math-field read-only>y = (2x^3 - x^2 + 6x + 1)^3</math-field>.",
       "topic": "derivatives.chain_rule"
     },
     {

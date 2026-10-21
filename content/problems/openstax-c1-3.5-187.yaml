@@ -1,0 +1,22 @@
+id: openstax-c1-3.5-187
+topic: derivatives.trig
+difficulty: 3
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.5'
+  exercise: 187
+  url: https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions
+  license: CC BY-NC-SA 4.0
+statement: 'Find an equation of the tangent line to $f(x) = 1 + \cos x$ at $x = \frac{3\pi}{2}$. Enter the right-hand side of $y = \dots$.'
+answer:
+  kind: expression
+  latex: 'x+1-\frac{3\pi}{2}'
+  variable: x
+misconceptions:
+  - 'x-\frac{3\pi}{2}  # left out f(3pi/2) = 1'
+  - '-x+1+\frac{3\pi}{2}  # sign error: derivative of cos x taken as +sin x'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Group 185-190 instruction. f(3pi/2) = 1 + 0 = 1; f''(x) = -sin x, f''(3pi/2) = -(-1) = 1. y - 1 = x - 3pi/2 gives y = x + 1 - 3pi/2 = x + (2 - 3pi)/2, matching the OpenStax answer key for 187. Domain: all reals.'

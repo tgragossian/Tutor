@@ -1,0 +1,22 @@
+id: openstax-c1-3.5-191
+topic: derivatives.trig
+difficulty: 3
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.5'
+  exercise: 191
+  url: https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions
+  license: CC BY-NC-SA 4.0
+statement: 'Find $\frac{d^2y}{dx^2}$ for $y = x\sin x - \cos x$.'
+answer:
+  kind: expression
+  latex: '3\cos(x)-x\sin(x)'
+  variable: x
+misconceptions:
+  - '2\sin(x)+x\cos(x)  # stopped at the first derivative'
+  - '\cos(x)-x\sin(x)  # product rule applied only once in the second derivative'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Group 191-195 instruction: find d^2y/dx^2. y'' = sin x + x cos x + sin x = 2 sin x + x cos x; y'''' = 2 cos x + cos x - x sin x = 3 cos x - x sin x, matching the OpenStax answer key for 191. Domain: all reals.'

@@ -246,7 +246,8 @@ def test_mutations_deterministic() -> None:
 
 def test_mutations_shape() -> None:
     cases = mutate(REAL)
-    assert 20 <= len(cases) <= 60
+    # Several mutations per problem in the bundle (22 problems after task 15).
+    assert 20 <= len(cases) <= 8 * len({c["problem_id"] for c in cases})
     assert len({c["id"] for c in cases}) == len(cases)
     assert {c["label"] for c in cases} == {"correct", "incorrect"}
     assert all(c["family"] == c["problem_id"] for c in cases)

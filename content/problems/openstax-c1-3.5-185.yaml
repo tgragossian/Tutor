@@ -1,0 +1,22 @@
+id: openstax-c1-3.5-185
+topic: derivatives.trig
+difficulty: 2
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.5'
+  exercise: 185
+  url: https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions
+  license: CC BY-NC-SA 4.0
+statement: 'Find an equation of the tangent line to $f(x) = -\sin x$ at $x = 0$. Enter the right-hand side of $y = \dots$.'
+answer:
+  kind: expression
+  latex: '-x'
+  variable: x
+misconceptions:
+  - 'x  # sign error: derivative of -sin x taken as +cos x'
+  - '-1  # slope only, no line'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Group 185-190 instruction: tangent line at the indicated x. f(0) = 0, f''(x) = -cos x, f''(0) = -1, so y = -x, matching the OpenStax answer key for 185. Graded answer is the right-hand side (instruction added). Domain: all reals.'

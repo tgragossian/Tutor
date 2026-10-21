@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections import Counter
 from pathlib import Path
 
+import pytest
+
 from mathtutor.content.loader import load_bundle
 from mathtutor.content.schema import Decimals, Domain, ExpressionAnswer, NumericAnswer
 
@@ -19,21 +21,29 @@ def is_all_reals(domain: Domain) -> bool:
     return list(domain.intervals) == [("-inf", "inf", "open", "open")] and not domain.exclude
 
 
-def test_six_problems_two_per_topic() -> None:
-    assert Counter(p.topic for p in PROBLEMS) == {t: 2 for t in TOPICS}
+def test_twenty_to_thirty_problems_at_least_six_per_topic() -> None:
+    assert 20 <= len(PROBLEMS) <= 30
+    counts = Counter(p.topic for p in PROBLEMS)
+    assert set(counts) == set(TOPICS)
+    assert all(n >= 6 for n in counts.values()), counts
 
 
 def test_kind_mix() -> None:
     k = Counter(p.answer.kind for p in PROBLEMS)
-    assert k["expression"] >= 4 and k["numeric"] >= 1 and k["choice"] >= 1
+    assert k["numeric"] >= 2 and k["choice"] >= 2 and k["expression"] >= 4, k
 
 
-def test_some_domain_is_not_all_reals() -> None:
-    assert any(not is_all_reals(p.answer.domain) for p in EXPR_PROBLEMS)
+def test_at_least_three_domains_are_not_all_reals() -> None:
+    assert sum(not is_all_reals(p.answer.domain) for p in EXPR_PROBLEMS) >= 3
 
 
-def test_some_problem_has_misconceptions() -> None:
-    assert any(p.misconceptions for p in PROBLEMS)
+def test_at_least_five_problems_have_misconceptions() -> None:
+    assert sum(bool(p.misconceptions) for p in PROBLEMS) >= 5
+
+
+def test_ids_are_unique() -> None:
+    ids = [p.id for p in PROBLEMS]
+    assert len(ids) == len(set(ids))
 
 
 def test_declared_domains_and_precision_are_pinned() -> None:
@@ -60,5 +70,6 @@ def test_transcribed_problems_cite_an_exercise() -> None:
             assert not p.source.adapted and p.source.exercise is not None, p.id
 
 
+@pytest.mark.xfail(strict=True, reason="task 15 drafts await Thomas's content review")
 def test_all_human_verified() -> None:
     assert all(p.review.status == "human_verified" for p in PROBLEMS)

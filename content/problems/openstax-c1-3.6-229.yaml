@@ -1,0 +1,25 @@
+id: openstax-c1-3.6-229
+topic: derivatives.chain_rule
+difficulty: 2
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.6'
+  exercise: 229
+  url: https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule
+  license: CC BY-NC-SA 4.0
+statement: 'Find $\frac{dy}{dx}$ for $y = (5 - 2x)^{-2}$.'
+answer:
+  kind: expression
+  latex: '\frac{4}{(5-2x)^3}'
+  variable: x
+  domain:
+    intervals: [['-inf', 'inf', open, open]]
+    exclude: ['5/2']
+misconceptions:
+  - '-\frac{2}{(5-2x)^3}  # missing inner derivative -2'
+  - '-\frac{4}{(5-2x)^3}  # sign error in the inner derivative'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Group 228-238 instruction: find dy/dx. -2(5 - 2x)^(-3) * (-2) = 4/(5 - 2x)^3, matching the OpenStax answer key for 229. Domain: undefined at x = 5/2, so R minus {5/2}.'

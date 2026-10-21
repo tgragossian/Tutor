@@ -1,0 +1,22 @@
+id: openstax-c1-3.3-109
+topic: derivatives.basic_rules
+difficulty: 1
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.3'
+  exercise: 109
+  url: https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules
+  license: CC BY-NC-SA 4.0
+statement: 'Find $f''(x)$ for $f(x) = 8x^4 + 9x^2 - 1$.'
+answer:
+  kind: expression
+  latex: '32x^3+18x'
+  variable: x
+misconceptions:
+  - '32x^3+18x-1  # constant term not dropped'
+  - '32x^4+18x^2  # exponent not lowered'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Group 106-117 instruction: find f''(x). Power rule: 32x^3 + 18x, matching the OpenStax answer key for 109. Domain: all reals (polynomial).'

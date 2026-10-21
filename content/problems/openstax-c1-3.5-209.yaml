@@ -1,0 +1,22 @@
+id: openstax-c1-3.5-209
+topic: derivatives.trig
+difficulty: 2
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.5'
+  exercise: 209
+  url: https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions
+  license: CC BY-NC-SA 4.0
+statement: 'Find $\frac{d^3y}{dx^3}$ for $y = 3\cos x$.'
+answer:
+  kind: expression
+  latex: '3\sin(x)'
+  variable: x
+misconceptions:
+  - '-3\sin(x)  # stopped at the first derivative'
+  - '-3\cos(x)  # stopped at the second derivative'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Group 209-213 instruction: requested higher-order derivative. y'' = -3 sin x, y'''' = -3 cos x, y'''''' = 3 sin x, matching the OpenStax answer key for 209. Domain: all reals.'

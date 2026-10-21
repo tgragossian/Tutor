@@ -1,0 +1,22 @@
+id: openstax-c1-3.6-217
+topic: derivatives.chain_rule
+difficulty: 2
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.6'
+  exercise: 217
+  url: https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule
+  license: CC BY-NC-SA 4.0
+statement: 'Given $y = \cos u$ and $u = \frac{-x}{8}$, find $\frac{dy}{dx}$ as a function of $x$.'
+answer:
+  kind: expression
+  latex: '-\frac{1}{8}\sin\left(\frac{x}{8}\right)'
+  variable: x
+misconceptions:
+  - '-\sin\left(-\frac{x}{8}\right)  # missing du/dx = -1/8'
+  - '\frac{1}{8}\sin\left(\frac{x}{8}\right)  # sign error in the inner derivative'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Group 214-219 instruction: find dy/dx with Leibniz notation. dy/du = -sin u, du/dx = -1/8, so dy/dx = -sin(-x/8) * (-1/8), matching the OpenStax answer key for 217. Since sin is odd, this equals -(1/8) sin(x/8), the stored form. Domain: all reals. Replaces a 235 draft (y = sin(cos 7x)): its correct answer proves instantly but wrong answers time out in the verifier, so students would see "could not check" instead of "not quite".'

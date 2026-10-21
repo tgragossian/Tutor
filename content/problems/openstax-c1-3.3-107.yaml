@@ -1,0 +1,22 @@
+id: openstax-c1-3.3-107
+topic: derivatives.basic_rules
+difficulty: 1
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.3'
+  exercise: 107
+  url: https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules
+  license: CC BY-NC-SA 4.0
+statement: 'Find $f''(x)$ for $f(x) = 5x^3 - x + 1$.'
+answer:
+  kind: expression
+  latex: '15x^2-1'
+  variable: x
+misconceptions:
+  - '15x^2  # dropped the derivative of -x'
+  - '15x^2-x  # differentiated only the cubic term'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Group 106-117 instruction: find f''(x). Power rule term by term: 15x^2 - 1 + 0 = 15x^2 - 1, matching the OpenStax answer key for 107. Domain: all reals (polynomial).'

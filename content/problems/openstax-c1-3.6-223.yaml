@@ -1,0 +1,25 @@
+id: openstax-c1-3.6-223
+topic: derivatives.chain_rule
+difficulty: 3
+source:
+  book: OpenStax Calculus Volume 1
+  section: '3.6'
+  exercise: 223
+  url: https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule
+  license: CC BY-NC-SA 4.0
+statement: 'Find $\frac{dy}{dx}$ as a function of $x$ for $y = \left(\frac{x}{7} + \frac{7}{x}\right)^7$.'
+answer:
+  kind: expression
+  latex: '7\left(\frac{x}{7}+\frac{7}{x}\right)^6\left(\frac{1}{7}-\frac{7}{x^2}\right)'
+  variable: x
+  domain:
+    intervals: [['-inf', 'inf', open, open]]
+    exclude: ['0']
+misconceptions:
+  - '7\left(\frac{x}{7}+\frac{7}{x}\right)^6  # missing inner derivative'
+  - '7\left(\frac{x}{7}+\frac{7}{x}\right)^6\left(\frac{1}{7}+\frac{7}{x^2}\right)  # sign error: derivative of 7/x taken as +7/x^2'
+review:
+  status: needs_review
+  reviewer: ''
+  date: ''
+  notes: 'Exercise 223 also asks to decompose (part a: f(u) = u^7, u = x/7 + 7/x); only part b is graded here, as for 221. Chain rule: 7u^6 * u'' with u'' = 1/7 - 7/x^2, matching the OpenStax answer key for 223. Domain: undefined at x = 0, so R minus {0}.'
