@@ -481,3 +481,31 @@ def test_start_does_not_reuse_a_finished_or_skipped_session(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     w.svc.skip(w.alice, sid, *_at(w.view(sid)))  # touched, even with nothing answered
     assert w.svc.start_session(w.alice, [BASIC]) != sid
+
+
+def test_clear_history_hides_sessions_but_keeps_progress(w: World) -> None:
+    s1 = w.svc.start_session(w.alice, [BASIC])
+    w.submit(s1, CORRECT)  # FIRST solved
+    assert len(w.svc.session_summary(w.alice)) == 1
+    assert w.svc.clear_history(w.alice) == 1
+    assert w.svc.session_summary(w.alice) == []
+    assert w.svc.clear_history(w.alice) == 0  # nothing left to clear
+    # Progress survives: the solved problem is not served again.
+    later = w.svc.start_session(w.alice, [BASIC])
+    assert w.view(later).item_id == SECOND
+    # The cleared session itself still opens (e.g. from an old link).
+    assert w.svc.current_item(w.alice, s1) is not None
+    # New answered sessions appear again.
+    w.submit(later, INCORRECT)
+    assert [s.session_id for s in w.svc.session_summary(w.alice)] == [later]
+
+
+def test_clear_history_only_touches_the_user(w: World) -> None:
+    a = w.svc.start_session(w.alice, [BASIC])
+    w.submit(a, INCORRECT)
+    b = w.svc.start_session(w.bob, [BASIC])
+    v = w.view(b, user=w.bob)
+    w.pool.script.append(INCORRECT)
+    w.svc.submit_answer(w.bob, b, uuid.uuid4(), v.session_item_id, v.revision, ANSWER)
+    w.svc.clear_history(w.alice)
+    assert [s.session_id for s in w.svc.session_summary(w.bob)] == [b]

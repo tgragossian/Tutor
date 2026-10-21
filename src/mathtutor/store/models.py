@@ -97,6 +97,8 @@ class StudySession(Base):
     topics: Mapped[list[str]] = mapped_column(JSON)
     started_at: Mapped[datetime]
     ended_at: Mapped[datetime | None]
+    # Set by "Clear history": hidden from the list, but its answers still count for selection.
+    hidden_at: Mapped[datetime | None]
 
     user: Mapped[User] = relationship(back_populates="study_sessions")
     items: Mapped[list[SessionItem]] = relationship(

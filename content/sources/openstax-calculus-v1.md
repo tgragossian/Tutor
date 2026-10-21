@@ -25,6 +25,7 @@ Sections used in milestone A:
 - This is the string every problem's `source.license` carries; the schema accepts no other.
 - The OpenStax and Rice University names, logos and book covers are trademarks outside the licence. Do not use them as branding.
 - The book's citation page also says it "may not be used in the training of large language models or otherwise be ingested into large language models or generative AI offerings without OpenStax's prior written permission". Check this before any pipeline that feeds the book's text to an LLM.
+- **Decision (Thomas, 2026-10-21):** transcribing exercises with an assistant is acceptable. The licence page of the edition used (©2018 Rice University, CC BY-NC-SA 4.0) does not mention LLMs, and the attribution line it requires is shown on every page. Revisit before milestone C feeds book text into RAG.
 
 ## Attribution shown in the UI
 

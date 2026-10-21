@@ -190,6 +190,25 @@ class PracticeService:
                 return Done(self._done_reason(db, session))
             return self._view(db, item)
 
+    def clear_history(self, user_id: int) -> int:
+        """Hide every listed session. Answers are kept, so progress and selection still use
+        them; returns how many sessions were hidden."""
+        listed = {s.session_id for s in self.session_summary(user_id)}
+        if not listed:
+            return 0
+        with self._tx() as db:
+            db.execute(
+                update(StudySession)
+                .where(
+                    StudySession.user_id == user_id,
+                    StudySession.id.in_(listed),
+                    StudySession.hidden_at.is_(None),
+                )
+                .values(hidden_at=self._clock())
+                .execution_options(synchronize_session=False)
+            )
+        return len(listed)
+
     def _untouched_session(self, db: Session, user_id: int, topics: list[str]) -> int | None:
         """The user's latest open session on the same topics, if nothing was submitted or
         skipped in it yet."""
@@ -211,7 +230,7 @@ class PracticeService:
         with self._sessions() as db:
             sessions = db.scalars(
                 select(StudySession)
-                .where(StudySession.user_id == user_id)
+                .where(StudySession.user_id == user_id, StudySession.hidden_at.is_(None))
                 .order_by(StudySession.started_at.desc(), StudySession.id.desc())
             ).all()
             rows = db.execute(

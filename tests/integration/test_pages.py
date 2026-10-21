@@ -190,3 +190,30 @@ def test_pages_rate_limited(client: TestClient) -> None:
         client.post("/login", data={"username": "nobody", "password": "wrong-pass"})
     r = client.post("/login", data={"username": "nobody", "password": "wrong-pass"})
     assert r.status_code == 429
+
+
+def test_clear_history_form(client_logged_in: TestClient) -> None:
+    c = client_logged_in
+    sid = start(c)
+    item = c.get(f"/api/sessions/{sid}/current").json()["item"]
+    c.post(
+        f"/api/sessions/{sid}/submit",
+        json={
+            "submission_id": "3c1d2e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+            "session_item_id": item["session_item_id"],
+            "item_revision": item["revision"],
+            "answer": {"kind": "expression", "mathjson": ["Multiply", 2, "x"], "latex": "2x"},
+        },
+    )
+    page = c.get("/").text
+    assert f'href="/practice/{sid}"' in page
+    assert 'action="/history/clear"' in page and "data-confirm" in page
+    token = _csrf_field(page)
+    del c.headers["X-CSRF-Token"]
+    assert c.post("/history/clear").status_code == 403
+    r = c.post("/history/clear", data={"csrf_token": token}, follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/"
+    page = c.get("/").text
+    assert f'href="/practice/{sid}"' not in page
+    assert 'action="/history/clear"' not in page  # nothing to clear
+    assert "No sessions yet." in page

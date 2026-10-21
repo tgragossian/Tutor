@@ -36,6 +36,7 @@ button.secondary { background: #fff; color: var(--accent); }
 button.link { border: none; background: none; color: var(--accent); padding: 0; text-decoration: underline; }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
 
+.clear-history { margin-top: 0.75rem; }
 table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
 th, td { text-align: left; padding: 0.4rem; border-bottom: 1px solid var(--line); }
 

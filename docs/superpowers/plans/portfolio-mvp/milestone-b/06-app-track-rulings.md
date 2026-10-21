@@ -62,3 +62,6 @@ Made during inline execution on 2026-10-21. Each costs little if wrong; Thomas m
 - **A20:** a session never repeats a problem: it ends (`session_complete`) once every unsolved
   problem in its topics was shown; missed problems return in a later session. The end screen
   says "Next features under construction, thank you for using this tutor!" US spelling.
+- **A21:** history lists only sessions with a graded answer; "Start" with the same topics
+  reuses the latest untouched open session. "Clear history" (migration 0002, `hidden_at`)
+  hides listed sessions but keeps their answers, so progress and selection are unchanged.

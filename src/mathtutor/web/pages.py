@@ -147,6 +147,12 @@ def start_form(
     return RedirectResponse(f"/practice/{session_id}", status_code=303)
 
 
+@pages_router.post("/history/clear")
+def clear_history_form(auth: CsrfUser, request: Request) -> RedirectResponse:
+    practice_service(request).clear_history(auth.user_id)
+    return RedirectResponse("/", status_code=303)
+
+
 @pages_router.get("/practice/{session_id}", response_model=None)
 def practice_page(session_id: int, request: Request) -> Response:
     user = optional_user(request)

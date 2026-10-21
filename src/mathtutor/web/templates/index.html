@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block head %}<script type="module" src="/static/index.js"></script>{% endblock %}
 {% block content %}
 <h1>{{ app_name }}</h1>
 {% if username %}
@@ -27,6 +28,11 @@
     {% endfor %}
   </tbody>
 </table>
+<form method="post" action="/history/clear" class="clear-history"
+      data-confirm="Clear your practice history? Your progress on problems is kept.">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <button type="submit" class="secondary">Clear history</button>
+</form>
 {% else %}
 <p>No sessions yet.</p>
 {% endif %}
