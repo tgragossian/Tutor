@@ -1,19 +1,29 @@
-"""FastAPI app factory: health and readiness probes plus a placeholder page."""
+"""FastAPI app factory: services, routes, error handlers and health/readiness probes."""
 
 from __future__ import annotations
 
+import secrets
 from collections import Counter
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from mathtutor import __version__
+from mathtutor.application.auth import AuthService
+from mathtutor.application.errors import AppError
 from mathtutor.content.loader import LoadedContent, load_bundle, servable
 from mathtutor.settings import Settings
+from mathtutor.store.db import make_engine, make_sessionmaker
+from mathtutor.web.api import auth_router
+from mathtutor.web.security import CookieCodec, RateLimiter
 
 APP_NAME = "Calculus Tutor"
 
@@ -66,6 +76,13 @@ class SecurityHeadersMiddleware:
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
+AUTH_LIMIT = (10, 60.0)  # per client IP
+SUBMIT_LIMIT = (30, 60.0)  # per user
+
+
+def _utcnow() -> datetime:
+    return datetime.now(UTC)
+
 
 def create_app(settings: Settings) -> FastAPI:
     # Eager: a ContentError here stops the process before it serves anything.
@@ -74,9 +91,40 @@ def create_app(settings: Settings) -> FastAPI:
         env=Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
     )
 
-    app = _SecureFastAPI(title=APP_NAME, version=__version__)
+    engine = make_engine(settings.database_url)
+    # Production requires a secret (Settings validator); elsewhere a per-process one is enough.
+    secret = (
+        settings.secret_key.get_secret_value() if settings.secret_key else secrets.token_hex(32)
+    )
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        try:
+            yield
+        finally:
+            engine.dispose()
+
+    app = _SecureFastAPI(title=APP_NAME, version=__version__, lifespan=lifespan)
     app.state.settings = settings
     app.state.content = content
+    app.state.engine = engine
+    app.state.sessions = make_sessionmaker(engine)
+    app.state.auth = AuthService(app.state.sessions, _utcnow)
+    app.state.cookies = CookieCodec(secret, secure=settings.env != "development")
+    app.state.auth_limiter = RateLimiter(*AUTH_LIMIT)
+    app.state.submit_limiter = RateLimiter(*SUBMIT_LIMIT)
+
+    @app.exception_handler(AppError)
+    async def app_error(_request: Request, exc: AppError) -> JSONResponse:
+        return JSONResponse({"error": exc.code, "message": exc.message}, status_code=exc.status)
+
+    @app.exception_handler(RequestValidationError)
+    async def invalid_request(_request: Request, exc: RequestValidationError) -> JSONResponse:
+        fields = sorted({".".join(str(p) for p in e["loc"][1:]) for e in exc.errors()})
+        message = "Invalid request" + (f": {', '.join(fields)}" if fields else "") + "."
+        return JSONResponse({"error": "invalid_request", "message": message}, status_code=422)
+
+    app.include_router(auth_router)
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:

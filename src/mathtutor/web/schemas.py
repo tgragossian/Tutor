@@ -65,3 +65,15 @@ class PublicItem(_Model):
 class ErrorBody(_Model):
     error: str
     message: str
+
+
+class Credentials(_Model):
+    """Register and login body. Lengths are checked by the service; these caps bound the body."""
+
+    username: Annotated[str, Field(max_length=64)]
+    password: Annotated[str, Field(max_length=256)]
+
+
+class AuthUser(_Model):
+    username: str
+    csrf_token: str

@@ -28,11 +28,8 @@ def _set_sqlite_pragmas(dbapi_connection: Any, _record: Any) -> None:
 
 def make_engine(url: str) -> Engine:
     """Build an engine. SQLite gets WAL, a 5 s busy timeout and enforced foreign keys."""
-    parsed = make_url(url)
-    if parsed.get_backend_name() != "sqlite":
+    if make_url(url).get_backend_name() != "sqlite":
         return create_engine(url)
-    if parsed.database and parsed.database != ":memory:":
-        Path(parsed.database).parent.mkdir(parents=True, exist_ok=True)
     engine = create_engine(url, connect_args={"check_same_thread": False, "timeout": 5})
     event.listen(engine, "connect", _set_sqlite_pragmas)
     return engine
@@ -49,8 +46,18 @@ def _alembic_config(url: str) -> Config:
     return config
 
 
+def _ensure_sqlite_dir(url: str) -> None:
+    parsed = make_url(url)
+    if parsed.get_backend_name() == "sqlite" and parsed.database not in (None, "", ":memory:"):
+        Path(parsed.database).parent.mkdir(parents=True, exist_ok=True)
+
+
 def upgrade(url: str, revision: str = "head") -> None:
-    """Run ``alembic upgrade`` against ``url`` (tests and the release step)."""
+    """Run ``alembic upgrade`` against ``url`` (tests and the release step).
+
+    Creates the SQLite file's directory; app startup itself never writes to disk.
+    """
+    _ensure_sqlite_dir(url)
     command.upgrade(_alembic_config(url), revision)
 
 
