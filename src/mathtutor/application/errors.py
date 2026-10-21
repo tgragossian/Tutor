@@ -6,6 +6,7 @@ from __future__ import annotations
 class AppError(Exception):
     status: int = 400
     code: str = "bad_request"
+    retry_after_s: int | None = None  # sent as Retry-After when set
 
     def __init__(self, message: str = "", *, code: str | None = None) -> None:
         super().__init__(message or self.code)
@@ -62,6 +63,7 @@ class RateLimited(AppError):
 class Busy(AppError):
     status = 503
     code = "verifier_busy"
+    retry_after_s = 2
 
 
 class SubmissionPending(AppError):

@@ -8,21 +8,29 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Protocol
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
+from sqlalchemy import Engine, text
+from sqlalchemy.exc import SQLAlchemyError
+from starlette.concurrency import run_in_threadpool
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from mathtutor import __version__
 from mathtutor.application.auth import AuthService
 from mathtutor.application.errors import AppError
+from mathtutor.application.practice import Pool, PracticeService
 from mathtutor.content.loader import LoadedContent, load_bundle, servable
 from mathtutor.settings import Settings
 from mathtutor.store.db import make_engine, make_sessionmaker
-from mathtutor.web.api import auth_router
+from mathtutor.verify.pool import VerifierPool
+from mathtutor.web.api import auth_router, practice_router
+from mathtutor.web.logging import BodyLimitMiddleware, RequestLogMiddleware
 from mathtutor.web.security import CookieCodec, RateLimiter
 
 APP_NAME = "Calculus Tutor"
@@ -80,11 +88,31 @@ AUTH_LIMIT = (10, 60.0)  # per client IP
 SUBMIT_LIMIT = (30, 60.0)  # per user
 
 
+HTTP_CODES = {404: "not_found", 405: "method_not_allowed", 413: "payload_too_large"}
+
+
 def _utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-def create_app(settings: Settings) -> FastAPI:
+def _database_ok(engine: Engine) -> bool:
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except SQLAlchemyError:
+        return False
+    return True
+
+
+class _Pool(Pool, Protocol):
+    def alive(self) -> bool: ...
+
+    def close(self) -> None: ...
+
+
+def create_app(settings: Settings, *, pool: _Pool | None = None) -> FastAPI:
+    """Build the app. Without ``pool``, a ``VerifierPool`` is started when the app starts
+    (lifespan) and closed when it stops; an injected pool belongs to the caller."""
     # Eager: a ContentError here stops the process before it serves anything.
     content: LoadedContent = load_bundle(settings.content_path)
     templates = Jinja2Templates(
@@ -92,31 +120,60 @@ def create_app(settings: Settings) -> FastAPI:
     )
 
     engine = make_engine(settings.database_url)
+    sessions = make_sessionmaker(engine)
     # Production requires a secret (Settings validator); elsewhere a per-process one is enough.
     secret = (
         settings.secret_key.get_secret_value() if settings.secret_key else secrets.token_hex(32)
     )
 
+    def attach_pool(p: _Pool) -> None:
+        app.state.pool = p
+        app.state.practice = PracticeService(sessions, content, p, _utcnow)
+
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        owned: VerifierPool | None = None
         try:
+            if pool is None:
+                # check_fn=None: the worker imports the checker, never this process (R8).
+                owned = await run_in_threadpool(VerifierPool)
+                attach_pool(owned)
             yield
         finally:
+            if owned is not None:
+                await run_in_threadpool(owned.close)
             engine.dispose()
 
     app = _SecureFastAPI(title=APP_NAME, version=__version__, lifespan=lifespan)
     app.state.settings = settings
     app.state.content = content
     app.state.engine = engine
-    app.state.sessions = make_sessionmaker(engine)
-    app.state.auth = AuthService(app.state.sessions, _utcnow)
+    app.state.sessions = sessions
+    app.state.pool = None
+    app.state.auth = AuthService(sessions, _utcnow)
     app.state.cookies = CookieCodec(secret, secure=settings.env != "development")
     app.state.auth_limiter = RateLimiter(*AUTH_LIMIT)
     app.state.submit_limiter = RateLimiter(*SUBMIT_LIMIT)
+    if pool is not None:
+        attach_pool(pool)
+    app.add_middleware(BodyLimitMiddleware)
+    app.add_middleware(RequestLogMiddleware)
 
     @app.exception_handler(AppError)
     async def app_error(_request: Request, exc: AppError) -> JSONResponse:
-        return JSONResponse({"error": exc.code, "message": exc.message}, status_code=exc.status)
+        headers = {"Retry-After": str(exc.retry_after_s)} if exc.retry_after_s else None
+        return JSONResponse(
+            {"error": exc.code, "message": exc.message}, status_code=exc.status, headers=headers
+        )
+
+    @app.exception_handler(StarletteHTTPException)
+    async def http_error(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
+        code = HTTP_CODES.get(exc.status_code, "http_error")
+        return JSONResponse(
+            {"error": code, "message": str(exc.detail)},
+            status_code=exc.status_code,
+            headers=exc.headers,
+        )
 
     @app.exception_handler(RequestValidationError)
     async def invalid_request(_request: Request, exc: RequestValidationError) -> JSONResponse:
@@ -125,6 +182,7 @@ def create_app(settings: Settings) -> FastAPI:
         return JSONResponse({"error": "invalid_request", "message": message}, status_code=422)
 
     app.include_router(auth_router)
+    app.include_router(practice_router)
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
@@ -133,10 +191,15 @@ def create_app(settings: Settings) -> FastAPI:
     @app.get("/readyz")
     def readyz() -> JSONResponse:
         n = len(servable(content))
+        reason = None
         if n == 0:
-            return JSONResponse(
-                {"status": "not_ready", "reason": "no_servable_problems"}, status_code=503
-            )
+            reason = "no_servable_problems"
+        elif not _database_ok(engine):
+            reason = "database_unavailable"
+        elif app.state.pool is None or not app.state.pool.alive():
+            reason = "verifier_pool_down"
+        if reason is not None:
+            return JSONResponse({"status": "not_ready", "reason": reason}, status_code=503)
         return JSONResponse(
             {"status": "ready", "content_version": content.bundle_version, "servable": n}
         )

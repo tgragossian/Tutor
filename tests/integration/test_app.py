@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
+from support.webapp import SpyPool, make_settings
 
 from mathtutor import __version__
 from mathtutor.content.loader import ContentError, load_bundle
@@ -22,8 +23,8 @@ TITLES = [t.title for t in sorted(REAL.bundle.topics, key=lambda t: t.order)]
 
 
 @pytest.fixture
-def client() -> TestClient:
-    return TestClient(create_app(Settings(env="test", content_path=REAL_PATH)))
+def client(tmp_path: Path) -> TestClient:
+    return TestClient(create_app(make_settings(tmp_path), pool=SpyPool()))
 
 
 @pytest.fixture
@@ -49,7 +50,7 @@ def test_readyz_ready_with_real_content(client: TestClient) -> None:
 
 
 def test_readyz_503_when_nothing_servable(needs_review_only: Path) -> None:
-    app = create_app(Settings(env="test", content_path=needs_review_only))
+    app = create_app(Settings(env="test", content_path=needs_review_only), pool=SpyPool())
     r = TestClient(app).get("/readyz")
     assert r.status_code == 503
     assert r.json() == {"status": "not_ready", "reason": "no_servable_problems"}

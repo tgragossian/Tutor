@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Annotated, Literal
 
 from pydantic import UUID4, BaseModel, ConfigDict, Field, JsonValue
@@ -60,6 +61,7 @@ class PublicItem(_Model):
     choices: list[PublicChoice] | None = None
     source: Source
     allowed_actions: list[Action]
+    tries_left: int
 
 
 class ErrorBody(_Model):
@@ -77,3 +79,47 @@ class Credentials(_Model):
 class AuthUser(_Model):
     username: str
     csrf_token: str
+
+
+class StartRequest(_Model):
+    topics: Annotated[list[str], Field(min_length=1, max_length=3)]
+
+
+class StartResponse(_Model):
+    session_id: int
+
+
+class ActionRequest(_Model):
+    item_revision: Annotated[int, Field(ge=0)]
+
+
+class VerdictOut(_Model):
+    status: Literal["correct", "incorrect", "unable_to_verify"]
+    reason: str
+    method: str
+
+
+class FormatIssueOut(_Model):
+    code: str
+    message: str
+
+
+class SubmitResponse(_Model):
+    outcome: VerdictOut | FormatIssueOut
+    item: PublicItem
+    replayed: bool
+
+
+class CurrentResponse(_Model):
+    item: PublicItem | None
+    done: bool
+    reason: str | None = None
+    revealed_latex: str | None = None
+
+
+class SessionSummaryOut(_Model):
+    session_id: int
+    topics: list[str]
+    started_at: datetime
+    answered: int
+    correct: int

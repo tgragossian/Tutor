@@ -16,5 +16,6 @@
   "allowed_actions": [
     "submit",
     "skip"
-  ]
+  ],
+  "tries_left": 3
 }

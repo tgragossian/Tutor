@@ -85,6 +85,8 @@ class SubmitView:
     outcome: Verdict | FormatIssue
     item: ItemView
     replayed: bool
+    worker_ms: int | None = None  # for request logs; None on a replay
+    queue_ms: int | None = None
 
 
 @dataclass(frozen=True)
@@ -327,7 +329,9 @@ class PracticeService:
                 raise NotFound("Problem not found in this session.")
             spec = self._problem(item.item_id).answer
             if answer.kind.value != spec.kind:
-                raise InvalidInput(f"This problem expects a {spec.kind} answer.")
+                raise InvalidInput(
+                    f"This problem expects a {spec.kind} answer.", code="kind_mismatch"
+                )
             if item.state is not ItemState.ACTIVE or item.revision != item_revision:
                 raise StaleItem("This problem changed; reload it.")
             sub = Submission(
@@ -401,7 +405,7 @@ class PracticeService:
             raise StaleItem("This problem changed; reload it.") from None
         if not applied:
             raise StaleItem("This problem changed while it was being checked.")
-        return SubmitView(outcome, view, replayed=False)
+        return SubmitView(outcome, view, False, checked.worker_ms, checked.queue_ms)
 
     def _release(self, submission_pk: int) -> None:
         with self._tx() as db:
