@@ -8,24 +8,21 @@ All commands run on the host, from `/srv/mathtutor`. `C` is shorthand used below
 C="sudo docker compose -f deploy/compose.yaml"
 ```
 
-## Release scope
-
-The update commands below apply to the milestone A/verifier-only `main` image.
-The current `milestone-b` app needs task 16 storage/migrations before deployment; see
-[release debugging](debugging/02-release.md). No milestone B release is recorded.
-
 ## Update to the latest `main`
 
 ```bash
 git pull --ff-only
-sudo docker build -t mathtutor:local .
-$C up -d
+sudo docker build --build-arg GIT_SHA=$(git rev-parse --short HEAD) -t mathtutor:local .
+$C up -d                                 # runs `migrate` (alembic upgrade head), then app
+$C ps -a                                 # migrate: Exited (0); app and caddy: Up
 sudo docker image prune -f
 curl -fsS https://<domain>/readyz        # expect "status":"ready"
 ```
 
-Milestone B requires `alembic upgrade head` before app startup. Container wiring is
-still pending in task 16; the source-checkout command is in [development setup](development.md).
+- The SQLite database lives in the `app_data` volume at `/data/mathtutor.db`. The one-shot
+  `migrate` service must exit 0 before `app` starts; if it fails, `$C logs migrate`.
+- `docker compose down` keeps volumes; never add `-v`, which deletes every account.
+- Memory sizing for the verifier pool is still task 16 step 3 (`docker stats`, `free -m`).
 
 ## Logs and status
 

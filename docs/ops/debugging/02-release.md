@@ -2,13 +2,14 @@
 
 [Debugging index](README.md) · [Runbook](../runbook.md) · [Host record](../host.md)
 
-## Current release gap (2026-10-21)
+## Storage and migrations in the container (2026-10-21)
 
-Tasks 10–14 add a database and worker pool, but task 16 has not wired persistence/migrations
-into Docker. `Dockerfile` does not copy Alembic files or create writable application storage;
-`deploy/compose.yaml` has only Caddy volumes. `tests/container/smoke.sh` still assumes the
-milestone A image. Its readiness check is expected to fail on the current branch.
-This is a source-inspection finding, not a fresh Docker or remote CI run.
+The image copies `alembic.ini` and `migrations/`, sets `MATHTUTOR_DATABASE_URL` to
+`/data/mathtutor.db` and owns `/data` as uid 10001. Compose mounts the `app_data` volume and
+runs a one-shot `migrate` service (`alembic upgrade head`) before `app`.
+`tests/container/smoke.sh` migrates a fresh volume, checks ownership, waits for `/readyz`
+and grades one real answer (exercise 221) through the API. Still open in task 16: memory
+sizing on the host and moving the e2e job onto the image.
 
 ## Readiness decision path
 

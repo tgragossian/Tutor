@@ -23,11 +23,19 @@ RUN groupadd --gid 10001 app \
 WORKDIR /app
 COPY --from=build /app/.venv /app/.venv
 COPY content/compiled/ /app/content/compiled/
+# Migrations run as a one-shot `alembic upgrade head` (compose service `migrate`) before the app.
+COPY alembic.ini /app/alembic.ini
+COPY migrations/ /app/migrations/
+# SQLite lives on a volume mounted at /data, owned by the app user.
+RUN mkdir /data && chown 10001:10001 /data
+ARG GIT_SHA=dev
 ENV PATH=/app/.venv/bin:$PATH \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     MATHTUTOR_ENV=production \
-    MATHTUTOR_CONTENT_PATH=/app/content/compiled/problems.json
+    MATHTUTOR_CONTENT_PATH=/app/content/compiled/problems.json \
+    MATHTUTOR_DATABASE_URL=sqlite:////data/mathtutor.db \
+    MATHTUTOR_GIT_SHA=$GIT_SHA
 USER 10001
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
