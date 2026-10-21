@@ -1,9 +1,13 @@
-# Milestone B: execution status
+# Milestone B: execution status (main snapshot)
 
 [Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md) · [Follow-ups](05-follow-ups.md)
 
 Updated 2026-10-20. Tasks 1–9 complete and merged to `main` in 102a22f.
 Worktree: `.claude/worktrees/milestone-b`; tasks 10–16 not started; no B deployment claimed.
+
+Current project status (2026-10-21): tasks 10–14 are complete on `milestone-b`; task 15
+is partial and task 16 pending. The table below records main only. Follow the
+[handoff](../../../../../handoff.md) to the branch status; do not restart task 10.
 
 ## Tasks
 

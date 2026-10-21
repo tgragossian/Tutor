@@ -1,77 +1,49 @@
-# Calculus Tutor handoff
+# Calculus Tutor handoff: main checkout
 
-Owner: Thomas Gragossian. Updated: 2026-10-20 after merging tasks 1–9 to `main` (102a22f).
-Milestone B work continues in the `milestone-b` worktree: `.claude/worktrees/milestone-b`.
+Owner: Thomas Gragossian. Updated: 2026-10-21 after reading milestone B through d428bd7.
 
-> **2026-10-21:** tasks 10–14 are complete on `milestone-b` (d428bd7, not pushed); task 15 is partial.
-> This file on `main` is stale until the merge. Read the branch's handoff:
-> `.claude/worktrees/milestone-b/handoff.md` (`git show milestone-b:handoff.md`).
+## Where current work lives
 
-## Current state
+Active worktree: `.claude/worktrees/milestone-b`, branch `milestone-b`.
+Its `handoff.md` and `docs/README.md` are the current documentation entry points.
+The documentation sync is in that worktree; main retains the verifier-only implementation.
+For the committed branch handoff: `git show milestone-b:handoff.md`.
+For uncommitted documentation updates, read the worktree files directly.
 
-- Milestone B tasks 1–9 are complete and merged to `main`; tasks 10–16 are not started.
-  The bounded SymPy verifier and reviewed evaluation are on `main`.
-- R24 was implemented with tests first in a76985d; problem 253 now says
-  “Give an exact answer or round to 3 decimal places.”
-- b5ad4b2 recaptured all 136 reviewed cases (`tg`), matching source: 49 correct,
-  50 incorrect, 37 unsupported, including `d-sqsq-02`'s `[0, inf)` domain.
-- e995438 records the passing non-draft [release result](evals/verifier/results/dev-b.json)
-  at verifier `0.1.0+b5ad4b2`. 8a0bb40 enables the reviewed dev gate in CI.
-- [CI run 39504828416](https://github.com/tgragossian/Tutor/actions/runs/39504828416) is green
-  for Python, Node and container smoke after d673400 fixed Linux pool-test cleanup.
-  Thomas reports 722 Linux tests passed, including the memory-limit test.
-- Merged to `main` in 102a22f (handoff conflict resolved for milestone-b); the merged tree equals
-  milestone-b. [CI run 39506433419](https://github.com/tgragossian/Tutor/actions/runs/39506433419)
-  on `main` is green (Python incl. reviewed dev gate, Node, container smoke). The web process
-  still does not import SymPy (R8).
-- Live site, probed 2026-10-20 after the merge: `/healthz` 200, `/readyz` 200. The host still runs
-  milestone A; it has not pulled `main`. The practice loop, accounts and UI remain unfinished.
+## Current project state
 
-## Next action: tasks 10–16
+- Tasks 1–9 are complete and merged to `main` in 102a22f: bounded SymPy verifier,
+  reviewed development evaluation and CI gates.
+- Tasks 10–14 are complete on `milestone-b` (d865179..c52305d): store, accounts,
+  practice service, JSON API and MathLive pages. The prior handoff records them as not pushed.
+- Task 15 is partial: smoke script and e2e CI job in 5fd8952; six reviewed problems remain.
+  The additional 14–24 problems and Thomas's review are pending.
+- Task 16 has not started. The branch container needs database migrations/storage before
+  readiness succeeds; host memory measurements and deployment are still required.
+- Last recorded live check (2026-10-20): milestone A skeleton, health/readiness both 200.
+  No fresh live probe or milestone B deployment is claimed by this documentation update.
 
-1. Optional: update the host to `main` with the [runbook](docs/ops/runbook.md) steps, then
-   re-check `/readyz`. No new `deploy/.env` settings are needed; the site looks the same.
-2. Continue milestone B at task 10 on `milestone-b`. Merging the verifier does not complete
-   or deploy the full practice application.
+## Next action
 
-## Reviewed evidence
+Continue in `milestone-b`, at task 15 content sourcing/review, then task 16 release work.
+The branch handoff records a pending choice between author-written adapted items,
+human-transcribed statements or a permitted source. This docs pass makes no sourcing decision.
+Do not restart task 10 from the older main plan snapshot.
 
-- FA **0 of 50** (95% Wilson upper bound **7.1%**); FR **0 of 49** (upper bound **7.3%**).
-- Coverage **49/49**; unsupported graded correct **0 of 37** (upper bound **9.4%**);
-  agreement **136/136**; internal errors **0**.
-- Seven cases return `wrong_decimal_places` as labelled. These are reviewed dev results;
-  the held-out final evaluation remains a later milestone.
-- [Results and CI evidence](evals/verifier/results/README.md) records versions and provenance.
-  `dev-draft.json` is historical, not the release result. Resume claims use the reviewed 0/50.
-- Prior CI failures were test teardown, not failed mathematical assertions. d673400 removes
-  the test's competing worker reap. FA 0 and containment remain unchanged.
-- Node 20/Ubuntu GitHub deprecation notices are warnings. Linux CI passes; production host
-  sizing and practice-browser checks still belong to later release work.
+## Evidence and documentation tree
 
-## R24 scope
+- [Main documentation snapshot](docs/README.md) → [delivery plan](docs/superpowers/plans/portfolio-mvp/README.md)
+  → [milestone B snapshot](docs/superpowers/plans/portfolio-mvp/milestone-b/README.md).
+- [Reviewed verifier evidence](evals/verifier/results/README.md): FA 0/50 (95% upper bound 7.1%),
+  FR 0/49, coverage 49/49, agreement 136/136. These are development-set results.
+- The branch's `07-verification-evidence.md` separates reported local app tests from old CI.
+  Its `docs/ops/debugging/README.md` links application and release troubleshooting.
+- Main's older task recipes describe its implementation snapshot; current completion,
+  app rulings and debugging documentation live in the branch until merged.
 
-- Numeric problems explicitly requesting N places require exactly N on standalone decimals.
-  Exact fractions/expressions remain allowed; other lengths are format issues, not incorrect.
-- LaTeX preserves trailing zeros; disagreement with MathJSON abstains. No universal decimal
-  cap or coefficient rounding: decimals inside expressions remain exact rationals.
-- [Decision 0001](docs/decisions/0001-delivery-verifier-attribution.md) still governs holes:
-  ignore only provably removable holes by default; `strict_domain` applies to domain/range
-  problems, including undefined nested denominators such as `1/tan`.
+## Working rules
 
-## Navigation and working rules
-
-- [Documentation](docs/README.md) → [delivery plan](docs/superpowers/plans/portfolio-mvp/README.md)
-  → [milestone B tasks](docs/superpowers/plans/portfolio-mvp/milestone-b/README.md).
-- [Execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md),
-  [R24 checklist/debugging](docs/superpowers/plans/portfolio-mvp/milestone-b/r24/README.md),
-  [contracts](docs/superpowers/specs/2026-10-13-portfolio-core/README.md), [follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md).
-- Tasks 12–14 still need atomic revisions, replay responses, 422 kind checks and friendly
-  format messages. Task 15 adds reviewed content; task 16 owns host sizing/deployment.
-- Never relax FA 0 or containment. Record actual hours in [hours](docs/ops/hours.md);
-  resolve scope/date/contingency with Thomas at the 30-hour checkpoint.
-- Markdown files stay ≤100 lines, split by responsibility and linked from a parent index.
-  No assistant co-author trailers; acknowledge assistance in [README](README.md#acknowledgments).
-  Describe the verifier as proof-based/SymPy; do not call the tutor LLM-based.
-- Preserve [original references](docs/handoff/README.md) and dated [reviews](docs/reviews/README.md).
-  Option B continues with practice, evaluated RAG hints, operations/final evaluation, then
-  the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).
+Keep Markdown at most 100 lines and link each child from a parent index.
+Preserve [historical references](docs/handoff/README.md) and [dated reviews](docs/reviews/README.md).
+Never relax false-accept or containment gates. Record actual effort in [hours](docs/ops/hours.md).
+No assistant co-author trailers; [README](README.md#acknowledgments) acknowledges assistance.

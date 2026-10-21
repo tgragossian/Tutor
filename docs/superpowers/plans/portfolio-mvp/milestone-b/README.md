@@ -2,8 +2,9 @@
 
 [Delivery plan](../README.md) · [Milestone B goals](../02-practice.md) · [Handoff](../../../../../handoff.md)
 
-**Status (2026-10-20):** tasks 1–9 complete, including R24, reviewed gate B and green CI.
-Merged to `main` in 102a22f. Next: task 10; tasks 10–16 not started. See [execution status](03-execution-status.md).
+**Main snapshot (2026-10-21):** tasks 1–9 merged in 102a22f. Tasks 10–14 are already complete
+on `milestone-b`; task 15 partial, task 16 pending. Use the [handoff](../../../../../handoff.md) to resume there.
+The recipes below remain the main snapshot until the app branch is merged.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

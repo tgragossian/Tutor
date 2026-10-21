@@ -2,8 +2,9 @@
 
 [Milestone B plan](README.md) · [Structure review](../../../../reviews/2026-10-13/structure.md)
 
-Updated 2026-10-20: tasks 1–9 and R24 complete; reviewed gate and CI pass; merge next.
-Tasks 10–16 are planned. [R24 ownership and debugging](r24/01-precheck.md).
+Main snapshot: tasks 1–9 and R24 are merged. Tasks 10–14 exist on `milestone-b`; task 15
+is partial. Use the [handoff](../../../../../handoff.md) for the current branch file map.
+Paths for tasks 10–16 below are not yet present on main.
 Task numbers in the right column identify ownership, not proof of completion.
 
 ```text

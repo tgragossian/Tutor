@@ -2,7 +2,8 @@
 
 [Handoff](../../../../handoff.md) · [Review](../../../reviews/2026-10-13/README.md)
 
-2026-10-20: B tasks 1–9 complete; reviewed gate B and all CI jobs pass; merge to main next; 10–16 not started.
+2026-10-21: tasks 1–9 merged to `main`; tasks 10–14 complete on `milestone-b`; task 15 partial.
+This is the main plan snapshot. Use the [handoff](../../../../handoff.md) to find current branch docs.
 See [execution status](milestone-b/03-execution-status.md) and [review follow-ups](milestone-b/05-follow-ups.md).
 
 Status: option B selected; [milestone A](milestone-a/README.md) complete and live.
