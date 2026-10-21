@@ -37,43 +37,43 @@ from mathtutor.web.security import CookieCodec, CsrfUser, CurrentUser, RateLimit
 auth_router = APIRouter(prefix="/api/auth")
 
 
-def _auth(request: Request) -> AuthService:
+def auth_service(request: Request) -> AuthService:
     service: AuthService = request.app.state.auth
     return service
 
 
-def _cookies(request: Request) -> CookieCodec:
+def cookie_codec(request: Request) -> CookieCodec:
     codec: CookieCodec = request.app.state.cookies
     return codec
 
 
-def _limit_auth(request: Request) -> None:
+def limit_auth(request: Request) -> None:
     limiter: RateLimiter = request.app.state.auth_limiter
     limiter.hit(client_ip(request))
 
 
 @auth_router.post("/register")
 def register(body: Credentials, request: Request, response: Response) -> AuthUser:
-    _limit_auth(request)
-    result = _auth(request).register(body.username, body.password)
-    _drop_previous_session(request)
-    _cookies(request).set(response, result)
+    limit_auth(request)
+    result = auth_service(request).register(body.username, body.password)
+    drop_previous_session(request)
+    cookie_codec(request).set(response, result)
     return AuthUser(username=_username(request, result.user_id), csrf_token=result.csrf_token)
 
 
 @auth_router.post("/login")
 def login(body: Credentials, request: Request, response: Response) -> AuthUser:
-    _limit_auth(request)
-    result = _auth(request).login(body.username, body.password)
-    _drop_previous_session(request)
-    _cookies(request).set(response, result)
+    limit_auth(request)
+    result = auth_service(request).login(body.username, body.password)
+    drop_previous_session(request)
+    cookie_codec(request).set(response, result)
     return AuthUser(username=_username(request, result.user_id), csrf_token=result.csrf_token)
 
 
 @auth_router.post("/logout")
 def logout(auth: CsrfUser, request: Request, response: Response) -> dict[str, bool]:
-    _auth(request).logout(auth.token)
-    _cookies(request).clear(response)
+    auth_service(request).logout(auth.token)
+    cookie_codec(request).clear(response)
     return {"ok": True}
 
 
@@ -82,15 +82,15 @@ def me(auth: CurrentUser, request: Request) -> AuthUser:
     return AuthUser(username=_username(request, auth.user_id), csrf_token=auth.csrf_token)
 
 
-def _drop_previous_session(request: Request) -> None:
+def drop_previous_session(request: Request) -> None:
     """Session rotation: the cookie's old server-side row is deleted on login."""
-    old = _cookies(request).token(request)
+    old = cookie_codec(request).token(request)
     if old is not None:
-        _auth(request).logout(old)
+        auth_service(request).logout(old)
 
 
 def _username(request: Request, user_id: int) -> str:
-    name = _auth(request).username(user_id)
+    name = auth_service(request).username(user_id)
     if name is None:
         raise Unauthorized("Please sign in.")
     return name
@@ -102,7 +102,7 @@ practice_router = APIRouter(prefix="/api/sessions")
 _answers = logging.getLogger("mathtutor.answers")
 
 
-def _practice(request: Request) -> PracticeService:
+def practice_service(request: Request) -> PracticeService:
     service: PracticeService = request.app.state.practice
     return service
 
@@ -141,7 +141,9 @@ def _outcome(outcome: Verdict | FormatIssue) -> VerdictOut | FormatIssueOut:
 
 @practice_router.post("", status_code=201)
 def start_session(body: StartRequest, auth: CsrfUser, request: Request) -> StartResponse:
-    return StartResponse(session_id=_practice(request).start_session(auth.user_id, body.topics))
+    return StartResponse(
+        session_id=practice_service(request).start_session(auth.user_id, body.topics)
+    )
 
 
 @practice_router.get("")
@@ -154,13 +156,13 @@ def list_sessions(auth: CurrentUser, request: Request) -> list[SessionSummaryOut
             answered=s.answered,
             correct=s.correct,
         )
-        for s in _practice(request).session_summary(auth.user_id)
+        for s in practice_service(request).session_summary(auth.user_id)
     ]
 
 
 @practice_router.get("/{session_id}/current")
 def current(session_id: int, auth: CurrentUser, request: Request) -> CurrentResponse:
-    return to_current(_practice(request).current_item(auth.user_id, session_id))
+    return to_current(practice_service(request).current_item(auth.user_id, session_id))
 
 
 @practice_router.post("/{session_id}/submit")
@@ -172,7 +174,7 @@ async def submit(session_id: int, auth: CsrfUser, request: Request) -> SubmitRes
     except (ValueError, ValidationError) as exc:  # ValidationError is a ValueError
         raise InvalidInput(_bad_body(exc), code="invalid_request") from None
     answer = req.answer
-    service = _practice(request)
+    service = practice_service(request)
     if not isinstance(answer, ChoiceAnswerIn):
         # Cheap bounds in the web process, before any pool work (spec 03).
         issue = check_structure(answer.mathjson)
@@ -224,16 +226,20 @@ def _bad_body(exc: Exception) -> str:
 def advance(
     session_id: int, body: ActionRequest, auth: CsrfUser, request: Request
 ) -> CurrentResponse:
-    return to_current(_practice(request).advance(auth.user_id, session_id, body.item_revision))
+    return to_current(
+        practice_service(request).advance(auth.user_id, session_id, body.item_revision)
+    )
 
 
 @practice_router.post("/{session_id}/skip")
 def skip(session_id: int, body: ActionRequest, auth: CsrfUser, request: Request) -> CurrentResponse:
-    return to_current(_practice(request).skip(auth.user_id, session_id, body.item_revision))
+    return to_current(practice_service(request).skip(auth.user_id, session_id, body.item_revision))
 
 
 @practice_router.post("/{session_id}/reveal")
 def reveal(
     session_id: int, body: ActionRequest, auth: CsrfUser, request: Request
 ) -> CurrentResponse:
-    return to_current(_practice(request).reveal(auth.user_id, session_id, body.item_revision))
+    return to_current(
+        practice_service(request).reveal(auth.user_id, session_id, body.item_revision)
+    )

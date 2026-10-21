@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import json
 import secrets
-from collections import Counter
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -12,7 +12,8 @@ from typing import Protocol
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy import Engine, text
@@ -31,19 +32,14 @@ from mathtutor.store.db import make_engine, make_sessionmaker
 from mathtutor.verify.pool import VerifierPool
 from mathtutor.web.api import auth_router, practice_router
 from mathtutor.web.logging import BodyLimitMiddleware, RequestLogMiddleware
+from mathtutor.web.pages import APP_NAME, pages_router, render_error
 from mathtutor.web.security import CookieCodec, RateLimiter
 
-APP_NAME = "Calculus Tutor"
-
-# Mirrors "Attribution shown in the UI" in content/sources/openstax-calculus-v1.md.
-ATTRIBUTION = (
-    'Problems from Calculus Volume 1 by Gilbert Strang and Edwin "Jed" Herman, OpenStax, '
-    "licensed under CC BY-NC-SA 4.0. Access for free at "
-    "https://openstax.org/books/calculus-volume-1/pages/1-introduction"
-)
+# R4: start from default-src 'self'; see docs/ops/security.md for every addition.
+CSP = "default-src 'self'; style-src-attr 'unsafe-inline'"
 
 SECURITY_HEADERS = {
-    "Content-Security-Policy": "default-src 'self'",
+    "Content-Security-Policy": CSP,
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "same-origin",
 }
@@ -83,6 +79,7 @@ class SecurityHeadersMiddleware:
 
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
+STATIC_DIR = Path(__file__).parent / "static"
 
 AUTH_LIMIT = (10, 60.0)  # per client IP
 SUBMIT_LIMIT = (30, 60.0)  # per user
@@ -93,6 +90,27 @@ HTTP_CODES = {404: "not_found", 405: "method_not_allowed", 413: "payload_too_lar
 
 def _utcnow() -> datetime:
     return datetime.now(UTC)
+
+
+def _wants_html(request: Request) -> bool:
+    """Page routes get an HTML error page; the API and static files keep JSON."""
+    path = request.url.path
+    return not path.startswith(("/api/", "/static/", "/healthz", "/readyz"))
+
+
+def _vendor_tags(manifest_path: Path) -> dict[str, list[dict[str, str]]]:
+    """Script and modulepreload tags with SRI hashes, read once from tools/vendor.mjs output."""
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    integrity: dict[str, str] = manifest["integrity"]
+    entries: list[str] = manifest["entries"]
+    return {
+        "scripts": [{"src": f"/static/vendor/{p}", "integrity": integrity[p]} for p in entries],
+        "preloads": [
+            {"href": f"/static/vendor/{p}", "integrity": h}
+            for p, h in sorted(integrity.items())
+            if p not in entries
+        ],
+    }
 
 
 def _database_ok(engine: Engine) -> bool:
@@ -118,6 +136,7 @@ def create_app(settings: Settings, *, pool: _Pool | None = None) -> FastAPI:
     templates = Jinja2Templates(
         env=Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
     )
+    vendor = _vendor_tags(STATIC_DIR / "vendor" / "manifest.json")
 
     engine = make_engine(settings.database_url)
     sessions = make_sessionmaker(engine)
@@ -150,6 +169,8 @@ def create_app(settings: Settings, *, pool: _Pool | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.sessions = sessions
     app.state.pool = None
+    app.state.templates = templates
+    app.state.vendor = vendor
     app.state.auth = AuthService(sessions, _utcnow)
     app.state.cookies = CookieCodec(secret, secure=settings.env != "development")
     app.state.auth_limiter = RateLimiter(*AUTH_LIMIT)
@@ -160,14 +181,18 @@ def create_app(settings: Settings, *, pool: _Pool | None = None) -> FastAPI:
     app.add_middleware(RequestLogMiddleware)
 
     @app.exception_handler(AppError)
-    async def app_error(_request: Request, exc: AppError) -> JSONResponse:
+    async def app_error(request: Request, exc: AppError) -> Response:
         headers = {"Retry-After": str(exc.retry_after_s)} if exc.retry_after_s else None
+        if _wants_html(request):
+            return render_error(request, exc.status, exc.message)
         return JSONResponse(
             {"error": exc.code, "message": exc.message}, status_code=exc.status, headers=headers
         )
 
     @app.exception_handler(StarletteHTTPException)
-    async def http_error(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    async def http_error(request: Request, exc: StarletteHTTPException) -> Response:
+        if _wants_html(request):
+            return render_error(request, exc.status_code, str(exc.detail))
         code = HTTP_CODES.get(exc.status_code, "http_error")
         return JSONResponse(
             {"error": code, "message": str(exc.detail)},
@@ -183,6 +208,8 @@ def create_app(settings: Settings, *, pool: _Pool | None = None) -> FastAPI:
 
     app.include_router(auth_router)
     app.include_router(practice_router)
+    app.include_router(pages_router)
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
@@ -202,24 +229,6 @@ def create_app(settings: Settings, *, pool: _Pool | None = None) -> FastAPI:
             return JSONResponse({"status": "not_ready", "reason": reason}, status_code=503)
         return JSONResponse(
             {"status": "ready", "content_version": content.bundle_version, "servable": n}
-        )
-
-    @app.get("/", response_class=HTMLResponse)
-    def index(request: Request) -> HTMLResponse:
-        counts = Counter(p.topic for p in servable(content))
-        topics = [
-            {"title": t.title, "section": t.section, "servable": counts[t.topic_id]}
-            for t in sorted(content.bundle.topics, key=lambda t: t.order)
-        ]
-        return templates.TemplateResponse(
-            request,
-            "index.html",
-            {
-                "app_name": APP_NAME,
-                "version": __version__,
-                "topics": topics,
-                "attribution": ATTRIBUTION,
-            },
         )
 
     return app

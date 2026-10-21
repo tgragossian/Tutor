@@ -13,7 +13,7 @@ from support.webapp import SpyPool, make_settings
 from mathtutor import __version__
 from mathtutor.content.loader import ContentError, load_bundle
 from mathtutor.settings import Settings
-from mathtutor.web.app import create_app
+from mathtutor.web.app import CSP, create_app
 
 ROOT = Path(__file__).resolve().parents[2]
 REAL_PATH = ROOT / "content" / "compiled" / "problems.json"
@@ -100,7 +100,7 @@ def test_index_leaks_no_answers(client: TestClient) -> None:
 def test_security_headers(client: TestClient) -> None:
     for path in ("/healthz", "/readyz", "/"):
         h = client.get(path).headers
-        assert h["content-security-policy"] == "default-src 'self'"
+        assert h["content-security-policy"] == CSP
         assert h["x-content-type-options"] == "nosniff"
         assert h["referrer-policy"] == "same-origin"
 
@@ -114,5 +114,5 @@ def test_security_headers_on_500() -> None:
 
     r = TestClient(app, raise_server_exceptions=False).get("/boom")
     assert r.status_code == 500
-    assert r.headers["content-security-policy"] == "default-src 'self'"
+    assert r.headers["content-security-policy"] == CSP
     assert r.headers["x-content-type-options"] == "nosniff"

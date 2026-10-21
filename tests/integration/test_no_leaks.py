@@ -76,6 +76,7 @@ def test_no_private_fields_anywhere(tmp_path: Path) -> None:
             ["derivatives.chain_rule"],
         ):
             sid = start(c, topics)
+            responses.append((c.get(f"/practice/{sid}").text, False))
             for _ in range(12):
                 cur = c.get(f"/api/sessions/{sid}/current")
                 responses.append((cur.text, False))
@@ -118,7 +119,7 @@ def test_no_private_fields_anywhere(tmp_path: Path) -> None:
                 responses.append((adv.text, False))
         responses.append((c.get("/api/sessions").text, False))
         responses.append((c.get("/api/auth/me").text, False))
-        for path in ("/", "/healthz", "/readyz"):
+        for path in ("/", "/login", "/register", "/healthz", "/readyz"):
             responses.append((c.get(path).text, False))
     assert len(responses) > 20
     for text, allow_reveal in responses:
