@@ -188,6 +188,8 @@ function render(current, revealedLatex) {
   const canSubmit = next.allowed_actions.includes('submit');
   if (field) field.readOnly = !canSubmit;
   $('keys').hidden = !field || !canSubmit;
+  $('tries').textContent = `Tries left: ${next.tries_left}`;
+  $('tries').hidden = !canSubmit;
   renderButtons(next.allowed_actions);
 }
 
