@@ -5,17 +5,19 @@ from __future__ import annotations
 import hashlib
 import re
 import secrets
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError
-from sqlalchemy import delete, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import delete, select, update
+from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Session, sessionmaker
 
-from mathtutor.application.errors import Conflict, InvalidInput, Unauthorized
+from mathtutor.application.errors import Conflict, DatabaseBusy, InvalidInput, Unauthorized
+from mathtutor.store.db import is_lock_error, write_transaction
 from mathtutor.store.models import User, WebSession
 
 SESSION_LIFETIME = timedelta(days=14)
@@ -56,8 +58,8 @@ class AuthService:
             )
         if not PASSWORD_MIN <= len(password) <= PASSWORD_MAX:
             raise InvalidInput(f"Passwords are {PASSWORD_MIN}–{PASSWORD_MAX} characters.")
-        password_hash = self._hasher.hash(password)
-        with self._sessions() as db:
+        password_hash = self._hasher.hash(password)  # slow: done before any lock is held
+        with self._write() as db:
             if db.scalar(select(User.id).where(User.username == name)) is not None:
                 raise Conflict("That username is taken.", code="username_taken")
             user = User(username=name, password_hash=password_hash, created_at=self._clock())
@@ -66,35 +68,31 @@ class AuthService:
                 db.flush()
             except IntegrityError:
                 raise Conflict("That username is taken.", code="username_taken") from None
-            result = self._new_session(db, user.id)
-            db.commit()
-            return result
+            return self._new_session(db, user.id)
 
     def login(self, username: str, password: str) -> LoginResult:
         name = normalize_username(username)
+        # Read and verify without the write lock: argon2 is deliberately slow.
         with self._sessions() as db:
             user = db.scalar(select(User).where(User.username == name))
-            if user is None:
-                self._verify(self._dummy_hash, password)
-                raise Unauthorized(_LOGIN_FAILED, code="login_failed")
-            if not self._verify(user.password_hash, password):
-                raise Unauthorized(_LOGIN_FAILED, code="login_failed")
-            if self._hasher.check_needs_rehash(user.password_hash):
-                user.password_hash = self._hasher.hash(password)
-            result = self._new_session(db, user.id)
-            db.commit()
-            return result
+            user_id = None if user is None else user.id
+            stored_hash = self._dummy_hash if user is None else user.password_hash
+        if not self._verify(stored_hash, password) or user_id is None:
+            raise Unauthorized(_LOGIN_FAILED, code="login_failed")
+        new_hash = (
+            self._hasher.hash(password) if self._hasher.check_needs_rehash(stored_hash) else None
+        )
+        with self._write() as db:
+            if new_hash is not None:
+                db.execute(update(User).where(User.id == user_id).values(password_hash=new_hash))
+            return self._new_session(db, user_id)
 
     def resolve(self, token: str) -> tuple[int, str] | None:
-        """``(user_id, csrf_token)`` for an unexpired session, else ``None``."""
+        """``(user_id, csrf_token)`` for an unexpired session, else ``None``. Read-only."""
         with self._sessions() as db:
             row = db.scalar(select(WebSession).where(WebSession.token_hash == _hash_token(token)))
-            if row is None:
-                return None
-            if row.expires_at < self._clock():
-                db.delete(row)
-                db.commit()
-                return None
+            if row is None or row.expires_at < self._clock():
+                return None  # expired rows are inert; logout or a later sweep removes them
             return row.user_id, row.csrf_token
 
     def username(self, user_id: int) -> str | None:
@@ -102,9 +100,19 @@ class AuthService:
             return db.scalar(select(User.username).where(User.id == user_id))
 
     def logout(self, token: str) -> None:
-        with self._sessions() as db:
+        with self._write() as db:
             db.execute(delete(WebSession).where(WebSession.token_hash == _hash_token(token)))
-            db.commit()
+
+    @contextmanager
+    def _write(self) -> Iterator[Session]:
+        """A write transaction; a lock past busy_timeout becomes ``DatabaseBusy`` (503)."""
+        try:
+            with write_transaction(self._sessions) as db:
+                yield db
+        except OperationalError as exc:
+            if is_lock_error(exc):
+                raise DatabaseBusy("The database is busy. Please try again.") from exc
+            raise
 
     def _verify(self, password_hash: str, password: str) -> bool:
         try:

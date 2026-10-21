@@ -64,6 +64,7 @@ def upgrade() -> None:
         sa.Column("session_id", sa.Integer(), nullable=False),
         sa.Column("item_id", sa.String(length=128), nullable=False),
         sa.Column("content_version", sa.String(length=12), nullable=False),
+        sa.Column("problem_json", sa.Text(), nullable=False),
         sa.Column("sequence", sa.Integer(), nullable=False),
         sa.Column("state", sa.String(length=32), nullable=False),
         sa.Column("revision", sa.Integer(), nullable=False),

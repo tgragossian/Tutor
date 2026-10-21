@@ -53,6 +53,10 @@ def _current(client: TestClient, sid: int) -> dict[str, Any]:
     return body
 
 
+def _action(item: dict[str, Any]) -> dict[str, int]:
+    return {"session_item_id": item["session_item_id"], "item_revision": item["revision"]}
+
+
 def _submit_body(item: dict[str, Any], answer: dict[str, Any] | None = None) -> dict[str, Any]:
     return {
         "submission_id": str(uuid.uuid4()),
@@ -86,7 +90,7 @@ def test_full_loop_over_json(client_logged_in: TestClient, pool: SpyPool) -> Non
     answered = right.json()["item"]
     assert answered["allowed_actions"] == ["advance"]
 
-    nxt = c.post(f"/api/sessions/{sid}/advance", json={"item_revision": answered["revision"]})
+    nxt = c.post(f"/api/sessions/{sid}/advance", json=_action(answered))
     assert nxt.status_code == 200, nxt.text
     assert nxt.json()["item"]["session_item_id"] != item["session_item_id"]
 
@@ -99,9 +103,11 @@ def test_stale_and_action_errors(client_logged_in: TestClient) -> None:
     c = client_logged_in
     sid = start(c)
     item = _current(c, sid)["item"]
-    stale = c.post(f"/api/sessions/{sid}/skip", json={"item_revision": item["revision"] + 5})
+    stale = c.post(
+        f"/api/sessions/{sid}/skip", json={**_action(item), "item_revision": item["revision"] + 5}
+    )
     assert stale.status_code == 409 and stale.json()["error"] == "stale_item"
-    reveal = c.post(f"/api/sessions/{sid}/reveal", json={"item_revision": item["revision"]})
+    reveal = c.post(f"/api/sessions/{sid}/reveal", json=_action(item))
     assert reveal.status_code == 409 and reveal.json()["error"] == "invalid_action"
     assert c.get("/api/sessions/999/current").status_code == 404
 
@@ -113,7 +119,7 @@ def test_reveal_after_exhaustion(client_logged_in: TestClient, pool: SpyPool) ->
     item = _current(c, sid)["item"]
     for _ in range(3):
         item = c.post(f"/api/sessions/{sid}/submit", json=_submit_body(item)).json()["item"]
-    r = c.post(f"/api/sessions/{sid}/reveal", json={"item_revision": item["revision"]})
+    r = c.post(f"/api/sessions/{sid}/reveal", json=_action(item))
     assert r.status_code == 200
     assert r.json()["revealed_latex"]
     assert r.json()["item"]["allowed_actions"] == ["advance"]

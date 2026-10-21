@@ -29,7 +29,7 @@ const BUTTONS = { submit: 'check', advance: 'next', skip: 'skip', reveal: 'revea
 let item = null;
 let field = null;
 let pending = null; // {submission_id, body} kept while a submit is retried
-let busy = false;
+let busy = false; // one check or action at a time; every button is disabled meanwhile
 
 // Same rule as the server's incomplete-input pre-check (ADR 0002).
 function incomplete(latex) {
@@ -153,6 +153,7 @@ function updateCheck() {
   if (!item) return;
   const ready = item.answer_kind === 'choice' ? selectedChoice() !== null : !incomplete(field.value);
   $('check').disabled = busy || !ready;
+  for (const id of ['next', 'skip', 'reveal']) $(id).disabled = busy;
 }
 
 function renderButtons(actions) {
@@ -240,8 +241,13 @@ async function check() {
         await sleep(Number(response.headers.get('Retry-After')) || 2);
         continue;
       }
+      const target = pending.session_item_id;
       pending = null;
-      if (response.ok) {
+      if (response.ok && data.item.session_item_id !== item.session_item_id) {
+        await load(); // a reply about a problem that is no longer shown (e.g. a replay)
+      } else if (response.ok && item.session_item_id !== target) {
+        await load();
+      } else if (response.ok) {
         render({ done: false, item: data.item }, null);
         const kind = data.outcome.code ? 'issue' : data.outcome.status;
         setFeedback(verdictText(data.outcome, data.item.tries_left), kind);
@@ -260,14 +266,28 @@ async function check() {
 }
 
 async function act(action) {
-  const { response, data } = await api(`/${action}`, { item_revision: item.revision });
-  if (response.ok) {
-    if (action !== 'reveal') setFeedback('');
-    render(data, data.revealed_latex);
-  } else if (data?.error === 'stale_item') {
-    await load();
-  } else {
-    showError(data?.message || 'Something went wrong. Please try again.');
+  if (busy) return; // a duplicate click never sends a second action
+  busy = true;
+  updateCheck();
+  showError('');
+  try {
+    const { response, data } = await api(`/${action}`, {
+      session_item_id: item.session_item_id,
+      item_revision: item.revision,
+    });
+    if (response.ok) {
+      if (action !== 'reveal') setFeedback('');
+      render(data, data.revealed_latex);
+    } else if (data?.error === 'stale_item') {
+      await load();
+    } else {
+      showError(data?.message || 'Something went wrong. Please try again.');
+    }
+  } catch {
+    showError('Connection problem. Please try again.');
+  } finally {
+    busy = false;
+    updateCheck();
   }
 }
 

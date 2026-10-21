@@ -12,7 +12,7 @@ from mathtutor.application.auth import AuthService
 from mathtutor.application.errors import InvalidInput, StaleItem, Unauthorized
 from mathtutor.application.practice import Done, ItemView, PracticeService
 from mathtutor.domain import AnswerKind
-from mathtutor.jsonio import loads_exact
+from mathtutor.jsonio import JsonTooDeep, loads_exact
 from mathtutor.verify.structure import check_structure
 from mathtutor.verify.types import FormatIssue, SubmittedAnswer, Verdict
 from mathtutor.web.messages import format_issue_message
@@ -99,6 +99,8 @@ def _username(request: Request, user_id: int) -> str:
 # -- practice -------------------------------------------------------------------------------
 
 practice_router = APIRouter(prefix="/api/sessions")
+# MathJSON may nest 30 levels (spec 03); the request wrapper adds 3. Checked before parsing.
+MAX_JSON_DEPTH = 40
 _answers = logging.getLogger("mathtutor.answers")
 
 
@@ -170,7 +172,9 @@ async def submit(session_id: int, auth: CsrfUser, request: Request) -> SubmitRes
     limiter: RateLimiter = request.app.state.submit_limiter
     limiter.hit(str(auth.user_id))
     try:
-        req = SubmissionRequest.model_validate(loads_exact(await request.body()))
+        req = SubmissionRequest.model_validate(
+            loads_exact(await request.body(), max_depth=MAX_JSON_DEPTH)
+        )
     except (ValueError, ValidationError) as exc:  # ValidationError is a ValueError
         raise InvalidInput(_bad_body(exc), code="invalid_request") from None
     answer = req.answer
@@ -216,6 +220,8 @@ async def submit(session_id: int, auth: CsrfUser, request: Request) -> SubmitRes
 
 
 def _bad_body(exc: Exception) -> str:
+    if isinstance(exc, JsonTooDeep):
+        return "The answer is nested too deeply to check."
     if isinstance(exc, ValidationError):
         fields = sorted({".".join(str(p) for p in e["loc"]) for e in exc.errors()})
         return "Invalid request" + (f": {', '.join(fields)}" if fields else "") + "."
@@ -227,13 +233,19 @@ def advance(
     session_id: int, body: ActionRequest, auth: CsrfUser, request: Request
 ) -> CurrentResponse:
     return to_current(
-        practice_service(request).advance(auth.user_id, session_id, body.item_revision)
+        practice_service(request).advance(
+            auth.user_id, session_id, body.session_item_id, body.item_revision
+        )
     )
 
 
 @practice_router.post("/{session_id}/skip")
 def skip(session_id: int, body: ActionRequest, auth: CsrfUser, request: Request) -> CurrentResponse:
-    return to_current(practice_service(request).skip(auth.user_id, session_id, body.item_revision))
+    return to_current(
+        practice_service(request).skip(
+            auth.user_id, session_id, body.session_item_id, body.item_revision
+        )
+    )
 
 
 @practice_router.post("/{session_id}/reveal")
@@ -241,5 +253,7 @@ def reveal(
     session_id: int, body: ActionRequest, auth: CsrfUser, request: Request
 ) -> CurrentResponse:
     return to_current(
-        practice_service(request).reveal(auth.user_id, session_id, body.item_revision)
+        practice_service(request).reveal(
+            auth.user_id, session_id, body.session_item_id, body.item_revision
+        )
     )

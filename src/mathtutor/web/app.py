@@ -17,18 +17,18 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy import Engine, text
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from mathtutor import __version__
 from mathtutor.application.auth import AuthService
-from mathtutor.application.errors import AppError
+from mathtutor.application.errors import AppError, DatabaseBusy
 from mathtutor.application.practice import Pool, PracticeService
 from mathtutor.content.loader import LoadedContent, load_bundle, servable
 from mathtutor.settings import Settings
-from mathtutor.store.db import make_engine, make_sessionmaker
+from mathtutor.store.db import is_lock_error, make_engine, make_sessionmaker
 from mathtutor.verify.pool import VerifierPool
 from mathtutor.web.api import auth_router, practice_router
 from mathtutor.web.logging import BodyLimitMiddleware, RequestLogMiddleware
@@ -188,6 +188,13 @@ def create_app(settings: Settings, *, pool: _Pool | None = None) -> FastAPI:
         return JSONResponse(
             {"error": exc.code, "message": exc.message}, status_code=exc.status, headers=headers
         )
+
+    @app.exception_handler(OperationalError)
+    async def database_error(request: Request, exc: OperationalError) -> Response:
+        """Any lock that outlasts busy_timeout, on any route, is a retryable 503."""
+        if not is_lock_error(exc):
+            raise exc
+        return await app_error(request, DatabaseBusy("The database is busy. Please try again."))
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request: Request, exc: StarletteHTTPException) -> Response:

@@ -66,6 +66,12 @@ class Busy(AppError):
     retry_after_s = 2
 
 
+class DatabaseBusy(Busy):
+    """SQLite stayed locked past busy_timeout (ruling R12): a retryable 503, never a 500."""
+
+    code = "database_busy"
+
+
 class SubmissionPending(AppError):
     """The same submission id is still being graded (ruling R13); retry shortly."""
 

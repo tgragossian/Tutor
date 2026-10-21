@@ -1,11 +1,16 @@
 import sqlite3
 
-import pytest
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
 from sqlalchemy import inspect, text
 
-from mathtutor.store.db import downgrade, make_engine, upgrade
+from mathtutor.store.db import (
+    downgrade,
+    make_engine,
+    make_sessionmaker,
+    upgrade,
+    write_transaction,
+)
 from mathtutor.store.models import Base
 
 TABLES = {
@@ -69,20 +74,32 @@ def test_downgrade_then_upgrade(db_url: str) -> None:
     assert _tables(url) >= TABLES
 
 
-def test_transactions_begin_immediate(db_url: str) -> None:
-    """A transaction takes the write lock when it begins, so writers queue on busy_timeout
-    instead of failing when a read lock cannot be upgraded."""
+def _write_lock_free(path: str) -> bool:
+    other = sqlite3.connect(path, timeout=0)
+    try:
+        other.execute("BEGIN IMMEDIATE")
+        other.rollback()
+        return True
+    except sqlite3.OperationalError as exc:
+        assert "locked" in str(exc)
+        return False
+    finally:
+        other.close()
+
+
+def test_write_transactions_begin_immediate_reads_do_not(db_url: str) -> None:
+    """A write transaction takes the write lock when it begins, so writers queue on
+    busy_timeout instead of failing on a lock upgrade; reads take no lock (review B-A3)."""
     upgrade(db_url)
     engine = make_engine(db_url)
+    sessions = make_sessionmaker(engine)
     path = db_url.removeprefix("sqlite:///")
     try:
-        with engine.connect() as conn, conn.begin():
-            conn.execute(text("SELECT 1"))
-            other = sqlite3.connect(path, timeout=0)
-            try:
-                with pytest.raises(sqlite3.OperationalError, match="locked"):
-                    other.execute("BEGIN IMMEDIATE")
-            finally:
-                other.close()
+        with write_transaction(sessions) as db:
+            db.execute(text("SELECT 1"))
+            assert not _write_lock_free(path)
+        with sessions() as db:
+            db.execute(text("SELECT 1"))
+            assert _write_lock_free(path)
     finally:
         engine.dispose()

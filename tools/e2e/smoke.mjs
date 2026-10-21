@@ -126,6 +126,34 @@ try {
     check((await page.innerHTML('#statement')) === after, 'reload after Next keeps the new item');
   }
 
+  // Review B-A1/B-A5: one mutation at a time. While a (deliberately slow) Check is in flight,
+  // Skip is disabled; a double-click on Skip sends exactly one request.
+  if (!(await page.isHidden('#problem')) && (await page.isVisible('#answer-field'))) {
+    await page.route('**/submit', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.continue();
+    });
+    await enter(['1']);
+    await page.click('#check');
+    await page.waitForFunction(() => document.getElementById('check').disabled);
+    check(await page.isDisabled('#skip'), 'Skip is disabled while a check is in flight');
+    await page.waitForFunction(() => !document.getElementById('skip').disabled, null, {
+      timeout: TIMEOUT,
+    });
+    await page.unroute('**/submit');
+    const skips = [];
+    page.on('request', (r) => {
+      if (r.method() === 'POST' && r.url().endsWith('/skip')) skips.push(r.url());
+    });
+    // The same problem can come back as a new presentation, so wait for the reply itself.
+    const skipped = page.waitForResponse((r) => r.url().endsWith('/skip'));
+    await page.dblclick('#skip');
+    check((await skipped).status() === 200, 'Skip succeeded');
+    await page.waitForTimeout(500);
+    check(skips.length === 1, `a double-click on Skip sends one request (${skips.length})`);
+    check((await page.textContent('#error')).trim() === '', 'no error after the double-click');
+  }
+
   // 6. History on the start page.
   const sessionPath = new URL(page.url()).pathname;
   await page.goto(`${BASE}/`);

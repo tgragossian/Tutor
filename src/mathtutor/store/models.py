@@ -117,6 +117,8 @@ class SessionItem(Base):
     session_id: Mapped[int] = mapped_column(ForeignKey("study_sessions.id"))
     item_id: Mapped[str] = mapped_column(String(128))
     content_version: Mapped[str] = mapped_column(String(12))
+    # The problem as served (compiled JSON); views and grading use it, never newer content.
+    problem_json: Mapped[str] = mapped_column(Text)
     sequence: Mapped[int] = mapped_column(Integer)
     state: Mapped[ItemState] = mapped_column(_enum(ItemState))
     revision: Mapped[int] = mapped_column(Integer)

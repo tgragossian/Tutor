@@ -122,6 +122,11 @@ class World:
             return int(db.scalar(select(func.count()).select_from(model)) or 0)
 
 
+def _at(view: ItemView) -> tuple[int, int]:
+    """An action's target: the presentation and its revision."""
+    return view.session_item_id, view.revision
+
+
 @pytest.fixture
 def w(tmp_path: Path) -> Iterator[World]:
     world = World(tmp_path)
@@ -152,7 +157,7 @@ def test_precision_hint_and_choices(w: World) -> None:
     sid = w.svc.start_session(w.alice, ["derivatives.chain_rule"])
     for _ in range(3):
         w.submit(sid, INCORRECT)
-    w.svc.advance(w.alice, sid, w.view(sid).revision)
+    w.svc.advance(w.alice, sid, *_at(w.view(sid)))
     v = w.view(sid)
     assert v.item_id == "openstax-c1-3.6-253"
     assert v.precision_hint == "Round to 3 decimal places"
@@ -183,7 +188,7 @@ def test_unable_to_verify_keeps_try_and_allows_skip(w: World) -> None:
     assert r.item.tries_left == 3
     assert r.item.state is ItemState.ACTIVE
     assert Action.SKIP in r.item.allowed_actions
-    nxt = w.svc.skip(w.alice, sid, r.item.revision)
+    nxt = w.svc.skip(w.alice, sid, *_at(r.item))
     assert isinstance(nxt, ItemView) and nxt.item_id == SECOND
     with w.sessions() as db:
         assert db.scalar(select(ItemEvent.kind)) is Action.SKIP
@@ -197,8 +202,8 @@ def test_correct_then_advance_creates_new_presentation(w: World) -> None:
     assert r.item.allowed_actions == [Action.ADVANCE]
     assert r.item.revision == first.revision + 1
     with pytest.raises(InvalidAction):
-        w.svc.skip(w.alice, sid, r.item.revision)
-    nxt = w.svc.advance(w.alice, sid, r.item.revision)
+        w.svc.skip(w.alice, sid, *_at(r.item))
+    nxt = w.svc.advance(w.alice, sid, *_at(r.item))
     assert isinstance(nxt, ItemView)
     assert nxt.item_id == SECOND and nxt.session_item_id != first.session_item_id
     with w.sessions() as db:
@@ -210,10 +215,10 @@ def test_correct_then_advance_creates_new_presentation(w: World) -> None:
 def test_reveal_only_when_exhausted(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     with pytest.raises(InvalidAction):
-        w.svc.reveal(w.alice, sid, w.view(sid).revision)
+        w.svc.reveal(w.alice, sid, *_at(w.view(sid)))
     for _ in range(3):
         w.submit(sid, INCORRECT)
-    v = w.svc.reveal(w.alice, sid, w.view(sid).revision)
+    v = w.svc.reveal(w.alice, sid, *_at(w.view(sid)))
     assert isinstance(v, ItemView)
     assert v.state is ItemState.REVEALED
     assert v.revealed_latex
@@ -224,9 +229,9 @@ def test_reveal_only_when_exhausted(w: World) -> None:
 def test_revisit_gets_fresh_presentation(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     first = w.view(sid)
-    w.svc.skip(w.alice, sid, first.revision)
+    w.svc.skip(w.alice, sid, *_at(first))
     w.submit(sid, CORRECT)  # SECOND
-    again = w.svc.advance(w.alice, sid, w.view(sid).revision)
+    again = w.svc.advance(w.alice, sid, *_at(w.view(sid)))
     assert isinstance(again, ItemView)
     assert again.item_id == FIRST
     assert again.session_item_id != first.session_item_id
@@ -252,13 +257,13 @@ def test_stale_revision_is_409(w: World) -> None:
     with pytest.raises(StaleItem):
         w.svc.submit_answer(w.alice, sid, uuid.uuid4(), v.session_item_id, v.revision, ANSWER)
     with pytest.raises(StaleItem):
-        w.svc.skip(w.alice, sid, v.revision)
+        w.svc.skip(w.alice, sid, *_at(v))
 
 
 def test_revision_changed_while_grading_stores_unapplied_result(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     v = w.view(sid)
-    w.pool.during = lambda: w.svc.skip(w.alice, sid, v.revision)
+    w.pool.during = lambda: w.svc.skip(w.alice, sid, *_at(v))
     key = uuid.uuid4()
     with pytest.raises(StaleItem):
         w.submit(sid, CORRECT, sid=key)
@@ -281,7 +286,7 @@ def test_other_users_session_forbidden(w: World) -> None:
         w.svc.submit_answer(bob, sid, uuid.uuid4(), v.session_item_id, v.revision, ANSWER)
     for action in (w.svc.advance, w.svc.skip, w.svc.reveal):
         with pytest.raises(Forbidden):
-            action(bob, sid, v.revision)
+            action(bob, sid, *_at(v))
     with pytest.raises(NotFound):
         w.svc.current_item(w.alice, sid + 100)
     # A replayed submission id is only visible to its owner.
@@ -411,9 +416,9 @@ def test_decimal_answer_round_trips_exactly(w: World) -> None:
 def test_done_when_all_answered(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     w.submit(sid, CORRECT)
-    w.svc.advance(w.alice, sid, w.view(sid).revision)
+    w.svc.advance(w.alice, sid, *_at(w.view(sid)))
     w.submit(sid, CORRECT)
-    done = w.svc.advance(w.alice, sid, w.view(sid).revision)
+    done = w.svc.advance(w.alice, sid, *_at(w.view(sid)))
     assert done == Done("all_correct")
     assert w.svc.current_item(w.alice, sid) == Done("all_correct")
     with w.sessions() as db:
@@ -428,7 +433,7 @@ def test_session_summary(w: World) -> None:
     s1 = w.svc.start_session(w.alice, [BASIC])
     w.submit(s1, INCORRECT)
     w.submit(s1, CORRECT)
-    w.svc.advance(w.alice, s1, w.view(s1).revision)
+    w.svc.advance(w.alice, s1, *_at(w.view(s1)))
     w.submit(s1, UNABLE)
     w.clock.now += timedelta(minutes=1)
     s2 = w.svc.start_session(w.alice, ["derivatives.trig"])

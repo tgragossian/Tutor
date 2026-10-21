@@ -107,14 +107,21 @@ def test_no_private_fields_anywhere(tmp_path: Path) -> None:
                     responses.append((r.text, False))
                     item = r.json()["item"]
                 rev = c.post(
-                    f"/api/sessions/{sid}/reveal", json={"item_revision": item["revision"]}
+                    f"/api/sessions/{sid}/reveal",
+                    json={
+                        "session_item_id": item["session_item_id"],
+                        "item_revision": item["revision"],
+                    },
                 )
                 responses.append((rev.text, True))
                 assert rev.json()["revealed_latex"]
                 pool.script = [CORRECT]
                 adv = c.post(
                     f"/api/sessions/{sid}/advance",
-                    json={"item_revision": rev.json()["item"]["revision"]},
+                    json={
+                        "session_item_id": rev.json()["item"]["session_item_id"],
+                        "item_revision": rev.json()["item"]["revision"],
+                    },
                 )
                 responses.append((adv.text, False))
         responses.append((c.get("/api/sessions").text, False))

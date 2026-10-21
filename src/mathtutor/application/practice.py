@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from mathtutor.application.errors import (
     Busy,
+    DatabaseBusy,
     Forbidden,
     InvalidAction,
     InvalidInput,
@@ -31,6 +32,7 @@ from mathtutor.content.loader import LoadedContent
 from mathtutor.content.schema import Answer, ChoiceAnswer, Decimals, NumericAnswer, Problem, Source
 from mathtutor.domain import Action, AnswerKind, ItemState, VerdictStatus
 from mathtutor.jsonio import loads_exact
+from mathtutor.store.db import is_lock_error, write_transaction
 from mathtutor.store.models import AttemptResult, ItemEvent, SessionItem, StudySession, Submission
 from mathtutor.verify.types import (
     CheckRequest,
@@ -156,6 +158,7 @@ class PracticeService:
         self._pool = pool
         self._clock = clock
         self._problems: dict[str, Problem] = {p.id: p for p in content.bundle.problems}
+        self._snapshots: dict[tuple[str, str], Problem] = {}
         self._topics = {t.topic_id for t in content.bundle.topics}
 
     # -- sessions ---------------------------------------------------------------------------
@@ -216,24 +219,37 @@ class PracticeService:
 
     # -- actions ----------------------------------------------------------------------------
 
-    def advance(self, user_id: int, session_id: int, item_revision: int) -> ItemView | Done:
-        return self._act(user_id, session_id, item_revision, Action.ADVANCE)
+    def advance(
+        self, user_id: int, session_id: int, session_item_id: int, item_revision: int
+    ) -> ItemView | Done:
+        return self._act(user_id, session_id, session_item_id, item_revision, Action.ADVANCE)
 
-    def skip(self, user_id: int, session_id: int, item_revision: int) -> ItemView | Done:
-        return self._act(user_id, session_id, item_revision, Action.SKIP)
+    def skip(
+        self, user_id: int, session_id: int, session_item_id: int, item_revision: int
+    ) -> ItemView | Done:
+        return self._act(user_id, session_id, session_item_id, item_revision, Action.SKIP)
 
-    def reveal(self, user_id: int, session_id: int, item_revision: int) -> ItemView | Done:
-        return self._act(user_id, session_id, item_revision, Action.REVEAL)
+    def reveal(
+        self, user_id: int, session_id: int, session_item_id: int, item_revision: int
+    ) -> ItemView | Done:
+        return self._act(user_id, session_id, session_item_id, item_revision, Action.REVEAL)
 
     def _act(
-        self, user_id: int, session_id: int, item_revision: int, action: Action
+        self,
+        user_id: int,
+        session_id: int,
+        session_item_id: int,
+        item_revision: int,
+        action: Action,
     ) -> ItemView | Done:
+        """Every action names its presentation: revisions restart at 0 on each new one, so a
+        revision alone could let a repeated Skip land on the next problem (review B-A1)."""
         with self._tx() as db:
             session = self._owned(db, user_id, session_id)
             item = self._current(db, session)
             if session.ended_at is not None or item is None:
                 raise InvalidAction("This session is finished.", code="session_finished")
-            if item.revision != item_revision:
+            if item.id != session_item_id or item.revision != item_revision:
                 raise StaleItem("This problem changed; reload it.")
             if action not in ALLOWED[item.state]:
                 raise InvalidAction(f"You can't {action.value} this problem now.")
@@ -309,7 +325,7 @@ class PracticeService:
                 submission_id=key,
                 session_item_id=item.id,
                 expected_revision=item_revision,
-                answer_spec=self._problem(item.item_id).answer,
+                answer_spec=self._snapshot(item).answer,
                 answer=_decode_answer(sub),
             )
 
@@ -327,7 +343,7 @@ class PracticeService:
             item = db.get(SessionItem, session_item_id)
             if item is None or item.session_id != session.id:
                 raise NotFound("Problem not found in this session.")
-            spec = self._problem(item.item_id).answer
+            spec = self._snapshot(item).answer
             if answer.kind.value != spec.kind:
                 raise InvalidInput(
                     f"This problem expects a {spec.kind} answer.", code="kind_mismatch"
@@ -361,6 +377,14 @@ class PracticeService:
             with self._sessions() as db:
                 item = db.get(SessionItem, res.session_item_id)
                 assert item is not None
+                current = self._current(db, item.session)
+                if (
+                    current is None
+                    or current.id != item.id
+                    or item.state is not ItemState.ACTIVE
+                    or item.revision != res.expected_revision
+                ):
+                    raise StaleItem("This problem changed while it was being checked.")
                 return SubmitView(outcome, self._view(db, item), replayed=False)
         # 4. Transaction B.
         try:
@@ -415,14 +439,14 @@ class PracticeService:
 
     @contextmanager
     def _tx(self) -> Iterator[Session]:
-        """A short write transaction. A lock that outlasts busy_timeout becomes ``Busy``
-        (ruling R12), never a 500."""
+        """A short write transaction (BEGIN IMMEDIATE). A lock past busy_timeout becomes
+        ``DatabaseBusy`` (ruling R12), never a 500."""
         try:
-            with self._sessions.begin() as db:
+            with write_transaction(self._sessions) as db:
                 yield db
         except OperationalError as exc:
-            if "locked" in str(exc.orig) or "busy" in str(exc.orig):
-                raise Busy("The database is busy. Please try again.") from exc
+            if is_lock_error(exc):
+                raise DatabaseBusy("The database is busy. Please try again.") from exc
             raise
 
     def _owned(self, db: Session, user_id: int, session_id: int) -> StudySession:
@@ -441,10 +465,14 @@ class PracticeService:
             .limit(1)
         )
 
-    def _problem(self, item_id: str) -> Problem:
-        problem = self._problems.get(item_id)
+    def _snapshot(self, item: SessionItem) -> Problem:
+        """The problem exactly as it was when this presentation was created (review B-A4):
+        later content edits, removals or review changes never alter an existing presentation."""
+        key = (item.item_id, item.content_version)
+        problem = self._snapshots.get(key)
         if problem is None:
-            raise NotFound("This problem is no longer available.")
+            problem = Problem.model_validate(loads_exact(item.problem_json))
+            self._snapshots[key] = problem
         return problem
 
     def _history(self, db: Session, user_id: int) -> History:
@@ -481,6 +509,7 @@ class PracticeService:
             session_id=session.id,
             item_id=item_id,
             content_version=self._content.versions[item_id],
+            problem_json=json.dumps(self._problems[item_id].model_dump(mode="json")),
             sequence=sequence,
             state=ItemState.ACTIVE,
             revision=0,
@@ -492,7 +521,7 @@ class PracticeService:
         return item
 
     def _view(self, db: Session, item: SessionItem) -> ItemView:
-        problem = self._problem(item.item_id)
+        problem = self._snapshot(item)
         answer = problem.answer
         last = db.scalar(
             select(AttemptResult)

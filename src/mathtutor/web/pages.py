@@ -7,6 +7,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from sqlalchemy.exc import SQLAlchemyError
 
 from mathtutor import __version__
 from mathtutor.application.errors import AppError, Unauthorized
@@ -44,12 +45,16 @@ def optional_user(request: Request) -> AuthContext | None:
 def render(
     request: Request, name: str, context: dict[str, Any] | None = None, status: int = 200
 ) -> HTMLResponse:
-    user = optional_user(request)
+    try:
+        user = optional_user(request)
+        username = auth_service(request).username(user.user_id) if user else None
+    except SQLAlchemyError:
+        user, username = None, None  # an error page must not fail on the same database
     base = {
         "app_name": APP_NAME,
         "version": __version__,
         "attribution": ATTRIBUTION,
-        "username": auth_service(request).username(user.user_id) if user else None,
+        "username": username,
         "csrf_token": user.csrf_token if user else None,
         "vendor": request.app.state.vendor,
     }

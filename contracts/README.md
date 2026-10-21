@@ -24,7 +24,8 @@ against its pydantic model in `src/mathtutor/web/schemas.py` and must round-trip
 - Bodies over 16 KB get 413 `payload_too_large`.
 - Errors are `{error, message}`: 401, 403, 404, 409 (`stale_item`, `invalid_action`,
   `submission_pending`, `username_taken`, `unknown_topic`), 413, 422 (`invalid_request`,
-  `invalid_input`, `kind_mismatch`), 429 `rate_limited`, 503 `verifier_busy` with `Retry-After: 2`.
+  `invalid_input`, `kind_mismatch`), 429 `rate_limited`, 503 `verifier_busy` or `database_busy`
+  with `Retry-After: 2`. JSON nested deeper than 40 levels is 422 `invalid_request`.
 - A format issue is a 200 `SubmitResponse` whose `outcome` is `{code, message}`; nothing changes.
 
 ## Examples
@@ -51,5 +52,7 @@ Responses:
   `answer`. The expected answer leaves the server only as `revealed_latex`, after a reveal.
 - `submission_id` is a UUID version 4; `session_item_id` is greater than 0; `item_revision` is
   at least 0. `latex` is at most 2000 characters; `choice_id` matches `^[a-z]$`.
+- `ActionRequest` names the presentation (`session_item_id`) and its `item_revision`; a
+  mismatch with the current presentation is 409 `stale_item`.
 - `topics` lists 1–3 topic ids. Unknown fields are rejected everywhere.
 - Decimals in request bodies are read as exact literals, never floats.

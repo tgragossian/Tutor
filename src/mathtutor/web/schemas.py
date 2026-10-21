@@ -90,6 +90,9 @@ class StartResponse(_Model):
 
 
 class ActionRequest(_Model):
+    """Names the presentation as well as its revision (review B-A1)."""
+
+    session_item_id: Annotated[int, Field(gt=0)]
     item_revision: Annotated[int, Field(ge=0)]
 
 
