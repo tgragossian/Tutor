@@ -170,6 +170,9 @@ class PracticeService:
         if not chosen or unknown:
             raise InvalidAction("Choose at least one known topic.", code="unknown_topic")
         with self._tx() as db:
+            reusable = self._untouched_session(db, user_id, chosen)
+            if reusable is not None:
+                return reusable  # pressing "Start" again must not pile up empty sessions
             session = StudySession(
                 user_id=user_id, mode="practice", topics=chosen, started_at=self._clock()
             )
@@ -186,6 +189,23 @@ class PracticeService:
             if session.ended_at is not None or item is None or item.state is ItemState.COMPLETED:
                 return Done(self._done_reason(db, session))
             return self._view(db, item)
+
+    def _untouched_session(self, db: Session, user_id: int, topics: list[str]) -> int | None:
+        """The user's latest open session on the same topics, if nothing was submitted or
+        skipped in it yet."""
+        latest = db.scalar(
+            select(StudySession)
+            .where(StudySession.user_id == user_id, StudySession.ended_at.is_(None))
+            .order_by(StudySession.id.desc())
+            .limit(1)
+        )
+        if latest is None or sorted(latest.topics) != sorted(topics):
+            return None
+        item_ids = select(SessionItem.id).where(SessionItem.session_id == latest.id)
+        touched = db.scalar(
+            select(Submission.id).where(Submission.session_item_id.in_(item_ids)).limit(1)
+        ) or db.scalar(select(ItemEvent.id).where(ItemEvent.session_item_id.in_(item_ids)).limit(1))
+        return None if touched else latest.id
 
     def session_summary(self, user_id: int) -> list[SessionSummary]:
         with self._sessions() as db:
@@ -216,6 +236,7 @@ class PracticeService:
                 correct=len(correct.get(s.id, ())),
             )
             for s in sessions
+            if s.id in answered  # a session nothing was answered in is not history
         ]
 
     # -- actions ----------------------------------------------------------------------------

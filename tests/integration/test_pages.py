@@ -66,6 +66,16 @@ def test_register_form_errors_rerender(client: TestClient) -> None:
     assert PASSWORD not in r.text
 
 
+REQUIRED_ATTRIBUTION = "Download for free at https://openstax.org/details/books/calculus-volume-1."
+
+
+def test_every_page_carries_the_required_openstax_attribution(client_logged_in: TestClient) -> None:
+    c = client_logged_in
+    sid = start(c)
+    for path in ("/", f"/practice/{sid}", "/login", "/register", "/practice/999"):
+        assert REQUIRED_ATTRIBUTION in c.get(path).text, path
+
+
 def test_index_signed_out_links_to_login(client: TestClient) -> None:
     r = client.get("/")
     assert 'href="/login"' in r.text and 'href="/register"' in r.text
@@ -79,6 +89,18 @@ def test_index_signed_in_shows_topics_and_history(client_logged_in: TestClient) 
     for topic in ("derivatives.basic_rules", "derivatives.trig", "derivatives.chain_rule"):
         assert f'value="{topic}"' in r.text
     sid = start(c)
+    page = c.get("/").text
+    assert f'href="/practice/{sid}"' not in page  # nothing answered yet: not history
+    item = c.get(f"/api/sessions/{sid}/current").json()["item"]
+    c.post(
+        f"/api/sessions/{sid}/submit",
+        json={
+            "submission_id": "2b0c1d3e-4f5a-4b6c-8d7e-9f0a1b2c3d4e",
+            "session_item_id": item["session_item_id"],
+            "item_revision": item["revision"],
+            "answer": {"kind": "expression", "mathjson": ["Multiply", 2, "x"], "latex": "2x"},
+        },
+    )
     page = c.get("/").text
     assert f'href="/practice/{sid}"' in page
     # Starting from the picker form redirects to the practice page.

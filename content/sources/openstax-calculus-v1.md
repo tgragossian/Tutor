@@ -28,7 +28,7 @@ Sections used in milestone A:
 
 ## Attribution shown in the UI
 
-> Problems from *Calculus Volume 1* by Gilbert Strang and Edwin "Jed" Herman, OpenStax, licensed under CC BY-NC-SA 4.0. Access for free at https://openstax.org/books/calculus-volume-1/pages/1-introduction
+> Problems from *Calculus Volume 1* by Gilbert Strang and Edwin "Jed" Herman, OpenStax, licensed under CC BY-NC-SA 4.0. Download for free at https://openstax.org/details/books/calculus-volume-1.
 
 Each problem view also links its own section URL (`source.url`) and names the exercise number when there is one.
 

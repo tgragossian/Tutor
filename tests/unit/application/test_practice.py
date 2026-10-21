@@ -315,7 +315,8 @@ def test_other_users_session_forbidden(w: World) -> None:
 
 def test_item_from_another_session_is_not_found(w: World) -> None:
     s1 = w.svc.start_session(w.alice, [BASIC])
-    s2 = w.svc.start_session(w.alice, [BASIC])
+    s2 = w.svc.start_session(w.alice, ["derivatives.trig"])
+    assert s1 != s2
     v1 = w.view(s1)
     with pytest.raises(NotFound):
         w.svc.submit_answer(w.alice, s2, uuid.uuid4(), v1.session_item_id, v1.revision, ANSWER)
@@ -450,9 +451,33 @@ def test_session_summary(w: World) -> None:
     w.svc.advance(w.alice, s1, *_at(w.view(s1)))
     w.submit(s1, UNABLE)
     w.clock.now += timedelta(minutes=1)
-    s2 = w.svc.start_session(w.alice, ["derivatives.trig"])
+    s2 = w.svc.start_session(w.alice, ["derivatives.trig"])  # never answered: hidden
     summaries = w.svc.session_summary(w.alice)
-    assert [s.session_id for s in summaries] == [s2, s1]
-    assert (summaries[1].answered, summaries[1].correct) == (2, 1)
-    assert summaries[1].topics == [BASIC]
+    assert [s.session_id for s in summaries] == [s1]
+    assert (summaries[0].answered, summaries[0].correct) == (2, 1)
+    assert summaries[0].topics == [BASIC]
     assert w.svc.session_summary(w.bob) == []
+    w.submit(s2, INCORRECT, answer=SubmittedAnswer(AnswerKind.CHOICE, None, "", "a"))
+    assert [s.session_id for s in w.svc.session_summary(w.alice)] == [s2, s1]
+
+
+def test_skip_only_session_is_not_in_history(w: World) -> None:
+    sid = w.svc.start_session(w.alice, [BASIC])
+    w.svc.skip(w.alice, sid, *_at(w.view(sid)))
+    assert w.svc.session_summary(w.alice) == []
+
+
+def test_start_reuses_an_untouched_session_with_the_same_topics(w: World) -> None:
+    first = w.svc.start_session(w.alice, [BASIC])
+    assert w.svc.start_session(w.alice, [BASIC]) == first  # spam-clicked "Start"
+    other = w.svc.start_session(w.alice, ["derivatives.trig"])
+    assert other != first
+    w.submit(first, INCORRECT)
+    assert w.svc.start_session(w.alice, [BASIC]) != first  # answered: a new session
+    assert w.svc.start_session(w.bob, [BASIC]) != first  # never another user's
+
+
+def test_start_does_not_reuse_a_finished_or_skipped_session(w: World) -> None:
+    sid = w.svc.start_session(w.alice, [BASIC])
+    w.svc.skip(w.alice, sid, *_at(w.view(sid)))  # touched, even with nothing answered
+    assert w.svc.start_session(w.alice, [BASIC]) != sid

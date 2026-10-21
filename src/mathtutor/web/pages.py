@@ -28,8 +28,8 @@ APP_NAME = "Calculus Tutor"
 # Mirrors "Attribution shown in the UI" in content/sources/openstax-calculus-v1.md.
 ATTRIBUTION = (
     'Problems from Calculus Volume 1 by Gilbert Strang and Edwin "Jed" Herman, OpenStax, '
-    "licensed under CC BY-NC-SA 4.0. Access for free at "
-    "https://openstax.org/books/calculus-volume-1/pages/1-introduction"
+    "licensed under CC BY-NC-SA 4.0. "
+    "Download for free at https://openstax.org/details/books/calculus-volume-1."
 )
 
 FormText = Annotated[str, Form(max_length=256)]
