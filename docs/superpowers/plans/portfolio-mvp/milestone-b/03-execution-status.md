@@ -2,8 +2,8 @@
 
 [Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md) · [Follow-ups](05-follow-ups.md)
 
-Updated 2026-10-21. Tasks 1–9 merged to `main` (102a22f); tasks 10–14 complete on `milestone-b`
-(not pushed); task 15 partial; task 16 not started. No B deployment claimed.
+Updated 2026-10-21 (end of day). Tasks 1–14 merged and **deployed** (live from `main` 78bbcd6);
+task 15 drafts await Thomas's review; task 16 partly done (container storage, deploy).
 
 Current project status (2026-10-21): tasks 10–14 are complete on `milestone-b`; task 15
 is partial and task 16 pending. The table below records main only. Follow the
@@ -29,15 +29,15 @@ is partial and task 16 pending. The table below records main only. Follow the
 | 12 Practice service | 458f2ca | complete; races run 3× clean |
 | 13 JSON API | abda25e | complete |
 | 14 Pages, MathLive | c52305d | complete; manual browser check passed |
-| 15 Content, smoke | 5fd8952 | smoke + CI job done; new problems blocked (see below) |
-| 16 Release | — | not started; needs Docker and host |
+| 15 Content, smoke | 5fd8952, ba2575b | smoke + CI; 16 drafts await [review](../../../../../content/review/README.md) |
+| 16 Release | e6da0e5 | storage + migrate + deploy done; load test, e2e on image, docs open |
 
 ## Evidence and debugging
 
 - [Verification evidence](07-verification-evidence.md): reviewed verifier results, historical
   CI runs and the app-track checks reported in the 2026-10-21 handoff.
 - [Debugging tree](../../../../ops/debugging/README.md): local setup, symptoms, files and tests.
-- [App rulings A1–A18](06-app-track-rulings.md) amend task recipes for persistence and UI.
+- [App rulings A1–A21](06-app-track-rulings.md) amend task recipes for persistence and UI.
 
 ## Review dispositions
 
@@ -50,20 +50,14 @@ is partial and task 16 pending. The table below records main only. Follow the
 
 ## Review follow-up (2026-10-21)
 
-[Code review](../../../../reviews/2026-10-21-milestone-b/README.md): B-A1 (P1), B-A2–B-A5 (P2)
-are reproduced and open. Tasks 10–14 are implemented, but need these correctness fixes before
-release. Existing suite: 839 passed/1 skipped; Node 19 passed; five review probes fail.
-Claude should fix the linked findings and add normal regression coverage before release.
+[Code review](../../../../reviews/2026-10-21-milestone-b/README.md) B-A1–B-A5: all fixed in 4eba48f
+with regression tests ([dispositions](../../../../reviews/2026-10-21-milestone-b/04-dispositions.md)).
 
-## Remaining content and release actions
+## Remaining actions
 
-1. **Thomas:** decide how to source task 15's 14–24 new problems. The previous handoff deferred
-   automated fetching because of the book's recorded notice ([source](../../../../../content/sources/openstax-calculus-v1.md)):
-   Thomas transcribes statements, or Claude writes `adapted` problems, or written permission.
-2. Then draft, `content_check`, Thomas reviews (gate), commit (task 15 steps 1–3, 7).
-3. The current `container` job is expected to fail `/readyz` (`database_unavailable`) until task 16 adds the
-   `/data` volume and migrate step; the branch has no recorded green container run after the app changes.
-4. The prior handoff requests a whole-branch review after task 16; it remains outstanding.
+See the [handoff](../../../../../handoff.md) "Resume here": Thomas's content review, the rest of
+task 16 (load test and memory sizing, e2e on the image, verifier docs), then one fresh
+whole-branch review before milestone B exit.
 
 Record actual hours in the [hours log](../../../../ops/hours.md); no B actuals are supplied.
 At 30 h, stop at the next task boundary for a scope/date/contingency decision with Thomas.

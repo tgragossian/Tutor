@@ -1,37 +1,51 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-21 after merging `milestone-b` (tasks 10–14, review
-fixes, container storage) into `main`. The `milestone-b` worktree remains for tasks 15–16:
-`.claude/worktrees/milestone-b`.
+Owner: Thomas Gragossian. Updated: 2026-10-21 end of day. Work continues in the `milestone-b`
+worktree (`.claude/worktrees/milestone-b`); `main` is behind it only by task 15 drafts and the
+content-check endpoint rule (a4fed5c, ba2575b, CI green).
 
-## Current state
+## Live site (https://tutor.thomasgragossian.dev)
 
-- Tasks 1–9 (bounded SymPy verifier, reviewed evaluation, CI gates) merged in 102a22f.
-- Tasks 10–14 (store, accounts, practice service, JSON API, MathLive pages) are merged:
-  d865179..c52305d, [rulings A1–A18](docs/superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md).
-- [2026-10-21 review](docs/reviews/2026-10-21-milestone-b/README.md) B-A1–B-A5 fixed in 4eba48f
-  with regression tests ([dispositions](docs/reviews/2026-10-21-milestone-b/04-dispositions.md)).
-- e6da0e5 adds container storage: `/data` volume (uid 10001), a one-shot `migrate` service
-  (`alembic upgrade head`) before `app`, and a container smoke that grades one real answer.
-- [CI run 39657984302](https://github.com/tgragossian/Tutor/actions/runs/39657984302) on
-  `milestone-b` at e6da0e5: Python, Node, browser e2e and container smoke all green.
-- Task 15 is partial: browser smoke and its CI job (5fd8952); six reviewed problems remain.
-  The additional 14–24 problems and Thomas's review are pending.
-- Last recorded live check (2026-10-20): milestone A skeleton. The milestone B deploy is next.
+- Milestone B practice loop deployed from `main` 78bbcd6: accounts, practice with MathLive,
+  history with "Clear history", 6 reviewed problems. `/readyz` ready; migrations 0001–0002.
+- First `/readyz` after `up -d` returns 502 for 30–60 s while the SymPy worker starts: normal.
+- Idle memory on the 1 GB host: app+worker 135 MiB, Caddy 17 MiB, ~386 MiB available.
+- Deploy = the [runbook](docs/ops/runbook.md) "Update to the latest `main`" block (Thomas runs
+  it in Lightsail browser SSH). `migrate` must show `Exited (0)`. Never `compose down -v`.
 
-## Next actions
+## Done today (2026-10-21)
 
-1. **Deploy (Thomas, Lightsail browser SSH):** follow the [runbook](docs/ops/runbook.md)
-   "Update to the latest `main`" block. No `deploy/.env` changes are needed. Then check
-   `/readyz`, sign up and answer one problem on the live site.
-2. Right after deploying, record `sudo docker stats --no-stream` and `free -m` (1 GB host);
-   task 16 step 3 sizes the verifier pool from these numbers.
-3. Task 15 content: choose the sourcing route. OpenStax's notice forbids feeding the book to
-   LLMs: human-transcribed statements, author-written `adapted` items, or a mix.
-   See [content](content/README.md) and the [source manifest](content/sources/openstax-calculus-v1.md).
-4. Draft and check the new problems, then Thomas's content review (gate).
-5. Rest of task 16: load tool, e2e on the image, verifier docs. Then one fresh whole-branch review.
-6. Record actual hours with Thomas before the 30-hour scope/date/contingency decision.
+- Tasks 10–14 built, Codex review B-A1–B-A5 fixed (4eba48f), container storage (e6da0e5).
+- Thomas's UI feedback: function names auto-insert parentheses, solid closing ")", session
+  ends instead of repeating ("Next features under construction…"), US spelling (6ba982e);
+  history shows answered sessions only, Start reuses an untouched session, required OpenStax
+  attribution line (5e1d684); Clear history, migration 0002 (78bbcd6). Rulings A19–A21.
+- Thomas decided assistant transcription of OpenStax is fine (recorded in the source manifest).
+- Task 15: 16 drafts (`needs_review`) + content-check endpoint rule (Thomas: a finite end is
+  closed iff the answer is defined there). 235 dropped for 217 (verifier timeout, follow-up).
+
+## Resume here
+
+1. **Thomas's content review** of the 16 drafts: [content/review/README.md](content/review/README.md).
+   When he names the passing ids/changes: set `human_verified`, `tg`, date in each YAML;
+   `npm run compile --prefix tools`; remove the `xfail` in `tests/unit/test_seed_content.py`;
+   change `"servable":6` to 22 in `tests/container/smoke.sh` and `tests/integration/test_app.py`;
+   regenerate `python -m mathtutor.verify.mutate`; full checks; merge to `main`; Thomas deploys.
+2. **Rest of task 16:** `tools/load/submit_burst.py` (16 concurrent submits) for memory sizing
+   on the host; move the e2e job onto the image; `docs/verifier/` supported-expressions page;
+   uvicorn `--no-access-log` (requests are logged twice); record host numbers in `docs/ops/host.md`.
+3. Then one fresh whole-branch review (executing-plans skill) before calling milestone B done.
+4. Record actual hours with Thomas ([hours](docs/ops/hours.md)); 30-hour checkpoint pending.
+5. [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): verifier is
+   slow on wrong answers to nested trig (`sin(cos 7x)`); `content_check` lacks a hard deadline.
+
+## Working notes for Claude
+
+- On this Windows/OneDrive checkout: `UV_LINK_MODE=copy` for `uv add`; Python edit scripts need
+  `encoding="utf-8"` and raw strings for LaTeX (backslashes were lost several times today);
+  prefer the Edit tool for LaTeX. Playwright must click MathLive with `{delay: 80}`.
+- The ledger is `.superpowers/sdd/README/progress.md` (git-ignored); rulings A1–A21 are tracked in
+  [06-app-track-rulings](docs/superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md).
 
 ## Evidence and navigation
 
