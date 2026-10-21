@@ -4,11 +4,12 @@ A portfolio project by Thomas Gragossian: build and evaluate a deployed Calculus
 
 Live: <https://tutor.thomasgragossian.dev>
 
-Status: the milestone A skeleton is live, and milestone B's answer verifier and its evaluation
-(tasks 1–9) are merged to `main`. Six human-reviewed problems load; health and readiness probes,
-HTTPS and CI (tests, reviewed verifier gate, container smoke test) run. The live host still serves
-the skeleton: no public grading or accounts yet. Option B is selected: ship the core early, then
-restore features in a gated queue. The practice loop, accounts and UI (tasks 10–16) come next.
+Status (2026-10-21): milestone B tasks 1–9 are merged to `main`; tasks 10–14 are
+complete on `milestone-b` (store, accounts, practice service, API and MathLive pages).
+Task 15 has browser smoke and a CI job; expanding the six reviewed problems is pending.
+Task 16 still needs container migrations/storage, memory measurements and deployment.
+The last recorded live host check (2026-10-20) served the milestone A skeleton.
+Option B remains selected: ship the core early, then restore features in a gated queue.
 
 Hosting is on one AWS instance ([host record](docs/ops/host.md)); the AWS Budget alert emails
 at $10/month and is not a spending cap.
@@ -19,18 +20,17 @@ and [active implementation sequence](docs/superpowers/plans/portfolio-mvp/README
 ## Documentation tree
 
 ```text
-handoff.md                         Current status and next action
-README.md                          Project entry point
-docs/
-  README.md                        Documentation map
-  decisions/                       Accepted decisions and precedence
-  handoff/                         Preserved Claude background
-  reviews/                         Historical findings; current 2026-10-19 review
-  superpowers/
-    specs/                         Approved portfolio-core spec; original design
-    plans/
-      core-practice-loop/          Original task modules (reference)
-      portfolio-mvp/              Active delivery sequence and milestone B tasks
+README.md → handoff.md → docs/README.md
+  docs/decisions/                  Accepted decisions and precedence
+  docs/ops/                       Local setup, host record, runbook, security
+    debugging/                    Symptom → owner → focused check
+  docs/superpowers/plans/portfolio-mvp/
+    milestone-b/                  Status, rulings, evidence and file map
+      tasks/                      One implementation task per file
+      r22-r23/, r24/              Verifier changes and debugging
+  docs/superpowers/specs/          Approved contracts and preserved design
+  docs/handoff/, docs/reviews/     Historical background and dated reviews
+  contracts/, content/, evals/     API examples, authoring and evaluation
 ```
 
 Every Markdown file must remain at most 100 lines. Split by responsibility and link
@@ -40,7 +40,8 @@ The bounded SymPy verifier and evaluation (milestone B tasks 1–9) are on `main
 The [reviewed release result](evals/verifier/results/dev-b.json) reports FA 0/50 (95% upper
 bound 7.1%), FR 0/49, coverage 49/49 and agreement 136/136. These are reviewed dev-set results.
 [CI and result evidence](evals/verifier/results/README.md): Python, Node and container smoke
-pass, including the reviewed dev gate. The practice loop, accounts and UI remain tasks 10–16.
+passed for tasks 1–9. [App-track evidence](docs/superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md)
+records local checks separately; current branch container readiness is unfinished.
 RAG hints and final evaluation follow later.
 
 ## Development
@@ -52,6 +53,8 @@ uv sync
 uv run pytest
 uv run python tools/check_docs.py
 ```
+
+For a migrated local app and browser smoke, use [development setup](docs/ops/development.md).
 
 ## Acknowledgments
 

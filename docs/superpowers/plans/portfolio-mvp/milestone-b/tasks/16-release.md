@@ -5,7 +5,8 @@
 Release also needs resolved [evaluation follow-ups](../05-follow-ups.md), reviewed dev results,
 and Linux pool/memory evidence; the Windows suite does not establish these.
 
-**Status (2026-10-19):** not started; paths below are planned outputs.
+**Status (2026-10-21):** not started; paths below are planned outputs.
+Current container readiness gap: [release debugging](../../../../../ops/debugging/02-release.md).
 Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
 
 **Files:**

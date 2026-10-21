@@ -37,6 +37,12 @@ Remaining GitHub Node 20/Ubuntu deprecation notices are warnings, not failures.
 CI status/test counts above are Thomas's reported run evidence; this docs pass inspected
 local commits, workflow and result artifacts, without rerunning Linux CI or live health checks.
 
+## App-track boundary
+
+The CI runs above predate tasks 10–14. The branch app and manual browser results are
+recorded in [verification evidence](../../../docs/superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md).
+Task 16 still needs container migrations/storage and host measurements.
+
 ## Historical artifacts
 
 [dev-draft.json](dev-draft.json) is the older 131-case unreviewed draft, retained for history.

@@ -4,6 +4,10 @@
 
 Needs Docker Desktop. Commands run from the repository root.
 
+These commands describe the milestone A container. On `milestone-b`, task 16 must add
+database storage/migrations before readiness succeeds; see [release debugging](debugging/02-release.md).
+For the current app use [development setup](development.md).
+
 ## Build and smoke-test
 
 ```bash

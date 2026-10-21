@@ -8,6 +8,12 @@ All commands run on the host, from `/srv/mathtutor`. `C` is shorthand used below
 C="sudo docker compose -f deploy/compose.yaml"
 ```
 
+## Release scope
+
+The update commands below apply to the milestone A/verifier-only `main` image.
+The current `milestone-b` app needs task 16 storage/migrations before deployment; see
+[release debugging](debugging/02-release.md). No milestone B release is recorded.
+
 ## Update to the latest `main`
 
 ```bash
@@ -18,7 +24,8 @@ sudo docker image prune -f
 curl -fsS https://<domain>/readyz        # expect "status":"ready"
 ```
 
-Database migrations run with `alembic upgrade head` before the app starts (wired into the container in milestone B task 16).
+Milestone B requires `alembic upgrade head` before app startup. Container wiring is
+still pending in task 16; the source-checkout command is in [development setup](development.md).
 
 ## Logs and status
 

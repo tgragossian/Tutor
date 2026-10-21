@@ -28,30 +28,12 @@ Updated 2026-10-21. Tasks 1–9 merged to `main` (102a22f); tasks 10–14 comple
 | 15 Content, smoke | 5fd8952 | smoke + CI job done; new problems blocked (see below) |
 | 16 Release | — | not started; needs Docker and host |
 
-## Release evidence
+## Evidence and debugging
 
-- Reviewed source and b5ad4b2 captures match: 136 `tg`, 49 correct / 50 incorrect /
-  37 unsupported. `d-sqsq-02` includes zero, `[0, inf)`.
-- [dev-b.json](../../../../../evals/verifier/results/dev-b.json), committed in e995438,
-  records `evaluate --set dev --gate B` without `--draft` at verifier `0.1.0+b5ad4b2`.
-- FA 0/50 (95% upper bound 7.1%), FR 0/49 (7.3%), coverage 49/49,
-  unsupported graded correct 0/37 (9.4%), agreement 136/136; no internal errors.
-- All seven R24 cases return `wrong_decimal_places`. Problem 253 and compiled content
-  explicitly permit an exact answer or rounding to 3 places.
-- [Results index](../../../../../evals/verifier/results/README.md) records versions and
-  provenance. `dev-draft.json` is historical (131 unreviewed cases), not release evidence.
-
-## CI and containment
-
-- 8a0bb40 adds the reviewed dev gate to Python CI alongside the generated regression gate.
-- [Run 39504828416](https://github.com/tgragossian/Tutor/actions/runs/39504828416) at d673400:
-  Python, Node and container smoke succeeded; first green milestone-b run.
-- Thomas reports 722 tests passed on Linux, including the memory-limit test skipped on Windows.
-  Earlier runs failed at pool-test cleanup after passing assertions: `psutil.wait()` reaped
-  the killed worker before multiprocessing could. d673400 fixes the test, not production limits.
-- Remaining Node 20/Ubuntu deprecation notices are warnings. FA 0 and containment are intact.
-- This docs pass inspected commits, workflow and result artifacts; it did not rerun Linux CI
-  or live checks. Host sizing and practice-browser validation remain tasks 15–16.
+- [Verification evidence](07-verification-evidence.md): reviewed verifier results, historical
+  CI runs and the app-track checks reported in the 2026-10-21 handoff.
+- [Debugging tree](../../../../ops/debugging/README.md): local setup, symptoms, files and tests.
+- [App rulings A1–A18](06-app-track-rulings.md) amend task recipes for persistence and UI.
 
 ## Review dispositions
 
@@ -62,15 +44,29 @@ Updated 2026-10-21. Tasks 1–9 merged to `main` (102a22f); tasks 10–14 comple
 - 86cac1d restricts choices to listed IDs; 634c968 suggests both readings of `sin^-1(x)`.
 - Thomas reviewed all 136 source rows in 9b2e1f2. R24 and recapture now agree with every label.
 
-## Next actions
+## Review follow-up (2026-10-21)
 
-1. **Thomas:** decide how to source task 15's 14–24 new problems. Fetching OpenStax pages into
-   an LLM conflicts with the book's notice ([source](../../../../../content/sources/openstax-calculus-v1.md)):
+[Code review](../../../../reviews/2026-10-21-milestone-b/README.md): B-A1 (P1), B-A2–B-A5 (P2)
+are reproduced and open. Tasks 10–14 are implemented, but need these correctness fixes before
+release. Existing suite: 839 passed/1 skipped; Node 19 passed; five review probes fail.
+Claude should fix the linked findings and add normal regression coverage before release.
+
+## Remaining content and release actions
+
+1. **Thomas:** decide how to source task 15's 14–24 new problems. The previous handoff deferred
+   automated fetching because of the book's recorded notice ([source](../../../../../content/sources/openstax-calculus-v1.md)):
    Thomas transcribes statements, or Claude writes `adapted` problems, or written permission.
 2. Then draft, `content_check`, Thomas reviews (gate), commit (task 15 steps 1–3, 7).
-3. CI's `container` job now fails `/readyz` (`database_unavailable`) until task 16 adds the
-   `/data` volume and migrate step; push only with that known, or do task 16's container part first.
-4. One whole-branch review (fresh reviewer) after task 16, per the executing-plans skill.
+3. The current `container` job is expected to fail `/readyz` (`database_unavailable`) until task 16 adds the
+   `/data` volume and migrate step; the branch has no recorded green container run after the app changes.
+4. The prior handoff requests a whole-branch review after task 16; it remains outstanding.
 
 Record actual hours in the [hours log](../../../../ops/hours.md); no B actuals are supplied.
 At 30 h, stop at the next task boundary for a scope/date/contingency decision with Thomas.
+
+## Documentation sync (2026-10-21)
+
+Synced handoff, indexes, task recipes and operations against d428bd7 and the local code.
+Added evidence and debugging children; preserved original references and dated reviews.
+The initial sync changed Markdown only. The later [code review](../../../../reviews/2026-10-21-milestone-b/03-validation.md)
+reran local checks and added isolated probes; no production code was changed.

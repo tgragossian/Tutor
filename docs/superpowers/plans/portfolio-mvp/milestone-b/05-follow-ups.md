@@ -2,8 +2,15 @@
 
 [Execution status](03-execution-status.md) · [Plan](README.md) · [Rulings](02-execution-rulings.md)
 
-Updated 2026-10-20. Historical observations below are not new rulings or fresh test results.
+Updated 2026-10-21. Historical observations below are not new rulings or fresh test results.
 Keep release-relevant evaluation issues ahead of optional cleanup.
+
+## Open app-track review findings
+
+[2026-10-21 review](../../../../reviews/2026-10-21-milestone-b/README.md): B-A1 (P1) action identity;
+B-A2 raw JSON depth; B-A3 database contention; B-A4 content version drift; B-A5 stale UI results
+(the latter four P2). All five are reproduced, unfixed, and need regression coverage.
+Resolve before milestone B exit; passing existing tests does not cover these cases.
 
 ## Resolved for task 9
 
@@ -56,6 +63,8 @@ Keep release-relevant evaluation issues ahead of optional cleanup.
   in these commit bodies; gate observations above come from Codex's review.
 - Deep nested-root capture can crash Chromium; the harness retries a fresh page.
   Keep this browser limitation visible when task 14 handles adversarial input.
-- Tasks 12–14 must honor R12/R13 atomic writes and replay responses, R15/R16 friendly
-  messages, and kind-mismatch rejection before the pool. Task 16 owns Linux sizing,
-  supported-expression documentation and deployment evidence.
+- Tasks 12–14 implement atomic writes/replay, friendly messages and pre-pool kind checks;
+  see [A1–A18](06-app-track-rulings.md) and [app debugging](../../../../ops/debugging/01-app.md).
+- Task 15: new content and Thomas's review remain open; smoke and CI job are implemented.
+- Task 16: container migrations/storage, container e2e, host memory sizing, supported-expression
+  documentation and deployment evidence remain open. See [release debugging](../../../../ops/debugging/02-release.md).

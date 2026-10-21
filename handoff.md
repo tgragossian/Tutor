@@ -1,78 +1,68 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-21 after tasks 10–14 on `milestone-b` (not pushed).
-Milestone B work continues in the `milestone-b` worktree: `.claude/worktrees/milestone-b`.
+Owner: Thomas Gragossian. Updated: 2026-10-21; code reviewed at d428bd7 after the documentation sync.
+Active worktree: `.claude/worktrees/milestone-b`, branch `milestone-b`.
 
 ## Current state
 
-- 2026-10-21: tasks 10–14 complete on `milestone-b` (d865179..c52305d): store, accounts,
-  practice service, JSON API, pages with MathLive. 839 Python and 19 Node tests pass; a real
-  browser run typed `18x(3x^2+1)^2` and got "Correct" with no CSP violations. Task 15's smoke
-  script and e2e CI job are in 5fd8952. [Rulings A1–A18](docs/superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md).
-- Milestone B tasks 1–9 are complete and merged to `main`; tasks 10–16 are not started.
-  The bounded SymPy verifier and reviewed evaluation are on `main`.
-- R24 was implemented with tests first in a76985d; problem 253 now says
-  “Give an exact answer or round to 3 decimal places.”
-- b5ad4b2 recaptured all 136 reviewed cases (`tg`), matching source: 49 correct,
-  50 incorrect, 37 unsupported, including `d-sqsq-02`'s `[0, inf)` domain.
-- e995438 records the passing non-draft [release result](evals/verifier/results/dev-b.json)
-  at verifier `0.1.0+b5ad4b2`. 8a0bb40 enables the reviewed dev gate in CI.
-- [CI run 39504828416](https://github.com/tgragossian/Tutor/actions/runs/39504828416) is green
-  for Python, Node and container smoke after d673400 fixed Linux pool-test cleanup.
-  Thomas reports 722 Linux tests passed, including the memory-limit test.
-- Merged to `main` in 102a22f (handoff conflict resolved for milestone-b); the merged tree equals
-  milestone-b. [CI run 39506433419](https://github.com/tgragossian/Tutor/actions/runs/39506433419)
-  on `main` is green (Python incl. reviewed dev gate, Node, container smoke). The web process
-  still does not import SymPy (R8).
-- Live site, probed 2026-10-20 after the merge: `/healthz` 200, `/readyz` 200. The host still runs
-  milestone A; it has not pulled `main`. The practice loop, accounts and UI remain unfinished.
+- Tasks 1–9 (bounded SymPy verifier and reviewed evaluation) merged to `main` in 102a22f.
+- Tasks 10–14 complete on `milestone-b` (d865179..c52305d): persistence, accounts,
+  practice service, JSON API and MathLive pages. The handoff records these as not pushed.
+- Task 15 is partial: browser smoke and its CI job landed in 5fd8952; six reviewed
+  problems remain. The additional 14–24 problems and human review are still pending.
+- Task 16 has not started. The branch container lacks database storage/migration wiring;
+  `/readyz` is expected to fail with `database_unavailable` until that work is done.
+- Last recorded live check (2026-10-20): milestone A skeleton, `/healthz` and `/readyz`
+  both 200. No milestone B deployment or fresh live check is claimed.
 
-## Next action: task 15 content, then task 16
+## Claude: address review findings before release
 
-1. Thomas: choose how to source 14–24 new problems (OpenStax's no-LLM-ingestion notice blocks
-   fetching the book): transcribe statements yourself, use Claude-written `adapted` items, or both.
-2. Draft, check, review (gate), commit; then task 16 (Docker volume, migrations, memory, deploy).
-3. Known: CI's `container` job fails `/readyz` until task 16. See the
-   [execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
+[2026-10-21 review](docs/reviews/2026-10-21-milestone-b/README.md) records five reproduced gaps:
 
-## Reviewed evidence
+- **B-A1, P1:** duplicate/stale Skip can act on the next presentation; bind actions to item IDs.
+- **B-A2, P2:** deeply nested raw JSON under 16 KB escapes as 500 before structural checks.
+- **B-A3, P2:** SQLite writer contention in auth/read paths escapes as 500.
+- **B-A4, P2:** old presentations silently use new bundle content under their old version.
+- **B-A5, P2:** late format responses after Skip can restore completed items in the browser.
 
-- FA **0 of 50** (95% Wilson upper bound **7.1%**); FR **0 of 49** (upper bound **7.3%**).
-- Coverage **49/49**; unsupported graded correct **0 of 37** (upper bound **9.4%**);
-  agreement **136/136**; internal errors **0**.
-- Seven cases return `wrong_decimal_places` as labelled. These are reviewed dev results;
-  the held-out final evaluation remains a later milestone.
-- [Results and CI evidence](evals/verifier/results/README.md) records versions and provenance.
-  `dev-draft.json` is historical, not the release result. Resume claims use the reviewed 0/50.
-- Prior CI failures were test teardown, not failed mathematical assertions. d673400 removes
-  the test's competing worker reap. FA 0 and containment remain unchanged.
-- Node 20/Ubuntu GitHub deprecation notices are warnings. Linux CI passes; production host
-  sizing and practice-browser checks still belong to later release work.
+Fix B-A1/B-A5 together, then input/storage/version handling; add regressions to normal tests.
+The linked review contains file/line owners, proposed fixes and executable failing probes.
+No production-code fixes were made; earlier uncommitted docs remain in this worktree.
+Fresh checks: **839 Python passed, 1 skipped; 19 Node passed; lint/types/content passed**.
+Five targeted review assertions fail on the current code. No new Docker/Linux/browser/live pass.
 
-## R24 scope
+## After review fixes
 
-- Numeric problems explicitly requesting N places require exactly N on standalone decimals.
-  Exact fractions/expressions remain allowed; other lengths are format issues, not incorrect.
-- LaTeX preserves trailing zeros; disagreement with MathJSON abstains. No universal decimal
-  cap or coefficient rounding: decimals inside expressions remain exact rationals.
-- [Decision 0001](docs/decisions/0001-delivery-verifier-attribution.md) still governs holes:
-  ignore only provably removable holes by default; `strict_domain` applies to domain/range
-  problems, including undefined nested denominators such as `1/tan`.
+1. Resolve task 15's content sourcing with Thomas, as recorded in the prior handoff:
+   author-written `adapted` items, human-transcribed statements, or a permitted source.
+   See [content](content/README.md) and the [source manifest](content/sources/openstax-calculus-v1.md).
+2. Draft and mathematically check the new problems, then obtain Thomas's content review.
+3. Complete task 16's migrations/volume wiring, container browser smoke, Linux memory
+   measurements and deployment. See [release debugging](docs/ops/debugging/02-release.md).
+4. Record actual hours with Thomas before a scope/date/contingency decision at 30 hours.
 
-## Navigation and working rules
+## Evidence and navigation
 
-- [Documentation](docs/README.md) → [delivery plan](docs/superpowers/plans/portfolio-mvp/README.md)
-  → [milestone B tasks](docs/superpowers/plans/portfolio-mvp/milestone-b/README.md).
-- [Execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md),
-  [R24 checklist/debugging](docs/superpowers/plans/portfolio-mvp/milestone-b/r24/README.md),
-  [contracts](docs/superpowers/specs/2026-10-13-portfolio-core/README.md), [follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md).
-- Tasks 12–14 still need atomic revisions, replay responses, 422 kind checks and friendly
-  format messages. Task 15 adds reviewed content; task 16 owns host sizing/deployment.
-- Never relax FA 0 or containment. Record actual hours in [hours](docs/ops/hours.md);
-  resolve scope/date/contingency with Thomas at the 30-hour checkpoint.
-- Markdown files stay ≤100 lines, split by responsibility and linked from a parent index.
-  No assistant co-author trailers; acknowledge assistance in [README](README.md#acknowledgments).
-  Describe the verifier as proof-based/SymPy; do not call the tutor LLM-based.
-- Preserve [original references](docs/handoff/README.md) and dated [reviews](docs/reviews/README.md).
-  Option B continues with practice, evaluated RAG hints, operations/final evaluation, then
-  the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).
+- [Documentation tree](docs/README.md) → [delivery plan](docs/superpowers/plans/portfolio-mvp/README.md)
+  → [milestone B](docs/superpowers/plans/portfolio-mvp/milestone-b/README.md).
+- [Execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md)
+  owns task completion and outstanding gates.
+- [Verification evidence](docs/superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md)
+  separates prior browser/CI evidence from the [fresh code-review validation](docs/reviews/2026-10-21-milestone-b/03-validation.md).
+- [Reviewed verifier result](evals/verifier/results/README.md): FA 0/50 (95% upper bound 7.1%),
+  FR 0/49, coverage 49/49, agreement 136/136; no internal errors. This is a dev set.
+- [App rulings A1–A18](docs/superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md),
+  [file map](docs/superpowers/plans/portfolio-mvp/milestone-b/01-file-map.md),
+  [debugging tree](docs/ops/debugging/README.md), [API contracts](contracts/README.md).
+- [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md)
+  distinguish release gates from deferred cleanup.
+
+## Working rules
+
+- Every Markdown file stays at most 100 lines, split by responsibility with a parent link.
+- Preserve [original references](docs/handoff/README.md) and [dated reviews](docs/reviews/README.md).
+- Never relax false-accept or containment gates; describe the verifier as proof-based/SymPy.
+- No assistant co-author trailers; assistance is acknowledged in [README](README.md#acknowledgments).
+- Actual hours belong in the [hours log](docs/ops/hours.md); do not infer them from agent runtime.
+- RAG hints, operations/final evaluation and the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md)
+  follow the deployed practice loop.

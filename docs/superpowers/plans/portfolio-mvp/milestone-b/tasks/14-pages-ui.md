@@ -5,8 +5,9 @@
 R13: retry `submission_pending` with the same submission id after `Retry-After`.
 R15/R16: show the `e·(x+1)` suggestion and friendly per-format-issue copy.
 
-**Status (2026-10-19):** not started; paths below are planned outputs.
-Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
+**Status (2026-10-21):** complete in c52305d.
+Completed recipe below; [app rulings A1–A18](../06-app-track-rulings.md) record amendments.
+Validation is recorded in [evidence](../07-verification-evidence.md); commands below are the execution recipe.
 
 **Files:**
 - Create: `src/mathtutor/web/pages.py`, `tools/vendor.mjs`
@@ -19,7 +20,7 @@ Dependencies checked against the [file map](../01-file-map.md) and [rulings](../
 - Consumes: JSON API (task 13); `AuthService`, `current_user`, CSRF (task 11); `PracticeService.session_summary` (task 12).
 - Produces:
   - `GET /login`, `GET /register` (HTML forms posting to `POST /login`, `POST /register`, which call `AuthService` and redirect to `/`); `POST /logout` (form, CSRF field).
-  - `GET /` — signed out: link to login/register; signed in: topic picker (3 checkboxes, POST via `fetch` to `/api/sessions`, then go to `/practice/{id}`) and a history table from `session_summary`.
+  - `GET /` — signed out: link to login/register; signed in: topic picker (3 checkboxes, form POST to `/sessions`, then redirect to `/practice/{id}` (A17)) and a history table from `session_summary`.
   - `GET /practice/{session_id}` — 403/404 as the API; renders the shell with `data-session-id` and the CSRF token in a `<meta name="csrf-token">`. All item content comes from `GET /api/sessions/{id}/current`.
   - `tools/vendor.mjs`: copies MathLive's ESM bundle, fonts and sounds plus Compute Engine's ESM bundle from `tools/node_modules` into `web/static/vendor/`, and writes `manifest.json` with each script's `sha384-…` SRI hash. The `<script>` tags in `base.html` use `integrity` from the manifest (read once in `create_app`).
 
@@ -32,7 +33,7 @@ Dependencies checked against the [file map](../01-file-map.md) and [rulings](../
 - Shows the precision hint and the verdict copy exactly: "Correct" / "Not quite — try again (N left)" / "We couldn't check this automatically. You can try another form or skip." Format issues show a short message and do not change the tries count.
 - Buttons follow `allowed_actions`: Check, Next, Skip, Show answer.
 
-- [ ] **Step 1: Write the failing tests** (`TestClient`; the browser behaviour is task 15).
+- [x] **Step 1: Write the failing tests** (`TestClient`; the browser behaviour is task 15).
 
 ```python
 def test_login_register_pages_render_and_post(client): ...   # register form → redirect to / with session cookie
@@ -43,8 +44,8 @@ def test_pages_send_csp(client): ...                         # header equals the
 def test_logout_form_requires_csrf(client_logged_in): ...
 ```
 
-- [ ] **Step 2:** Run `uv run pytest tests/integration/test_pages.py -q`. Expected: FAIL.
-- [ ] **Step 3: Implement** `npm run vendor --prefix tools`, the routes, templates and `practice.js`. Keep CSS minimal and readable on a 360 px wide phone.
-- [ ] **Step 4: Manual check** with `uv run uvicorn mathtutor.web.app:app_factory --factory`: register, start a session, type `18x(3x^2+1)^2`, Check. Open the browser console: no CSP violations. If MathLive needs extra CSP sources, add exactly those and record each with its reason in `docs/ops/security.md` (R4).
-- [ ] **Step 5:** Run `uv run pytest -q`. Expected: PASS. Re-run task 13's leak test now that HTML pages exist.
-- [ ] **Step 6: Commit** `feat: login, topic picker, history and MathLive practice page`.
+- [x] **Step 2:** Run `uv run pytest tests/integration/test_pages.py -q`. Expected: FAIL.
+- [x] **Step 3: Implement** `npm run vendor --prefix tools`, the routes, templates and `practice.js`. Keep CSS minimal and readable on a 360 px wide phone.
+- [x] **Step 4: Manual check** with `uv run uvicorn mathtutor.web.app:app_factory --factory`: register, start a session, type `18x(3x^2+1)^2`, Check. Open the browser console: no CSP violations. If MathLive needs extra CSP sources, add exactly those and record each with its reason in `docs/ops/security.md` (R4).
+- [x] **Step 5:** Run `uv run pytest -q`. Expected: PASS. Re-run task 13's leak test now that HTML pages exist.
+- [x] **Step 6: Commit** `feat: login, topic picker, history and MathLive practice page`.

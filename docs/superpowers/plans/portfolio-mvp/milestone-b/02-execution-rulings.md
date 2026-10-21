@@ -3,7 +3,7 @@
 [Milestone B plan](README.md) · [Constraints and R1–R6](00-constraints.md) · [Execution status](03-execution-status.md)
 
 Updated 2026-10-20: R24 implemented in a76985d; reviewed gate and CI pass through d673400.
-Task 8/9 implementation outcomes and open review proposals are in [follow-ups](05-follow-ups.md).
+Task 8/9 outcomes are in [follow-ups](05-follow-ups.md); tasks 10–15 add [A1–A18](06-app-track-rulings.md).
 
 These rulings add to the plan, and where they conflict with it, they replace it. Precedence: decisions > handoff > rulings > plan. Every ruling ends with what it costs if it is wrong.
 
@@ -70,7 +70,7 @@ These rulings add to the plan, and where they conflict with it, they replace it.
 
 ## Carried into later tasks
 
-- **Tasks 12 and 13:** `check()` raises on a kind mismatch, and the pool turns that into `internal_error` plus a respawn. The web layer must return 422 before the request reaches the pool.
+- **Tasks 12 and 13 (implemented):** the web/service layer rejects kind mismatches with 422 before the pool; bypassing it makes `check()` raise and the pool return `internal_error`.
 - **Task 16 (`docs/verifier/supported.md`):**
   - spec 03:47 should describe the real root as sign·|a|^(1/q), not `sympy.real_root`;
   - document that a choice misconception must be a choice id.

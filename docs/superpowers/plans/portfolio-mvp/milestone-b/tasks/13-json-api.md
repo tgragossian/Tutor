@@ -2,8 +2,9 @@
 
 [Milestone B plan](../README.md) · [Spec 07](../../../../specs/2026-10-13-portfolio-core/07-application-and-web.md) · [Spec 02](../../../../specs/2026-10-13-portfolio-core/02-answer-contracts.md)
 
-**Status (2026-10-19):** not started; paths below are planned outputs.
-Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
+**Status (2026-10-21):** complete in abda25e.
+Completed recipe below; [app rulings A1–A18](../06-app-track-rulings.md) record amendments.
+Validation is recorded in [evidence](../07-verification-evidence.md); commands below are the execution recipe.
 
 R15/R16: map every FormatIssue to friendly copy, preserving the `e·(x+1)` suggestion.
 
@@ -30,7 +31,7 @@ R15/R16: map every FormatIssue to friendly copy, preserving the `e·(x+1)` sugge
   - `/readyz` now also requires: a `SELECT 1` succeeds and `pool.alive()`; otherwise 503 with the failing `reason`.
 - Submit body handling: read raw bytes; `loads_exact`; validate with `SubmissionRequest`; run `check_structure` on `mathjson` in the web process (cheap) before the pool; map to `SubmittedAnswer`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
 
 ```python
 def test_full_loop_over_json(client_logged_in): ...   # start → current → wrong answer → retry → correct → advance → next item
@@ -50,8 +51,8 @@ def test_web_process_has_no_sympy(): ...               # subprocess: create_app(
 def test_request_log_is_json_without_secrets(client_logged_in, capsys): ...  # request_id, route, status, duration_ms, verdict fields; no cookie/csrf/password
 ```
 
-- [ ] **Step 2:** Run `uv run pytest tests/integration -q`. Expected: the new tests FAIL.
-- [ ] **Step 3: Implement** the router, the body-size guard, the mapping functions, and `web/logging.py`: a pure ASGI middleware that assigns `request_id` (uuid4 hex, echoed as `X-Request-ID`) and emits one JSON line per request with route template, status and `duration_ms`; the submit route adds `verdict_status`, `reason`, `method`, `worker_ms`, `queue_ms` via `request.state`. Answers are logged only at DEBUG.
-- [ ] **Step 4:** Update `contracts/examples/` with `start`, `current`, `submit-response-*`, `error-*` files and list them in `contracts/README.md`.
-- [ ] **Step 5:** Run `uv run pytest -q && uv run mypy src && uv run ruff check .`. Expected: PASS.
-- [ ] **Step 6: Commit** `feat: JSON practice API, structured request logs, readiness checks`.
+- [x] **Step 2:** Run `uv run pytest tests/integration -q`. Expected: the new tests FAIL.
+- [x] **Step 3: Implement** the router, the body-size guard, the mapping functions, and `web/logging.py`: a pure ASGI middleware that assigns `request_id` (uuid4 hex, echoed as `X-Request-ID`) and emits one JSON line per request with route template, status and `duration_ms`; the submit route adds `verdict_status`, `verdict_reason`, `verdict_method`, `worker_ms`, `queue_ms` (A9) via `request.state`. Answers are logged only at DEBUG.
+- [x] **Step 4:** Update `contracts/examples/` with `start`, `current`, `submit-response-*`, `error-*` files and list them in `contracts/README.md`.
+- [x] **Step 5:** Run `uv run pytest -q && uv run mypy src && uv run ruff check .`. Expected: PASS.
+- [x] **Step 6: Commit** `feat: JSON practice API, structured request logs, readiness checks`.

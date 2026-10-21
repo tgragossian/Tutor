@@ -3,7 +3,7 @@
 [Delivery plan](../README.md) · [Milestone B goals](../02-practice.md) · [Handoff](../../../../../handoff.md)
 
 **Status (2026-10-21):** tasks 1–9 merged to `main` (102a22f); tasks 10–14 complete on `milestone-b`;
-task 15 partial (smoke done, new problems pending Thomas). See [execution status](03-execution-status.md).
+task 15 partial (smoke done, new problems pending Thomas); task 16 not started. See [execution status](03-execution-status.md).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -16,11 +16,15 @@ task 15 partial (smoke done, new problems pending Thomas). See [execution status
 - The problem page is server-rendered HTML that submits through `fetch` to the JSON API.
 
 **Tech Stack:**
-- Present: sympy, mpmath; psutil and hypothesis are dev dependencies. Planned: sqlalchemy 2, alembic, argon2-cffi, itsdangerous.
-- Present Node tooling: markdown-it, pinned MathLive and Compute Engine. Vendoring under `static/vendor/` is task 14.
+- Present: sympy, mpmath, SQLAlchemy, Alembic, argon2-cffi, itsdangerous, python-multipart.
+- Node: markdown-it, pinned MathLive/Compute Engine, Playwright; assets vendored in task 14.
+- psutil and hypothesis are development dependencies.
 - Unchanged: FastAPI, Jinja2, pydantic v2, uv, Docker, Caddy, Lightsail, GitHub Actions
 
 **Spec:** [portfolio-core contracts](../../../specs/2026-10-13-portfolio-core/README.md), modules 01–09. Executors read the spec and this plan together; the spec wins on conflict, decision 0001 wins over the spec.
+
+The [2026-10-21 code review](../../../../reviews/2026-10-21-milestone-b/README.md) adds five
+open correctness findings for tasks 10–14; implementation completion is not release clearance.
 
 ## Plan files
 
@@ -28,8 +32,11 @@ task 15 partial (smoke done, new problems pending Thomas). See [execution status
 - [File map](01-file-map.md): every file this milestone creates or changes
 - [Execution rulings](02-execution-rulings.md): R7–R24 and in-task rulings (override the plan)
 - [Execution status](03-execution-status.md): task progress, pause point, deferred minors
-- [Codex doc-sync request](04-codex-doc-sync.md): completed 2026-10-19; original scope retained
-- [Follow-ups](05-follow-ups.md): evaluation issues and deferred observations
+- [Codex doc-sync request](04-codex-doc-sync.md): historical request; later sync recorded in status
+- [Follow-ups](05-follow-ups.md): release gates and deferred observations
+- [App-track rulings](06-app-track-rulings.md): store, accounts, API, pages and smoke (A1–A18)
+- [Verification evidence](07-verification-evidence.md): local checks and historical CI
+- [Debugging tree](../../../../ops/debugging/README.md): symptoms, file owners and focused checks
 - [App-track rulings](06-app-track-rulings.md): A1–A18, made while executing tasks 10–15
 - [R22/R23 plan](r22-r23/README.md): implemented function parentheses and domain rewrites
 - [R24 checklist](r24/README.md): numeric precision, debugging, capture and task 9 release
