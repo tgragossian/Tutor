@@ -3,6 +3,10 @@
 Owner: Thomas Gragossian. Updated: 2026-10-20 after merging tasks 1–9 to `main` (102a22f).
 Milestone B work continues in the `milestone-b` worktree: `.claude/worktrees/milestone-b`.
 
+> **2026-10-21:** tasks 10–14 are complete on `milestone-b` (d428bd7, not pushed); task 15 is partial.
+> This file on `main` is stale until the merge. Read the branch's handoff:
+> `.claude/worktrees/milestone-b/handoff.md` (`git show milestone-b:handoff.md`).
+
 ## Current state
 
 - Milestone B tasks 1–9 are complete and merged to `main`; tasks 10–16 are not started.
