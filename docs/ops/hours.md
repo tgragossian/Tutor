@@ -32,11 +32,11 @@ Actual hours remain blank for Thomas; no elapsed agent runtime is treated as own
 | 7 | 2.5 | | complete including B-C3 |
 | 8 | 2 | | complete |
 | 9 | 3 | | complete; 136 reviewed captures, gate B and Linux CI pass |
-| 10 | 2 | | not started |
-| 11 | 3 | | not started |
-| 12 | 4 | | not started |
-| 13 | 2.5 | | not started |
-| 14 | 3.5 | | not started |
-| 15 | 3 | | not started; content review gate |
+| 10 | 2 | | complete (2026-10-21) |
+| 11 | 3 | | complete |
+| 12 | 4 | | complete |
+| 13 | 2.5 | | complete |
+| 14 | 3.5 | | complete |
+| 15 | 3 | | smoke done; content pending |
 | 16 | 2.5 | | not started; host sizing/deploy gate |
 | total | 43.5 | | 30 h timebox; reconcile actuals before contingency decision |

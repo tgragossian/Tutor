@@ -2,8 +2,8 @@
 
 [Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md) · [Follow-ups](05-follow-ups.md)
 
-Updated 2026-10-20. Tasks 1–9 complete and merged to `main` in 102a22f.
-Worktree: `.claude/worktrees/milestone-b`; tasks 10–16 not started; no B deployment claimed.
+Updated 2026-10-21. Tasks 1–9 merged to `main` (102a22f); tasks 10–14 complete on `milestone-b`
+(not pushed); task 15 partial; task 16 not started. No B deployment claimed.
 
 ## Tasks
 
@@ -20,7 +20,13 @@ Worktree: `.claude/worktrees/milestone-b`; tasks 10–16 not started; no B deplo
 | R22/R23 | ea6748b..19db4ab, fe6bd4a | complete; [plan](r22-r23/README.md) |
 | R24 | a76985d | implemented with tests first; [checklist](r24/README.md) |
 | 9 Human dev cases | 9b2e1f2..8a0bb40 | complete: review, recapture, release result and CI |
-| 10–16 | — | not started |
+| 10 Store | d865179 | complete; amended in 11–12 ([rulings](06-app-track-rulings.md)) |
+| 11 Auth | 73ae3af | complete |
+| 12 Practice service | 458f2ca | complete; races run 3× clean |
+| 13 JSON API | abda25e | complete |
+| 14 Pages, MathLive | c52305d | complete; manual browser check passed |
+| 15 Content, smoke | 5fd8952 | smoke + CI job done; new problems blocked (see below) |
+| 16 Release | — | not started; needs Docker and host |
 
 ## Release evidence
 
@@ -58,12 +64,13 @@ Worktree: `.claude/worktrees/milestone-b`; tasks 10–16 not started; no B deplo
 
 ## Next actions
 
-1. Done: merged to `main` in 102a22f; [CI run 39506433419](https://github.com/tgragossian/Tutor/actions/runs/39506433419)
-   green on `main`; live `/healthz` and `/readyz` 200. The host still runs milestone A.
-2. Optional: update the host to `main` (runbook); no B deployment is implied.
-3. Tasks 10–16 remain separate. Task 15 still depends on tasks 13–14; task 16 retains host
-   sizing/deployment gates. Task 9's dependency is now satisfied.
-4. Resume claims may use the reviewed 0/50 result, clearly identified as dev-set evidence.
+1. **Thomas:** decide how to source task 15's 14–24 new problems. Fetching OpenStax pages into
+   an LLM conflicts with the book's notice ([source](../../../../../content/sources/openstax-calculus-v1.md)):
+   Thomas transcribes statements, or Claude writes `adapted` problems, or written permission.
+2. Then draft, `content_check`, Thomas reviews (gate), commit (task 15 steps 1–3, 7).
+3. CI's `container` job now fails `/readyz` (`database_unavailable`) until task 16 adds the
+   `/data` volume and migrate step; push only with that known, or do task 16's container part first.
+4. One whole-branch review (fresh reviewer) after task 16, per the executing-plans skill.
 
 Record actual hours in the [hours log](../../../../ops/hours.md); no B actuals are supplied.
 At 30 h, stop at the next task boundary for a scope/date/contingency decision with Thomas.

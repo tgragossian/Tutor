@@ -2,8 +2,8 @@
 
 [Delivery plan](../README.md) · [Milestone B goals](../02-practice.md) · [Handoff](../../../../../handoff.md)
 
-**Status (2026-10-20):** tasks 1–9 complete, including R24, reviewed gate B and green CI.
-Merged to `main` in 102a22f. Next: task 10; tasks 10–16 not started. See [execution status](03-execution-status.md).
+**Status (2026-10-21):** tasks 1–9 merged to `main` (102a22f); tasks 10–14 complete on `milestone-b`;
+task 15 partial (smoke done, new problems pending Thomas). See [execution status](03-execution-status.md).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -30,6 +30,7 @@ Merged to `main` in 102a22f. Next: task 10; tasks 10–16 not started. See [exec
 - [Execution status](03-execution-status.md): task progress, pause point, deferred minors
 - [Codex doc-sync request](04-codex-doc-sync.md): completed 2026-10-19; original scope retained
 - [Follow-ups](05-follow-ups.md): evaluation issues and deferred observations
+- [App-track rulings](06-app-track-rulings.md): A1–A18, made while executing tasks 10–15
 - [R22/R23 plan](r22-r23/README.md): implemented function parentheses and domain rewrites
 - [R24 checklist](r24/README.md): numeric precision, debugging, capture and task 9 release
 

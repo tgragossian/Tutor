@@ -1,10 +1,14 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-20 after merging tasks 1–9 to `main` (102a22f).
+Owner: Thomas Gragossian. Updated: 2026-10-21 after tasks 10–14 on `milestone-b` (not pushed).
 Milestone B work continues in the `milestone-b` worktree: `.claude/worktrees/milestone-b`.
 
 ## Current state
 
+- 2026-10-21: tasks 10–14 complete on `milestone-b` (d865179..c52305d): store, accounts,
+  practice service, JSON API, pages with MathLive. 839 Python and 19 Node tests pass; a real
+  browser run typed `18x(3x^2+1)^2` and got "Correct" with no CSP violations. Task 15's smoke
+  script and e2e CI job are in 5fd8952. [Rulings A1–A18](docs/superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md).
 - Milestone B tasks 1–9 are complete and merged to `main`; tasks 10–16 are not started.
   The bounded SymPy verifier and reviewed evaluation are on `main`.
 - R24 was implemented with tests first in a76985d; problem 253 now says
@@ -23,12 +27,13 @@ Milestone B work continues in the `milestone-b` worktree: `.claude/worktrees/mil
 - Live site, probed 2026-10-20 after the merge: `/healthz` 200, `/readyz` 200. The host still runs
   milestone A; it has not pulled `main`. The practice loop, accounts and UI remain unfinished.
 
-## Next action: tasks 10–16
+## Next action: task 15 content, then task 16
 
-1. Optional: update the host to `main` with the [runbook](docs/ops/runbook.md) steps, then
-   re-check `/readyz`. No new `deploy/.env` settings are needed; the site looks the same.
-2. Continue milestone B at task 10 on `milestone-b`. Merging the verifier does not complete
-   or deploy the full practice application.
+1. Thomas: choose how to source 14–24 new problems (OpenStax's no-LLM-ingestion notice blocks
+   fetching the book): transcribe statements yourself, use Claude-written `adapted` items, or both.
+2. Draft, check, review (gate), commit; then task 16 (Docker volume, migrations, memory, deploy).
+3. Known: CI's `container` job fails `/readyz` until task 16. See the
+   [execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
 
 ## Reviewed evidence
 
