@@ -94,7 +94,7 @@ def test_domain_abstention_reports_unprovable(tmp_path: Path) -> None:
 
 def test_cli_ok_and_failure(capsys: pytest.CaptureFixture[str]) -> None:
     assert main([str(REAL)]) == 0
-    assert capsys.readouterr().out == "ok: 6 problems\n"
+    assert capsys.readouterr().out == f"ok: {len(load_bundle(REAL).bundle.problems)} problems\n"
     assert main([str(BUNDLES / "expected_pole.json")]) == 1
     assert "pole-001: answer.domain" in capsys.readouterr().out
 
@@ -108,7 +108,7 @@ def test_cli_as_module() -> None:
         cwd=ROOT,
     )
     assert result.returncode == 0, result.stdout + result.stderr
-    assert result.stdout == "ok: 6 problems\n"
+    assert result.stdout == f"ok: {len(load_bundle(REAL).bundle.problems)} problems\n"
 
 
 def test_same_domain_defect_is_reported_once(tmp_path: Path) -> None:
@@ -179,3 +179,50 @@ def test_statement_is_not_checked(tmp_path: Path) -> None:
         problems[0]["statement"] = r"Find the derivative of $\cos x$."
 
     assert check_bundle(_edited(tmp_path, edit)) == []
+
+
+def _with_domain(
+    tmp_path: Path, mathjson: Any, latex: str, interval: list[str], strict: bool = False
+) -> LoadedContent:
+    def edit(problems: list[dict[str, Any]]) -> None:
+        answer = problems[0]["answer"]
+        answer["mathjson"], answer["latex"] = mathjson, latex
+        answer["domain"] = {"intervals": [interval], "exclude": []}
+        answer["strict_domain"] = strict
+        problems[0]["misconceptions"], problems[0]["misconceptions_mathjson"] = [], []
+
+    return _edited(tmp_path, edit)
+
+
+def test_finite_endpoint_where_answer_is_defined_must_be_closed(tmp_path: Path) -> None:
+    """Thomas's rule: plug the endpoint in; a real value means closed, undefined means open."""
+    errors = check_bundle(
+        _with_domain(tmp_path, ["Sqrt", "x"], r"\sqrt{x}", ["0", "inf", "open", "open"])
+    )
+    assert len(errors) == 1
+    assert "intervals[0] lower end 0 should be closed" in errors[0]
+    ok = _with_domain(tmp_path, ["Sqrt", "x"], r"\sqrt{x}", ["0", "inf", "closed", "open"])
+    assert check_bundle(ok) == []
+
+
+def test_finite_endpoint_where_answer_is_undefined_must_be_open(tmp_path: Path) -> None:
+    inverse = ["Divide", 1, "x"]
+    opened = _with_domain(tmp_path, inverse, r"\frac{1}{x}", ["0", "inf", "open", "open"])
+    assert check_bundle(opened) == []
+    closed = check_bundle(
+        _with_domain(tmp_path, inverse, r"\frac{1}{x}", ["0", "inf", "closed", "open"])
+    )
+    assert closed and "undefined on domain" in closed[0]
+
+
+def test_upper_endpoint_rule(tmp_path: Path) -> None:
+    root = ["Sqrt", ["Subtract", 4, "x"]]
+    errors = check_bundle(
+        _with_domain(tmp_path, root, r"\sqrt{4-x}", ["-inf", "4", "open", "open"])
+    )
+    assert len(errors) == 1 and "intervals[0] upper end 4 should be closed" in errors[0]
+
+
+def test_strict_domain_intervals_are_the_answer_and_not_adjusted(tmp_path: Path) -> None:
+    content = _with_domain(tmp_path, ["Sqrt", "x"], r"\sqrt{x}", ["0", "inf", "open", "open"], True)
+    assert not any("should be closed" in e for e in check_bundle(content))

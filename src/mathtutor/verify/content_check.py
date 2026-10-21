@@ -54,6 +54,39 @@ def _parens_error(field: str, latex: str) -> str | None:
     return None if bare is None else f"{field}: function input needs parentheses ({bare})"
 
 
+def _defined_at(tree: Translated, var: sympy.Symbol, point: sympy.Rational) -> bool | None:
+    """Whether the expected answer has a real, finite value at ``point`` (None: undecided)."""
+    try:
+        value = sympy.simplify(tree.expr.subs(var, point))
+    except Exception:
+        return None
+    if value.has(sympy.zoo, sympy.nan, sympy.oo, -sympy.oo):
+        return False
+    real, finite = value.is_extended_real, value.is_finite
+    if real is False:
+        return False
+    if real is True and finite is True:
+        return True
+    return None
+
+
+def _endpoint_checks(domain: Domain, tree: Translated, var: sympy.Symbol) -> list[str]:
+    """Thomas's rule for authored intervals: infinite ends are open; a finite end is closed
+    exactly when the expected answer is defined there (plug it in), else open. Closed ends
+    where the answer is undefined are already reported as "undefined on domain"."""
+    errors: list[str] = []
+    for i, (lo, hi, lo_kind, hi_kind) in enumerate(domain.intervals):
+        for end, kind, side in ((lo, lo_kind, "lower"), (hi, hi_kind, "upper")):
+            if end in ("-inf", "inf") or kind == "closed":
+                continue
+            if _defined_at(tree, var, sympy.Rational(end)) is True:
+                errors.append(
+                    f"answer.domain: intervals[{i}] {side} end {end} should be closed: "
+                    "the expected answer is defined there"
+                )
+    return errors
+
+
 def _self_checks(answer: ExpressionAnswer | NumericAnswer, budget: Budget) -> list[str]:
     """The expected answer translates, equals itself, and is defined on its whole domain."""
     bare = _parens_error("answer.latex", answer.latex)
@@ -80,6 +113,8 @@ def _self_checks(answer: ExpressionAnswer | NumericAnswer, budget: Budget) -> li
             continue
         if bad.is_empty is not True:
             errors.append(f"answer.domain: expected answer undefined on domain at {bad}")
+    if not numeric and not answer.strict_domain:
+        errors += _endpoint_checks(domain, tree, var)
     strict = False if numeric else answer.strict_domain
     verdict = equivalent(tree, tree, domain, strict, var, budget)
     if not (isinstance(verdict, Verdict) and verdict.status == VerdictStatus.CORRECT):
