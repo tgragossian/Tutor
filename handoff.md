@@ -28,10 +28,11 @@ the day; the host still runs 78bbcd6 (the newer commits add only unserved drafts
 
 1. **Done 2026-10-22:** 22 reviewed problems deployed from `main` 3c0141c (`servable` 22).
    Selection/practice tests pin the original 6 via `tests/support/content.py`.
-2. **Rest of task 16:** `tools/load/submit_burst.py` (16 concurrent submits) for memory sizing
-   on the host; move the e2e job onto the image; `docs/verifier/` supported-expressions page;
-   uvicorn `--no-access-log` (requests are logged twice); record host numbers in `docs/ops/host.md`.
-3. Then one fresh whole-branch review (executing-plans skill) before calling milestone B done.
+2. **Task 16 (2026-10-22):** pool settings, `submit_burst.py` + `measure.sh`, `--no-access-log`,
+   e2e on the image in CI (green), [verifier docs](docs/verifier/README.md), results page done.
+   Left: Thomas deploys, runs `bash tools/load/measure.sh <url>` on the host, and the numbers
+   go into [host sizing](docs/ops/host-sizing.md) with the pool decision.
+3. Then one fresh whole-branch review (Thomas is asking Codex) before calling milestone B done.
 4. Record actual hours with Thomas ([hours](docs/ops/hours.md)); 30-hour checkpoint pending.
 5. [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): verifier is
    slow on wrong answers to nested trig (`sin(cos 7x)`); `content_check` lacks a hard deadline.

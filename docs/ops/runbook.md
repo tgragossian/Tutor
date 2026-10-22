@@ -22,7 +22,19 @@ curl -fsS https://<domain>/readyz        # expect "status":"ready"
 - The SQLite database lives in the `app_data` volume at `/data/mathtutor.db`. The one-shot
   `migrate` service must exit 0 before `app` starts; if it fails, `$C logs migrate`.
 - `docker compose down` keeps volumes; never add `-v`, which deletes every account.
-- Memory sizing for the verifier pool is still task 16 step 3 (`docker stats`, `free -m`).
+- Pool size and per-worker memory cap come from `MATHTUTOR_POOL_SIZE` / `MATHTUTOR_POOL_MEMORY_MB`
+  in `deploy/.env` (defaults 1 and 384); size them from [host sizing](host-sizing.md).
+
+## Measure memory (load burst)
+
+```bash
+bash tools/load/measure.sh https://tutor.thomasgragossian.dev
+```
+
+16 users submit the slowest live dev case at once while memory is sampled; it prints peak
+container memory, peak RSS of the app and verifier worker, and the lowest available memory.
+Some `503 verifier_busy` replies are expected (queue of 8). It leaves 16 `load_*` accounts.
+Paste the output into [host sizing](host-sizing.md).
 
 ## Logs and status
 

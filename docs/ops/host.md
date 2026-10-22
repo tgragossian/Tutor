@@ -2,7 +2,7 @@
 
 [Operations](README.md) · [Runbook](runbook.md)
 
-Milestone A record from 2026-10-15; milestone B deployment and sizing remain task 16.
+Milestone A record from 2026-10-15. Milestone B memory sizing: [host sizing](host-sizing.md).
 Never record credentials, keys or the contents of `.env`.
 
 ## Cost controls

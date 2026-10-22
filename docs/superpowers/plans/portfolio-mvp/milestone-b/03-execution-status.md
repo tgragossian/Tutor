@@ -30,7 +30,7 @@ is partial. The table below records main only. Follow the
 | 13 JSON API | abda25e | complete |
 | 14 Pages, MathLive | c52305d | complete; manual browser check passed |
 | 15 Content, smoke | 5fd8952, ba2575b | complete: 22 problems `human_verified` by Thomas 2026-10-22 ([review](../../../../../content/review/README.md)) |
-| 16 Release | e6da0e5 | storage + migrate + deploy done; load test, e2e on image, docs open |
+| 16 Release | e6da0e5, 375ab7c | all but host sizing done (load burst not yet run on the host) |
 
 ## Evidence and debugging
 

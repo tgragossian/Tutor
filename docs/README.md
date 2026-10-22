@@ -1,14 +1,13 @@
 # Documentation
 
-Main snapshot: tasks 1–9 merged. Current app docs live in `.claude/worktrees/milestone-b/docs`.
-Read the [current handoff](../handoff.md) before continuing work: tasks 10–14 are already done
-on the branch; task 15 is partial and task 16 is pending.
+Milestone B (practice loop) is live from `main`; host sizing and a final review remain.
+Read the [current handoff](../handoff.md) before continuing work.
 
 - [Current handoff](../handoff.md): status, priorities and next action.
 - [Decisions](decisions/README.md): accepted direction and precedence.
 - [Active portfolio-core spec](superpowers/specs/2026-10-13-portfolio-core/README.md): approved contracts for milestones A–B.
 - [Active option B delivery plan](superpowers/plans/portfolio-mvp/README.md): milestones and gates.
-  - [Milestone B tasks](superpowers/plans/portfolio-mvp/milestone-b/README.md): tasks 1–14 merged; task 15 partial; task 16 deploy pending.
+  - [Milestone B tasks](superpowers/plans/portfolio-mvp/milestone-b/README.md): tasks 1–15 done; task 16 partly done.
   - [R24 implementation](superpowers/plans/portfolio-mvp/milestone-b/r24/README.md): scoped precision, debugging and release checklist.
   - [App-track rulings](superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md): A1–A18.
   - [Verification evidence](superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md): local checks versus historical CI.
@@ -21,6 +20,7 @@ on the branch; task 15 is partial and task 16 is pending.
 - [Operations](ops/README.md): development setup, hours, host, runbook and security.
   - [Debugging tree](ops/debugging/README.md): symptoms, owning files and focused checks.
 - [API contracts](../contracts/README.md): example request and item bodies.
+- [Verifier](verifier/README.md): what it accepts, limitations and milestone B results.
 - [Verifier evaluation](../evals/verifier/README.md): case format, gates and commands.
   - [Reviewed results and CI](../evals/verifier/results/README.md): passing dev gate; historical drafts separated.
 - [Content](../content/README.md): problem authoring, compiling and source licence manifest.

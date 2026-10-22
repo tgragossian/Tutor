@@ -4,10 +4,11 @@ A portfolio project by Thomas Gragossian: build and evaluate a deployed Calculus
 
 Live: <https://tutor.thomasgragossian.dev>
 
-Status (2026-10-21): milestone B tasks 1–14 are merged to `main` (store, accounts, practice
-service, API and MathLive pages), with the 2026-10-21 review fixes and container storage and
-migrations. Task 15 has browser smoke and CI; expanding the six reviewed problems is pending.
-Task 16 still needs host memory measurements and the deploy. See the [handoff](handoff.md).
+Status (2026-10-22): **milestone B: practice loop live.** Accounts, practice on three
+derivative topics (22 reviewed problems) with MathLive input and a proof-based SymPy grader,
+and history. Left for milestone B: host memory sizing and a final review. See the
+[handoff](handoff.md), [what the verifier accepts](docs/verifier/supported.md),
+[verifier results](evals/verifier/results/dev-b.md) and [API contracts](contracts/README.md).
 Option B remains selected: ship the core early, then restore features in a gated queue.
 
 Hosting is on one AWS instance ([host record](docs/ops/host.md)); the AWS Budget alert emails
@@ -22,6 +23,7 @@ and [active implementation sequence](docs/superpowers/plans/portfolio-mvp/README
 README.md → handoff.md → docs/README.md
   docs/decisions/                  Accepted decisions and precedence
   docs/ops/                       Local setup, host record, runbook, security
+  docs/verifier/                  What the grader accepts; results
     debugging/                    Symptom → owner → focused check
   docs/superpowers/plans/portfolio-mvp/
     milestone-b/                  Status, rulings, evidence and file map
@@ -32,13 +34,9 @@ README.md → handoff.md → docs/README.md
   contracts/, content/, evals/     API examples, authoring and evaluation
 ```
 
-Current app documentation and the debugging tree live in `.claude/worktrees/milestone-b`.
-This checkout retains the main implementation snapshot until the branch is merged.
-
 Every Markdown file must remain at most 100 lines. Split by responsibility and link
 from a parent index; keep results and proposed work visibly distinct.
 
-The bounded SymPy verifier and evaluation (milestone B tasks 1–9) are on `main`.
 The [reviewed release result](evals/verifier/results/dev-b.json) reports FA 0/50 (95% upper
 bound 7.1%), FR 0/49, coverage 49/49 and agreement 136/136. These are reviewed dev-set results.
 [CI and result evidence](evals/verifier/results/README.md): Python, Node and container smoke
