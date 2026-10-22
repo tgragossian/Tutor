@@ -78,17 +78,20 @@ Status: accepted by Thomas, 2026-10-22. Amends decision 0001's delivery order (�
 - **Before the first run:** request the EC2 GPU vCPU quota (new accounts often start at 0 for
   G instances), and raise the $10/month budget alert to cover training. A budget alert is a
   notification, not a cap: stop or terminate instances after every run.
-- **Serving the LoRA model without a 24/7 GPU** (an always-on A10G is ≈ $700+/month). Weights are
-  never exposed: students only reach an API that returns hint text. In order of preference:
-  1. **Per-token multi-LoRA hosting** (e.g. Fireworks, Together): upload the private adapter onto
-     a base model the provider already serves; billed per token like the base model, no idle cost,
-     no cold start. **Choose the base model by this:** confirm the provider serves Qwen3.5-9B
-     LoRAs before training; otherwise train on a Qwen they do serve. Check upload/data terms.
-  2. **Serverless GPU with scale-to-zero** (e.g. RunPod, Modal, Hugging Face endpoints): our
-     container and private weights, billed per second; cold starts of tens of seconds.
-- **Shipped as a live A/B test (Thomas, 2026-10-22):** base Qwen3.5-9B vs the same base + LoRA,
-  both served per token on one provider (no idle GPU). Each student is assigned one arm at
-  sign-up (not per hint) and keeps it; the arm is logged on every hint. Live outcomes: the
+- **Serving (Thomas, 2026-10-22): AWS trains, RunPod Serverless serves.** Checked 2026-10-22:
+  Fireworks serves uploaded *and* Fireworks-trained adapters only on dedicated deployments
+  (from $8/GPU-hour, scale-to-zero after 1 h idle), and Together has discontinued serverless
+  LoRA. Neither offers per-token LoRA serving, so Fireworks is not used.
+- **RunPod Serverless flex workers** (24 GB L4/A5000 class, listed $0.69/h ≈ $0.0002/s): our
+  vLLM container with Qwen3.5-9B (8-bit or AWQ 4-bit) and the LoRA enabled; billed per second
+  while a worker runs, scaled to zero when idle. One worker serves **both A/B arms** (requests
+  with and without the adapter), so the arms share hardware and latency. Weights live in a
+  private RunPod volume or private registry, never public. Estimate for 50 students × 30 hints:
+  ≈ 4–5 GPU-hours/month including cold starts, **≈ $3–5/month**. Confirm scale-to-zero, idle
+  timeout and cold-start behaviour in RunPod's docs before launch.
+- **Cold starts** (tens of seconds) fall through to the hosted backup below, logged as such.
+- **Shipped as a live A/B test (Thomas, 2026-10-22):** base Qwen3.5-9B vs base + LoRA on the same
+  RunPod worker. Each student keeps one arm from sign-up; the arm is logged on every hint. Live outcomes: the
   SymPy-checked result of the next attempt after a hint, deterministic answer-leak rate, reveal
   rate, and a thumbs up/down. With ~50 students this is descriptive only; the offline paired
   A/B on held-out sets remains the headline result.
