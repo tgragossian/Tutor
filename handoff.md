@@ -5,7 +5,7 @@ worktree (`.claude/worktrees/milestone-b`). `main` and `milestone-b` are identic
 `main` 9bf6b29.
 
 **Milestone B status:** all tasks 1–16 are implemented and deployed. Not yet closed: the host
-memory numbers (step 3 of task 16), a whole-branch review, and the hours log.
+sizing decision (1 GB vs 2 GB, numbers measured), a whole-branch review, and the hours log.
 
 ## Live site (https://tutor.thomasgragossian.dev)
 
@@ -37,10 +37,10 @@ memory numbers (step 3 of task 16), a whole-branch review, and the hours log.
 
 1. **Whole-branch review of milestone B** (Thomas is asking Codex). Record findings under
    `docs/reviews/` as before; fix before closing the milestone.
-2. **Host sizing:** the 2026-10-22 run of `bash tools/load/measure.sh https://tutor.thomasgragossian.dev`
-   was cut off during sign-ups (10/min limit) before the peaks printed. Rerun or paste the full
-   output, record it in [host sizing](docs/ops/host-sizing.md), apply the 85% rule and keep or
-   change the pool settings in `deploy/.env` (or propose the 2 GB bundle).
+2. **Host sizing decision (Thomas):** the burst ran 2026-10-22 ([host sizing](docs/ops/host-sizing.md)).
+   Worker peak RSS 72 MiB, lowest available 281 MiB, but the worst-case rule (1 × 384 cap + app
+   + Caddy + OS ≈ 973 MiB) exceeds 85% of 1 GB. Choose: move to the 2 GB bundle, or accept 1 GB
+   on measured headroom (a recorded exception). Pool stays at 1 worker, 384 MB until then.
 3. Record actual hours with Thomas ([hours](docs/ops/hours.md)); 30-hour checkpoint pending.
 4. [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): verifier is
    slow on wrong answers to nested trig (`sin(cos 7x)`); `content_check` lacks a hard deadline.
