@@ -57,6 +57,16 @@ uv run python tools/check_docs.py
 
 For a migrated local app and browser smoke, use [development setup](docs/ops/development.md).
 
+## Content licence and attribution
+
+Problems in `content/`, and the textbook passages used for hints from milestone C, are adapted
+from *Calculus Volume 1* by Gilbert Strang and Edwin "Jed" Herman, OpenStax, licensed under
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Download for free at
+<https://openstax.org/details/books/calculus-volume-1>. That adapted content is shared under the
+same licence and is not for commercial use. OpenStax and Rice University do not endorse this
+project. Details: [source manifest](content/sources/openstax-calculus-v1.md) and
+[decision 0004](docs/decisions/0004-rag-source-models-and-evaluation.md).
+
 ## Acknowledgments
 
 [^ai]: Planning and technical review were assisted by Anthropic Claude and OpenAI Codex.
