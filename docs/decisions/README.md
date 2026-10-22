@@ -6,6 +6,7 @@
 - [0002: MathLive input capture](0002-mathlive-input.md) (proposed).
 - [0003: function input requires parentheses](0003-function-parentheses.md) (amends 0002).
 - [0004: RAG source text, generator candidates and hint evaluation](0004-rag-source-models-and-evaluation.md) (milestone C).
+- [0005: tutoring datasets and the fine-tuning experiment](0005-tutoring-datasets-and-fine-tuning.md).
 
 These decisions take precedence over the preserved draft and earlier review recommendations.
 Implementation details still require executable tasks and verification.

@@ -67,6 +67,12 @@ same licence and is not for commercial use. OpenStax and Rice University do not 
 project. Details: [source manifest](content/sources/openstax-calculus-v1.md) and
 [decision 0004](docs/decisions/0004-rag-source-models-and-evaluation.md).
 
+The fine-tuning experiment uses [TutorBench](https://huggingface.co/datasets/ScaleAI/TutorBench)
+(Scale AI; Srinivasa et al., 2025, [paper](https://arxiv.org/abs/2510.02663) licensed CC BY-NC-ND 4.0)
+and [Eedi's tutoring dialogues](https://huggingface.co/datasets/Eedi/Question-Anchored-Tutoring-Dialogues-2k)
+(CC BY-NC 4.0). Their data and the trained weights are not redistributed here
+([decision 0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md)).
+
 ## Acknowledgments
 
 [^ai]: Planning and technical review were assisted by Anthropic Claude and OpenAI Codex.

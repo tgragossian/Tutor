@@ -55,6 +55,9 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
    [Decision 0004](docs/decisions/0004-rag-source-models-and-evaluation.md) (Thomas, 2026-10-22):
    OpenStax text may go to a hosted LLM (CC licence; AI clause a recorded risk); GPT-5.2 is the
    baseline vs Claude Opus/Sonnet/Haiku 5.5; evaluate hint behaviour on hard cases. Next: design session.
+   [Decision 0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md): train LoRA on non-calculus
+   TutorBench + Eedi (Thomas: fair use; weights unpublished, git-ignored); TutorBench Calculus,
+   TutorMoments and C cases are evaluation only. Open: use-case routing, fine-tuning timing.
    Fine-tuning (LoRA) stays last in the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).
 
 ## Working notes for Claude

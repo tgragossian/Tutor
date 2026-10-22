@@ -14,3 +14,7 @@ dist/
 node_modules/
 test-results/
 .hypothesis/
+# Fine-tuning artefacts are never published (decision 0005)
+models/
+*.safetensors
+*.gguf

@@ -14,3 +14,7 @@ evals
 deploy
 *.db
 .env*
+models
+data
+*.safetensors
+*.gguf
