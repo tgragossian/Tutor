@@ -61,4 +61,6 @@ non-zero with a warning. Tests: `tests/unit/test_submit_burst.py`, `tests/unit/t
 
 Windows: 904 Python passed, 3 Linux-only skips; 26 Node; lint, format, mypy; content check
 (22); dev and generated gates pass; all five review probes pass; browser e2e passed against a
-local production-mode server migrated to 0003. Linux CI on ca54407: see the handoff.
+local production-mode server migrated to 0003. Linux CI on ca54407 ([run 39838050211](https://github.com/tgragossian/Tutor/actions/runs/39838050211)):
+Python 907 passed with no skips (memory limit and `measure.sh` tests included), Node, and the
+container smoke with migration 0003 and the browser e2e, including the B-R1 step, all green.
