@@ -16,7 +16,7 @@ misconceptions:
   - '2\sin(x)+x\cos(x)  # stopped at the first derivative'
   - '\cos(x)-x\sin(x)  # product rule applied only once in the second derivative'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'Group 191-195 instruction: find d^2y/dx^2. y'' = sin x + x cos x + sin x = 2 sin x + x cos x; y'''' = 2 cos x + cos x - x sin x = 3 cos x - x sin x, matching the OpenStax answer key for 191. Domain: all reals.'

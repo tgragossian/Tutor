@@ -52,8 +52,8 @@ for _ in $(seq 1 30); do
 done
 [ -n "$body" ] || { docker logs "$NAME" >&2; fail "/readyz did not return 200 within 30 s"; }
 case "$body" in
-  *'"servable":6'*) ;;
-  *) fail "/readyz body lacks \"servable\":6: $body" ;;
+  *'"servable":22'*) ;;
+  *) fail "/readyz body lacks \"servable\":22: $body" ;;
 esac
 
 # One real answer through the API and the real verifier pool (exercise 221).
@@ -73,7 +73,15 @@ sid=$(api -d '{"topics":["derivatives.chain_rule"]}' "$base/api/sessions" \
   | sed -n 's/.*"session_id":\([0-9]*\).*/\1/p')
 [ -n "$sid" ] || fail "could not start a session"
 current=$(api "$base/api/sessions/$sid/current")
-case "$current" in *'"exercise":221'*) ;; *) fail "first chain-rule item is not 221: $current" ;; esac
+# Skip ahead to exercise 221 (easier chain-rule items come first in textbook order).
+for _ in 1 2 3 4 5 6 7 8; do
+  case "$current" in *'"exercise":221'*) break ;; esac
+  item=$(echo "$current" | sed -n 's/.*"session_item_id":\([0-9]*\).*/\1/p')
+  rev=$(echo "$current" | sed -n 's/.*"revision":\([0-9]*\).*/\1/p')
+  current=$(api -d "{\"session_item_id\": $item, \"item_revision\": $rev}" \
+    "$base/api/sessions/$sid/skip")
+done
+case "$current" in *'"exercise":221'*) ;; *) fail "never reached chain-rule item 221: $current" ;; esac
 item=$(echo "$current" | sed -n 's/.*"session_item_id":\([0-9]*\).*/\1/p')
 # MathJSON captured from Compute Engine 0.151.0 (raw form) for 18x\left(3x^2+1\right)^2.
 cat > "$BODY" <<JSON

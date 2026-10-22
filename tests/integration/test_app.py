@@ -46,7 +46,7 @@ def test_healthz(client: TestClient) -> None:
 def test_readyz_ready_with_real_content(client: TestClient) -> None:
     r = client.get("/readyz")
     assert r.status_code == 200
-    assert r.json() == {"status": "ready", "content_version": REAL.bundle_version, "servable": 6}
+    assert r.json() == {"status": "ready", "content_version": REAL.bundle_version, "servable": 22}
 
 
 def test_readyz_503_when_nothing_servable(needs_review_only: Path) -> None:

@@ -26,7 +26,7 @@ misconceptions:
   - 'c  # differentiated the inside in place'
   - 'd  # derivative of sin taken as sin'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'Author-written, modelled on the 3.6 chain-rule exercises (e.g. 217, 235). Chain rule: cos(x^2) * 2x, so a. Each distractor is genuinely wrong, e.g. at x = 1: y'' = 2cos 1 = 1.0806; b = cos 1 = 0.5403; c = cos 2 = -0.4161; d = 2 sin 1 = 1.6829.'

@@ -200,10 +200,10 @@
         null
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Author-written, modelled on the 3.6 chain-rule exercises (e.g. 217, 235). Chain rule: cos(x^2) * 2x, so a. Each distractor is genuinely wrong, e.g. at x = 1: y' = 2cos 1 = 1.0806; b = cos 1 = 0.5403; c = cos 2 = -0.4161; d = 2 sin 1 = 1.6829.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "adapted": true,
@@ -267,10 +267,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Group 106-117 instruction: find f'(x). Power rule term by term: 15x^2 - 1 + 0 = 15x^2 - 1, matching the OpenStax answer key for 107. Domain: all reals (polynomial).",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -357,10 +357,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Group 106-117 instruction: find f'(x). Power rule: 32x^3 + 18x, matching the OpenStax answer key for 109. Domain: all reals (polynomial).",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -538,10 +538,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Group 106-117 instruction: find f'(x). Expand: f(x) = 2 + 5/x, so f'(x) = -5/x^2, matching the OpenStax answer key for 113 (-5/x^2). Domain: f is undefined at x = 0, so R minus {0}.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -664,10 +664,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "f(-1) = -2 + 4 + 5 - 3 = 4. f'(x) = 6x^2 + 8x - 5, so f'(-1) = 6 - 8 - 5 = -7. y - 4 = -7(x + 1) gives y = -7x - 3, matching the OpenStax answer key for 137. The graded answer is the right-hand side -7x - 3 (instruction added). Domain: all reals.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -712,10 +712,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "The [T] (technology) tag is dropped. Quotient rule: s'(t) = [2t(t^2+2) - t^2(2t)]/(t^2+2)^2 = 4t/(t^2+2)^2. s'(3) = 12/121 = 0.099173..., 0.0992 to 4 decimals, matching the OpenStax answer key for 145 (12/121 or 0.0992 ft/s). R24 wording added: exact or 4 decimal places.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -854,10 +854,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Group 185-190 instruction: tangent line at the indicated x. f(0) = 0, f'(x) = -cos x, f'(0) = -1, so y = -x, matching the OpenStax answer key for 185. Graded answer is the right-hand side (instruction added). Domain: all reals.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -932,10 +932,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Group 185-190 instruction. f(3pi/2) = 1 + 0 = 1; f'(x) = -sin x, f'(3pi/2) = -(-1) = 1. y - 1 = x - 3pi/2 gives y = x + 1 - 3pi/2 = x + (2 - 3pi)/2, matching the OpenStax answer key for 187. Domain: all reals.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -1016,10 +1016,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Group 191-195 instruction: find d^2y/dx^2. y' = sin x + x cos x + sin x = 2 sin x + x cos x; y'' = 2 cos x + cos x - x sin x = 3 cos x - x sin x, matching the OpenStax answer key for 191. Domain: all reals.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -1090,10 +1090,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Group 191-195 instruction. y' = 1 - (1/2)cos x; y'' = (1/2) sin x, matching the OpenStax answer key for 193. Domain: all reals.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -1151,10 +1151,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Group 209-213 instruction: requested higher-order derivative. y' = -3 sin x, y'' = -3 cos x, y''' = 3 sin x, matching the OpenStax answer key for 209. Domain: all reals.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -1242,10 +1242,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Group 214-219 instruction: find dy/dx with Leibniz notation. dy/du = 18u^2, du/dx = 7, so dy/dx = 18(7x - 4)^2 * 7 = 126(7x - 4)^2, matching the OpenStax answer key for 215. Domain: all reals.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -1322,10 +1322,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Group 214-219 instruction: find dy/dx with Leibniz notation. dy/du = -sin u, du/dx = -1/8, so dy/dx = -sin(-x/8) * (-1/8), matching the OpenStax answer key for 217. Since sin is odd, this equals -(1/8) sin(x/8), the stored form. Domain: all reals. Replaces a 235 draft (y = sin(cos 7x)): its correct answer proves instantly but wrong answers time out in the verifier, so students would see \"could not check\" instead of \"not quite\".",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -1557,10 +1557,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Exercise 223 also asks to decompose (part a: f(u) = u^7, u = x/7 + 7/x); only part b is graded here, as for 221. Chain rule: 7u^6 * u' with u' = 1/7 - 7/x^2, matching the OpenStax answer key for 223. Domain: undefined at x = 0, so R minus {0}.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -1667,10 +1667,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Group 228-238 instruction: find dy/dx. -2(5 - 2x)^(-3) * (-2) = 4/(5 - 2x)^3, matching the OpenStax answer key for 229. Domain: undefined at x = 5/2, so R minus {5/2}.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",
@@ -1824,10 +1824,10 @@
         ]
       ],
       "review": {
-        "date": "",
+        "date": "2026-10-22",
         "notes": "Group 228-238 instruction. 3(2x^3 - x^2 + 6x + 1)^2 (6x^2 - 2x + 6) = 6(2x^3 - x^2 + 6x + 1)^2 (3x^2 - x + 3), matching the OpenStax answer key for 231. Domain: all reals.",
-        "reviewer": "",
-        "status": "needs_review"
+        "reviewer": "tg",
+        "status": "human_verified"
       },
       "source": {
         "book": "OpenStax Calculus Volume 1",

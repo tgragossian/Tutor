@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 from sqlalchemy import func, select
+from support.content import core_content
 
 from mathtutor.application.auth import AuthService
 from mathtutor.application.errors import (
@@ -21,7 +22,6 @@ from mathtutor.application.errors import (
     SubmissionPending,
 )
 from mathtutor.application.practice import Done, ItemView, PracticeService, SubmitView
-from mathtutor.content.loader import load_bundle
 from mathtutor.domain import (
     Action,
     AnswerKind,
@@ -43,7 +43,7 @@ from mathtutor.verify.types import (
 )
 
 ROOT = Path(__file__).resolve().parents[3]
-CONTENT = load_bundle(ROOT / "content" / "compiled" / "problems.json")
+CONTENT = core_content()
 BASIC = "derivatives.basic_rules"
 FIRST, SECOND = "openstax-c1-3.3-115", "openstax-c1-3.3-111"
 

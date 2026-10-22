@@ -16,7 +16,7 @@ misconceptions:
   - '18(7x-4)^2  # missing du/dx = 7'
   - '42(7x-4)^2  # forgot the factor 3 from the power rule'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'Group 214-219 instruction: find dy/dx with Leibniz notation. dy/du = 18u^2, du/dx = 7, so dy/dx = 18(7x - 4)^2 * 7 = 126(7x - 4)^2, matching the OpenStax answer key for 215. Domain: all reals.'

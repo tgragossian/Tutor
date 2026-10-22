@@ -16,7 +16,7 @@ misconceptions:
   - '15x^2  # dropped the derivative of -x'
   - '15x^2-x  # differentiated only the cubic term'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'Group 106-117 instruction: find f''(x). Power rule term by term: 15x^2 - 1 + 0 = 15x^2 - 1, matching the OpenStax answer key for 107. Domain: all reals (polynomial).'

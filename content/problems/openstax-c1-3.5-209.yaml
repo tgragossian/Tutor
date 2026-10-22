@@ -16,7 +16,7 @@ misconceptions:
   - '-3\sin(x)  # stopped at the first derivative'
   - '-3\cos(x)  # stopped at the second derivative'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'Group 209-213 instruction: requested higher-order derivative. y'' = -3 sin x, y'''' = -3 cos x, y'''''' = 3 sin x, matching the OpenStax answer key for 209. Domain: all reals.'

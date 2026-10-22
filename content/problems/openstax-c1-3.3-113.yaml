@@ -19,7 +19,7 @@ misconceptions:
   - '\frac{5}{x^2}  # sign error: derivative of 1/x taken as +1/x^2'
   - '2x\left(-\frac{4}{x^3}-\frac{15}{x^4}\right)  # product of the derivatives'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'Group 106-117 instruction: find f''(x). Expand: f(x) = 2 + 5/x, so f''(x) = -5/x^2, matching the OpenStax answer key for 113 (-5/x^2). Domain: f is undefined at x = 0, so R minus {0}.'

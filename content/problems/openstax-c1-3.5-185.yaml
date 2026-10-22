@@ -16,7 +16,7 @@ misconceptions:
   - 'x  # sign error: derivative of -sin x taken as +cos x'
   - '-1  # slope only, no line'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'Group 185-190 instruction: tangent line at the indicated x. f(0) = 0, f''(x) = -cos x, f''(0) = -1, so y = -x, matching the OpenStax answer key for 185. Graded answer is the right-hand side (instruction added). Domain: all reals.'

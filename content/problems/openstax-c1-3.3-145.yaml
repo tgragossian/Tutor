@@ -17,7 +17,7 @@ misconceptions:
   - '\frac{9}{11}  # reported the position s(3) instead of the velocity'
   - '\frac{6}{11}  # quotient rule numerator terms subtracted the wrong way'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'The [T] (technology) tag is dropped. Quotient rule: s''(t) = [2t(t^2+2) - t^2(2t)]/(t^2+2)^2 = 4t/(t^2+2)^2. s''(3) = 12/121 = 0.099173..., 0.0992 to 4 decimals, matching the OpenStax answer key for 145 (12/121 or 0.0992 ft/s). R24 wording added: exact or 4 decimal places.'

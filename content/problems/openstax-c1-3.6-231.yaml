@@ -16,7 +16,7 @@ misconceptions:
   - '3(2x^3-x^2+6x+1)^2  # missing inner derivative'
   - '3(6x^2-2x+6)^2  # differentiated inside the power instead of using the chain rule'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'Group 228-238 instruction. 3(2x^3 - x^2 + 6x + 1)^2 (6x^2 - 2x + 6) = 6(2x^3 - x^2 + 6x + 1)^2 (3x^2 - x + 3), matching the OpenStax answer key for 231. Domain: all reals.'

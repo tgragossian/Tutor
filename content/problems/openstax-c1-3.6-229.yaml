@@ -19,7 +19,7 @@ misconceptions:
   - '-\frac{2}{(5-2x)^3}  # missing inner derivative -2'
   - '-\frac{4}{(5-2x)^3}  # sign error in the inner derivative'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'Group 228-238 instruction: find dy/dx. -2(5 - 2x)^(-3) * (-2) = 4/(5 - 2x)^3, matching the OpenStax answer key for 229. Domain: undefined at x = 5/2, so R minus {5/2}.'

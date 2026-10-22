@@ -16,7 +16,7 @@ misconceptions:
   - 'x-\frac{3\pi}{2}  # left out f(3pi/2) = 1'
   - '-x+1+\frac{3\pi}{2}  # sign error: derivative of cos x taken as +sin x'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'Group 185-190 instruction. f(3pi/2) = 1 + 0 = 1; f''(x) = -sin x, f''(3pi/2) = -(-1) = 1. y - 1 = x - 3pi/2 gives y = x + 1 - 3pi/2 = x + (2 - 3pi)/2, matching the OpenStax answer key for 187. Domain: all reals.'

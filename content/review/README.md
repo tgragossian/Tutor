@@ -2,8 +2,11 @@
 
 [Content](../README.md) · [Task 15](../../docs/superpowers/plans/portfolio-mvp/milestone-b/tasks/15-content-e2e.md)
 
-16 drafts (15 OpenStax exercises, 1 author-written choice item), all `needs_review`, so the
-live site does not serve them. With the 6 reviewed problems this makes 22 (7 + 7 + 8).
+**Reviewed 2026-10-22:** Thomas approved all 16 (now `human_verified`; 22 servable, 7 + 7 + 8).
+For 223 he checked that his simplified form, (x/7 + 7/x)^6 - (x^2+49)^6/(2401x^8), is
+equivalent; SymPy and the real verifier both grade it correct.
+
+The 16 drafts were 15 OpenStax exercises and 1 author-written choice item.
 
 - [3.3 Differentiation rules](3-3.md): 107, 109, 113, 137, 145
 - [3.5 Trigonometric functions](3-5.md): 185, 187, 191, 193, 209

@@ -1,6 +1,6 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-21 end of day. Work continues in the `milestone-b`
+Owner: Thomas Gragossian. Updated: 2026-10-22. Work continues in the `milestone-b`
 worktree (`.claude/worktrees/milestone-b`). `main` and `milestone-b` are identical at the end of
 the day; the host still runs 78bbcd6 (the newer commits add only unserved drafts and checks).
 
@@ -26,11 +26,9 @@ the day; the host still runs 78bbcd6 (the newer commits add only unserved drafts
 
 ## Resume here
 
-1. **Thomas's content review** of the 16 drafts: [content/review/README.md](content/review/README.md).
-   When he names the passing ids/changes: set `human_verified`, `tg`, date in each YAML;
-   `npm run compile --prefix tools`; remove the `xfail` in `tests/unit/test_seed_content.py`;
-   change `"servable":6` to 22 in `tests/container/smoke.sh` and `tests/integration/test_app.py`;
-   regenerate `python -m mathtutor.verify.mutate`; full checks; merge to `main`; Thomas deploys.
+1. **Deploy the 22 problems** (2026-10-22: Thomas approved all 16 drafts; task 15 done,
+   merged to `main`). After Thomas runs the runbook update, `/readyz` should show `"servable":22`.
+   Selection/practice tests now pin the original 6 via `tests/support/content.py`.
 2. **Rest of task 16:** `tools/load/submit_burst.py` (16 concurrent submits) for memory sizing
    on the host; move the e2e job onto the image; `docs/verifier/` supported-expressions page;
    uvicorn `--no-access-log` (requests are logged twice); record host numbers in `docs/ops/host.md`.

@@ -2,11 +2,11 @@
 
 [Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md) · [Follow-ups](05-follow-ups.md)
 
-Updated 2026-10-21 (end of day). Tasks 1–14 merged and **deployed** (live from `main` 78bbcd6);
-task 15 drafts await Thomas's review; task 16 partly done (container storage, deploy).
+Updated 2026-10-22. Tasks 1–14 merged and **deployed** (live from `main` 78bbcd6);
+task 15 complete (Thomas reviewed all 22 problems 2026-10-22, not yet deployed); task 16 partly done.
 
-Current project status (2026-10-21): tasks 10–14 are complete on `milestone-b`; task 15
-is partial and task 16 pending. The table below records main only. Follow the
+Current project status (2026-10-22): tasks 10–15 are complete on `milestone-b`; task 16
+is partial. The table below records main only. Follow the
 [handoff](../../../../../handoff.md) to the branch status; do not restart task 10.
 
 ## Tasks
@@ -29,7 +29,7 @@ is partial and task 16 pending. The table below records main only. Follow the
 | 12 Practice service | 458f2ca | complete; races run 3× clean |
 | 13 JSON API | abda25e | complete |
 | 14 Pages, MathLive | c52305d | complete; manual browser check passed |
-| 15 Content, smoke | 5fd8952, ba2575b | smoke + CI; 16 drafts await [review](../../../../../content/review/README.md) |
+| 15 Content, smoke | 5fd8952, ba2575b | complete: 22 problems `human_verified` by Thomas 2026-10-22 ([review](../../../../../content/review/README.md)) |
 | 16 Release | e6da0e5 | storage + migrate + deploy done; load test, e2e on image, docs open |
 
 ## Evidence and debugging

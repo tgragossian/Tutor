@@ -16,7 +16,7 @@ misconceptions:
   - '-\frac{1}{2}\sin(x)  # sign error in the second derivative of sin x'
   - '1-\frac{1}{2}\cos(x)  # stopped at the first derivative'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'Group 191-195 instruction. y'' = 1 - (1/2)cos x; y'''' = (1/2) sin x, matching the OpenStax answer key for 193. Domain: all reals.'

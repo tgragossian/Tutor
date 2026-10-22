@@ -16,7 +16,7 @@ misconceptions:
   - '-7x+4  # used f(-1) = 4 as the y-intercept'
   - '-7x  # left out the point entirely'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'f(-1) = -2 + 4 + 5 - 3 = 4. f''(x) = 6x^2 + 8x - 5, so f''(-1) = 6 - 8 - 5 = -7. y - 4 = -7(x + 1) gives y = -7x - 3, matching the OpenStax answer key for 137. The graded answer is the right-hand side -7x - 3 (instruction added). Domain: all reals.'

@@ -1,12 +1,13 @@
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from support.content import core_content
+
 from mathtutor.application.selection import next_item_id
-from mathtutor.content.loader import load_bundle
 from mathtutor.domain import VerdictStatus
 
 ROOT = Path(__file__).resolve().parents[3]
-CONTENT = load_bundle(ROOT / "content" / "compiled" / "problems.json")
+CONTENT = core_content()
 T0 = datetime(2026, 10, 21, tzinfo=UTC)
 ALL = ["derivatives.basic_rules", "derivatives.trig", "derivatives.chain_rule"]
 

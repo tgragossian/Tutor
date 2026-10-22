@@ -16,7 +16,7 @@ misconceptions:
   - '32x^3+18x-1  # constant term not dropped'
   - '32x^4+18x^2  # exponent not lowered'
 review:
-  status: needs_review
-  reviewer: ''
-  date: ''
+  status: human_verified
+  reviewer: 'tg'
+  date: '2026-10-22'
   notes: 'Group 106-117 instruction: find f''(x). Power rule: 32x^3 + 18x, matching the OpenStax answer key for 109. Domain: all reals (polynomial).'
