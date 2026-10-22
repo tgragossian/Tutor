@@ -12,7 +12,9 @@ App + worker 135 MiB, Caddy 17 MiB, about 386 MiB available (from the handoff).
 
 ## Load burst
 
-Not run yet. Command: `bash tools/load/measure.sh https://tutor.thomasgragossian.dev`
+2026-10-22 run on the host: output cut off during sign-ups, peaks not captured. Before the
+burst: app 136.2 MiB, Caddy 15.4 MiB; `free -m` used 551, available 358, swap used 118.
+Rerun: `bash tools/load/measure.sh https://tutor.thomasgragossian.dev`
 (16 users, dev case `d-181-07`, the slowest live case).
 
 A local dry run on Windows (2026-10-22, 1 worker, not the server) graded 9 of 16 and returned

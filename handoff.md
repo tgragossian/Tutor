@@ -1,41 +1,50 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-22. Work continues in the `milestone-b`
-worktree (`.claude/worktrees/milestone-b`). `main` and `milestone-b` are identical at the end of
-the day; the host still runs 78bbcd6 (the newer commits add only unserved drafts and checks).
+Owner: Thomas Gragossian. Updated: 2026-10-22 end of day. Work continues in the `milestone-b`
+worktree (`.claude/worktrees/milestone-b`). `main` and `milestone-b` are identical; the host runs
+`main` 9bf6b29.
+
+**Milestone B status:** all tasks 1–16 are implemented and deployed. Not yet closed: the host
+memory numbers (step 3 of task 16), a whole-branch review, and the hours log.
 
 ## Live site (https://tutor.thomasgragossian.dev)
 
-- Milestone B practice loop deployed from `main` 3c0141c (22 problems; was 78bbcd6): accounts, practice with MathLive,
-  history with "Clear history", 6 reviewed problems. `/readyz` ready; migrations 0001–0002.
+- Practice loop from `main` 9bf6b29: accounts, practice on three derivative topics with MathLive,
+  22 reviewed problems (7 + 7 + 8), history with "Clear history". `/readyz` ready, `servable` 22;
+  migrations 0001–0002.
 - First `/readyz` after `up -d` returns 502 for 30–60 s while the SymPy worker starts: normal.
-- Idle memory on the 1 GB host: app+worker 135 MiB, Caddy 17 MiB, ~386 MiB available.
+- Memory before the 2026-10-22 burst: app+worker 136 MiB, Caddy 15 MiB, 358 MiB available,
+  118 MiB in swap.
 - Deploy = the [runbook](docs/ops/runbook.md) "Update to the latest `main`" block (Thomas runs
   it in Lightsail browser SSH). `migrate` must show `Exited (0)`. Never `compose down -v`.
 
-## Done today (2026-10-21)
+## Done 2026-10-22
 
-- Tasks 10–14 built, Codex review B-A1–B-A5 fixed (4eba48f), container storage (e6da0e5).
-- Thomas's UI feedback: function names auto-insert parentheses, solid closing ")", session
-  ends instead of repeating ("Next features under construction…"), US spelling (6ba982e);
-  history shows answered sessions only, Start reuses an untouched session, required OpenStax
-  attribution line (5e1d684); Clear history, migration 0002 (78bbcd6). Rulings A19–A21.
-- Thomas decided assistant transcription of OpenStax is fine (recorded in the source manifest).
-- Task 15: 16 drafts (`needs_review`) + content-check endpoint rule (Thomas: a finite end is
-  closed iff the answer is defined there). 235 dropped for 217 (verifier timeout, follow-up).
+- Task 15: Thomas reviewed and approved all 16 drafts (3c0141c); deployed. His simplified form
+  of 223 was checked equivalent by SymPy and the live verifier. Selection/practice unit tests pin
+  the original six problems (`tests/support/content.py`); container smoke skips ahead to 221.
+- Task 16 (375ab7c, 9bf6b29): `MATHTUTOR_POOL_SIZE` / `MATHTUTOR_POOL_MEMORY_MB` settings;
+  `tools/load/submit_burst.py` (16 users submit dev case `d-181-07` at once) and
+  `tools/load/measure.sh` (runs it on the host, reports peak memory and VmHWM); uvicorn
+  `--no-access-log` (requests were logged twice; smoke now checks); browser e2e runs against
+  the production image in CI (green, run 39828899000); [verifier docs](docs/verifier/README.md);
+  [dev-b results](evals/verifier/results/dev-b.md); README status "practice loop live".
+- Thomas raised automated problem sets (not just a bank). The plan has the extraction pipeline
+  (expansion queue #4); generated problems (templates or LLM) are not planned yet: decide
+  with Thomas whether to add them and where.
 
 ## Resume here
 
-1. **Done 2026-10-22:** 22 reviewed problems deployed from `main` 3c0141c (`servable` 22).
-   Selection/practice tests pin the original 6 via `tests/support/content.py`.
-2. **Task 16 (2026-10-22):** pool settings, `submit_burst.py` + `measure.sh`, `--no-access-log`,
-   e2e on the image in CI (green), [verifier docs](docs/verifier/README.md), results page done.
-   Left: Thomas deploys, runs `bash tools/load/measure.sh <url>` on the host, and the numbers
-   go into [host sizing](docs/ops/host-sizing.md) with the pool decision.
-3. Then one fresh whole-branch review (Thomas is asking Codex) before calling milestone B done.
-4. Record actual hours with Thomas ([hours](docs/ops/hours.md)); 30-hour checkpoint pending.
-5. [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): verifier is
+1. **Whole-branch review of milestone B** (Thomas is asking Codex). Record findings under
+   `docs/reviews/` as before; fix before closing the milestone.
+2. **Host sizing:** the 2026-10-22 run of `bash tools/load/measure.sh https://tutor.thomasgragossian.dev`
+   was cut off during sign-ups (10/min limit) before the peaks printed. Rerun or paste the full
+   output, record it in [host sizing](docs/ops/host-sizing.md), apply the 85% rule and keep or
+   change the pool settings in `deploy/.env` (or propose the 2 GB bundle).
+3. Record actual hours with Thomas ([hours](docs/ops/hours.md)); 30-hour checkpoint pending.
+4. [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): verifier is
    slow on wrong answers to nested trig (`sin(cos 7x)`); `content_check` lacks a hard deadline.
+5. Then milestone C (RAG hints). First confirm OpenStax's licence allows RAG ingestion.
 
 ## Working notes for Claude
 
