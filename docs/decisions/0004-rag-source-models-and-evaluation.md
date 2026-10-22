@@ -9,6 +9,11 @@ Status: accepted by Thomas, 2026-10-22. Governs milestone C; amends the C evalua
 - **Decision (Thomas):** milestone C may chunk, index and send passages of *Calculus Volume 1*
   (OpenStax, ©2018 Rice University, CC BY-NC-SA 4.0) to a hosted LLM to generate hints.
   Thomas relies on the CC BY-NC-SA 4.0 licence of the edition used.
+- **Further basis (Thomas, 2026-10-22):** OpenStax's permissions guidance says: "Using OpenStax
+  for teaching and learning? If you are an educator or student using OpenStax for teaching,
+  learning, customizing, and/or sharing, you are already covered under the CC BY-NC-SA license.
+  No form needed." Thomas considers this tutor (free, noncommercial, for students learning
+  calculus) to fall under it. Source page as quoted by Thomas; add its URL when recorded.
 - **Known risk, recorded rather than resolved:** the book's citation page says it "may not be
   used in the training of large language models or otherwise be ingested into large language
   models or generative AI offerings without OpenStax's prior written permission"
