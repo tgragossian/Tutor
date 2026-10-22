@@ -17,6 +17,8 @@
 - Owners: `application/practice.py`, `application/selection.py`, `store/models.py`, `store/db.py`.
 - 409 `submission_pending`: retry the same submission UUID after `Retry-After: 1`.
   Reservations at least 10 seconds old may be regraded (R5/R13, A14).
+  **Open [B-R5/B-R2](../../reviews/2026-10-22-milestone-b/01-recovery.md):** age does not prove
+  the original caller died; cleanup can delete live work, and recovery loses its original revision.
 - 409 `stale_item`: refresh current state; inspect the submitted revision and active state.
   The conditional update and `AttemptResult.applied` distinguish a losing race.
 - 503 `verifier_busy`: retry the same UUID after `Retry-After: 2`.
@@ -25,6 +27,8 @@
 - Check: `uv run pytest tests/unit/application/test_practice.py tests/unit/application/test_selection.py -q`.
 - For concurrent writes: `uv run pytest tests/integration/test_submit_races.py -q`.
   Inspect WAL, `busy_timeout=5000`, `BEGIN IMMEDIATE`; keep pool work outside transactions.
+- Wrong answer timing: [B-R3](../../reviews/2026-10-22-milestone-b/02-ui-and-timing.md#b-r3-p2-stop-student-timing-at-submission)
+  traces `seconds_on_item` to completion time instead of the persisted submission time.
 
 ## API validation and logs
 
@@ -43,7 +47,9 @@
 - Inspect CSP errors and missing vendor assets first. SRI hashes must match committed bytes.
 - MathLive needs `style-src-attr 'unsafe-inline'`; [security](../security.md) records why.
 - Functions require parentheses (R22); precision checks use original LaTeX (R24).
+- Edited answer graded as the previous input after retries: inspect retained `pending` in
+  `check()`; [B-R1 reproduction](../../reviews/2026-10-22-milestone-b/02-ui-and-timing.md#b-r1-p2-retry-the-answer-the-student-can-see).
 - Check: `uv run pytest tests/integration/test_pages.py -q`, then the
   [local browser smoke](../development.md). Its MathLive click uses an 80 ms press (A18).
-- [App rulings A1–A18](../../superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md)
+- [App rulings A1–A21](../../superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md)
   explain deviations from the original task recipes.

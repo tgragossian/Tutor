@@ -2,9 +2,33 @@
 
 [Milestone B plan](README.md) · [Execution status](03-execution-status.md)
 
-Updated 2026-10-21. Recorded results below are not fresh test executions by this docs pass.
+Updated 2026-10-22. Fresh local checks and earlier/owner-reported runs are separated below.
 
-## App track: tasks 10–15
+## Fresh whole-branch review at 15169a2
+
+Source: [2026-10-22 validation](../../../../reviews/2026-10-22-milestone-b/04-validation.md).
+
+- Windows: 890 Python passed/one Linux-only skip, 19 Node passed; lint/format/types passed.
+  All 22 content problems passed; recompilation was byte-identical.
+- Dev CLI: FA 0/50, FR 0/49, coverage 49/49, agreement 136/136; generated CLI: FA 0/84,
+  FR 0/10, coverage 10/10, agreement 94/94. No internal errors; both B gates pass.
+- Local version `0.1.0+dev`; published SHA-tagged artifacts unchanged. Four Python and one
+  JavaScript probes fail on [five new findings](../../../../reviews/2026-10-22-milestone-b/README.md).
+- Prior B-A1–B-A5 regressions pass. No fresh browser, Docker, remote CI, Linux/host run.
+
+## Recorded release evidence (2026-10-22)
+
+- Thomas approved all 22 problems (3c0141c). The handoff records deployment at 9bf6b29,
+  `/readyz` 22, migrations 0001–0002, and green CI run 39828899000; not queried in this review.
+- 375ab7c adds worker settings, disables duplicate access logs and runs browser e2e against
+  the image via `tests/container/smoke.sh`. The workflow/wiring was inspected locally.
+- [Host sizing](../../../../ops/host-sizing.md): 8 incorrect grades, 8 verifier_busy replies;
+  peak app container 185.2 MiB, minimum available 281 MiB. Thomas deferred sizing to C,
+  retaining 1 GB / one worker / 384 MB as an exception. B-R4 does not invalidate this record.
+- [Verifier guide](../../../../verifier/README.md) and [results](../../../../../evals/verifier/results/dev-b.md)
+  are published. Review fixes and actual hours remain before B closure.
+
+## Historical app track: tasks 10–15 at d428bd7
 
 Source: d428bd7's handoff/status and implementation commits d865179..5fd8952.
 
@@ -13,10 +37,10 @@ Source: d428bd7's handoff/status and implementation commits d865179..5fd8952.
 - Task 14: a real browser typed `18x(3x^2+1)^2`, received "Correct", and showed no CSP
   violations. The CSP change and SRI checks are in [security](../../../../ops/security.md).
 - Task 15: 5fd8952 adds `tools/e2e/smoke.mjs` and the `e2e` CI job. CI starts a migrated
-  SQLite app under uvicorn; container execution remains task 16.
+  SQLite app under uvicorn; container execution was added later in task 16.
 - The handoff does not separately record a complete scripted e2e result or a remote
   CI pass for 5fd8952. Keep those gates distinct from the manual browser check.
-- Task 15 content remains six reviewed problems; 14–24 additions and review are pending.
+- At this snapshot six problems were reviewed; expansion/review subsequently completed.
 
 ## Reviewed verifier gate: tasks 1–9
 
@@ -39,16 +63,16 @@ Source: d428bd7's handoff/status and implementation commits d865179..5fd8952.
   the Linux memory-limit test. The pool-test teardown fix did not relax containment.
 - [Run 39506433419](https://github.com/tgragossian/Tutor/actions/runs/39506433419), main merge
   102a22f: the prior handoff records Python, Node and container smoke passing.
-- These runs predate tasks 10–14. They do not establish current branch container readiness.
-- Last recorded live probes, 2026-10-20: `/healthz` 200, `/readyz` 200; milestone A host.
-- Task 16 still needs migrations/storage, measured Linux memory under 16 concurrent
-  submissions and deployed browser evidence. [Release debugging](../../../../ops/debugging/02-release.md).
+- These runs predate tasks 10–14; later release evidence is above.
+- Recorded live probes on 2026-10-20: `/healthz` 200, `/readyz` 200; milestone A host.
+- Current ownership/checks: [release debugging](../../../../ops/debugging/02-release.md).
 
 ## Later code review (2026-10-21)
 
 [Fresh validation](../../../../reviews/2026-10-21-milestone-b/03-validation.md): 839 Python passed,
 1 skipped; 19 Node passed; lint, source types and content check passed. Five isolated review
-probes fail on d428bd7; [findings](../../../../reviews/2026-10-21-milestone-b/README.md) are open.
+probes fail on d428bd7; [findings](../../../../reviews/2026-10-21-milestone-b/04-dispositions.md)
+were subsequently fixed in 4eba48f (author reports 851 Python/19 Node and local browser passes).
 No fresh browser, Docker, Linux CI/memory or live-host evidence was collected.
 
 ## Earlier documentation sync

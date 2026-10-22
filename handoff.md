@@ -1,11 +1,12 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-22 end of day. Work continues in the `milestone-b`
-worktree (`.claude/worktrees/milestone-b`). `main` and `milestone-b` are identical; the host runs
-`main` 9bf6b29.
+Owner: Thomas Gragossian. Updated: 2026-10-22 after Codex's whole-branch review.
+Reviewed `main` / `milestone-b` at identical commit 15169a2. Review/docs changes are in the
+main checkout; implementation worktree: `.claude/worktrees/milestone-b`. Host recorded at 9bf6b29.
 
-**Milestone B status:** all tasks 1–16 are implemented and deployed. Not yet closed: a
-whole-branch review and the hours log. Host sizing is deferred to milestone C (exception recorded).
+**Milestone B status:** tasks 1–16 implemented and deployed; review complete, **five findings
+open (one P1, four P2)**. Fix before closing B, then complete the hours log.
+Host sizing stays deferred to milestone C under Thomas's recorded exception.
 
 ## Live site (https://tutor.thomasgragossian.dev)
 
@@ -35,8 +36,13 @@ whole-branch review and the hours log. Host sizing is deferred to milestone C (e
 
 ## Resume here
 
-1. **Whole-branch review of milestone B** (Thomas is asking Codex). Record findings under
-   `docs/reviews/` as before; fix before closing the milestone.
+1. **Fix the [2026-10-22 review findings](docs/reviews/2026-10-22-milestone-b/README.md).**
+   B-R5 (P1): busy orphan replay deletes live work; reused row IDs can attach a result to
+   another user's submission. Fix recovery ownership/identity first, together with B-R2
+   (original revision lost during recovery; amend ruling A14). Use a new forward migration.
+   B-R1: edited answer resends old payload after retries; B-R3: answer time includes grading;
+   B-R4: load checker accepts database failures and wrapper discards failure status.
+   Probes, exact owners and regression requirements are split by debugging area in the review.
 2. **Host sizing: deferred by Thomas (2026-10-22).** Stay on 1 GB, pool 1 worker / 384 MB, as a
    recorded exception: the worst-case rule (≈973 MiB > 85% of 1 GB) fails, but measured use
    leaves ≥ 281 MiB free under the burst ([host sizing](docs/ops/host-sizing.md)). Revisit in
@@ -63,7 +69,10 @@ whole-branch review and the hours log. Host sizing is deferred to milestone C (e
 - [Execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md)
   owns task completion and outstanding gates.
 - [Verification evidence](docs/superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md)
-  separates browser/CI evidence from the [review validation](docs/reviews/2026-10-21-milestone-b/03-validation.md).
+  separates recorded browser/CI evidence from [fresh local validation](docs/reviews/2026-10-22-milestone-b/04-validation.md).
+- Fresh: 890 Python passed / 1 Linux-only skip, 19 Node passed, lint/format/types and 22-problem
+  content check passed; dev 136/136 and generated 94/94 agreement, FA 0. Five review probes fail.
+  Prior B-A1–B-A5 regression tests pass. No fresh browser, Docker or production run.
 - [Reviewed verifier result](evals/verifier/results/README.md): FA 0/50 (95% upper bound 7.1%),
   FR 0/49, coverage 49/49, agreement 136/136; no internal errors. This is a dev set.
 - [File map](docs/superpowers/plans/portfolio-mvp/milestone-b/01-file-map.md),

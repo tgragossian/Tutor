@@ -2,12 +2,10 @@
 
 [Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md) · [Follow-ups](05-follow-ups.md)
 
-Updated 2026-10-22. Tasks 1–14 merged and **deployed** (live from `main` 78bbcd6);
-task 15 complete (Thomas reviewed all 22 problems 2026-10-22, not yet deployed); task 16 partly done.
-
-Current project status (2026-10-22): tasks 10–15 are complete on `milestone-b`; task 16
-is partial. The table below records main only. Follow the
-[handoff](../../../../../handoff.md) to the branch status; do not restart task 10.
+Updated 2026-10-22 after review of identical `main` / `milestone-b` 15169a2.
+Tasks 1–16 are implemented and deployed (host recorded at 9bf6b29, 22 reviewed problems).
+Whole-branch review is complete: **five open findings** and the hours log prevent B closure.
+Host sizing remains deferred to C under Thomas's recorded exception. Do not restart completed tasks.
 
 ## Tasks
 
@@ -29,13 +27,13 @@ is partial. The table below records main only. Follow the
 | 12 Practice service | 458f2ca | complete; races run 3× clean |
 | 13 JSON API | abda25e | complete |
 | 14 Pages, MathLive | c52305d | complete; manual browser check passed |
-| 15 Content, smoke | 5fd8952, ba2575b | complete: 22 problems `human_verified` by Thomas 2026-10-22 ([review](../../../../../content/review/README.md)) |
-| 16 Release | e6da0e5, 375ab7c | done; burst measured on the host, 1 GB kept as a recorded exception (revisit in milestone C) |
+| 15 Content, smoke | 5fd8952, ba2575b, 3c0141c | complete and deployed: 22 problems `human_verified` by Thomas 2026-10-22 ([review](../../../../../content/review/README.md)) |
+| 16 Release | e6da0e5, 375ab7c, 9bf6b29 | implemented and deployed; burst measured, 1 GB sizing exception; B-R4 load validation open |
 
 ## Evidence and debugging
 
-- [Verification evidence](07-verification-evidence.md): reviewed verifier results, historical
-  CI runs and the app-track checks reported in the 2026-10-21 handoff.
+- [Verification evidence](07-verification-evidence.md): fresh 2026-10-22 local checks,
+  reviewed verifier artifacts and separately dated CI/host records.
 - [Debugging tree](../../../../ops/debugging/README.md): local setup, symptoms, files and tests.
 - [App rulings A1–A21](06-app-track-rulings.md) amend task recipes for persistence and UI.
 
@@ -55,8 +53,10 @@ with regression tests ([dispositions](../../../../reviews/2026-10-21-milestone-b
 
 ## Remaining actions
 
-See the [handoff](../../../../../handoff.md) "Resume here": one fresh whole-branch review (Codex)
-before milestone B exit. Host sizing is deferred to milestone C as a recorded exception.
+Resolve the [2026-10-22 review](../../../../reviews/2026-10-22-milestone-b/README.md):
+B-R5 (P1) reservation reuse/cross-user result corruption first, then B-R1–B-R4 (P2).
+B-R2 requires revising A14; use a new migration, since 0001/0002 are deployed.
+See the [handoff](../../../../../handoff.md) for repair order. Host sizing stays deferred to C.
 
 Record actual hours in the [hours log](../../../../ops/hours.md); no B actuals are supplied.
 At 30 h, stop at the next task boundary for a scope/date/contingency decision with Thomas.
@@ -67,3 +67,7 @@ Synced handoff, indexes, task recipes and operations against d428bd7 and the loc
 Added evidence and debugging children; preserved original references and dated reviews.
 The initial sync changed Markdown only. The later [code review](../../../../reviews/2026-10-21-milestone-b/03-validation.md)
 reran local checks and added isolated probes; no production code was changed.
+
+2026-10-22: corrected stale completion/follow-up/evidence indexes. Fresh full suite, content
+and both verifier gates pass; [validation](../../../../reviews/2026-10-22-milestone-b/04-validation.md)
+separates these checks from the five failing new probes and historical deployment evidence.

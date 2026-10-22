@@ -2,15 +2,18 @@
 
 [Execution status](03-execution-status.md) · [Plan](README.md) · [Rulings](02-execution-rulings.md)
 
-Updated 2026-10-21. Historical observations below are not new rulings or fresh test results.
-Keep release-relevant evaluation issues ahead of optional cleanup.
+Updated 2026-10-22. Current review findings come first; historical/deferred observations follow.
 
-## Open app-track review findings
+## Open whole-branch review findings
 
-[2026-10-21 review](../../../../reviews/2026-10-21-milestone-b/README.md): B-A1 (P1) action identity;
-B-A2 raw JSON depth; B-A3 database contention; B-A4 content version drift; B-A5 stale UI results
-(the latter four P2). All five are reproduced, unfixed, and need regression coverage.
-Resolve before milestone B exit; passing existing tests does not cover these cases.
+[2026-10-22 review](../../../../reviews/2026-10-22-milestone-b/README.md), all reproduced and open:
+B-R5 (P1) reservation deletion/reuse can attach another user's result; B-R1 (P2) edited answer
+resends old payload; B-R2 (P2) recovery loses original revision; B-R3 (P2) grading inflates
+answer time; B-R4 (P2) load checks accept database errors/discard failures. Fix before B exit.
+Repair B-R5/B-R2 together with new migration(s), explicitly revising A14.
+
+Prior [B-A1–B-A5](../../../../reviews/2026-10-21-milestone-b/04-dispositions.md) were fixed in
+4eba48f; their normal regressions pass in the fresh 890-test suite. They are not open work.
 
 ## Resolved for task 9
 
@@ -65,7 +68,7 @@ Resolve before milestone B exit; passing existing tests does not cover these cas
   Keep this browser limitation visible when task 14 handles adversarial input.
 - Tasks 12–14 implement atomic writes/replay, friendly messages and pre-pool kind checks;
   see [A1–A18](06-app-track-rulings.md) and [app debugging](../../../../ops/debugging/01-app.md).
-- Task 15: 16 drafts written and checked; Thomas's [content review](../../../../../content/review/README.md) is open.
+- Task 15: all 16 drafts approved by Thomas; 22 reviewed problems deployed ([review](../../../../../content/review/README.md)).
 - **Verifier speed (2026-10-21):** wrong answers to nested trig compositions such as
   `sin(cos 7x)` time out (3 s) and return `unable_to_verify` instead of `incorrect`; the
   correct answer proves in 0.03 s. Exercise 235 was dropped for this. Safe (never a false
@@ -73,5 +76,6 @@ Resolve before milestone B exit; passing existing tests does not cover these cas
 - **content_check has no hard deadline:** in-process `check()` overruns its soft budget, so a
   slow problem hangs the CLI (and CI/Docker build) instead of reporting it. Run each problem
   through the pool, or a subprocess with a timeout, and report `timeout` as a defect.
-- Task 16: container migrations/storage, container e2e, host memory sizing, supported-expression
-  documentation and deployment evidence remain open. See [release debugging](../../../../ops/debugging/02-release.md).
+- Task 16: storage/migrations, image e2e, verifier docs and deployment implemented.
+  [Host sizing](../../../../ops/host-sizing.md) is deferred to C by Thomas; B-R4 remains open.
+  [Release debugging](../../../../ops/debugging/02-release.md) records current paths.

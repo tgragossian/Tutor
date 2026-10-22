@@ -1,18 +1,20 @@
 # Documentation
 
-Milestone B (practice loop) is live from `main`; host sizing and a final review remain.
+Milestone B (practice loop) is live. Whole-branch review is complete; five findings and the
+hours log remain. Host sizing is deferred to C under Thomas's recorded exception.
 Read the [current handoff](../handoff.md) before continuing work.
 
 - [Current handoff](../handoff.md): status, priorities and next action.
 - [Decisions](decisions/README.md): accepted direction and precedence.
 - [Active portfolio-core spec](superpowers/specs/2026-10-13-portfolio-core/README.md): approved contracts for milestones A–B.
 - [Active option B delivery plan](superpowers/plans/portfolio-mvp/README.md): milestones and gates.
-  - [Milestone B tasks](superpowers/plans/portfolio-mvp/milestone-b/README.md): tasks 1–15 done; task 16 partly done.
+  - [Milestone B tasks](superpowers/plans/portfolio-mvp/milestone-b/README.md): tasks 1–16 implemented; review fixes pending.
   - [R24 implementation](superpowers/plans/portfolio-mvp/milestone-b/r24/README.md): scoped precision, debugging and release checklist.
-  - [App-track rulings](superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md): A1–A18.
+  - [App-track rulings](superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md): A1–A21; recovery ruling A14 needs revision.
   - [Verification evidence](superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md): local checks versus historical CI.
 - [Reviews](reviews/README.md): dated findings and evidence.
-  - [2026-10-21 code review](reviews/2026-10-21-milestone-b/README.md): five reproduced app-track issues; next fixes for Claude.
+  - [2026-10-22 code review](reviews/2026-10-22-milestone-b/README.md): prioritized fixes, modular debugging and executable probes.
+  - [2026-10-21 code review](reviews/2026-10-21-milestone-b/README.md): historical issues and implemented fixes.
 - Historical references:
   - [Original handoff](handoff/README.md).
   - [Original design](superpowers/specs/2026-10-13-core-practice-loop-design.md).

@@ -2,12 +2,13 @@
 
 [Handoff](../../../../handoff.md) · [Review](../../../reviews/2026-10-13/README.md)
 
-2026-10-21: B tasks 1–14 merged to `main` with review fixes and container storage; task 15
-partial; task 16 (host memory sizing, deploy) pending. See the [handoff](../../../../handoff.md).
+2026-10-22: B tasks 1–16 implemented and deployed. Whole-branch review found five open issues;
+fixes and the hours log remain. Host sizing is deferred to C under Thomas's recorded exception.
+See the [handoff](../../../../handoff.md).
 See [execution status](milestone-b/03-execution-status.md) and [review follow-ups](milestone-b/05-follow-ups.md).
 
 Status: option B selected; [milestone A](milestone-a/README.md) complete and live.
-[Milestone B plan](milestone-b/README.md) approved by Thomas; execution is underway.
+[Milestone B plan](milestone-b/README.md) approved by Thomas; exit awaits review fixes.
 [Decision record](../../../decisions/0001-delivery-verifier-attribution.md) takes precedence over draft rules.
 Goal: a deployed Calculus I practice tutor with measured verification, citation-based
 hints, reproducible retrieval experiments and clear operational limits.

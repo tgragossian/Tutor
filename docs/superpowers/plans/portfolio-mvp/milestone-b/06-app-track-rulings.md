@@ -12,6 +12,7 @@ Made during inline execution on 2026-10-21. Each costs little if wrong; Thomas m
   load (SQLite drops offsets). Enum columns store their values with no CHECK constraint.
 - **A3:** SQLite transactions start with `BEGIN IMMEDIATE`, so concurrent writers wait on
   `busy_timeout` instead of failing at once with "database is locked" (review focus 3).
+  Amended by B-A3/4eba48f: only writes use IMMEDIATE; reads use deferred transactions under WAL.
 - **A4:** `attempt_results.applied` marks results stored after a lost race (spec 06 step 4).
   Without it a stale result and a real correct result look the same (`counts_as_try` false).
   Added to the never-deployed 0001 baseline.
@@ -39,6 +40,9 @@ Made during inline execution on 2026-10-21. Each costs little if wrong; Thomas m
 - **A13:** precision hints only on numeric problems. Starting on mastered topics gives a finished
   session (`Done("all_correct")`) rather than an error.
 - **A14:** an orphaned reservation (R5) is regraded against the replay's `item_revision`.
+  **Review action (2026-10-22):** [B-R2/B-R5](../../../../reviews/2026-10-22-milestone-b/01-recovery.md)
+  demonstrate recovery correctness defects. Proposed replacement: persist the original revision
+  and claim exclusive recovery ownership. This amendment is not implemented yet.
 
 ## Pages (task 14)
 

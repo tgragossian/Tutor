@@ -6,7 +6,8 @@ Live: <https://tutor.thomasgragossian.dev>
 
 Status (2026-10-22): **milestone B: practice loop live.** Accounts, practice on three
 derivative topics (22 reviewed problems) with MathLive input and a proof-based SymPy grader,
-and history. Left for milestone B: host memory sizing and a final review. See the
+and history. Whole-branch review is complete; five findings and the hours log remain.
+Host sizing is deferred to C under a recorded exception. See the
 [handoff](handoff.md), [what the verifier accepts](docs/verifier/supported.md),
 [verifier results](evals/verifier/results/dev-b.md) and [API contracts](contracts/README.md).
 Option B remains selected: ship the core early, then restore features in a gated queue.
@@ -23,8 +24,8 @@ and [active implementation sequence](docs/superpowers/plans/portfolio-mvp/README
 README.md → handoff.md → docs/README.md
   docs/decisions/                  Accepted decisions and precedence
   docs/ops/                       Local setup, host record, runbook, security
-  docs/verifier/                  What the grader accepts; results
     debugging/                    Symptom → owner → focused check
+  docs/verifier/                  What the grader accepts; results
   docs/superpowers/plans/portfolio-mvp/
     milestone-b/                  Status, rulings, evidence and file map
       tasks/                      One implementation task per file
