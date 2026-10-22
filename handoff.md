@@ -1,18 +1,18 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-22 after Codex rechecked fixes ca54407 at f3a4e40.
-Both branches were at f3a4e40; these recheck/docs edits are in the main checkout only.
-Implementation worktree: `.claude/worktrees/milestone-b`. Host last recorded at 9bf6b29.
+Owner: Thomas Gragossian. Updated: 2026-10-22, after the review-fix deploy.
+`main` and `milestone-b` are identical. Implementation worktree: `.claude/worktrees/milestone-b`.
+The host runs `main` 8057590 (Thomas deployed; migration 0003 applied).
 
 **Milestone B status:** B-R1/B-R2/B-R3/B-R5 verified fixed by Codex; B-R4's remaining case
-(verifier crash counted as graded) fixed in 04de2d2. To close B: deploy (migration 0003), log hours.
+(verifier crash counted as graded) fixed in 04de2d2. All fixes deployed. To close B: log hours.
 Host sizing stays deferred to milestone C under Thomas's recorded exception.
 
 ## Live site (https://tutor.thomasgragossian.dev)
 
-- Practice loop from `main` 9bf6b29: accounts, practice on three derivative topics with MathLive,
+- Practice loop from `main` 8057590: accounts, practice on three derivative topics with MathLive,
   22 reviewed problems (7 + 7 + 8), history with "Clear history". `/readyz` ready, `servable` 22;
-  migrations 0001–0002.
+  migrations 0001–0003.
 - First `/readyz` after `up -d` returns 502 for 30–60 s while the SymPy worker starts: normal.
 - Memory before the 2026-10-22 burst: app+worker 136 MiB, Caddy 15 MiB, 358 MiB available,
   118 MiB in swap.
@@ -41,9 +41,7 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
 
 ## Resume here
 
-1. **Deploy** via the runbook: migration **0003**, `migrate` = `Exited (0)`, then `/readyz`
-   ready with `servable` 22. [B-R4](docs/reviews/2026-10-22-milestone-b/07-recheck.md) recheck
-   case fixed in 04de2d2 (burst keeps the `internal_error` reason; `repro_recheck.py` passes).
+1. **Done 2026-10-22:** review fixes deployed (8057590, migration 0003); Thomas confirmed healthy.
 2. **Host sizing: deferred by Thomas (2026-10-22).** Stay on 1 GB, pool 1 worker / 384 MB, as a
    recorded exception: the worst-case rule (≈973 MiB > 85% of 1 GB) fails, but measured use
    leaves ≥ 281 MiB free under the burst ([host sizing](docs/ops/host-sizing.md)). Revisit in
@@ -53,7 +51,9 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
 3. Record actual hours with Thomas ([hours](docs/ops/hours.md)); 30-hour checkpoint pending.
 4. [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): verifier is
    slow on wrong answers to nested trig (`sin(cos 7x)`); `content_check` lacks a hard deadline.
-5. Then milestone C (RAG hints). First confirm OpenStax's licence allows RAG ingestion.
+5. **Next: milestone C (RAG hints)**, per the [delivery plan](docs/superpowers/plans/portfolio-mvp/03-rag.md).
+   Start with a design session (brainstorming) and the OpenStax licence check for RAG ingestion.
+   Fine-tuning (LoRA) stays last in the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).
 
 ## Working notes for Claude
 
