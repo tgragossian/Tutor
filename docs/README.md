@@ -1,7 +1,7 @@
 # Documentation
 
 Milestone B (practice loop) is live. Application review fixes are verified (deploy pending);
-B-R4 remains partially open for verifier-crash handling in the load tool. See the
+the load tool's verifier-crash case (B-R4) is fixed too. See the
 [fix recheck](reviews/2026-10-22-milestone-b/07-recheck.md).
 The hours log remains. Host sizing is deferred to C under Thomas's recorded exception.
 Read the [current handoff](../handoff.md) before continuing work.

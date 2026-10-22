@@ -5,6 +5,9 @@
 Author reported all five findings fixed in **ca54407**.
 **Codex recheck at f3a4e40:** B-R1/B-R2/B-R3/B-R5 verified; B-R4 partially open for
 HTTP 200 verifier `internal_error` outcomes. See [recheck and evidence](07-recheck.md).
+**Recheck gap fixed in 04de2d2:** the burst keeps the `internal_error` reason in its label, so
+a crashed verifier is unexpected and not graded work; ordinary abstentions still count.
+Full-path tests (all-crash, crash among grades, abstention); `repro_recheck.py` now passes.
 
 The implementation changes below landed in ca54407
 (`fix: review B-R1-B-R5 …`). The five original probes now pass unchanged; their cases

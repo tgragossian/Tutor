@@ -4,9 +4,8 @@ Owner: Thomas Gragossian. Updated: 2026-10-22 after Codex rechecked fixes ca5440
 Both branches were at f3a4e40; these recheck/docs edits are in the main checkout only.
 Implementation worktree: `.claude/worktrees/milestone-b`. Host last recorded at 9bf6b29.
 
-**Milestone B status:** B-R1/B-R2/B-R3/B-R5 verified fixed; **B-R4 partially open** (load tool
-accepts verifier crashes). Fix that case before B closure; deploy migration 0003 and log hours.
-The load-tool issue does not require delaying deployment of the application integrity fixes.
+**Milestone B status:** B-R1/B-R2/B-R3/B-R5 verified fixed by Codex; B-R4's remaining case
+(verifier crash counted as graded) fixed in 04de2d2. To close B: deploy (migration 0003), log hours.
 Host sizing stays deferred to milestone C under Thomas's recorded exception.
 
 ## Live site (https://tutor.thomasgragossian.dev)
@@ -42,10 +41,9 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
 
 ## Resume here
 
-1. **Finish [B-R4](docs/reviews/2026-10-22-milestone-b/07-recheck.md):** preserve verdict reason
-   in load results and reject `internal_error` even under HTTP 200. New failing probe included.
-   **Deploy application fixes** via the runbook: migration **0003**, `migrate` = `Exited (0)`,
-   then `/readyz` ready with `servable` 22. No deployment performed by the recheck.
+1. **Deploy** via the runbook: migration **0003**, `migrate` = `Exited (0)`, then `/readyz`
+   ready with `servable` 22. [B-R4](docs/reviews/2026-10-22-milestone-b/07-recheck.md) recheck
+   case fixed in 04de2d2 (burst keeps the `internal_error` reason; `repro_recheck.py` passes).
 2. **Host sizing: deferred by Thomas (2026-10-22).** Stay on 1 GB, pool 1 worker / 384 MB, as a
    recorded exception: the worst-case rule (≈973 MiB > 85% of 1 GB) fails, but measured use
    leaves ≥ 281 MiB free under the burst ([host sizing](docs/ops/host-sizing.md)). Revisit in

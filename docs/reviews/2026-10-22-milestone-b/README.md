@@ -17,8 +17,8 @@ all five original probes pass after ca54407. They remain outside ordinary test c
 | B-R3 | P2 | Answer-time history includes verifier and recovery delay | [Timing](02-ui-and-timing.md#b-r3-p2-stop-student-timing-at-submission) |
 | B-R4 | P2 | Load validation accepts database failures; its wrapper discards failure status | [Release](03-release.md) |
 
-**Recheck at f3a4e40:** B-R1/B-R2/B-R3/B-R5 verified fixed in ca54407; **B-R4 partially open**:
-the load CLI still accepts verifier `internal_error` outcomes. See [Codex recheck](07-recheck.md)
+**Recheck at f3a4e40:** B-R1/B-R2/B-R3/B-R5 verified fixed in ca54407; B-R4's remaining case
+(verifier `internal_error` under HTTP 200) fixed in 04de2d2. See [Codex recheck](07-recheck.md)
 and [author dispositions](06-dispositions.md). Both recovery departures are accepted.
 No production incident is asserted; reproductions use temporary databases or stubbed transport.
 

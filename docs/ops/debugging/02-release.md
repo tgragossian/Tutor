@@ -42,7 +42,8 @@ For a source checkout use [development setup](../development.md). For Docker com
 1. [Whole-branch review findings](../../reviews/2026-10-22-milestone-b/README.md) are fixed
    ([dispositions](../../reviews/2026-10-22-milestone-b/06-dispositions.md)). Deploying ca54407+ runs migration 0003: `migrate` must exit 0.
 2. Load diagnostics: `submit_burst.py` fails on anything but graded answers and
-   `verifier_busy`, and on zero grades; `measure.sh` returns that status (B-R4 fix).
+   `verifier_busy`, on verifier `internal_error` (even under 200) and on zero grades;
+   `measure.sh` returns that status (B-R4 fix).
 3. Retain Thomas's 1 GB / one worker / 384 MB exception; revisit sizing in milestone C.
    Windows tests cannot establish Linux `RLIMIT_AS` containment.
 4. Record actual hours, rerun affected checks after fixes, and retain dated deployment evidence.

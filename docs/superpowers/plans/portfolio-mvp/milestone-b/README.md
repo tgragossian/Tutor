@@ -3,7 +3,7 @@
 [Delivery plan](../README.md) · [Milestone B goals](../02-practice.md) · [Handoff](../../../../../handoff.md)
 
 **Status (2026-10-22):** tasks 1–16 implemented and deployed; B-A1–B-A5 fixed. Whole-branch
-review application fixes verified in ca54407 (deploy pending); B-R4 partially open, plus hours.
+review fixes verified in ca54407, B-R4 recheck case fixed in 04de2d2 (deploy pending); hours.
 Host sizing is deferred
 to C under Thomas's recorded exception. See [execution status](03-execution-status.md).
 
@@ -27,7 +27,7 @@ to C under Thomas's recorded exception. See [execution status](03-execution-stat
 
 The [2026-10-22 code review](../../../../reviews/2026-10-22-milestone-b/README.md) records one
 P1 and four P2 findings. The [fix recheck](../../../../reviews/2026-10-22-milestone-b/07-recheck.md)
-verifies the application fixes and both recovery departures; B-R4 load-tool crash handling remains.
+verifies the application fixes and both recovery departures; its B-R4 case is fixed in 04de2d2.
 
 ## Plan files
 

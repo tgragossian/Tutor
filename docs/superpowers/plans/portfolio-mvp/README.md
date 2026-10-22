@@ -3,7 +3,7 @@
 [Handoff](../../../../handoff.md) · [Review](../../../reviews/2026-10-13/README.md)
 
 2026-10-22: B tasks 1–16 implemented; application review fixes verified, deployment pending.
-B-R4's load-tool crash handling and hours remain. Host sizing stays deferred to C by Thomas.
+B-R4 fixed; deploy and hours remain. Host sizing stays deferred to C by Thomas.
 See the [handoff](../../../../handoff.md).
 See [execution status](milestone-b/03-execution-status.md) and [review follow-ups](milestone-b/05-follow-ups.md).
 
