@@ -2,7 +2,7 @@
 
 [Decisions index](README.md) · [Decision 0004](0004-rag-source-models-and-evaluation.md) · [Fine-tuning plan](../superpowers/plans/portfolio-mvp/04-release.md)
 
-Status: accepted by Thomas, 2026-10-22 (§1–§3). §4 items are open. Licences as found on 2026-10-22.
+Status: accepted by Thomas, 2026-10-22 (§1–§4 routing). Timing is open. Licences as found on 2026-10-22.
 
 ## 1. Datasets and their roles
 
@@ -40,10 +40,14 @@ Status: accepted by Thomas, 2026-10-22 (§1–§3). §4 items are open. Licences
 - Report rubric scores with uncertainty, per use case, plus cost per hint. A null result is a
   reported finding. OpenStax text is not used for training (decision 0004 §1).
 
-## 4. Open (Thomas to decide)
+## 4. Routing (decided) and timing (open)
 
-- **Use-case routing:** Claude recommends choosing the use case from the student's action (wrong
-  answer → feedback on work; Hint → active-learning hint; "explain more" → adaptive explanation)
-  rather than an LLM classifier, which is needed only for free-text chat.
-- **Timing:** move the fine-tuning experiment to directly after milestone C, or keep it last in
+- **Use-case routing (Thomas, 2026-10-22): buttons.** On the practice page the student picks the
+  kind of help, so no classifier is needed: "What did I do wrong?" after a wrong answer →
+  feedback on work; **Hint** → active-learning hint; **Explain this** (with a short list of
+  confusion options) → adaptive explanation. The server adds the problem, attempts, tries used
+  and any recorded misconception the wrong answer matches (checked with the SymPy verifier).
+  A free-text question box comes later; the hint model then states the use case in the same
+  call, with routing accuracy measured on TutorBench's use-case labels.
+- **Timing (open):** move the fine-tuning experiment to directly after milestone C, or keep it last in
   the expansion queue.

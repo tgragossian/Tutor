@@ -57,7 +57,8 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
    baseline vs Claude Opus/Sonnet/Haiku 5.5; evaluate hint behaviour on hard cases. Next: design session.
    [Decision 0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md): train LoRA on non-calculus
    TutorBench + Eedi (Thomas: fair use; weights unpublished, git-ignored); TutorBench Calculus,
-   TutorMoments and C cases are evaluation only. Open: use-case routing, fine-tuning timing.
+   TutorMoments and C cases are evaluation only. Help type chosen by buttons (decided);
+   Muse Spark added as a candidate (0004). Open: fine-tuning timing.
    Fine-tuning (LoRA) stays last in the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).
 
 ## Working notes for Claude
