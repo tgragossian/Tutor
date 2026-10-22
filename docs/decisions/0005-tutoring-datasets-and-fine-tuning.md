@@ -86,6 +86,12 @@ Status: accepted by Thomas, 2026-10-22. Amends decision 0001's delivery order (�
      LoRAs before training; otherwise train on a Qwen they do serve. Check upload/data terms.
   2. **Serverless GPU with scale-to-zero** (e.g. RunPod, Modal, Hugging Face endpoints): our
      container and private weights, billed per second; cold starts of tens of seconds.
+- **Shipped as a live A/B test (Thomas, 2026-10-22):** base Qwen3.5-9B vs the same base + LoRA,
+  both served per token on one provider (no idle GPU). Each student is assigned one arm at
+  sign-up (not per hint) and keeps it; the arm is logged on every hint. Live outcomes: the
+  SymPy-checked result of the next attempt after a hint, deterministic answer-leak rate, reveal
+  rate, and a thumbs up/down. With ~50 students this is descriptive only; the offline paired
+  A/B on held-out sets remains the headline result.
 - **Reliability:** every hint request has a timeout and falls back LoRA model → hosted C model →
   "hints unavailable" (practice keeps working). Per-user rate limits and the global usage budget
   from the C plan apply before any public launch; they also limit distillation by heavy querying.
