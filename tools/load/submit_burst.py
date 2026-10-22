@@ -8,8 +8,9 @@ runs on the host's system Python:
     python3 tools/load/submit_burst.py --base-url https://tutor.thomasgragossian.dev
 
 Expected replies: 200 with a verdict, or 503 verifier_busy when the burst exceeds the
-queue. Anything else (database_busy, format replies, other errors, transport failures) is
-unexpected, and so is a run with no graded answer; either makes the exit status 1.
+queue. Anything else (database_busy, format replies, a verifier internal_error even under
+200, other errors, transport failures) is unexpected, and so is a run with no graded answer;
+either makes the exit status 1.
 """
 
 from __future__ import annotations
@@ -181,6 +182,11 @@ def burst(clients: list[tuple[Client, dict[str, Any]]], target: Target) -> list[
         if status == 200:
             out = reply["outcome"]
             label = out.get("status") or f"format:{out.get('code')}"
+            # A crashed verifier answers 200 unable_to_verify/internal_error: keep the reason
+            # so it is not counted as graded work (review recheck B-R4). Ordinary abstentions
+            # (not_proven, a timeout) stay plain verdicts.
+            if out.get("reason") == "internal_error":
+                label = f"{label}:internal_error"
         else:
             label = (reply or {}).get("error", "no_body")
         results[i] = (status, label, ms)

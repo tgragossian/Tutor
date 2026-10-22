@@ -87,3 +87,50 @@ def test_main_fails_when_nothing_was_graded(monkeypatch: pytest.MonkeyPatch) -> 
     assert burst.main(["--base-url", "http://x", "--users", "1"]) == 1
     monkeypatch.setattr(burst, "burst", lambda clients, target: [(200, "incorrect", 1.0)])
     assert burst.main(["--base-url", "http://x", "--users", "1"]) == 0
+
+
+def _crash() -> dict[str, object]:
+    return {"status": "unable_to_verify", "reason": "internal_error", "method": "none"}
+
+
+def _verdict(status: str, reason: str) -> dict[str, object]:
+    return {"status": status, "reason": reason, "method": "refutation"}
+
+
+def _run_burst(monkeypatch: pytest.MonkeyPatch, outcomes: list[dict[str, object]]) -> int:
+    """The real burst/summary/CLI path with HTTP and setup stubbed (review recheck B-R4)."""
+    import load.submit_burst as burst
+
+    replies = iter(outcomes)
+    lock = __import__("threading").Lock()
+
+    def call(self: object, method: str, path: str, body: object = None) -> tuple:
+        with lock:
+            return 200, {"outcome": next(replies)}, []
+
+    monkeypatch.setattr(burst.Client, "call", call)
+    monkeypatch.setattr(burst, "register", lambda client, name: None)
+    item = {"session_item_id": 1, "revision": 0}
+    monkeypatch.setattr(
+        burst, "open_at_target", lambda client, target: {"session_id": 1, "item": item}
+    )
+    return burst.main(["--base-url", "http://unused.invalid", "--users", str(len(outcomes))])
+
+
+def test_verifier_crashes_under_http_200_fail_the_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    assert _run_burst(monkeypatch, [_crash(), _crash()]) == 1
+
+
+def test_a_crash_among_real_grades_still_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    assert _run_burst(monkeypatch, [_verdict("incorrect", "counterexample"), _crash()]) == 1
+
+
+def test_ordinary_abstention_is_still_a_graded_answer(monkeypatch: pytest.MonkeyPatch) -> None:
+    timeout = {"status": "unable_to_verify", "reason": "not_proven", "method": "none"}
+    assert _run_burst(monkeypatch, [_verdict("incorrect", "counterexample"), timeout]) == 0
+
+
+def test_internal_error_label_is_unexpected_and_not_graded() -> None:
+    results = [(200, "unable_to_verify:internal_error", 5.0), (200, "incorrect", 5.0)]
+    _, unexpected = summarize(results)
+    assert unexpected == 1 and graded(results) == 1
