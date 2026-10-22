@@ -78,8 +78,14 @@ Status: accepted by Thomas, 2026-10-22. Amends decision 0001's delivery order (�
 - **Before the first run:** request the EC2 GPU vCPU quota (new accounts often start at 0 for
   G instances), and raise the $10/month budget alert to cover training. A budget alert is a
   notification, not a cap: stop or terminate instances after every run.
-- **Serving:** live hints use the hosted model chosen in milestone C (per-token; ≈ $9 for 50
-  students × 30 hints at Muse Spark prices). A GPU running the LoRA model 24/7 (≈ $700+/month)
-  is not justified for an expected ≤ 50 users; the LoRA model is evaluated offline and can be
-  demoed on demand. Revisit if it wins A/B 2 and usage grows. The global usage budget from the
-  C plan applies before any public launch.
+- **Serving the LoRA model without a 24/7 GPU** (an always-on A10G is ≈ $700+/month). Weights are
+  never exposed: students only reach an API that returns hint text. In order of preference:
+  1. **Per-token multi-LoRA hosting** (e.g. Fireworks, Together): upload the private adapter onto
+     a base model the provider already serves; billed per token like the base model, no idle cost,
+     no cold start. **Choose the base model by this:** confirm the provider serves Qwen3.5-9B
+     LoRAs before training; otherwise train on a Qwen they do serve. Check upload/data terms.
+  2. **Serverless GPU with scale-to-zero** (e.g. RunPod, Modal, Hugging Face endpoints): our
+     container and private weights, billed per second; cold starts of tens of seconds.
+- **Reliability:** every hint request has a timeout and falls back LoRA model → hosted C model →
+  "hints unavailable" (practice keeps working). Per-user rate limits and the global usage budget
+  from the C plan apply before any public launch; they also limit distillation by heavy querying.

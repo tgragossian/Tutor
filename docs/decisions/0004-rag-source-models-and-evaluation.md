@@ -40,6 +40,7 @@ Status: accepted by Thomas, 2026-10-22. Governs milestone C; amends the C evalua
   vs 56.6% for the next entry (BenchLM mirror of Scale's 2026-09-29 snapshot). Caveats: a
   leaderboard row may include scaffolding, the version tested is unstated, and preview terms
   (data use, limits, use of outputs to train other models) must be checked before relying on it.
+  **Thomas, later 2026-10-22: not planning to use Muse Spark;** it is not a candidate unless re-added.
 - **Selection rule:** the cheapest candidate that is non-inferior to the best one on the
   primary measures below, within a margin fixed before the run. Record prices on the date
   checked, model versions and per-case results.
