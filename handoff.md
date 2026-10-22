@@ -52,7 +52,9 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
 4. [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): verifier is
    slow on wrong answers to nested trig (`sin(cos 7x)`); `content_check` lacks a hard deadline.
 5. **Next: milestone C (RAG hints)**, per the [delivery plan](docs/superpowers/plans/portfolio-mvp/03-rag.md).
-   Start with a design session (brainstorming) and the OpenStax licence check for RAG ingestion.
+   [Decision 0004](docs/decisions/0004-rag-source-models-and-evaluation.md) (Thomas, 2026-10-22):
+   OpenStax text may go to a hosted LLM (CC licence; AI clause a recorded risk); GPT-5.2 is the
+   baseline vs Claude Opus/Sonnet/Haiku 5.5; evaluate hint behaviour on hard cases. Next: design session.
    Fine-tuning (LoRA) stays last in the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).
 
 ## Working notes for Claude

@@ -27,9 +27,14 @@ An LLM response never changes the deterministic answer verdict.
 Use a small fixed hint ladder: concept reminder, targeted next step, fuller explanation.
 Track hint/reveal events so later practice metrics distinguish assisted performance.
 Choose provider/model after a small cost-quality comparison; avoid hardcoding a guessed winner.
+Candidates and selection rule: [decision 0004](../../../decisions/0004-rag-source-models-and-evaluation.md) (GPT-5.2 baseline).
 Set request/output limits, a timeout and a global usage budget before a public demo.
 
 ## Evaluation gate
+
+[Decision 0004](../../../decisions/0004-rag-source-models-and-evaluation.md) §3 governs: measure leakage,
+error-specific hints, endorsement of wrong reasoning and citation support on deliberately
+hard cases; compare models by non-inferiority. Math correctness alone is near ceiling.
 
 Prepare 40–60 human-reviewed calculus cases with relevance judgments before tuning.
 Partition by source problem/family into development and final evaluation sets.

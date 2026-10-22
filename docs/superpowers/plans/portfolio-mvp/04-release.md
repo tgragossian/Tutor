@@ -37,6 +37,7 @@ Replace every bracket with a measured, clearly defined result.
 Proceed after the earlier expansion stages, including extraction, pass their gates.
 The baseline must already be published and reproducible.
 Train a small LoRA adapter with PyTorch/Hugging Face tooling on a licensed dataset.
+Target hint behaviour, not calculus correctness ([decision 0004](../../../decisions/0004-rag-source-models-and-evaluation.md) §4).
 Separate training, development and evaluation by original problem/conversation.
 Compare the same base model before/after adaptation, with fixed retrieval and decoding.
 Use held-out calculus interactions to measure transfer from MathDial.
