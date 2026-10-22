@@ -155,7 +155,9 @@ def create_app(settings: Settings, *, pool: _Pool | None = None) -> FastAPI:
         try:
             if pool is None:
                 # check_fn=None: the worker imports the checker, never this process (R8).
-                owned = await run_in_threadpool(VerifierPool)
+                owned = await run_in_threadpool(
+                    lambda: VerifierPool(size=settings.pool_size, memory_mb=settings.pool_memory_mb)
+                )
                 attach_pool(owned)
             yield
         finally:

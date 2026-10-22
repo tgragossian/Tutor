@@ -80,6 +80,34 @@ def test_settings_read_env_prefix(monkeypatch: pytest.MonkeyPatch) -> None:
     assert s.env == "test" and s.content_path == Path("elsewhere.json")
 
 
+def test_pool_settings_default_and_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    assert (Settings().pool_size, Settings().pool_memory_mb) == (1, 384)
+    monkeypatch.setenv("MATHTUTOR_POOL_SIZE", "2")
+    monkeypatch.setenv("MATHTUTOR_POOL_MEMORY_MB", "256")
+    assert (Settings().pool_size, Settings().pool_memory_mb) == (2, 256)
+
+
+def test_pool_settings_must_be_positive() -> None:
+    with pytest.raises(ValidationError):
+        Settings(pool_size=0)
+    with pytest.raises(ValidationError):
+        Settings(pool_memory_mb=0)
+
+
+def test_create_app_passes_pool_settings(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: dict[str, object] = {}
+
+    def fake_pool(**kwargs: object) -> SpyPool:
+        seen.update(kwargs)
+        return SpyPool()
+
+    monkeypatch.setattr("mathtutor.web.app.VerifierPool", fake_pool)
+    settings = make_settings(tmp_path).model_copy(update={"pool_size": 2, "pool_memory_mb": 256})
+    with TestClient(create_app(settings)):
+        pass
+    assert seen == {"size": 2, "memory_mb": 256}
+
+
 def test_index_lists_topics_and_attribution(client: TestClient) -> None:
     r = client.get("/")
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")

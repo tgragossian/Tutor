@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal, Self
 
-from pydantic import SecretStr, model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 MIN_SECRET_LENGTH = 32
@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     secret_key: SecretStr | None = None
     content_path: Path = Path("content/compiled/problems.json")
     database_url: str = "sqlite:///data/mathtutor.db"
+    # Verifier workers and each worker's address-space cap (RLIMIT_AS, Linux only); size these
+    # from the host's measured memory (docs/ops/host.md).
+    pool_size: int = Field(default=1, ge=1)
+    pool_memory_mb: int = Field(default=384, ge=1)
 
     @model_validator(mode="after")
     def _production_needs_secret(self) -> Self:

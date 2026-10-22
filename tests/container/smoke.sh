@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Container smoke test: build the image, check it runs as uid 10001 without Node, migrates
 # a /data volume owned by 10001, serves /readyz, grades one real answer through the API,
-# refuses to start without a secret, and that deploy/compose.yaml is valid.
-# Run from the repo root: bash tests/container/smoke.sh
+# logs each request once, refuses to start without a secret, and that deploy/compose.yaml
+# is valid. With E2E=1 it also runs the browser test (tools/e2e) against the container.
+# Run from the repo root: bash tests/container/smoke.sh   (or: E2E=1 bash ...)
 set -euo pipefail
 
 IMAGE=mathtutor:local
@@ -95,6 +96,18 @@ case "$result" in
   *'"status":"correct"'*) ;;
   *) docker logs "$NAME" >&2; fail "submit was not graded correct: $result" ;;
 esac
+
+# The app writes its own request log; uvicorn's access log is off (no request logged twice).
+if docker logs "$NAME" 2>&1 | grep -q '" [0-9][0-9][0-9]'; then
+  docker logs "$NAME" >&2; fail "uvicorn access log is on: requests are logged twice"
+fi
+docker logs "$NAME" 2>&1 | grep -q '"route": "/api/sessions/{session_id}/submit"'   || fail "the app's request log has no line for the submit"
+
+# Browser test on the production image. localhost, not 127.0.0.1: Chromium keeps the Secure
+# session cookie over plain http only for localhost.
+if [ "${E2E:-0}" = 1 ]; then
+  BASE_URL=http://localhost:18000 npm run e2e --prefix tools     || { docker logs "$NAME" >&2; fail "browser e2e failed against the container"; }
+fi
 
 set +e
 timeout 10 docker run --rm --name "$NAME-nosecret" "$IMAGE" >/dev/null 2>&1

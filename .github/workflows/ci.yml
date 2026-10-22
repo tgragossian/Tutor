@@ -30,35 +30,18 @@ jobs:
       - run: npm test --prefix tools
       - run: npm run compile --prefix tools
       - run: git diff --exit-code content/compiled
-  e2e:
-    needs: [python, node]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.13.0"
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - run: uv sync --locked
-      - run: npm ci --prefix tools
-      - run: npx playwright install --with-deps chromium
-        working-directory: tools
-      - name: Migrate and start the app
-        run: |
-          uv run alembic -x url=sqlite:////tmp/e2e.db upgrade head
-          MATHTUTOR_DATABASE_URL=sqlite:////tmp/e2e.db nohup uv run uvicorn             mathtutor.web.app:app_factory --factory --port 8000 > /tmp/app.log 2>&1 &
-          for i in $(seq 1 90); do curl -fsS http://127.0.0.1:8000/readyz && exit 0; sleep 1; done
-          cat /tmp/app.log; exit 1
-      - run: npm run e2e --prefix tools
-        env:
-          BASE_URL: http://127.0.0.1:8000
-      - if: failure()
-        run: cat /tmp/app.log
   container:
     needs: [python, node]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --prefix tools
+      - run: npx playwright install --with-deps chromium
+        working-directory: tools
+      # Builds the image, then runs the API checks and the browser e2e against the container.
       - run: bash tests/container/smoke.sh
+        env:
+          E2E: "1"
