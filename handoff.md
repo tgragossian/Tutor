@@ -6,7 +6,7 @@ the day; the host still runs 78bbcd6 (the newer commits add only unserved drafts
 
 ## Live site (https://tutor.thomasgragossian.dev)
 
-- Milestone B practice loop deployed from `main` 78bbcd6: accounts, practice with MathLive,
+- Milestone B practice loop deployed from `main` 3c0141c (22 problems; was 78bbcd6): accounts, practice with MathLive,
   history with "Clear history", 6 reviewed problems. `/readyz` ready; migrations 0001–0002.
 - First `/readyz` after `up -d` returns 502 for 30–60 s while the SymPy worker starts: normal.
 - Idle memory on the 1 GB host: app+worker 135 MiB, Caddy 17 MiB, ~386 MiB available.
@@ -26,9 +26,8 @@ the day; the host still runs 78bbcd6 (the newer commits add only unserved drafts
 
 ## Resume here
 
-1. **Deploy the 22 problems** (2026-10-22: Thomas approved all 16 drafts; task 15 done,
-   merged to `main`). After Thomas runs the runbook update, `/readyz` should show `"servable":22`.
-   Selection/practice tests now pin the original 6 via `tests/support/content.py`.
+1. **Done 2026-10-22:** 22 reviewed problems deployed from `main` 3c0141c (`servable` 22).
+   Selection/practice tests pin the original 6 via `tests/support/content.py`.
 2. **Rest of task 16:** `tools/load/submit_burst.py` (16 concurrent submits) for memory sizing
    on the host; move the e2e job onto the image; `docs/verifier/` supported-expressions page;
    uvicorn `--no-access-log` (requests are logged twice); record host numbers in `docs/ops/host.md`.
