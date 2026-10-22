@@ -394,6 +394,7 @@ def test_pending_reservation_then_replay_regrades_orphaned_reservation(w: World)
                 answer_json='{"mathjson": ["Multiply", 2, "x"], "choice_id": null}',
                 answer_latex="2x",
                 created_at=w.clock.now,
+                reserved_revision=v.revision,
             )
         )
     w.clock.now += timedelta(seconds=9)
@@ -421,6 +422,7 @@ def test_decimal_answer_round_trips_exactly(w: World) -> None:
                 answer_json='{"mathjson": ["Multiply", 0.1, "x"], "choice_id": null}',
                 answer_latex="0.1x",
                 created_at=w.clock.now - timedelta(seconds=30),
+                reserved_revision=v.revision,
             )
         )
     w.pool.script.append(INCORRECT)

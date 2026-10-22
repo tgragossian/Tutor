@@ -56,7 +56,11 @@ function skipRedundantParen(event) {
 
 let item = null;
 let field = null;
-let pending = null; // {submission_id, body} kept while a submit is retried
+let pending = null; // the submit body being retried, under one submission_id
+// True once the server may hold `pending` (a lost reply, or "still being checked"). Until a
+// definite reply arrives the answer stays locked and Check resends the same body, so the
+// visible answer is always the one being checked and nothing counts twice (review B-R1).
+let unresolved = false;
 let busy = false; // one check or action at a time; every button is disabled meanwhile
 
 // Same rule as the server's incomplete-input pre-check (ADR 0002).
@@ -174,6 +178,15 @@ function renderAnswer(current) {
   renderKeys();
 }
 
+// The answer can't be edited while it is being checked or might still be held by the server.
+function lockAnswer(locked) {
+  const canSubmit = Boolean(item?.allowed_actions?.includes('submit'));
+  if (field) field.readOnly = locked || !canSubmit;
+  if (item?.answer_kind === 'choice') {
+    for (const radio of document.querySelectorAll('input[name="choice"]')) radio.disabled = locked;
+  }
+}
+
 function selectedChoice() {
   const checked = document.querySelector('input[name="choice"]:checked');
   return checked ? checked.value : null;
@@ -212,6 +225,7 @@ function render(current, revealedLatex) {
     renderAnswer(next);
     setFeedback('');
     pending = null;
+    unresolved = false;
   }
   $('hint').textContent = next.precision_hint || '';
   $('hint').hidden = !next.precision_hint;
@@ -255,25 +269,31 @@ async function check() {
       item_revision: item.revision,
       answer: buildAnswer(),
     };
+    unresolved = false;
   }
+  lockAnswer(true);
   try {
     for (let attempt = 0; attempt < 4; attempt += 1) {
       let result;
       try {
         result = await api('/submit', pending);
       } catch {
+        unresolved = true; // the server may have received it
         setFeedback('Connection problem. Retrying…');
         await sleep(2);
         continue; // same submission_id, so a retry is never counted twice
       }
       const { response, data } = result;
       if (response.status === 503 || data?.error === 'submission_pending') {
+        // Only verifier_busy means the server kept nothing; anything else may be in progress.
+        if (data?.error !== 'verifier_busy') unresolved = true;
         setFeedback('The checker is busy. Retrying…');
         await sleep(Number(response.headers.get('Retry-After')) || 2);
         continue;
       }
       const target = pending.session_item_id;
       pending = null;
+      unresolved = false;
       if (response.ok && data.item.session_item_id !== item.session_item_id) {
         await load(); // a reply about a problem that is no longer shown (e.g. a replay)
       } else if (response.ok && item.session_item_id !== target) {
@@ -289,9 +309,15 @@ async function check() {
       }
       return;
     }
-    showError('The checker is still busy. Please try again in a moment.');
+    if (unresolved) {
+      showError('Your answer is still being checked. Press Check to try it again; it won\'t count twice.');
+    } else {
+      pending = null; // every reply was verifier_busy: an edit is a new answer
+      showError('The checker is still busy. Please try again in a moment.');
+    }
   } finally {
     busy = false;
+    lockAnswer(Boolean(pending && unresolved));
     updateCheck();
   }
 }

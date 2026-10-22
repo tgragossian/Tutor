@@ -148,6 +148,13 @@ class Submission(Base):
     answer_json: Mapped[str] = mapped_column(Text)
     answer_latex: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime]
+    # The presentation revision this answer was reserved against (review B-R2). NULL only on
+    # rows reserved before migration 0003; recovery never guesses it.
+    reserved_revision: Mapped[int | None] = mapped_column(Integer)
+    # Recovery lease (review B-R5): 0 while the original request owns the reservation; each
+    # orphan recovery claims it by incrementing it. Only the holder may delete the row.
+    lease: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    leased_at: Mapped[datetime | None]
 
     session_item: Mapped[SessionItem] = relationship(back_populates="submissions")
     result: Mapped[AttemptResult | None] = relationship(back_populates="submission")

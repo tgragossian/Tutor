@@ -106,9 +106,19 @@ class _Reservation:
     submission_pk: int
     submission_id: str
     session_item_id: int
-    expected_revision: int
+    expected_revision: int  # stored at reservation time, never taken from a retry (B-R2)
     answer_spec: Answer
     answer: SubmittedAnswer
+    lease: int  # 0: the original request; >0: an orphan recovery (B-R5)
+    created_at: datetime  # when the student submitted; answer time ends here (B-R3)
+
+
+@dataclass(frozen=True)
+class _Orphan:
+    """A reservation with no result, older than ``ORPHAN_AFTER``: recovery must claim it."""
+
+    submission_pk: int
+    lease: int
 
 
 def precision_hint(answer: Answer) -> str | None:
@@ -320,7 +330,7 @@ class PracticeService:
     ) -> SubmitView:
         key = str(submission_id)
         # 1. Replay check.
-        replay = self._replay(user_id, session_id, key, item_revision)
+        replay = self._replay(user_id, session_id, key)
         if isinstance(replay, SubmitView):
             return replay
         if replay is None:
@@ -331,19 +341,17 @@ class PracticeService:
                 )
             except IntegrityError:
                 # A concurrent request with the same id reserved first.
-                replay = self._replay(user_id, session_id, key, item_revision)
+                replay = self._replay(user_id, session_id, key)
                 if isinstance(replay, SubmitView):
                     return replay
                 if replay is None:
                     raise StaleItem("This problem changed; reload it.") from None
-                reservation = replay
+                reservation = self._claim(key, replay)
         else:
-            reservation = replay  # R5: an orphaned reservation is graded again.
+            reservation = self._claim(key, replay)  # R5: an orphan is graded again.
         return self._grade(user_id, session_id, reservation)
 
-    def _replay(
-        self, user_id: int, session_id: int, key: str, item_revision: int
-    ) -> SubmitView | _Reservation | None:
+    def _replay(self, user_id: int, session_id: int, key: str) -> SubmitView | _Orphan | None:
         with self._sessions() as db:
             sub = db.scalar(select(Submission).where(Submission.submission_id == key))
             if sub is None:
@@ -359,16 +367,53 @@ class PracticeService:
                     raise StaleItem("This problem changed while it was being checked.")
                 verdict = Verdict(result.status, result.reason, result.method)
                 return SubmitView(verdict, self._view(db, item), replayed=True)
-            if self._clock() - sub.created_at < ORPHAN_AFTER:
+            # A recovery's lease restarts the clock: another recovery waits for it in turn.
+            if self._clock() - (sub.leased_at or sub.created_at) < ORPHAN_AFTER:
                 raise SubmissionPending("This answer is still being checked.")
-            return _Reservation(
-                submission_pk=sub.id,
-                submission_id=key,
-                session_item_id=item.id,
-                expected_revision=item_revision,
-                answer_spec=self._snapshot(item).answer,
-                answer=_decode_answer(sub),
+            return _Orphan(sub.id, sub.lease)
+
+    def _claim(self, key: str, orphan: _Orphan) -> _Reservation:
+        """Take the recovery lease (B-R5). An aged reservation is not proof its owner died, so
+        the claim is exclusive among recoveries and the row is never deleted from under one."""
+        with self._tx() as db:
+            claimed = db.execute(
+                update(Submission)
+                .where(
+                    Submission.id == orphan.submission_pk,
+                    Submission.submission_id == key,
+                    Submission.lease == orphan.lease,
+                    ~select(AttemptResult.id)
+                    .where(AttemptResult.submission_pk == Submission.id)
+                    .exists(),
+                )
+                .values(lease=Submission.lease + 1, leased_at=self._clock())
+                .execution_options(synchronize_session=False)
             )
+            if cast(CursorResult[Any], claimed).rowcount != 1:
+                raise SubmissionPending("This answer is still being checked.")
+            sub = db.get(Submission, orphan.submission_pk)
+            assert sub is not None
+            db.refresh(sub)
+            if sub.reserved_revision is None:
+                # Reserved before migration 0003: the original revision is unknown (B-R2).
+                db.delete(sub)
+                db.flush()
+                stale = True
+            else:
+                stale = False
+                reservation = _Reservation(
+                    submission_pk=sub.id,
+                    submission_id=key,
+                    session_item_id=sub.session_item_id,
+                    expected_revision=sub.reserved_revision,
+                    answer_spec=self._snapshot(sub.session_item).answer,
+                    answer=_decode_answer(sub),
+                    lease=orphan.lease + 1,
+                    created_at=sub.created_at,
+                )
+        if stale:  # raised after commit, so the deletion is kept
+            raise StaleItem("This problem changed; reload it.")
+        return reservation
 
     def _reserve(
         self,
@@ -391,17 +436,20 @@ class PracticeService:
                 )
             if item.state is not ItemState.ACTIVE or item.revision != item_revision:
                 raise StaleItem("This problem changed; reload it.")
+            now = self._clock()
             sub = Submission(
                 submission_id=key,
                 session_item_id=item.id,
                 answer_kind=answer.kind,
                 answer_json=_encode_answer(answer),
                 answer_latex=answer.latex,
-                created_at=self._clock(),
+                created_at=now,
+                reserved_revision=item_revision,
+                lease=0,
             )
             db.add(sub)
             db.flush()  # the unique submission_id stops a concurrent duplicate here
-            return _Reservation(sub.id, key, item.id, item_revision, spec, answer)
+            return _Reservation(sub.id, key, item.id, item_revision, spec, answer, 0, now)
 
     def _grade(self, user_id: int, session_id: int, res: _Reservation) -> SubmitView:
         # 3. Grade outside any transaction.
@@ -410,11 +458,14 @@ class PracticeService:
                 CheckRequest(res.answer_spec, res.answer, request_id=res.submission_id)
             )
         except VerifierBusy:
-            self._release(res.submission_pk)
+            # Only the original request drops its reservation on backpressure. A busy recovery
+            # leaves it for a later retry: its first owner may still be grading (B-R5).
+            if res.lease == 0:
+                self._release(res)
             raise Busy("The checker is busy. Please try again in a moment.") from None
         outcome = checked.outcome
         if isinstance(outcome, FormatIssue):
-            self._release(res.submission_pk)  # format issues change nothing (spec 02)
+            self._release(res)  # format issues change nothing (spec 02)
             with self._sessions() as db:
                 item = db.get(SessionItem, res.session_item_id)
                 assert item is not None
@@ -430,9 +481,17 @@ class PracticeService:
         # 4. Transaction B.
         try:
             with self._tx() as db:
+                # The row must still be this answer: never store a result against a row whose
+                # id was reused after a delete (B-R5).
+                sub = db.get(Submission, res.submission_pk)
+                if (
+                    sub is None
+                    or sub.submission_id != res.submission_id
+                    or sub.session_item_id != res.session_item_id
+                ):
+                    raise StaleItem("This problem changed while it was being checked.")
                 item = db.get(SessionItem, res.session_item_id)
                 assert item is not None
-                now = self._clock()
                 state, tries = _transition(item.state, item.tries_used, outcome.status)
                 changed = db.execute(
                     update(SessionItem)
@@ -454,7 +513,8 @@ class PracticeService:
                         verifier_version=checked.verifier_version,
                         worker_ms=checked.worker_ms,
                         queue_ms=checked.queue_ms,
-                        seconds_on_item=int((now - item.served_at).total_seconds()),
+                        # Submit time minus served_at; grading delay excluded (B-R3).
+                        seconds_on_item=int((res.created_at - item.served_at).total_seconds()),
                         counts_as_try=applied and outcome.status is VerdictStatus.INCORRECT,
                         applied=applied,
                     )
@@ -464,7 +524,7 @@ class PracticeService:
                 view = self._view(db, item)
         except IntegrityError:
             # A concurrent regrade of the same orphan stored its result first.
-            replay = self._replay(user_id, session_id, res.submission_id, res.expected_revision)
+            replay = self._replay(user_id, session_id, res.submission_id)
             if isinstance(replay, SubmitView):
                 return replay
             raise StaleItem("This problem changed; reload it.") from None
@@ -472,9 +532,20 @@ class PracticeService:
             raise StaleItem("This problem changed while it was being checked.")
         return SubmitView(outcome, view, False, checked.worker_ms, checked.queue_ms)
 
-    def _release(self, submission_pk: int) -> None:
+    def _release(self, res: _Reservation) -> None:
+        """Delete a reservation only while this request still holds its lease and no result
+        exists; otherwise someone else now owns it (B-R5)."""
         with self._tx() as db:
-            db.execute(delete(Submission).where(Submission.id == submission_pk))
+            db.execute(
+                delete(Submission).where(
+                    Submission.id == res.submission_pk,
+                    Submission.submission_id == res.submission_id,
+                    Submission.lease == res.lease,
+                    ~select(AttemptResult.id)
+                    .where(AttemptResult.submission_pk == Submission.id)
+                    .exists(),
+                )
+            )
 
     # -- helpers ----------------------------------------------------------------------------
 

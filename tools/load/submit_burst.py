@@ -7,8 +7,9 @@ runs on the host's system Python:
 
     python3 tools/load/submit_burst.py --base-url https://tutor.thomasgragossian.dev
 
-Busy replies (503 verifier_busy) are expected when the burst exceeds the queue; anything
-else outside 200/503 counts as unexpected and makes the exit status 1.
+Expected replies: 200 with a verdict, or 503 verifier_busy when the burst exceeds the
+queue. Anything else (database_busy, format replies, other errors, transport failures) is
+unexpected, and so is a run with no graded answer; either makes the exit status 1.
 """
 
 from __future__ import annotations
@@ -31,6 +32,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CASE = "d-181-07"  # slowest dev case on a live problem (median of 3 runs, 2026-10-22)
 PASSWORD = "load-test-password-1"
 MAX_SKIPS = 12
+VERDICTS = frozenset({"correct", "incorrect", "unable_to_verify"})
 
 
 @dataclass(frozen=True)
@@ -73,8 +75,17 @@ def session_cookie(set_cookie_headers: list[str]) -> str | None:
     return None
 
 
+def _expected(status: int, label: str) -> bool:
+    return (status == 200 and label in VERDICTS) or (status == 503 and label == "verifier_busy")
+
+
+def graded(results: list[tuple[int, str, float]]) -> int:
+    """Answers the verifier actually graded (a sizing run needs at least one)."""
+    return sum(1 for status, label, _ in results if status == 200 and label in VERDICTS)
+
+
 def summarize(results: list[tuple[int, str, float]]) -> tuple[str, int]:
-    """Text report plus the number of unexpected replies (not 200, not 503)."""
+    """Text report plus the number of unexpected replies (review B-R4)."""
     counts = Counter(f"{status} {label}" for status, label, _ in results)
     ms = [m for _, _, m in results]
     lines = [f"  {key}: {n}" for key, n in sorted(counts.items())]
@@ -82,7 +93,7 @@ def summarize(results: list[tuple[int, str, float]]) -> tuple[str, int]:
         f"  latency p50 {percentile(ms, 50):.0f} ms, p95 {percentile(ms, 95):.0f} ms, "
         f"max {max(ms):.0f} ms"
     )
-    unexpected = sum(1 for status, _, _ in results if status not in (200, 503))
+    unexpected = sum(1 for status, label, _ in results if not _expected(status, label))
     return "\n".join(lines), unexpected
 
 
@@ -161,7 +172,11 @@ def burst(clients: list[tuple[Client, dict[str, Any]]], target: Target) -> list[
         }
         gate.wait()
         t0 = time.perf_counter()
-        status, reply, _ = client.call("POST", f"/api/sessions/{at['session_id']}/submit", body)
+        try:
+            status, reply, _ = client.call("POST", f"/api/sessions/{at['session_id']}/submit", body)
+        except (OSError, ValueError) as exc:  # URLError, timeouts, a non-JSON body
+            results[i] = (0, f"transport:{exc}"[:80], (time.perf_counter() - t0) * 1000)
+            return
         ms = (time.perf_counter() - t0) * 1000
         if status == 200:
             out = reply["outcome"]
@@ -201,9 +216,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"burst finished in {(time.perf_counter() - t0) * 1000:.0f} ms")
     text, unexpected = summarize(results)
     print(text)
+    ok = graded(results)
     if unexpected:
-        print(f"{unexpected} unexpected replies", file=sys.stderr)
-    return 1 if unexpected else 0
+        print(f"FAIL: {unexpected} unexpected replies", file=sys.stderr)
+    if ok == 0:
+        print("FAIL: no answer was graded; not usable for sizing", file=sys.stderr)
+    return 1 if unexpected or ok == 0 else 0
 
 
 if __name__ == "__main__":

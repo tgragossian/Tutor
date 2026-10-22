@@ -126,6 +126,39 @@ try {
     check((await page.innerHTML('#statement')) === after, 'reload after Next keeps the new item');
   }
 
+  // Review B-R1: after the checker stays busy through every retry, an edited answer is what
+  // gets sent (not the earlier payload), under a new submission id.
+  if (!(await page.isHidden('#problem')) && (await page.isVisible('#answer-field'))) {
+    let busyLeft = 4;
+    const bodies = [];
+    await page.route('**/submit', async (route) => {
+      bodies.push(JSON.parse(route.request().postData() || '{}'));
+      if (busyLeft > 0) {
+        busyLeft -= 1;
+        await route.fulfill({
+          status: 503,
+          headers: { 'Retry-After': '1' },
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'verifier_busy', message: 'busy' }),
+        });
+      } else {
+        await route.continue();
+      }
+    });
+    await enter(['7']);
+    await page.click('#check');
+    await page.waitForFunction(() => document.getElementById('error').textContent.includes('still busy'));
+    check(!(await page.evaluate(() => document.getElementById('answer-field').readOnly)),
+      'the answer is editable again after only verifier_busy replies');
+    await enter(['8']);
+    const fresh = await submitAndRead();
+    await page.unroute('**/submit');
+    const last = bodies.at(-1) || {};
+    check(last.answer?.latex === '8', `the edited answer was sent (${last.answer?.latex})`);
+    check(last.submission_id !== bodies[0].submission_id, 'the edited answer has a new submission id');
+    check(/Not quite/.test(fresh), `feedback is for the edited answer: "${fresh}"`);
+  }
+
   // Review B-A1/B-A5: one mutation at a time. While a (deliberately slow) Check is in flight,
   // Skip is disabled; a double-click on Skip sends exactly one request.
   if (!(await page.isHidden('#problem')) && (await page.isVisible('#answer-field'))) {

@@ -26,7 +26,10 @@ SAMPLER=$!
 trap 'kill $SAMPLER 2>/dev/null || true; rm -rf "$OUT"' EXIT
 
 sleep 2  # a baseline sample before the burst
-python3 tools/load/submit_burst.py --base-url "$BASE_URL" --users "$USERS" || true
+# Keep the burst's exit status (review B-R4): memory is still printed for a failed run, but
+# the script then exits non-zero so the numbers are not mistaken for a usable sizing run.
+rc=0
+python3 tools/load/submit_burst.py --base-url "$BASE_URL" --users "$USERS" || rc=$?
 sleep 3  # catch the tail of the burst
 kill "$SAMPLER" 2>/dev/null || true
 wait "$SAMPLER" 2>/dev/null || true
@@ -48,3 +51,8 @@ sort -n "$OUT/available" | head -1 | sed 's/^/  /'
 
 echo "== after"
 free -m
+
+if [ "$rc" -ne 0 ]; then
+  echo "FAIL: the burst failed (exit $rc); do not use these numbers for sizing" >&2
+fi
+exit "$rc"
