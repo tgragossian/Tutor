@@ -42,7 +42,9 @@ Made during inline execution on 2026-10-21. Each costs little if wrong; Thomas m
 - **A14:** an orphaned reservation (R5) is regraded against the replay's `item_revision`.
   **Review action (2026-10-22):** [B-R2/B-R5](../../../../reviews/2026-10-22-milestone-b/01-recovery.md)
   demonstrate recovery correctness defects. Proposed replacement: persist the original revision
-  and claim exclusive recovery ownership. This amendment is not implemented yet.
+  and claim exclusive recovery ownership. **Amended in ca54407:** recovery claims a lease and
+  grades the revision stored at reservation (migration 0003), never the replay's; pre-0003
+  orphans are dropped as stale ([dispositions](../../../../reviews/2026-10-22-milestone-b/06-dispositions.md)).
 
 ## Pages (task 14)
 

@@ -17,7 +17,8 @@ outside ordinary test collection; they assert desired behavior and currently fai
 | B-R3 | P2 | Answer-time history includes verifier and recovery delay | [Timing](02-ui-and-timing.md#b-r3-p2-stop-student-timing-at-submission) |
 | B-R4 | P2 | Load validation accepts database failures; its wrapper discards failure status | [Release](03-release.md) |
 
-All five are open. B-R5 is a data-integrity issue requiring prompt repair; resolve the
+**All five fixed in ca54407** ([dispositions](06-dispositions.md)). As reviewed: B-R5 is a
+data-integrity issue requiring prompt repair; resolve the
 findings before closing B. No production incident is asserted: reproductions use local
 temporary databases or stubbed transport. B-R2 exposes a problem in existing ruling A14,
 not a failure to implement that ruling. The recovery fix must amend the ruling explicitly.

@@ -1,11 +1,11 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-22 after Codex's whole-branch review.
-Reviewed `main` / `milestone-b` at identical commit 15169a2. Review/docs changes are in the
-main checkout; implementation worktree: `.claude/worktrees/milestone-b`. Host recorded at 9bf6b29.
+Owner: Thomas Gragossian. Updated: 2026-10-22, after Claude fixed Codex's whole-branch review.
+`main` and `milestone-b` are identical (Codex's review adbf0e9, fixes ca54407, docs after it).
+Implementation worktree: `.claude/worktrees/milestone-b`. The host still runs 9bf6b29.
 
-**Milestone B status:** tasks 1–16 implemented and deployed; review complete, **five findings
-open (one P1, four P2)**. Fix before closing B, then complete the hours log.
+**Milestone B status:** tasks 1–16 done; review findings B-R1–B-R5 **fixed** (not yet deployed).
+To close B: Thomas deploys (migration 0003), then the hours log.
 Host sizing stays deferred to milestone C under Thomas's recorded exception.
 
 ## Live site (https://tutor.thomasgragossian.dev)
@@ -24,25 +24,33 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
 - Task 15: Thomas reviewed and approved all 16 drafts (3c0141c); deployed. His simplified form
   of 223 was checked equivalent by SymPy and the live verifier. Selection/practice unit tests pin
   the original six problems (`tests/support/content.py`); container smoke skips ahead to 221.
-- Task 16 (375ab7c, 9bf6b29): `MATHTUTOR_POOL_SIZE` / `MATHTUTOR_POOL_MEMORY_MB` settings;
-  `tools/load/submit_burst.py` (16 users submit dev case `d-181-07` at once) and
-  `tools/load/measure.sh` (runs it on the host, reports peak memory and VmHWM); uvicorn
-  `--no-access-log` (requests were logged twice; smoke now checks); browser e2e runs against
-  the production image in CI (green, run 39828899000); [verifier docs](docs/verifier/README.md);
-  [dev-b results](evals/verifier/results/dev-b.md); README status "practice loop live".
+- Task 16 (375ab7c, 9bf6b29): pool size/memory settings; `tools/load/submit_burst.py` +
+  `measure.sh` (host burst, peak memory); uvicorn `--no-access-log`; browser e2e on the
+  production image in CI; [verifier docs](docs/verifier/README.md), [dev-b results](evals/verifier/results/dev-b.md).
+- Codex's whole-branch review ([2026-10-22](docs/reviews/2026-10-22-milestone-b/README.md)):
+  five findings, all fixed in ca54407; how each was fixed, deviations and tests are in the
+  [dispositions](docs/reviews/2026-10-22-milestone-b/06-dispositions.md). In short:
+  - **B-R5/B-R2:** migration 0003 (`reserved_revision`, `lease`, `leased_at` on `submissions`).
+    Orphan recovery claims an exclusive lease, grades the stored revision (not the retry's),
+    only the lease holder deletes, and transaction B checks UUID + presentation before storing.
+    A14 amended. Pre-0003 orphans are dropped as stale. Deviation: any holder may finalize (the
+    unique result row keeps one). AUTOINCREMENT deferred to follow-ups (needs a table rebuild).
+  - **B-R3:** `seconds_on_item` ends at the original submission time, also after recovery.
+  - **B-R1:** the answer locks while a check may still be held by the server and Check resends
+    the same id; after only `verifier_busy` replies an edit is a new answer with a new id.
+    Node controller tests + a Playwright step with real MathLive.
+  - **B-R4:** the burst fails on `database_busy`/format/transport errors or zero grades;
+    `measure.sh` returns that status. The recorded host run stays valid.
+  - Codex's probes beside the review now pass; their cases are in normal tests.
 - Thomas raised automated problem sets (not just a bank). The plan has the extraction pipeline
   (expansion queue #4); generated problems (templates or LLM) are not planned yet: decide
   with Thomas whether to add them and where.
 
 ## Resume here
 
-1. **Fix the [2026-10-22 review findings](docs/reviews/2026-10-22-milestone-b/README.md).**
-   B-R5 (P1): busy orphan replay deletes live work; reused row IDs can attach a result to
-   another user's submission. Fix recovery ownership/identity first, together with B-R2
-   (original revision lost during recovery; amend ruling A14). Use a new forward migration.
-   B-R1: edited answer resends old payload after retries; B-R3: answer time includes grading;
-   B-R4: load checker accepts database failures and wrapper discards failure status.
-   Probes, exact owners and regression requirements are split by debugging area in the review.
+1. **Deploy the review fixes** (Thomas, runbook "Update to the latest `main`"). This runs
+   migration **0003**: `migrate` must show `Exited (0)`, then `/readyz` ready with `servable` 22.
+   Optional: Codex re-checks the [dispositions](docs/reviews/2026-10-22-milestone-b/06-dispositions.md).
 2. **Host sizing: deferred by Thomas (2026-10-22).** Stay on 1 GB, pool 1 worker / 384 MB, as a
    recorded exception: the worst-case rule (≈973 MiB > 85% of 1 GB) fails, but measured use
    leaves ≥ 281 MiB free under the burst ([host sizing](docs/ops/host-sizing.md)). Revisit in

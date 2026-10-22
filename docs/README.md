@@ -1,7 +1,7 @@
 # Documentation
 
-Milestone B (practice loop) is live. Whole-branch review is complete; five findings and the
-hours log remain. Host sizing is deferred to C under Thomas's recorded exception.
+Milestone B (practice loop) is live. Whole-branch review findings are fixed (deploy pending);
+the hours log remains. Host sizing is deferred to C under Thomas's recorded exception.
 Read the [current handoff](../handoff.md) before continuing work.
 
 - [Current handoff](../handoff.md): status, priorities and next action.

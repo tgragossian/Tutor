@@ -28,7 +28,7 @@ Host sizing remains deferred to C under Thomas's recorded exception. Do not rest
 | 13 JSON API | abda25e | complete |
 | 14 Pages, MathLive | c52305d | complete; manual browser check passed |
 | 15 Content, smoke | 5fd8952, ba2575b, 3c0141c | complete and deployed: 22 problems `human_verified` by Thomas 2026-10-22 ([review](../../../../../content/review/README.md)) |
-| 16 Release | e6da0e5, 375ab7c, 9bf6b29 | implemented and deployed; burst measured, 1 GB sizing exception; B-R4 load validation open |
+| 16 Release | e6da0e5, 375ab7c, 9bf6b29, ca54407 | implemented and deployed; burst measured, 1 GB sizing exception; B-R4 fixed |
 
 ## Evidence and debugging
 
@@ -53,10 +53,10 @@ with regression tests ([dispositions](../../../../reviews/2026-10-21-milestone-b
 
 ## Remaining actions
 
-Resolve the [2026-10-22 review](../../../../reviews/2026-10-22-milestone-b/README.md):
-B-R5 (P1) reservation reuse/cross-user result corruption first, then B-R1–B-R4 (P2).
-B-R2 requires revising A14; use a new migration, since 0001/0002 are deployed.
-See the [handoff](../../../../../handoff.md) for repair order. Host sizing stays deferred to C.
+The [2026-10-22 review](../../../../reviews/2026-10-22-milestone-b/README.md) findings B-R1–B-R5
+are fixed in ca54407 with migration 0003 and A14 amended
+([dispositions](../../../../reviews/2026-10-22-milestone-b/06-dispositions.md)). Deploy it, then
+close B. Host sizing stays deferred to C.
 
 Record actual hours in the [hours log](../../../../ops/hours.md); no B actuals are supplied.
 At 30 h, stop at the next task boundary for a scope/date/contingency decision with Thomas.

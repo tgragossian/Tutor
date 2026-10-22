@@ -3,7 +3,7 @@
 [Delivery plan](../README.md) · [Milestone B goals](../02-practice.md) · [Handoff](../../../../../handoff.md)
 
 **Status (2026-10-22):** tasks 1–16 implemented and deployed; B-A1–B-A5 fixed. Whole-branch
-review complete, with five new findings and the hours log still open. Host sizing is deferred
+review findings fixed in ca54407 (deploy pending); the hours log is still open. Host sizing is deferred
 to C under Thomas's recorded exception. See [execution status](03-execution-status.md).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

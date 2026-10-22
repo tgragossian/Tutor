@@ -13,7 +13,8 @@ Source: [2026-10-22 validation](../../../../reviews/2026-10-22-milestone-b/04-va
 - Dev CLI: FA 0/50, FR 0/49, coverage 49/49, agreement 136/136; generated CLI: FA 0/84,
   FR 0/10, coverage 10/10, agreement 94/94. No internal errors; both B gates pass.
 - Local version `0.1.0+dev`; published SHA-tagged artifacts unchanged. Four Python and one
-  JavaScript probes fail on [five new findings](../../../../reviews/2026-10-22-milestone-b/README.md).
+  JavaScript probes failed on [five new findings](../../../../reviews/2026-10-22-milestone-b/README.md);
+  after ca54407 all pass ([dispositions](../../../../reviews/2026-10-22-milestone-b/06-dispositions.md)).
 - Prior B-A1–B-A5 regressions pass. No fresh browser, Docker, remote CI, Linux/host run.
 
 ## Recorded release evidence (2026-10-22)
