@@ -4,8 +4,8 @@ Owner: Thomas Gragossian. Updated: 2026-10-22 end of day. Work continues in the 
 worktree (`.claude/worktrees/milestone-b`). `main` and `milestone-b` are identical; the host runs
 `main` 9bf6b29.
 
-**Milestone B status:** all tasks 1–16 are implemented and deployed. Not yet closed: the host
-sizing decision (1 GB vs 2 GB, numbers measured), a whole-branch review, and the hours log.
+**Milestone B status:** all tasks 1–16 are implemented and deployed. Not yet closed: a
+whole-branch review and the hours log. Host sizing is deferred to milestone C (exception recorded).
 
 ## Live site (https://tutor.thomasgragossian.dev)
 
@@ -37,10 +37,12 @@ sizing decision (1 GB vs 2 GB, numbers measured), a whole-branch review, and the
 
 1. **Whole-branch review of milestone B** (Thomas is asking Codex). Record findings under
    `docs/reviews/` as before; fix before closing the milestone.
-2. **Host sizing decision (Thomas):** the burst ran 2026-10-22 ([host sizing](docs/ops/host-sizing.md)).
-   Worker peak RSS 72 MiB, lowest available 281 MiB, but the worst-case rule (1 × 384 cap + app
-   + Caddy + OS ≈ 973 MiB) exceeds 85% of 1 GB. Choose: move to the 2 GB bundle, or accept 1 GB
-   on measured headroom (a recorded exception). Pool stays at 1 worker, 384 MB until then.
+2. **Host sizing: deferred by Thomas (2026-10-22).** Stay on 1 GB, pool 1 worker / 384 MB, as a
+   recorded exception: the worst-case rule (≈973 MiB > 85% of 1 GB) fails, but measured use
+   leaves ≥ 281 MiB free under the burst ([host sizing](docs/ops/host-sizing.md)). Revisit in
+   milestone C once retrieval's memory is known (local embeddings/index vs API). A fine-tuned
+   model will not run on this host at any size; plan it on a provider or separate GPU box.
+   Not a blocker for closing milestone B.
 3. Record actual hours with Thomas ([hours](docs/ops/hours.md)); 30-hour checkpoint pending.
 4. [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): verifier is
    slow on wrong answers to nested trig (`sin(cos 7x)`); `content_check` lacks a hard deadline.

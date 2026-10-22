@@ -35,9 +35,13 @@ OS, Docker daemon and agents: used 551 − containers 151 ≈ **400 MiB**.
 - **Measured reality:** the worker never got near the cap; at least 281 MiB stayed available
   during the burst. A second worker is out either way.
 
-## Decision (Thomas)
+## Decision (Thomas, 2026-10-22): deferred, 1 GB kept as an exception
 
-Keep `MATHTUTOR_POOL_SIZE=1`, `MATHTUTOR_POOL_MEMORY_MB=384` (the defaults) for now. The
-plan's worst-case rule fails on 1 GB, so the plan says to propose the **2 GB bundle**. The
-alternative is to accept 1 GB with the measured headroom and 1 GB swap as the safety margin.
-That relaxes the plan's rule, so it is Thomas's call and must be recorded here if chosen.
+Keep the 1 GB bundle with `MATHTUTOR_POOL_SIZE=1`, `MATHTUTOR_POOL_MEMORY_MB=384` (defaults).
+This is a **recorded exception** to the worst-case rule above, justified by the measured
+headroom (≥ 281 MiB available under the 16-user burst) and 1 GB swap as a backstop.
+
+Revisit in milestone C, when retrieval's memory is known: a local embedding model and index
+would run on this host; embeddings from an API would not. Re-run `tools/load/measure.sh` then.
+A fine-tuned model does not change this: it cannot run on this host at 1 or 2 GB and will be
+served by a provider or a separate GPU machine.

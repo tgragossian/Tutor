@@ -6,7 +6,8 @@ Release also needs resolved [evaluation follow-ups](../05-follow-ups.md), review
 and Linux pool/memory evidence; the Windows suite does not establish these.
 
 **Status (2026-10-22):** steps 1, 2, 4, 5 done (e6da0e5, 375ab7c and the docs commit after it). Step 3
-(burst on the host) is pending Thomas: [host sizing](../../../../../ops/host-sizing.md). Step 6 hours open.
+(burst) ran 2026-10-22; Thomas deferred the bundle decision to milestone C and kept 1 GB as a
+recorded exception ([host sizing](../../../../../ops/host-sizing.md)). Step 6 hours open.
 Current container readiness gap: [release debugging](../../../../../ops/debugging/02-release.md).
 Dependencies checked against the [file map](../01-file-map.md) and [rulings](../02-execution-rulings.md).
 

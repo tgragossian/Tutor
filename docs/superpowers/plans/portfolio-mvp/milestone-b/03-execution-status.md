@@ -30,7 +30,7 @@ is partial. The table below records main only. Follow the
 | 13 JSON API | abda25e | complete |
 | 14 Pages, MathLive | c52305d | complete; manual browser check passed |
 | 15 Content, smoke | 5fd8952, ba2575b | complete: 22 problems `human_verified` by Thomas 2026-10-22 ([review](../../../../../content/review/README.md)) |
-| 16 Release | e6da0e5, 375ab7c | all but host sizing done (load burst not yet run on the host) |
+| 16 Release | e6da0e5, 375ab7c | done; burst measured on the host, 1 GB kept as a recorded exception (revisit in milestone C) |
 
 ## Evidence and debugging
 
@@ -55,9 +55,8 @@ with regression tests ([dispositions](../../../../reviews/2026-10-21-milestone-b
 
 ## Remaining actions
 
-See the [handoff](../../../../../handoff.md) "Resume here": Thomas's content review, the rest of
-task 16 (load test and memory sizing, e2e on the image, verifier docs), then one fresh
-whole-branch review before milestone B exit.
+See the [handoff](../../../../../handoff.md) "Resume here": one fresh whole-branch review (Codex)
+before milestone B exit. Host sizing is deferred to milestone C as a recorded exception.
 
 Record actual hours in the [hours log](../../../../ops/hours.md); no B actuals are supplied.
 At 30 h, stop at the next task boundary for a scope/date/contingency decision with Thomas.
