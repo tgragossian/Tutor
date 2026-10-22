@@ -2,8 +2,12 @@
 
 [Review](README.md) · [Recovery](01-recovery.md) · [UI and timing](02-ui-and-timing.md) · [Release](03-release.md)
 
-All five findings were confirmed by the probes and fixed in **ca54407**
-(`fix: review B-R1-B-R5 …`). The probes beside this review now pass unchanged; their cases
+Author reported all five findings fixed in **ca54407**.
+**Codex recheck at f3a4e40:** B-R1/B-R2/B-R3/B-R5 verified; B-R4 partially open for
+HTTP 200 verifier `internal_error` outcomes. See [recheck and evidence](07-recheck.md).
+
+The implementation changes below landed in ca54407
+(`fix: review B-R1-B-R5 …`). The five original probes now pass unchanged; their cases
 moved into normal tests. Production must apply migration **0003** on the next deploy.
 
 ## B-R5 (P1) and B-R2: recovery lease and original revision

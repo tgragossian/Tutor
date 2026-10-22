@@ -3,7 +3,8 @@
 [Plan index](README.md) · Budget target: 30 hours.
 
 Current progress (2026-10-22): tasks 1–16 implemented and deployed with 22 reviewed problems.
-Five whole-branch review findings and the hours log remain; host sizing is deferred to C.
+Application review fixes are verified; deploy them with migration 0003. B-R4's load-tool
+crash handling and the hours log remain; host sizing is deferred to C.
 [Execution status](milestone-b/03-execution-status.md) owns the detailed gates.
 
 ## Build sequence

@@ -2,8 +2,8 @@
 
 [Operations](README.md) · [Debugging](debugging/README.md)
 
-Run from the `milestone-b` worktree root. Tasks 10–14 are not yet on `main`.
-Use the source checkout while task 16's container migration/storage wiring is pending.
+Run from the main checkout or `milestone-b` worktree root. Both contain the practice loop
+and migration 0003; container storage/migration wiring is implemented.
 
 ## Install and migrate
 

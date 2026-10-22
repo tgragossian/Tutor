@@ -39,12 +39,12 @@ Made during inline execution on 2026-10-21. Each costs little if wrong; Thomas m
 - **A12:** skip is allowed whenever the item is active; exhausted allows reveal and advance.
 - **A13:** precision hints only on numeric problems. Starting on mastered topics gives a finished
   session (`Done("all_correct")`) rather than an error.
-- **A14:** an orphaned reservation (R5) is regraded against the replay's `item_revision`.
-  **Review action (2026-10-22):** [B-R2/B-R5](../../../../reviews/2026-10-22-milestone-b/01-recovery.md)
-  demonstrate recovery correctness defects. Proposed replacement: persist the original revision
-  and claim exclusive recovery ownership. **Amended in ca54407:** recovery claims a lease and
-  grades the revision stored at reservation (migration 0003), never the replay's; pre-0003
-  orphans are dropped as stale ([dispositions](../../../../reviews/2026-10-22-milestone-b/06-dispositions.md)).
+- **A14 (amended ca54407):** recovery claims a lease and grades the revision stored at
+  reservation (migration 0003), never the replay's; pre-0003 orphans are dropped as stale.
+  Only the matching lease may clean up; any legitimate holder may finalize the immutable
+  answer under UUID/presentation checks and the unique result constraint. The prior rule
+  used the replay revision and was replaced after B-R2/B-R5.
+  [Codex recheck](../../../../reviews/2026-10-22-milestone-b/07-recheck.md) accepts this behavior.
 
 ## Pages (task 14)
 

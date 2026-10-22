@@ -3,7 +3,8 @@
 [Delivery plan](../README.md) · [Milestone B goals](../02-practice.md) · [Handoff](../../../../../handoff.md)
 
 **Status (2026-10-22):** tasks 1–16 implemented and deployed; B-A1–B-A5 fixed. Whole-branch
-review findings fixed in ca54407 (deploy pending); the hours log is still open. Host sizing is deferred
+review application fixes verified in ca54407 (deploy pending); B-R4 partially open, plus hours.
+Host sizing is deferred
 to C under Thomas's recorded exception. See [execution status](03-execution-status.md).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -25,7 +26,8 @@ to C under Thomas's recorded exception. See [execution status](03-execution-stat
 **Spec:** [portfolio-core contracts](../../../specs/2026-10-13-portfolio-core/README.md), modules 01–09. Executors read the spec and this plan together; the spec wins on conflict, decision 0001 wins over the spec.
 
 The [2026-10-22 code review](../../../../reviews/2026-10-22-milestone-b/README.md) records one
-P1 and four P2 findings. Resolve them before milestone exit; passing baseline tests is insufficient.
+P1 and four P2 findings. The [fix recheck](../../../../reviews/2026-10-22-milestone-b/07-recheck.md)
+verifies the application fixes and both recovery departures; B-R4 load-tool crash handling remains.
 
 ## Plan files
 

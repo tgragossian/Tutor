@@ -4,15 +4,16 @@
 
 Updated 2026-10-22. Current review findings come first; historical/deferred observations follow.
 
-## Whole-branch review findings (fixed)
+## Whole-branch review findings (one load-tool gap remains)
 
-[2026-10-22 review](../../../../reviews/2026-10-22-milestone-b/README.md) B-R1–B-R5: fixed in
-ca54407 ([dispositions](../../../../reviews/2026-10-22-milestone-b/06-dispositions.md)).
+[Fix recheck](../../../../reviews/2026-10-22-milestone-b/07-recheck.md): B-R1/B-R2/B-R3/B-R5
+verified fixed in ca54407. B-R4 partially open: retain verdict reasons and reject HTTP 200
+`unable_to_verify/internal_error`; an all-crash load run currently succeeds. New probe included.
 Deferred defense in depth: SQLite AUTOINCREMENT on `submissions` (needs a table rebuild with
 foreign keys on); the transaction-B identity check already makes a reused row id harmless.
 
 Prior [B-A1–B-A5](../../../../reviews/2026-10-21-milestone-b/04-dispositions.md) were fixed in
-4eba48f; their normal regressions pass in the fresh 890-test suite. They are not open work.
+4eba48f; their normal regressions pass in the fresh 904-test suite. They are not open work.
 
 ## Resolved for task 9
 
@@ -76,5 +77,5 @@ Prior [B-A1–B-A5](../../../../reviews/2026-10-21-milestone-b/04-dispositions.m
   slow problem hangs the CLI (and CI/Docker build) instead of reporting it. Run each problem
   through the pool, or a subprocess with a timeout, and report `timeout` as a defect.
 - Task 16: storage/migrations, image e2e, verifier docs and deployment implemented.
-  [Host sizing](../../../../ops/host-sizing.md) is deferred to C by Thomas; B-R4 is fixed.
+  [Host sizing](../../../../ops/host-sizing.md) is deferred to C by Thomas; B-R4 partly open as above.
   [Release debugging](../../../../ops/debugging/02-release.md) records current paths.

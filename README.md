@@ -6,7 +6,7 @@ Live: <https://tutor.thomasgragossian.dev>
 
 Status (2026-10-22): **milestone B: practice loop live.** Accounts, practice on three
 derivative topics (22 reviewed problems) with MathLive input and a proof-based SymPy grader,
-and history. Whole-branch review findings are fixed; the hours log remains.
+and history. Application review fixes are verified; one load-check gap, deployment and hours remain.
 Host sizing is deferred to C under a recorded exception. See the
 [handoff](handoff.md), [what the verifier accepts](docs/verifier/supported.md),
 [verifier results](evals/verifier/results/dev-b.md) and [API contracts](contracts/README.md).

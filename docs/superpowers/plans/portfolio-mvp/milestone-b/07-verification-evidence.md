@@ -4,6 +4,11 @@
 
 Updated 2026-10-22. Fresh local checks and earlier/owner-reported runs are separated below.
 
+Latest: [fix recheck at f3a4e40](../../../../reviews/2026-10-22-milestone-b/07-recheck.md):
+904 Python passed/3 platform skips, 26 Node passed; original probes and populated 0002→0003
+upgrade pass. Both recovery departures accepted. B-R4 remains partly open: verifier crashes
+still pass the load CLI. Browser/CI claims in dispositions were not independently rerun here.
+
 ## Fresh whole-branch review at 15169a2
 
 Source: [2026-10-22 validation](../../../../reviews/2026-10-22-milestone-b/04-validation.md).

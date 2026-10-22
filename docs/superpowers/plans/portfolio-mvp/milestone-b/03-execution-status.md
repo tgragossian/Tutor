@@ -2,9 +2,10 @@
 
 [Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md) · [Follow-ups](05-follow-ups.md)
 
-Updated 2026-10-22 after review of identical `main` / `milestone-b` 15169a2.
+Updated 2026-10-22 after rechecking ca54407 at identical `main` / `milestone-b` f3a4e40.
 Tasks 1–16 are implemented and deployed (host recorded at 9bf6b29, 22 reviewed problems).
-Whole-branch review is complete: **five open findings** and the hours log prevent B closure.
+Application fixes verified; deploy pending. **B-R4 partly open** (load tool accepts verifier
+crashes); resolve that case and record hours before B closure.
 Host sizing remains deferred to C under Thomas's recorded exception. Do not restart completed tasks.
 
 ## Tasks
@@ -28,7 +29,7 @@ Host sizing remains deferred to C under Thomas's recorded exception. Do not rest
 | 13 JSON API | abda25e | complete |
 | 14 Pages, MathLive | c52305d | complete; manual browser check passed |
 | 15 Content, smoke | 5fd8952, ba2575b, 3c0141c | complete and deployed: 22 problems `human_verified` by Thomas 2026-10-22 ([review](../../../../../content/review/README.md)) |
-| 16 Release | e6da0e5, 375ab7c, 9bf6b29, ca54407 | implemented and deployed; burst measured, 1 GB sizing exception; B-R4 fixed |
+| 16 Release | e6da0e5, 375ab7c, 9bf6b29, ca54407 | base deployed; review fixes await deploy; 1 GB sizing exception; B-R4 partly open |
 
 ## Evidence and debugging
 
@@ -53,10 +54,10 @@ with regression tests ([dispositions](../../../../reviews/2026-10-21-milestone-b
 
 ## Remaining actions
 
-The [2026-10-22 review](../../../../reviews/2026-10-22-milestone-b/README.md) findings B-R1–B-R5
-are fixed in ca54407 with migration 0003 and A14 amended
-([dispositions](../../../../reviews/2026-10-22-milestone-b/06-dispositions.md)). Deploy it, then
-close B. Host sizing stays deferred to C.
+The [fix recheck](../../../../reviews/2026-10-22-milestone-b/07-recheck.md) verifies B-R1/B-R2/
+B-R3/B-R5, migration 0003 and both recovery departures. B-R4 remains open for HTTP 200
+`unable_to_verify/internal_error`: the load tool must retain/reject that reason.
+Deploy the application fixes and finish the load-tool case before closing B. Sizing stays in C.
 
 Record actual hours in the [hours log](../../../../ops/hours.md); no B actuals are supplied.
 At 30 h, stop at the next task boundary for a scope/date/contingency decision with Thomas.
@@ -71,3 +72,5 @@ reran local checks and added isolated probes; no production code was changed.
 2026-10-22: corrected stale completion/follow-up/evidence indexes. Fresh full suite, content
 and both verifier gates pass; [validation](../../../../reviews/2026-10-22-milestone-b/04-validation.md)
 separates these checks from the five failing new probes and historical deployment evidence.
+Later ca54407 fixes: 904 Python/26 Node pass in the recheck; original probes pass, and the
+new B-R4 probe fails. Historical original-review counts above are not current fix results.

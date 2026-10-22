@@ -4,8 +4,8 @@
 
 Reviewed `main` and `milestone-b` at **15169a2** (identical commits).
 Scope: tasks 1–16, prior review fixes, verifier/evaluation, application/store/web and release wiring.
-Production implementation and content are unchanged. New probes live beside this review,
-outside ordinary test collection; they assert desired behavior and currently fail.
+The original review changed no production code/content. Its probes failed at 15169a2;
+all five original probes pass after ca54407. They remain outside ordinary test collection.
 
 ## Findings, in repair order
 
@@ -17,13 +17,12 @@ outside ordinary test collection; they assert desired behavior and currently fai
 | B-R3 | P2 | Answer-time history includes verifier and recovery delay | [Timing](02-ui-and-timing.md#b-r3-p2-stop-student-timing-at-submission) |
 | B-R4 | P2 | Load validation accepts database failures; its wrapper discards failure status | [Release](03-release.md) |
 
-**All five fixed in ca54407** ([dispositions](06-dispositions.md)). As reviewed: B-R5 is a
-data-integrity issue requiring prompt repair; resolve the
-findings before closing B. No production incident is asserted: reproductions use local
-temporary databases or stubbed transport. B-R2 exposes a problem in existing ruling A14,
-not a failure to implement that ruling. The recovery fix must amend the ruling explicitly.
+**Recheck at f3a4e40:** B-R1/B-R2/B-R3/B-R5 verified fixed in ca54407; **B-R4 partially open**:
+the load CLI still accepts verifier `internal_error` outcomes. See [Codex recheck](07-recheck.md)
+and [author dispositions](06-dispositions.md). Both recovery departures are accepted.
+No production incident is asserted; reproductions use temporary databases or stubbed transport.
 
-## Evidence
+## Original review evidence (15169a2)
 
 - [Validation](04-validation.md): 890 Python tests passed, one Linux-only skip; 19 Node tests;
   lint/format/types and all 22 content checks passed; compiled content reproduced exactly.
@@ -32,7 +31,7 @@ not a failure to implement that ruling. The recovery fix must amend the ruling e
 - [Reviewed areas with no new finding](05-covered-areas.md) records coverage and limits.
 - Prior B-A1–B-A5 fixes remain implemented; their normal regression tests pass.
 
-## Repair and verification
+## Original repair recommendations (see recheck for current status)
 
 1. Fix B-R5/B-R2 together: exclusive recovery ownership, stable reservation identity and the
    original revision. Add a new migration; **do not edit deployed migrations 0001/0002**.

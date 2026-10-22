@@ -1,7 +1,9 @@
 # Documentation
 
-Milestone B (practice loop) is live. Whole-branch review findings are fixed (deploy pending);
-the hours log remains. Host sizing is deferred to C under Thomas's recorded exception.
+Milestone B (practice loop) is live. Application review fixes are verified (deploy pending);
+B-R4 remains partially open for verifier-crash handling in the load tool. See the
+[fix recheck](reviews/2026-10-22-milestone-b/07-recheck.md).
+The hours log remains. Host sizing is deferred to C under Thomas's recorded exception.
 Read the [current handoff](../handoff.md) before continuing work.
 
 - [Current handoff](../handoff.md): status, priorities and next action.
@@ -10,7 +12,7 @@ Read the [current handoff](../handoff.md) before continuing work.
 - [Active option B delivery plan](superpowers/plans/portfolio-mvp/README.md): milestones and gates.
   - [Milestone B tasks](superpowers/plans/portfolio-mvp/milestone-b/README.md): tasks 1–16 implemented; review fixes pending.
   - [R24 implementation](superpowers/plans/portfolio-mvp/milestone-b/r24/README.md): scoped precision, debugging and release checklist.
-  - [App-track rulings](superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md): A1–A21; recovery ruling A14 needs revision.
+  - [App-track rulings](superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md): A1–A21; recovery ruling A14 amended and rechecked.
   - [Verification evidence](superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md): local checks versus historical CI.
 - [Reviews](reviews/README.md): dated findings and evidence.
   - [2026-10-22 code review](reviews/2026-10-22-milestone-b/README.md): prioritized fixes, modular debugging and executable probes.

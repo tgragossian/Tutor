@@ -1,11 +1,12 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-22, after Claude fixed Codex's whole-branch review.
-`main` and `milestone-b` are identical (Codex's review adbf0e9, fixes ca54407, docs after it).
-Implementation worktree: `.claude/worktrees/milestone-b`. The host still runs 9bf6b29.
+Owner: Thomas Gragossian. Updated: 2026-10-22 after Codex rechecked fixes ca54407 at f3a4e40.
+Both branches were at f3a4e40; these recheck/docs edits are in the main checkout only.
+Implementation worktree: `.claude/worktrees/milestone-b`. Host last recorded at 9bf6b29.
 
-**Milestone B status:** tasks 1–16 done; review findings B-R1–B-R5 **fixed** (not yet deployed).
-To close B: Thomas deploys (migration 0003), then the hours log.
+**Milestone B status:** B-R1/B-R2/B-R3/B-R5 verified fixed; **B-R4 partially open** (load tool
+accepts verifier crashes). Fix that case before B closure; deploy migration 0003 and log hours.
+The load-tool issue does not require delaying deployment of the application integrity fixes.
 Host sizing stays deferred to milestone C under Thomas's recorded exception.
 
 ## Live site (https://tutor.thomasgragossian.dev)
@@ -27,30 +28,24 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
 - Task 16 (375ab7c, 9bf6b29): pool size/memory settings; `tools/load/submit_burst.py` +
   `measure.sh` (host burst, peak memory); uvicorn `--no-access-log`; browser e2e on the
   production image in CI; [verifier docs](docs/verifier/README.md), [dev-b results](evals/verifier/results/dev-b.md).
-- Codex's whole-branch review ([2026-10-22](docs/reviews/2026-10-22-milestone-b/README.md)):
-  five findings, all fixed in ca54407; how each was fixed, deviations and tests are in the
-  [dispositions](docs/reviews/2026-10-22-milestone-b/06-dispositions.md). In short:
-  - **B-R5/B-R2:** migration 0003 (`reserved_revision`, `lease`, `leased_at` on `submissions`).
-    Orphan recovery claims an exclusive lease, grades the stored revision (not the retry's),
-    only the lease holder deletes, and transaction B checks UUID + presentation before storing.
-    A14 amended. Pre-0003 orphans are dropped as stale. Deviation: any holder may finalize (the
-    unique result row keeps one). AUTOINCREMENT deferred to follow-ups (needs a table rebuild).
-  - **B-R3:** `seconds_on_item` ends at the original submission time, also after recovery.
-  - **B-R1:** the answer locks while a check may still be held by the server and Check resends
-    the same id; after only `verifier_busy` replies an edit is a new answer with a new id.
-    Node controller tests + a Playwright step with real MathLive.
-  - **B-R4:** the burst fails on `database_busy`/format/transport errors or zero grades;
-    `measure.sh` returns that status. The recorded host run stays valid.
-  - Codex's probes beside the review now pass; their cases are in normal tests.
+- Review fixes ca54407: migration 0003 adds reserved revision/lease/lease time; recovery
+  uses the original revision, lease-aware cleanup and UUID/presentation checks. Timing ends
+  at submission; UI preserves ambiguous retries. Details: [dispositions](docs/reviews/2026-10-22-milestone-b/06-dispositions.md).
+- [Codex recheck](docs/reviews/2026-10-22-milestone-b/07-recheck.md): accepts any legitimate
+  holder finalizing and omission of AUTOINCREMENT; both have direct passing probes.
+  Populated 0002→0003 upgrade preserves old answers/results and foreign keys.
+  Original five probes pass. B-R4 still drops verdict reasons: all-crash HTTP 200 responses
+  count as graded work and exit 0. Database/format/transport checks and shell propagation work.
 - Thomas raised automated problem sets (not just a bank). The plan has the extraction pipeline
   (expansion queue #4); generated problems (templates or LLM) are not planned yet: decide
   with Thomas whether to add them and where.
 
 ## Resume here
 
-1. **Deploy the review fixes** (Thomas, runbook "Update to the latest `main`"). This runs
-   migration **0003**: `migrate` must show `Exited (0)`, then `/readyz` ready with `servable` 22.
-   Optional: Codex re-checks the [dispositions](docs/reviews/2026-10-22-milestone-b/06-dispositions.md).
+1. **Finish [B-R4](docs/reviews/2026-10-22-milestone-b/07-recheck.md):** preserve verdict reason
+   in load results and reject `internal_error` even under HTTP 200. New failing probe included.
+   **Deploy application fixes** via the runbook: migration **0003**, `migrate` = `Exited (0)`,
+   then `/readyz` ready with `servable` 22. No deployment performed by the recheck.
 2. **Host sizing: deferred by Thomas (2026-10-22).** Stay on 1 GB, pool 1 worker / 384 MB, as a
    recorded exception: the worst-case rule (≈973 MiB > 85% of 1 GB) fails, but measured use
    leaves ≥ 281 MiB free under the burst ([host sizing](docs/ops/host-sizing.md)). Revisit in
@@ -78,9 +73,9 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
   owns task completion and outstanding gates.
 - [Verification evidence](docs/superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md)
   separates recorded browser/CI evidence from [fresh local validation](docs/reviews/2026-10-22-milestone-b/04-validation.md).
-- Fresh: 890 Python passed / 1 Linux-only skip, 19 Node passed, lint/format/types and 22-problem
-  content check passed; dev 136/136 and generated 94/94 agreement, FA 0. Five review probes fail.
-  Prior B-A1–B-A5 regression tests pass. No fresh browser, Docker or production run.
+- Fresh recheck: 904 Python passed / 3 platform skips, 26 Node passed; lint/format/types/docs
+  passed. Original probes and added recovery/migration probes pass; new B-R4 probe fails.
+  No fresh browser, Docker, production or verifier CLI run; see [recheck](docs/reviews/2026-10-22-milestone-b/07-recheck.md).
 - [Reviewed verifier result](evals/verifier/results/README.md): FA 0/50 (95% upper bound 7.1%),
   FR 0/49, coverage 49/49, agreement 136/136; no internal errors. This is a dev set.
 - [File map](docs/superpowers/plans/portfolio-mvp/milestone-b/01-file-map.md),
