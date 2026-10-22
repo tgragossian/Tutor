@@ -58,7 +58,8 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
    [Decision 0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md): train LoRA on non-calculus
    TutorBench + Eedi (Thomas: fair use; weights unpublished, git-ignored); TutorBench Calculus,
    TutorMoments and C cases are evaluation only. Help type chosen by buttons (decided);
-   Muse Spark added as a candidate (0004). Open: fine-tuning timing.
+   Muse Spark added (0004). Fine-tune Qwen3.5-9B with LoRA; A/B vs base and vs the hosted
+   winner (0005 §3). Open: fine-tuning timing.
    Fine-tuning (LoRA) stays last in the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).
 
 ## Working notes for Claude
