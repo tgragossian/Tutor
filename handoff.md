@@ -59,7 +59,7 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
    TutorBench + Eedi (Thomas: fair use; weights unpublished, git-ignored); TutorBench Calculus,
    TutorMoments and C cases are evaluation only. Help type chosen by buttons (decided);
    Muse Spark added (0004). Fine-tune Qwen3.5-9B with LoRA; A/B vs base and vs the hosted
-   winner (0005 §3). Open: fine-tuning timing.
+   winner (0005 §3). LoRA runs right after C, trained on AWS (0005 §6).
    Fine-tuning (LoRA) stays last in the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).
 
 ## Working notes for Claude

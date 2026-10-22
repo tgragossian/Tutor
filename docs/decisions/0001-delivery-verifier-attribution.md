@@ -11,7 +11,8 @@ proposed algebraic check precise. No application code has been implemented.
 Deploy a skeleton early, complete three-topic practice, add RAG hints, then finish
 operations and release evaluation. Testing and measurement begin with the first feature.
 Keep the broader roadmap in order: diagnostic -> exam conditions/recap ->
-all 15 topics -> extraction pipeline -> LoRA.
+all 15 topics -> extraction pipeline -> LoRA. (Amended by [0005](0005-tutoring-datasets-and-fine-tuning.md) §6:
+LoRA runs directly after milestone C.)
 Each stage requires the previous stage's exit evidence; do not drop queued features.
 The eight-week estimate covers the initial core, not a guarantee for the full queue.
 

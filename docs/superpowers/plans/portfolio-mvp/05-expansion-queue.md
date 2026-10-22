@@ -12,7 +12,10 @@ Estimate each expansion separately rather than promising it inside the initial 1
 | 2 | Exam conditions and recap | Closed-book/formula-sheet/open-notes behavior, reviewed recall/concept content, complete recap flow |
 | 3 | All 15 topics | Reviewed coverage and supported answer formats per topic, verifier evaluation and UI flows |
 | 4 | Extraction pipeline | Reproducible HTML ingestion, source/answer matching, review workflow and audited error rates |
-| 5 | LoRA | Same-model before/after comparison, held-out calculus evaluation, costs and regressions reported |
+
+LoRA moved out of this queue: it runs directly after milestone C
+([decision 0005](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md) §6), with the same gate:
+same-model before/after comparison, held-out calculus evaluation, costs and regressions reported.
 
 ## Diagnostic
 

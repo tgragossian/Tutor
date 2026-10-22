@@ -2,7 +2,7 @@
 
 [Decisions index](README.md) · [Decision 0004](0004-rag-source-models-and-evaluation.md) · [Fine-tuning plan](../superpowers/plans/portfolio-mvp/04-release.md)
 
-Status: accepted by Thomas, 2026-10-22 (§1–§5 routing). Timing is open. Licences as found on 2026-10-22.
+Status: accepted by Thomas, 2026-10-22. Amends decision 0001's delivery order (§6). Licences as found on 2026-10-22.
 
 ## 1. Datasets and their roles
 
@@ -56,7 +56,7 @@ Status: accepted by Thomas, 2026-10-22 (§1–§5 routing). Timing is open. Lice
 - Report rubric scores with uncertainty, per use case, plus cost per hint. A null result is a
   reported finding. OpenStax text is not used for training (decision 0004 §1).
 
-## 5. Routing (decided) and timing (open)
+## 5. Routing
 
 - **Use-case routing (Thomas, 2026-10-22): buttons.** On the practice page the student picks the
   kind of help, so no classifier is needed: "What did I do wrong?" after a wrong answer →
@@ -65,5 +65,21 @@ Status: accepted by Thomas, 2026-10-22 (§1–§5 routing). Timing is open. Lice
   and any recorded misconception the wrong answer matches (checked with the SymPy verifier).
   A free-text question box comes later; the hint model then states the use case in the same
   call, with routing accuracy measured on TutorBench's use-case labels.
-- **Timing (open):** move the fine-tuning experiment to directly after milestone C, or keep it last in
-  the expansion queue.
+
+## 6. Timing, compute and serving (Thomas, 2026-10-22)
+
+- **Order:** the LoRA experiment runs **directly after milestone C** (RAG hints), before milestone
+  D and the expansion queue: RAG and fine-tuning are the two ML pieces, and Thomas wants to ship
+  early. The rest of the queue keeps its order.
+- **Training on AWS**, not locally: Thomas's GTX 1070 Ti (8 GB, Pascal, no bf16) cannot train a
+  9B model well. Plan: one A10G 24 GB instance (`g5.xlarge`, us-west-2 ≈ $1.01/h on-demand,
+  ≈ $0.5–0.8/h spot, third-party quotes 2026-10-22), QLoRA, stopped between runs. Expected total
+  in the tens of dollars; measured costs go in the hours/costs record.
+- **Before the first run:** request the EC2 GPU vCPU quota (new accounts often start at 0 for
+  G instances), and raise the $10/month budget alert to cover training. A budget alert is a
+  notification, not a cap: stop or terminate instances after every run.
+- **Serving:** live hints use the hosted model chosen in milestone C (per-token; ≈ $9 for 50
+  students × 30 hints at Muse Spark prices). A GPU running the LoRA model 24/7 (≈ $700+/month)
+  is not justified for an expected ≤ 50 users; the LoRA model is evaluated offline and can be
+  demoed on demand. Revisit if it wins A/B 2 and usage grows. The global usage budget from the
+  C plan applies before any public launch.

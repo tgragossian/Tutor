@@ -23,8 +23,9 @@ hints, reproducible retrieval experiments and clear operational limits.
 - FastAPI, Jinja forms/fetch, MathLive, SQLite and Docker; small AWS deployment.
 - Progressive hints, citations, documented correctness/abstention behavior.
 
-After the core works, restore features in this order:
-diagnostic -> exam conditions and recap -> all 15 topics -> extraction pipeline -> LoRA.
+After RAG hints (C), run the LoRA experiment ([decision 0005](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md) §6),
+then restore features in this order:
+diagnostic -> exam conditions and recap -> all 15 topics -> extraction pipeline.
 See the [expansion queue and gates](05-expansion-queue.md). Nothing in that queue is dropped.
 Implicit differentiation is retained for topic expansion using exact polynomial checks.
 Add the other answer formats with the topics that require them; estimate expansions separately.
