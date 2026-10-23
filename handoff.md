@@ -1,6 +1,6 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-22, after the review-fix deploy.
+Owner: Thomas Gragossian. Updated: 2026-10-22, after the AI planning decisions (0004/0005).
 `main` and `milestone-b` are identical. Implementation worktree: `.claude/worktrees/milestone-b`.
 The host runs `main` 8057590 (Thomas deployed; migration 0003 applied).
 
@@ -51,16 +51,13 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
 3. Record actual hours with Thomas ([hours](docs/ops/hours.md)); 30-hour checkpoint pending.
 4. [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): verifier is
    slow on wrong answers to nested trig (`sin(cos 7x)`); `content_check` lacks a hard deadline.
-5. **Next: milestone C (RAG hints)**, per the [delivery plan](docs/superpowers/plans/portfolio-mvp/03-rag.md).
-   [Decision 0004](docs/decisions/0004-rag-source-models-and-evaluation.md) (Thomas, 2026-10-22):
-   OpenStax text may go to a hosted LLM (CC licence; AI clause a recorded risk); GPT-5.2 is the
-   baseline vs Claude Opus/Sonnet/Haiku 5.5; evaluate hint behaviour on hard cases. Next: design session.
-   [Decision 0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md): train LoRA on non-calculus
-   TutorBench + Eedi (Thomas: fair use; weights unpublished, git-ignored); TutorBench Calculus,
-   TutorMoments and C cases are evaluation only. Help type chosen by buttons (decided);
-   Muse Spark added (0004). Fine-tune Qwen3.5-9B with LoRA; A/B vs base and vs the hosted
-   winner (0005 §3). LoRA runs right after C, trained on AWS (0005 §6).
-   Fine-tuning (LoRA) stays last in the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md).
+5. **Next: milestone C (RAG hints), then the LoRA experiment.** All AI decisions (decisions
+   [0004](docs/decisions/0004-rag-source-models-and-evaluation.md)/[0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md))
+   are listed in the [AI decisions handoff](docs/superpowers/plans/portfolio-mvp/06-ai-decisions-handoff.md):
+   OpenStax RAG with citations; GPT-5.2 baseline vs Claude 5.5 models (Muse Spark dropped);
+   help buttons; Qwen3.5-9B LoRA trained on AWS, served on RunPod Serverless as a live
+   per-student A/B with hosted fallback. **Codex:** apply its "Doc updates" list (items 2–7).
+   Open: RunPod serving test, training host, API keys. Next: C design session with Thomas.
 
 ## Working notes for Claude
 
