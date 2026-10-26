@@ -22,6 +22,18 @@ class Settings(BaseSettings):
     # from the host's measured memory (docs/ops/host.md).
     pool_size: int = Field(default=1, ge=1)
     pool_memory_mb: int = Field(default=384, ge=1)
+    # Milestone C1 help. "scripted" drives tests only; "off" disables help.
+    anthropic_api_key: SecretStr | None = None
+    corpus_path: Path = Path("content/corpus/chunks.jsonl")
+    help_generator: Literal["claude", "scripted", "off"] = "claude"
+    guard_pool_memory_mb: int = Field(default=384, ge=1)
+    help_config_path: Path = Path(__file__).parent / "help" / "help_config.json"
+
+    @model_validator(mode="after")
+    def _scripted_only_in_test(self) -> Self:
+        if self.help_generator == "scripted" and self.env != "test":
+            raise ValueError("MATHTUTOR_HELP_GENERATOR=scripted is allowed only when env is test")
+        return self
 
     @model_validator(mode="after")
     def _production_needs_secret(self) -> Self:
