@@ -3,15 +3,15 @@
 Milestone B (practice loop) and review fixes are deployed at 8057590 per Thomas; migration 0003 applied.
 The load tool's verifier-crash case (B-R4) was fixed in 04de2d2. See
 [dispositions](reviews/2026-10-22-milestone-b/06-dispositions.md) for fix/recheck chronology.
-The hours log remains. Host sizing is deferred to C under Thomas's recorded exception.
+B is closed; Thomas removed the hours gate on 2026-10-26. Host sizing is deferred to C.
 Read the [current handoff](../handoff.md) before continuing work.
 
 - [Current handoff](../handoff.md): status, priorities and next action.
 - [Decisions](decisions/README.md): accepted direction and precedence.
 - [Active portfolio-core spec](superpowers/specs/2026-10-13-portfolio-core/README.md): approved contracts for milestones A–B.
-- [Milestone C design spec](superpowers/specs/2026-10-26-milestone-c/README.md): help, own problems, evaluation; under review.
+- [Milestone C design spec](superpowers/specs/2026-10-26-milestone-c/README.md): reviewed help/intake contracts, state/accounting, corpus and evaluation children.
 - [Active option B delivery plan](superpowers/plans/portfolio-mvp/README.md): milestones and gates.
-  - [Milestone B tasks](superpowers/plans/portfolio-mvp/milestone-b/README.md): tasks 1–16 and fixes deployed; hours remain.
+  - [Milestone B tasks](superpowers/plans/portfolio-mvp/milestone-b/README.md): tasks 1–16 and fixes deployed; B closed.
   - [R24 implementation](superpowers/plans/portfolio-mvp/milestone-b/r24/README.md): scoped precision, debugging and release checklist.
   - [App-track rulings](superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md): A1–A21; recovery ruling A14 amended and rechecked.
   - [Verification evidence](superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md): local checks versus historical CI.
@@ -19,6 +19,7 @@ Read the [current handoff](../handoff.md) before continuing work.
   - [AI handoff](superpowers/plans/portfolio-mvp/06-ai-decisions-handoff.md): accepted decisions map and completed doc sync.
   - [LoRA compute/serving](decisions/0005-tutoring/01-compute-and-serving.md) and [cost assumptions](decisions/0005-tutoring/02-sizing-and-costs.md).
 - [Reviews](reviews/README.md): dated findings and evidence.
+  - [2026-10-26 C concept review](reviews/2026-10-26-milestone-c/README.md): guard, lifecycle/cost, intake, evaluation and corpus findings.
   - [2026-10-22 code review](reviews/2026-10-22-milestone-b/README.md): prioritized fixes, modular debugging and executable probes.
   - [2026-10-21 code review](reviews/2026-10-21-milestone-b/README.md): historical issues and implemented fixes.
 - Historical references:

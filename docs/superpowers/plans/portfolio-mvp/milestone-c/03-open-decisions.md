@@ -3,29 +3,34 @@
 [Parent milestone C plan](../03-rag.md) · [AI handoff](../06-ai-decisions-handoff.md)
 
 Updated 2026-10-26. This page owns unresolved choices; accepted decisions stay in 0004/0005.
-Next step: Thomas and Codex review the [C design spec](../../../specs/2026-10-26-milestone-c/README.md),
-then the implementation plan. Documentation does not authorize compute.
+Codex's [concept review](../../../../reviews/2026-10-26-milestone-c/README.md) is complete;
+the [C design spec](../../../specs/2026-10-26-milestone-c/README.md) includes review amendments.
+Next: write implementation tasks and close the prerequisites below. No C code exists yet.
 
 | ID | Open item | Next evidence or decision |
 |---|---|---|
 | C-O1 | RunPod serving test | Thomas's account/go-ahead; measure fit, cold/cached starts, latency and bill |
 | C-O2 | Training host alternative | AWS remains selected; Thomas may choose RunPod Pods after comparison |
 | C-O3 | Lightsail sizing | Measure C1 retrieval memory; Thomas allows 2 GB if needed (2026-10-26) |
-| C-O4 | Automated problem sets | Thomas wants all of Calc 1 only if automated (2026-10-26): the bank project after C, with a broader checker |
+| C-O4 | Automated problem sets | All of Calc 1 only if automated (Thomas, 2026-10-26); placement remains open, without displacing accepted C → LoRA → D/E |
 | C-O5 | Hosted access | Thomas supplies an Anthropic API key through secrets configuration (no OpenAI, 2026-10-26) |
-| C-O6 | C design session | Held 2026-10-26; written in the C design spec, awaiting review |
+| C-O6 | C design session | Complete 2026-10-26; Codex review incorporated; implementation plan still needed |
 
-## Design inputs still needed (C-O6)
+## Implementation prerequisites from review (not new owner decisions)
 
-- Corpus subset and snapshot provenance; local BM25/index memory and later embedding placement.
-- Exact callable model versions, budget/rate/timeout values and comparison margin.
-- Help payload/event schema, context bounds and confusion-list choices.
-- Leak-guard expression extraction, resource bounds, reveal semantics and safe failure behavior.
-- Dataset eligibility (including image-bearing tasks), partition IDs and contamination procedure.
-- Live A/B rollout for existing students, event retention and linking hints to next attempts.
+| ID | Before | Required resolution |
+|---|---|---|
+| C-P1 | C1 implementation/evaluation | Pin runtime parser/worker interfaces, context/token/candidate bounds, admission limits, misconception schema, tariff/model settings and durable ledger recovery |
+| C-P2 | Paid C comparison/public release | Pin primary selection measure, 10-point rule/tolerances, numeric safety/usefulness/citation/retrieval gates, query split and disjoint C/LoRA/E partitions |
+| C-P3 | C3 implementation | Pin typed task/domain admission, owned help/practice targets, upload conversion/pixel/page/problem/token bounds, deadlines, transient expiry and deletion/backup/provider retention |
+| C-P4 | LoRA experimentation | Dataset eligibility/overlap, untouched final IDs, existing-account assignment and live retention/metrics |
 
-These are implementation details to resolve, not reversals of the accepted decisions.
-The [help contract](01-help-contract.md) and [evaluation gates](02-evaluation.md) constrain them.
+Resolved design direction: whole-book corpus, top 6 BM25, three buttons → C2 text → C3 intake,
+30/hour and 150/day help, 10/day uploads, initial $15 monthly admission budget, custom chunk IDs,
+Reveal-only intentional answer path, fail-closed recognized math. See exact spec for limitations.
+The 15 s total deadline, two-call maximum and typed derivative subset are review amendments;
+measure feasibility in implementation, without silently relaxing containment or leakage reporting.
+C-O6 stays complete; C-P entries describe remaining implementation choices.
 
 ## Dependencies and boundaries
 
@@ -35,5 +40,5 @@ The [help contract](01-help-contract.md) and [evaluation gates](02-evaluation.md
 - [Expansion queue](../05-expansion-queue.md) still includes extraction; automated sets are a
   separate proposed feature until C-O4 is decided. Generated candidates require human review.
 - Keep keys out of documentation and git; [security](../../../../ops/security.md) owns secrets guidance.
-- B's remaining hours gate stays in [B status](../milestone-b/03-execution-status.md).
+- B is closed; Thomas removed the hours gate on 2026-10-26. [B status](../milestone-b/03-execution-status.md).
   No API call, GPU job, endpoint creation or deployment was performed for this doc sync.

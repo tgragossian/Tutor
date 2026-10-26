@@ -16,6 +16,11 @@ C's implementation plan exists; do not invent commands or report these checks as
 | Unexpected GPU cost | Worker count → idle tail → cold starts → fallback spend | Billable seconds, rate, cache hits and storage charges |
 | Web-host memory pressure | Retrieval/index → app/worker → host totals | Same-workload memory burst and C configuration |
 | Suspicious evaluation gains | Dataset partitions → overlap check → scoring config | Task IDs, text overlap, versions and per-case paired results |
+| Duplicate charge / skipped hint level | Request binding → reservation → finalization | Request ID, payload hash, help sequence, call ledger |
+| Hint on wrong/deleted problem | Item/revision → privacy epoch → browser binding | Context cutoff, discard reason, deletion epoch |
+| Budget exceeded/reset | Reserved + settled cost → unknown usage → month rollover | Content-free ledger, tariff version, provider request IDs |
+| Wrong own-problem grade | Confirmed task → domain admission → solve result | Task/version, admitted subset, downgrade reason |
+| Upload retained / memory spike | Body parser → decoder → cleanup → provider | Byte/page/pixel bounds, cleanup result; no raw upload logs |
 
 ## Owning documents
 
@@ -26,6 +31,8 @@ C's implementation plan exists; do not invent commands or report these checks as
 - [Open decisions](03-open-decisions.md): unresolved limits, schemas and test prerequisites.
 - [B application debugging](../../../../ops/debugging/01-app.md): practice and persisted attempts.
 - [Host sizing](../../../../ops/host-sizing.md): measured B baseline and retained exception.
+- [Concept review](../../../../reviews/2026-10-26-milestone-c/README.md): prioritized evidence and missing interfaces.
+- [C state/accounting](../../../specs/2026-10-26-milestone-c/06-state-and-accounting.md): transaction and deletion boundaries.
 
 Keep failures reproducible with model/prompt/config and corpus versions. Provider errors or
 unparseable output must remain visible; a successful HTTP status alone is not a valid hint.

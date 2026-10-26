@@ -1,5 +1,6 @@
 # Design and code reviews
 
+- [2026-10-26 milestone C concept review](2026-10-26-milestone-c/README.md): eight findings, amended contracts and implementation prerequisites
 - [2026-10-22 milestone B whole-branch review](2026-10-22-milestone-b/README.md): five open findings, reproductions and fresh validation
 - [2026-10-21 milestone B code review](2026-10-21-milestone-b/README.md): five app-track findings, fixed in 4eba48f
 - [Core practice loop review](2026-10-13/README.md)

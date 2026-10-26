@@ -2,10 +2,10 @@
 
 [Milestone B plan](README.md) · [Execution rulings](02-execution-rulings.md) · [Follow-ups](05-follow-ups.md)
 
-Updated 2026-10-22 from Thomas's deploy record and the later AI documentation sync.
+Updated 2026-10-26 from Thomas's deploy record and recorded removal of the hours gate.
 Tasks 1–16 and review fixes are deployed at 8057590: 22 reviewed problems, migration 0003.
 Application fixes were rechecked at f3a4e40; B-R4's remaining case was fixed in 04de2d2.
-Record actual hours before B closure; this sync does not independently re-probe production.
+B is closed; actual hours are optional per Thomas (2026-10-26). No new production probe.
 Host sizing remains deferred to C under Thomas's recorded exception. Do not restart completed tasks.
 
 ## Tasks
@@ -57,10 +57,10 @@ with regression tests ([dispositions](../../../../reviews/2026-10-21-milestone-b
 The [fix recheck](../../../../reviews/2026-10-22-milestone-b/07-recheck.md) verifies B-R1/B-R2/
 B-R3/B-R5, migration 0003 and both recovery departures. Its B-R4 case (HTTP 200
 `unable_to_verify/internal_error`) is fixed in 04de2d2. Thomas reports deployment complete.
-Sizing stays in C; [AI planning](../06-ai-decisions-handoff.md) owns the next design session.
+Sizing stays in C; [AI planning](../06-ai-decisions-handoff.md) links the completed design/review.
 
-Record actual hours in the [hours log](../../../../ops/hours.md); no B actuals are supplied.
-At 30 h, stop at the next task boundary for a scope/date/contingency decision with Thomas.
+The [hours log](../../../../ops/hours.md) remains available; no B actuals are supplied or inferred.
+The historical 30 h stop rule is no longer a B closure gate (Thomas, 2026-10-26).
 
 ## Documentation sync (2026-10-21)
 

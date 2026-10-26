@@ -4,8 +4,9 @@
 
 ## Offline corpus build
 
-`tools/build_corpus` fetches every page of OpenStax *Calculus Volume 1* and writes
-`content/corpus/chunks.jsonl` plus a provenance manifest.
+Planned `tools/build_corpus` acquires whole-book teaching pages from OpenStax *Calculus Volume 1*
+and builds `content/corpus/chunks.jsonl` plus a provenance manifest from a frozen local snapshot.
+The [corpus contract](07-corpus-contract.md) owns deterministic rebuilds and completeness checks.
 
 - Chunk at mathematical boundaries: definitions, theorems, rules, worked examples and
   explanatory subsections, about 300–500 tokens each. Math is kept as LaTeX.
@@ -25,27 +26,28 @@ New packages next to the existing `application/`, `verify/`, `store/` and `web/`
 | `retrieval/` | Load `chunks.jsonl` at startup, build an in-memory BM25 index, return top-k with scores |
 | `help/` | `HelpService`, the single entry point for all help (steps below) |
 | `help/generator.py` | `Generator` protocol; `ClaudeGenerator` now, `QwenGenerator` after the LoRA |
-| `help/leak_guard.py` | Expression extraction and SymPy equivalence checks (section 3) |
+| `help/leak_guard.py` | Extraction and leak-result policy; bounded parser/worker adapters (section 3) |
 | `intake/` | C3: read typed or uploaded problems, confirm, solve (section 4) |
-| `store/` | New tables `help_events` and (C3) `user_problems`, via Alembic migrations |
+| `store/` | Help reservations/events, independent usage ledger and C3 problem versions via migrations |
 | `web/` | `POST /api/help`, help panel on the practice page, C3 "My problems" page |
 
 `HelpService` steps:
 
-1. Gather server-owned context (problem, attempts, tries, matched misconception).
+1. Validate/reserve request identity, state and spend; gather bounded server-owned context.
 2. Retrieve the top passages.
 3. Build the prompt for the help type (versioned prompt files).
 4. Call the `Generator`.
-5. Validate citations: only IDs from this request's retrieved set are kept.
+5. Validate schema and every citation ID against this request's retrieved set; reject unknown IDs.
 6. Run the leak guard.
-7. Log a help event and return text plus resolved citations.
+7. Revalidate item/privacy state, settle usage and return validated text plus resolved citations.
 
 ## Key properties
 
-- **One contract for every model.** Same prompt, JSON output schema and checks for Claude and
-  Qwen, so the LoRA A/B compares like with like.
-- **The LLM never reveals the answer.** The existing deterministic **Reveal** action (after
-  three wrong tries) stays the only way to see it, so the leak guard applies at every level.
+- **One contract for every model.** Same prompt content, schema and application checks for
+  Claude and Qwen; log provider decoding differences. Base/LoRA use identical serving code.
+- **No intentional answer disclosure.** The existing deterministic **Reveal** action (after
+  three wrong tries) stays the answer action. The guard applies at every level but cannot
+  prove absence of prose or cumulative leaks; [section 3](03-guard-and-limits.md) owns this limit.
 - **Help does not consume tries.** Every help event is logged so assisted and unassisted
   attempts stay distinguishable.
 - **Untrusted inputs.** Student text and retrieved passages are data inside clearly delimited
@@ -54,3 +56,7 @@ New packages next to the existing `application/`, `verify/`, `store/` and `web/`
   move Lightsail to 2 GB if the measured headroom rule fails ([host sizing](../../../ops/host-sizing.md)).
 - **Dependencies.** Add the `anthropic` SDK and a small BM25 implementation (library or local
   code, chosen in the plan). The API key comes from secrets configuration, never git.
+- **Isolation.** Parser/solve/guard jobs need bounded worker interfaces; the current pool only
+  grades `CheckRequest`. Keep SymPy out of the web process and preserve grading capacity.
+- **Lifecycle.** [State/accounting](06-state-and-accounting.md) owns revisions, idempotency,
+  deletion and usage. Missing provider/corpus disables help while core practice remains ready.

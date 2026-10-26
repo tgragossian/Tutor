@@ -2,16 +2,21 @@
 
 [Specs index](../README.md) · [Milestone C plan](../../plans/portfolio-mvp/03-rag.md)
 
-Status: design agreed with Thomas in the 2026-10-26 design session; written spec awaiting his
-review, then Codex review. Governed by decisions
+Status: design agreed with Thomas on 2026-10-26; Codex concept review completed against
+`8126fc3`. [Findings and dispositions](../../../reviews/2026-10-26-milestone-c/README.md).
+Review amendments clarify implementation contracts; they are not runtime evidence or new
+owner approvals. A task-by-task implementation plan is still needed. Governed by decisions
 [0004](../../../decisions/0004-rag-source-models-and-evaluation.md) (Anthropic only, amended
 2026-10-26) and [0005](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md).
-This spec resolves design session C-O6 in the [open register](../../plans/portfolio-mvp/milestone-c/03-open-decisions.md).
+The design session is complete; implementation prerequisites are in the
+[open register](../../plans/portfolio-mvp/milestone-c/03-open-decisions.md).
 
 ## Goal
 
 A student working a problem asks for help and gets a Claude-written response grounded in
-OpenStax *Calculus Volume 1*, with a working citation, that never discloses the answer.
+OpenStax *Calculus Volume 1*, with a working citation, aiming to withhold the final answer.
+The bounded guard catches supported expression leaks; prose/cumulative leaks remain measured
+limitations. Reveal is the only intentional answer action; hints-only C3 has no reference guard.
 Students can also ask their own questions and bring their own problems (typed, photo or PDF),
 for example a practice test from their teacher. Help covers the whole book, not only the
 three derivative sections in the current bank.
@@ -43,11 +48,15 @@ Estimate: C1 alone matches the old 40-hour budget; all of C is about 70–90 hou
 3. [Leak guard, failures and limits](03-guard-and-limits.md).
 4. [Own problems (C3)](04-own-problems.md): intake, confirm, solve, privacy.
 5. [Evaluation and acceptance](05-evaluation-and-acceptance.md): cases, scoring, tests, done-when.
+6. [State and accounting](06-state-and-accounting.md): retries, revisions, deletion, durable spend.
+7. [Corpus contract](07-corpus-contract.md): reproducible builds, math preservation, citations.
+8. [Evaluation protocol](08-evaluation-protocol.md): splits, coverage, selection and judging.
+9. [Provider evidence](09-provider-evidence.md): verified public capabilities and execution checks.
 
-## Out of scope for C (later projects, in order)
+## After C
 
-1. **All of Calc 1 as a graded bank:** automated problem generation (templates or Claude drafts,
-   SymPy-checked, reviewed) and a broader answer checker for limits, integrals and applications.
-   The no-false-accept rule must hold for every new problem type. Tracked as C-O4.
-2. **Qwen LoRA** (decision 0005), plugging in through the Generator interface.
-3. **Exam and quiz help** tailored to a practice test (expansion queue).
+Accepted order remains **C → Qwen LoRA → D/E → expansion** (decision 0005).
+Automated all-of-Calc-1 graded sets need templates/drafts, review and a broader checker;
+C-O4 owns their placement. Do not put this project ahead of LoRA by implication.
+Exam/quiz workflows remain in the expansion queue; uploading a sheet in C3 is problem intake,
+not timed-test orchestration or broader automatic grading.

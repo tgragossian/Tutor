@@ -3,6 +3,7 @@
 [Milestone B plan](README.md) · [Execution status](03-execution-status.md)
 
 Updated 2026-10-22. Fresh local checks and earlier/owner-reported runs are separated below.
+Status amendment 2026-10-26: Thomas removed the hours gate and closed B; evidence below is historical.
 
 Local [fix recheck at f3a4e40](../../../../reviews/2026-10-22-milestone-b/07-recheck.md):
 904 Python passed/3 platform skips, 26 Node passed; original probes and populated 0002→0003
@@ -35,7 +36,7 @@ Source: [2026-10-22 validation](../../../../reviews/2026-10-22-milestone-b/04-va
   peak app container 185.2 MiB, minimum available 281 MiB. Thomas deferred sizing to C,
   retaining 1 GB / one worker / 384 MB as an exception. B-R4 does not invalidate this record.
 - [Verifier guide](../../../../verifier/README.md) and [results](../../../../../evals/verifier/results/dev-b.md)
-  are published. Review fixes are deployed; actual hours remain before B closure.
+  are published. Review fixes are deployed; hours were still pending at this dated checkpoint.
 
 ## Historical app track: tasks 10–15 at d428bd7
 

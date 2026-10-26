@@ -6,7 +6,9 @@ Source: Thomas's 2026-10-22 decisions, collected on `milestone-b` in commit `328
 Synced into the main checkout on 2026-10-22. This is a navigation/sync record, not a second
 decision authority. [0004](../../../decisions/0004-rag-source-models-and-evaluation.md) and
 [0005](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md), including its children,
-own accepted decisions. Implementation has not started; next is the C design session.
+own accepted decisions. C design session and Codex review completed 2026-10-26; implementation
+has not started. The [amended spec](../../specs/2026-10-26-milestone-c/README.md) owns contracts;
+the [review](../../../reviews/2026-10-26-milestone-c/README.md) owns evidence and remaining prerequisites.
 Thomas's recorded OpenStax/TutorBench licensing choices and revisit conditions are preserved.
 
 ## Decided: where each item lives
@@ -19,7 +21,7 @@ Thomas's recorded OpenStax/TutorBench licensing choices and revisit conditions a
 | 4 | Anthropic only (2026-10-26): Claude Haiku vs Sonnet 5.5; GPT-5.2 and Muse Spark dropped | [0004 §2](../../../decisions/0004-rag-source-models-and-evaluation.md#2-generator-candidates) |
 | 5 | Hint behavior, not student-answer grading; Wilson intervals | [C evaluation](milestone-c/02-evaluation.md) |
 | 6 | Three help buttons and server-owned context | [Help contract](milestone-c/01-help-contract.md) |
-| 7 | Bounded SymPy answer-leak guard below reveal | [Help contract](milestone-c/01-help-contract.md) |
+| 7 | Bounded guard at every help level; Reveal-only intentional answers, measured limitations | [Help contract](milestone-c/01-help-contract.md) |
 | 8 | TutorBench non-calculus/Eedi/MathDial train; Calculus/TutorMoments/C eval | [0005 §§1–2, 4](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md) |
 | 9 | Qwen3.5-9B, QLoRA, one adapter; Qwen-generated training responses | [0005 §§3–4](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md) |
 | 10 | Paired base/LoRA headline A/B; LoRA/hosted reference A/B | [C/LoRA evaluation](milestone-c/02-evaluation.md) |
@@ -40,7 +42,7 @@ $0.92 calculator versus $0.69/hour rate mismatch. These are not observed bills o
 AWS versus proposed RunPod training, Lightsail sizing, automated sets, API access and C design.
 The serving test still needs Thomas's account/go-ahead. AWS remains the selected training host.
 
-## Doc updates for Codex: completed in this sync
+## Historical documentation sync (2026-10-22)
 
 1. Main `handoff.md`: C → LoRA order, correct model shortlist and link here; stale claims removed.
 2. Decision 0005 §3: Muse Spark removed from active comparison candidates.
@@ -53,3 +55,5 @@ The serving test still needs Thomas's account/go-ahead. AWS remains the selected
 
 Current status pages also reflect Thomas's recorded B deploy at 8057590 with migration 0003.
 Dated review evidence is retained; no new application, browser, host or GPU validation is implied.
+2026-10-26: active handoffs/indexes now reflect B closure, whole-book C1, C2/C3 and the concept
+review. C-P1–C-P4 track implementation prerequisites; this is not implementation completion.

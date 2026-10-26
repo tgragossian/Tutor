@@ -2,9 +2,9 @@
 
 [Delivery plan](../README.md) · [Milestone B goals](../02-practice.md) · [Handoff](../../../../../handoff.md)
 
-**Status (2026-10-22):** tasks 1–16 implemented and deployed; B-A1–B-A5 fixed. Whole-branch
+**Status (2026-10-26):** B closed; tasks 1–16 implemented and deployed; B-A1–B-A5 fixed. Whole-branch
 review fixes verified in ca54407, B-R4 recheck case fixed in 04de2d2. Thomas reports deployment
-at 8057590 with migration 0003; hours remain. Host sizing is deferred to C under his
+at 8057590 with migration 0003; Thomas removed the hours gate. Host sizing is deferred to C under his
 recorded exception. See [execution status](03-execution-status.md).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -70,7 +70,7 @@ verifies the application fixes and both recovery departures; its B-R4 case is fi
 - Task 15 needs 9, 13 and 14. Task 16 needs 15.
 - Thomas's reviews in tasks 9 and 15 can run while later tasks are built.
 
-**Budget note:** these estimates total about 43 h against the 30 h timebox in [02-practice](../02-practice.md).
+**Historical budget note (hours gate removed 2026-10-26):** estimates total about 43 h against the 30 h timebox in [02-practice](../02-practice.md).
 Milestone A finished in about 8 of its 20 h. Record actual hours per task in `docs/ops/hours.md`;
 if the running total passes 30 h, stop at the next task boundary and decide with Thomas whether to
 cut scope (never accuracy or containment, per the delivery plan) or draw on the 25 h contingency.

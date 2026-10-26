@@ -4,9 +4,9 @@ A portfolio project by Thomas Gragossian: build and evaluate a deployed Calculus
 
 Live: <https://tutor.thomasgragossian.dev>
 
-Status (2026-10-22): **milestone B: practice loop live.** Accounts, practice on three
+Status (2026-10-26): **milestone B closed; practice loop live.** Accounts, practice on three
 derivative topics (22 reviewed problems) with MathLive input and a proof-based SymPy grader,
-and history. Review fixes, including the load-check gap, are deployed per Thomas; hours remain.
+and history. Review fixes are deployed per Thomas; actual hours are optional.
 Host sizing is deferred to C under a recorded exception. See the
 [handoff](handoff.md), [what the verifier accepts](docs/verifier/supported.md),
 [verifier results](evals/verifier/results/dev-b.md) and [API contracts](contracts/README.md).
@@ -46,6 +46,8 @@ bound 7.1%), FR 0/49, coverage 49/49 and agreement 136/136. These are reviewed d
 passed for tasks 1–9. [App-track evidence](docs/superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md)
 records the app-track checks separately.
 Next: [RAG hints (C)](docs/superpowers/plans/portfolio-mvp/03-rag.md), then LoRA, then D/E.
+C design and [concept review](docs/reviews/2026-10-26-milestone-c/README.md) are complete;
+implementation tasks are next. No RAG/upload capability is implemented yet.
 
 ## Development
 

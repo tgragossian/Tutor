@@ -1,98 +1,83 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-26, milestone C design session (Claude).
-The host runs `main` 8057590 (Thomas deployed; migration 0003 applied). Docs-only commits since.
+Owner: Thomas Gragossian. Updated: 2026-10-26, Codex milestone C concept review.
+Host deployment remains Thomas's reported `main` 8057590, migration 0003. No new host probe.
+Review baseline: `8126fc3`; this review changes documentation only.
 
-**Milestone B: closed.** All review fixes deployed. Thomas (2026-10-26): logging actual hours is
-not a gate. Host sizing moved to C (C-O3); Thomas allows 2 GB if measurement needs it.
+**Milestone B is closed.** Thomas removed actual hours as a gate on 2026-10-26.
+Host sizing remains C-O3; Thomas allows 2 GB if measurement needs it.
 
-**For Codex: please review the [milestone C design spec](docs/superpowers/specs/2026-10-26-milestone-c/README.md).**
-Agreed with Thomas section by section on 2026-10-26; no code or plan written yet. Key choices:
-Anthropic only (Haiku 5.5, Sonnet if it wins by 10 points; 0004 §2 amended, 7829282), whole-book
-BM25 corpus, own chunk-ID citations (same contract for the later Qwen LoRA), fail-closed SymPy
-leak guard with Reveal as the only answer path, slices C1 buttons → C2 free text → C3 own
-problems with photo/PDF upload (image deleted after reading; SymPy-solved or hints-only).
-All of Calc 1 as a graded bank is a later project, only if automated (C-O4).
-
-## Live site (https://tutor.thomasgragossian.dev)
-
-- Practice loop from `main` 8057590: accounts, practice on three derivative topics with MathLive,
-  22 reviewed problems (7 + 7 + 8), history with "Clear history". `/readyz` ready, `servable` 22;
-  migrations 0001–0003.
-- First `/readyz` after `up -d` returns 502 for 30–60 s while the SymPy worker starts: normal.
-- Memory before the 2026-10-22 burst: app+worker 136 MiB, Caddy 15 MiB, 358 MiB available,
-  118 MiB in swap.
-- Deploy = the [runbook](docs/ops/runbook.md) "Update to the latest `main`" block (Thomas runs
-  it in Lightsail browser SSH). `migrate` must show `Exited (0)`. Never `compose down -v`.
-
-## Done 2026-10-22
-
-- Task 15: all 16 drafts approved (3c0141c), giving 22 deployed problems. Selection/practice
-  tests pin the original six (`tests/support/content.py`); container smoke skips ahead to 221.
-- Task 16: pool settings, load/memory tools, production-image browser CI and verifier docs.
-  [B status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md) owns commits and evidence.
-- Review fixes ca54407/04de2d2: durable recovery identity/revision, submission-time timing,
-  ambiguous-retry UI and load-error rejection. The recovery departures and populated migration
-  are rechecked; [dispositions](docs/reviews/2026-10-22-milestone-b/06-dispositions.md) owns details.
-- Automated problem sets remain unplanned; [C-O4](docs/superpowers/plans/portfolio-mvp/milestone-c/03-open-decisions.md)
-  tracks Thomas's scope/order decision separately from expansion queue #4 (extraction).
+**Milestone C design reviewed; implementation tasks still needed.** The
+[C spec](docs/superpowers/specs/2026-10-26-milestone-c/README.md) contains review amendments.
+The [concept review](docs/reviews/2026-10-26-milestone-c/README.md) owns prioritized findings,
+code evidence and dispositions. No C modules, model evaluation or upload pipeline exist yet.
 
 ## Resume here
 
-1. **Done 2026-10-22:** review fixes deployed (8057590, migration 0003); Thomas confirmed healthy.
-2. **Host sizing: deferred by Thomas (2026-10-22).** Stay on 1 GB, pool 1 worker / 384 MB, as a
-   recorded exception: the worst-case rule (≈973 MiB > 85% of 1 GB) fails, but measured use
-   leaves ≥ 281 MiB free under the burst ([host sizing](docs/ops/host-sizing.md)). Revisit in
-   milestone C once retrieval's memory is known (BM25/index and any embedding setup).
-   Qwen base/LoRA is planned on RunPod Serverless; training is on AWS, separate from this host.
-   Not a blocker for closing milestone B.
-3. Hours: optional; Thomas does not treat the [hours log](docs/ops/hours.md) as a gate.
-4. [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): verifier is
-   slow on wrong answers to nested trig (`sin(cos 7x)`); `content_check` lacks a hard deadline.
-5. **Next: Thomas + Codex review the C spec → implementation plan → C1 → C2 → C3 → LoRA →
-   D/E → expansion.** Thomas's Anthropic key goes in secrets config (C-O5). Background: the
-   [AI handoff](docs/superpowers/plans/portfolio-mvp/06-ai-decisions-handoff.md); its doc-update list is complete.
-   [C plan](docs/superpowers/plans/portfolio-mvp/03-rag.md) links help, evaluation, open choices and debugging.
-   [0004](docs/decisions/0004-rag-source-models-and-evaluation.md): OpenStax citations, BM25 first,
-   Anthropic only (2026-10-26): Claude Haiku vs Sonnet 5.5, no OpenAI; evaluate hint behavior.
-   [0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md): three help buttons, dataset splits,
-   Qwen3.5-9B QLoRA, paired offline and descriptive live A/B, AWS training/RunPod serving.
-   [Open register](docs/superpowers/plans/portfolio-mvp/milestone-c/03-open-decisions.md): serving test,
-   proposed training alternative, host sizing, automated sets, API access and C design details.
+1. Read the [C review index](docs/reviews/2026-10-26-milestone-c/README.md), then the amended spec.
+2. Write C1 implementation tasks. Resolve [C-P1/C-P2](docs/superpowers/plans/portfolio-mvp/milestone-c/03-open-decisions.md)
+   for parser/worker contracts, bounds, accounting and predeclared evaluation gates.
+3. Implement C1 buttons → C2 item-scoped questions → C3 own problems. Resolve C-P3 before C3.
+4. Accepted sequence remains **C → LoRA experiment → D/E → expansion**. Automated Calc 1
+   graded sets need a broader checker/review and a placement decision (C-O4); they do not
+   silently take priority over LoRA. Thomas supplies Anthropic access via secrets config (C-O5).
+5. Measure corpus/index and mixed help/grading memory for C-O3; include decoder load in C3.
+   Qwen serving is on RunPod, training on AWS, separate from the web host; no compute launched.
 
-## Working notes for Claude
+## C concepts to preserve
 
-- On this Windows/OneDrive checkout: `UV_LINK_MODE=copy` for `uv add`; Python edit scripts need
-  `encoding="utf-8"` and raw strings for LaTeX (backslashes were lost several times today);
-  prefer the Edit tool for LaTeX. Playwright must click MathLive with `{delay: 80}`.
-- The ledger is `.superpowers/sdd/README/progress.md` (git-ignored); rulings A1–A21 are tracked in
-  [06-app-track-rulings](docs/superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md).
+- Anthropic only: Haiku 5.5 default candidate, Sonnet only after a predeclared quality comparison.
+  Public model documentation was checked; account access, execution prices and results were not.
+- Whole-book teaching corpus, offline reproducible build, BM25 first, own chunk-ID citations.
+  This is explanation retrieval, not an automated graded bank or a corpus for LoRA training.
+- Reveal is the only intentional answer path. The guard checks supported extracted math;
+  it cannot guarantee no prose/cumulative leakage. Hints-only C3 has no reference guard.
+- The existing verifier accepts bounded MathJSON. Runtime model-LaTeX parsing, leak-specific
+  results and typed derivative solving are new work, not already provided by the current pool.
+- C needs request IDs/revision checks, deletion epochs and independent durable usage records.
+  B's Clear history hides sessions; C's private-text deletion requires additional implementation.
+- Local upload cleanup does not delete provider copies. HEIC conversion and decoded-size bounds
+  are required; confirm task/variable/domain before admitting a supported derivative for grading.
+- Evaluate raw and delivered help, including useful coverage. C's release holdout becomes
+  regression evidence afterward; keep a separate untouched LoRA/E final set.
 
-## Evidence and navigation
+## Documentation tree
 
-- [Documentation tree](docs/README.md) → [delivery plan](docs/superpowers/plans/portfolio-mvp/README.md)
-  → [milestone B](docs/superpowers/plans/portfolio-mvp/milestone-b/README.md).
-- [Execution status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md)
-  owns task completion and outstanding gates.
+- [C plan](docs/superpowers/plans/portfolio-mvp/03-rag.md): sequence and links to exact contracts.
+- [C spec](docs/superpowers/specs/2026-10-26-milestone-c/README.md): components → help → guard → intake
+  → acceptance; children own state/accounting, corpus, evaluation protocol and provider evidence.
+- [C review](docs/reviews/2026-10-26-milestone-c/README.md): guard → state/cost → intake → evaluation
+  → retrieval → validation. Findings are documentation dispositions, not implemented fixes.
+- [Open register](docs/superpowers/plans/portfolio-mvp/milestone-c/03-open-decisions.md): C-O1–C-O6 owner choices
+  and C-P1–C-P4 implementation prerequisites; no unresolved choice is silently approved.
+- [0004](docs/decisions/0004-rag-source-models-and-evaluation.md) and
+  [0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md): accepted source/model/data/order decisions.
+- [AI handoff](docs/superpowers/plans/portfolio-mvp/06-ai-decisions-handoff.md): provenance/navigation.
+
+## Live practice loop and B evidence
+
+- Site: https://tutor.thomasgragossian.dev · accounts, three derivative topics, 22 reviewed
+  problems (7 + 7 + 8), MathLive, proof-based SymPy grading and history.
+- Thomas reported healthy `/readyz`, `servable` 22 and migrations 0001–0003 after deployment.
+  Initial `/readyz` can return 502 for 30–60 s while workers start.
+- [B status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md) owns completed tasks.
+  [B review dispositions](docs/reviews/2026-10-22-milestone-b/06-dispositions.md) owns fix chronology.
 - [Verification evidence](docs/superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md)
-  separates recorded browser/CI evidence from [fresh local validation](docs/reviews/2026-10-22-milestone-b/04-validation.md).
-- Historical recheck at f3a4e40: 904 Python / 3 skips, 26 Node; original/recovery/migration
-  probes pass. Its B-R4 failure was fixed later in 04de2d2; see dispositions for later evidence.
-  This documentation sync reruns docs/link/whitespace checks only; it is not a new runtime review.
-- [Reviewed verifier result](evals/verifier/results/README.md): FA 0/50 (95% upper bound 7.1%),
-  FR 0/49, coverage 49/49, agreement 136/136; no internal errors. This is a dev set.
-- [File map](docs/superpowers/plans/portfolio-mvp/milestone-b/01-file-map.md),
-  [debugging tree](docs/ops/debugging/README.md), [security](docs/ops/security.md),
-  [API contracts](contracts/README.md).
-- [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md)
-  distinguish release gates from deferred cleanup.
+  separates historical CI/browser/host evidence from local checks. C review reruns docs checks only.
+- [Reviewed verifier result](evals/verifier/results/README.md): dev FA 0/50 (95% upper bound 7.1%),
+  FR 0/49, coverage 49/49, agreement 136/136; not a frozen final benchmark.
+- [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): slow nested-trig
+  wrong answers and `content_check` without a hard deadline remain recorded cleanup.
+- Stay on 1 GB, pool 1 / 384 MB under the recorded [host-sizing exception](docs/ops/host-sizing.md).
+  Thomas deploys through the [runbook](docs/ops/runbook.md); migrate must exit 0. Never `compose down -v`.
 
 ## Working rules
 
-- Every Markdown file stays at most 100 lines, split by responsibility with a parent link.
-- Preserve [original references](docs/handoff/README.md) and [dated reviews](docs/reviews/README.md).
-- Never relax false-accept or containment gates; describe the verifier as proof-based/SymPy.
+- Every Markdown file stays at most 100 lines; split by responsibility and link from a parent.
+- Keep one owner per contract; preserve [historical handoff](docs/handoff/README.md) and dated reviews.
+- Never relax false-accept or containment gates; never describe partial leak detection as a proof.
 - No assistant co-author trailers; assistance is acknowledged in [README](README.md#acknowledgments).
-- Actual hours belong in the [hours log](docs/ops/hours.md); do not infer them from agent runtime.
-- RAG hints, operations/final evaluation and the [expansion queue](docs/superpowers/plans/portfolio-mvp/05-expansion-queue.md)
-  follow the deployed practice loop.
+- Actual hours are optional owner records; never infer them from agent runtime.
+- Windows/OneDrive: `UV_LINK_MODE=copy` for `uv add`; explicit UTF-8 and raw strings for LaTeX.
+  Playwright MathLive input needs `{delay: 80}`. Local `.superpowers/sdd/README/progress.md` is ignored;
+  tracked [app rulings](docs/superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md) own B decisions.

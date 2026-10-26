@@ -14,13 +14,16 @@
 
 If helpful, add a small transparent weak-topic selection rule after the static baseline.
 Do not claim its learning benefit without a separate study.
-Bulk extraction follows the [expansion queue](05-expansion-queue.md); use the curated subset here.
+Bulk exercise extraction follows the [expansion queue](05-expansion-queue.md); C's explanation
+corpus covers whole-book teaching material and remains separate from the reviewed problem bank.
 
 ## E — final evaluation and presentation
 
 - Grow verifier coverage toward at least 300 cases across supported types and traps.
 - Report human cases and generated related cases separately.
-- Run the frozen calculus retrieval/tutoring set once final choices are fixed.
+- Run the disjoint LoRA/E final calculus set in a locked paired campaign after choices are fixed.
+  C's published release holdout is regression evidence, not E's untouched final set; see the
+  [partition protocol](../../specs/2026-10-26-milestone-c/08-evaluation-protocol.md).
 - Publish denominators, abstentions, correctness, citation support, leakage and latency.
 - Present a short ablation table plus failure examples and known limitations.
 - Add public demo/API documentation, local startup instructions and a short demo video.

@@ -4,7 +4,8 @@
 
 Planned contract from decisions [0004](../../../../decisions/0004-rag-source-models-and-evaluation.md)
 and [0005 §5](../../../../decisions/0005-tutoring-datasets-and-fine-tuning.md#5-routing).
-Implementation tasks, payload schema and numeric limits still need the C design session.
+The design session is complete. The [reviewed spec](../../../specs/2026-10-26-milestone-c/README.md)
+owns exact contracts; implementation tasks remain unwritten. This page is a navigation summary.
 
 ## Buttons and context
 
@@ -14,7 +15,7 @@ Implementation tasks, payload schema and numeric limits still need the C design 
 | Hint | Active-learning hint | Concept reminder → targeted next step → fuller explanation |
 | Explain this + short confusion list | Adaptive explanation | Explain the selected confusion |
 
-Button selection sets the help type; no classifier. Free-text routing is a later extension.
+Button selection sets the help type; no classifier. Item-scoped free-text routing ships in C2.
 Input includes problem/version, student attempt, hint level and bounded recent context.
 The server supplies authoritative problem context, attempts, tries used and any matched
 recorded misconception. A match requires the existing bounded SymPy verification path.
@@ -27,12 +28,12 @@ An LLM response never changes the deterministic answer verdict.
 - Resolve source IDs through the server's corpus metadata, never model-invented links.
 - Every hint displays the OpenStax source section, working link and CC BY-NC-SA 4.0 licence.
   Preserve the corpus snapshot, stable chunk IDs, section anchors and provenance.
-- Below the reveal level, a deterministic SymPy equivalence check blocks any recognized
-  expression equivalent to the answer; record a leak event before returning safe output.
+- At every help level, a bounded guard blocks recognized answer-equivalent or unchecked math.
+  Reveal is the sole intentional answer action; no generated response bypasses the guard.
 - This checks supported expressions; it does not establish that prose cannot reveal an answer.
   Human evaluation still scores leakage and over-helping separately.
-- The design session must define expression extraction, bounds, reveal-level semantics and
-  handling of unsupported expressions/timeouts. Reuse containment; do not run unbounded SymPy.
+- [Guard spec](../../../specs/2026-10-26-milestone-c/03-guard-and-limits.md) owns extraction,
+  the new runtime parser and tri-state result. Grader “incorrect” does not mean “no leak”.
 - The same checks apply to hosted fallback output. Define the safe failure response before
   implementation; a blocked or unchecked response must not silently become approved output.
 
@@ -48,6 +49,9 @@ An LLM response never changes the deterministic answer verdict.
 - Link the hint to the next attempt for SymPy outcome measures; keep assisted performance
   distinct from unassisted performance. Live assignment/metrics are owned by
   [0005's serving supplement](../../../../decisions/0005-tutoring/01-compute-and-serving.md).
-- Final event fields, retention and existing-account assignment are design-session items.
+- [State/accounting](../../../specs/2026-10-26-milestone-c/06-state-and-accounting.md) owns durable
+  request identity, privacy epochs, stale completion, spend reservations and next-attempt linkage.
+- B's Clear history hides sessions; C requires deleting private help/own-problem text while
+  retaining content-free usage. Parser, deletion and ledger work are not already implemented.
 
 See [planned debugging paths](04-debugging.md); these requirements are not evidence of implementation.
