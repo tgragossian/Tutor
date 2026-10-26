@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from mathtutor.content.loader import load_bundle
-from mathtutor.content.schema import Answer
+from mathtutor.content.schema import Answer, ExpressionAnswer, NumericAnswer
 from mathtutor.help.config import load_help_config
 from mathtutor.help.leak_guard import LeakGuard, LeakStatus
 from mathtutor.verify.pool import VerifierPool
@@ -68,3 +68,25 @@ def test_restated_problem_passes(guard: LeakGuard) -> None:
     result = guard.check(text, _answer("adapted-c1-3.5-x2cosx"), time.monotonic() + 10.0)
     assert (result.decision, result.foreign) == ("pass", 1), result
     assert result.counts[LeakStatus.NO_MATCH] == 2, result
+
+
+TWO_X = ExpressionAnswer(kind="expression", latex="2x", mathjson=["Multiply", 2, "x"])
+TWELVE = NumericAnswer(kind="numeric", latex="12", mathjson=12, precision="exact")
+
+
+@pytest.mark.parametrize(
+    ("answer", "text", "decision"),
+    [
+        (TWO_X, "Then $2t$.", "block"),
+        (TWO_X, "So $2x + C$.", "block"),
+        (TWO_X, "Not $2x + 1$ or $3u$.", "pass"),
+        (TWELVE, "The answer is 12.", "block"),
+        (TWELVE, "It equals -12", "block"),
+        (TWELVE, "Not 13, and not 24/3.", "pass"),
+    ],
+)
+def test_round_1_paths_with_real_checker(
+    guard: LeakGuard, answer: Answer, text: str, decision: str
+) -> None:
+    result = guard.check(text, answer, time.monotonic() + 10.0)
+    assert result.decision == decision, result

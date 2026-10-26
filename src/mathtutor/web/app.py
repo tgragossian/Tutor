@@ -135,7 +135,8 @@ def create_app(
     (lifespan) and closed when it stops; an injected pool belongs to the caller.
 
     The leak guard's pool (``app.state.guard_pool``) is started alongside it only when the app
-    starts its own grading pool and help is not off; an injected ``guard_pool`` is used as is.
+    starts its own grading pool, help is not off and no ``guard_pool`` is injected; an injected
+    one is used as is and never closed by the app.
     """
     # Eager: a ContentError here stops the process before it serves anything.
     content: LoadedContent = load_bundle(settings.content_path)
@@ -166,7 +167,7 @@ def create_app(
                 )
                 owned.append(grading)
                 attach_pool(grading)
-                if settings.help_generator != "off":
+                if guard_pool is None and settings.help_generator != "off":
                     # The leak guard's own worker, so help checks never queue behind grading.
                     guard = await run_in_threadpool(
                         lambda: VerifierPool(

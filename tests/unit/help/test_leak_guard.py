@@ -211,7 +211,7 @@ def test_classify_table() -> None:
     foreign, pool = _check("$18u^2$")
     assert (foreign.decision, foreign.reason) == ("pass", "checked")
     assert foreign.counts[LeakStatus.NO_MATCH] == 1 and foreign.foreign == 1
-    assert pool.requests == []
+    assert len(pool.requests) == 2  # u -> x and u -> 0 (R8)
 
 
 @pytest.mark.parametrize(
@@ -325,3 +325,133 @@ def test_result_has_no_latex() -> None:
         assert all(isinstance(v, int) for v in result.counts.values())
         assert isinstance(result.foreign, int)
         assert result.reason.replace("_", "").isalpha() and result.reason.islower()
+
+
+# -- fix round 1: under-block paths (rulings R6-R9, M-1) -------------------------------------
+
+
+class TreePool(FakePool):
+    """CORRECT for exactly the given LaTeX forms (compared as parsed trees), else COUNTER."""
+
+    def __init__(self, *leaking: str) -> None:
+        super().__init__()
+        self.leaking = [_mj(latex) for latex in leaking]
+
+    def submit(self, req: CheckRequest) -> CheckResult:
+        self.requests.append(req)
+        hit = req.answer.mathjson in self.leaking
+        return CheckResult(CORRECT if hit else COUNTER, "test")
+
+
+TWO_X = ExpressionAnswer(kind="expression", latex="2x", mathjson=_mj("2x"))  # type: ignore[arg-type]
+TWELVE = NumericAnswer(
+    kind="numeric",
+    latex="12",
+    mathjson=12,
+    precision="exact",
+)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "The answer is a.",
+        "Answer: a",
+        "Pick A",
+        "Option **a** fits.",
+        "option 'a' fits",
+        "It is choice-a",
+        "the answer would be (a)",
+        "a) is right",
+        "  (a) is right",
+        "Select a",
+        "The first option is right.",
+        "Go with the first choice",
+        "the 1st one",
+        "Option 1 works",
+    ],
+)
+def test_choice_phrasings_block(text: str) -> None:
+    result, pool = _check(text, answer=CHOICE)
+    assert (result.decision, result.reason) == ("block", "choice_reference"), text
+    assert pool.requests == []
+
+
+@pytest.mark.parametrize(
+    "text", ["Now consider (b).", "First, differentiate.", "The second option is wrong."]
+)
+def test_choice_wrong_letter_and_plain_prose_pass(text: str) -> None:
+    result, _ = _check(text, answer=CHOICE, pool=TreePool())
+    assert result.decision != "block", text
+
+
+@pytest.mark.parametrize("text", ["The answer is 12.", "It equals -12", "So 24/2 here."])
+def test_prose_numbers_block_on_numeric(text: str) -> None:
+    result, _ = _check(text, answer=TWELVE, pool=TreePool("12", "24/2"))
+    assert (result.decision, result.reason) == ("block", "leak"), text
+
+
+def test_prose_numbers_extracted_only_for_numeric() -> None:
+    assert extract_candidates("Step 2 gives 12 and -3.5 or 1/4.", LIMITS, numbers=True) == [
+        Candidate("2", "prose_number"),
+        Candidate("12", "prose_number"),
+        Candidate("-3.5", "prose_number"),
+        Candidate("3.5", "prose_number"),
+        Candidate("1/4", "prose_number"),
+    ]
+    result, pool = _check("Step 2 gives 7.", answer=TWELVE, pool=TreePool("12"))
+    assert (result.decision, result.reason) == ("pass", "checked")
+    assert len(pool.requests) == 2
+    result, pool = _check("The answer is 12.", answer=EXPR, pool=TreePool("12"))
+    assert result.decision == "no_detected_math" and pool.requests == []
+
+
+def test_prose_numbers_count_toward_cap() -> None:
+    text = " ".join(str(n) for n in range(1, 22))
+    assert extract_candidates(text, LIMITS, numbers=True) is None
+    result, _ = _check(text, answer=TWELVE)
+    assert (result.decision, result.reason) == ("block", "too_many_candidates")
+
+
+@pytest.mark.parametrize("text", ["Then $2t$.", "So $2x + C$."])
+def test_foreign_letters_are_substituted(text: str) -> None:
+    result, _ = _check(text, answer=TWO_X, pool=TreePool("2x", "2x + 0"))
+    assert (result.decision, result.reason) == ("block", "leak"), text
+    assert result.counts[LeakStatus.LEAK] == 1
+
+
+def test_foreign_substitution_without_match_keeps_no_match() -> None:
+    result, pool = _check("First $18u^2$.", pool=TreePool("126(7x-4)^2"))
+    assert (result.decision, result.foreign) == ("pass", 1)
+    assert result.counts[LeakStatus.NO_MATCH] == 1
+    sent = [r.answer.mathjson for r in pool.requests]
+    assert sent == [["Multiply", 18, ["Power", "x", 2]], ["Multiply", 18, ["Power", 0, 2]]]
+
+
+def test_non_letter_foreign_is_not_substituted() -> None:
+    result, pool = _check(r"Let $f(x)$ and $\frac{du}{dx}$.", answer=TWO_X, pool=TreePool("2x"))
+    assert (result.decision, result.foreign) == ("pass", 2)
+    assert pool.requests == []
+    mixed, pool = _check("So $u + f(x)$.", answer=TWO_X, pool=TreePool("2x"))
+    assert mixed.decision == "pass" and pool.requests == []
+
+
+@pytest.mark.parametrize(
+    "text", [r"\begin{equation}2x\end{equation}", "2x^2 here", r"\\(2x\\)", "x_1 is"]
+)
+def test_prose_latex_is_malformed(text: str) -> None:
+    result, pool = _check(text)
+    assert (result.decision, result.reason) == ("block", "malformed_math"), text
+    assert pool.requests == []
+
+
+def test_escaped_dollar_prose_passes() -> None:
+    result, _ = _check(r"It costs \$5 to print $2x$.", pool=TreePool())
+    assert result.decision == "pass"
+
+
+def test_bang_is_kept_inside_math() -> None:
+    assert extract_candidates("Note $5!$ here", LIMITS) == [Candidate("5!", "inline")]
+    result, _ = _check("Note $5!$ here", pool=TreePool("5"))
+    assert (result.decision, result.reason) == ("block", "parse_rejected")
+    assert extract_candidates("y' = 2x!", LIMITS) == [Candidate("2x", "equation_rhs")]

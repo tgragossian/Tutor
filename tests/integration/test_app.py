@@ -167,6 +167,18 @@ def test_injected_pools_are_used_as_is(tmp_path: Path, monkeypatch: pytest.Monke
     assert made == []
 
 
+def test_injected_guard_pool_with_owned_grading_pool(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    made = _recording_pools(monkeypatch)
+    guard = SpyPool()
+    app = create_app(make_settings(tmp_path), guard_pool=guard)
+    with TestClient(app):
+        assert len(made) == 1  # the grading pool only
+        assert app.state.guard_pool is guard
+    assert made[0][1].closed and not guard.closed
+
+
 def test_readyz_ignores_guard_pool(tmp_path: Path) -> None:
     guard = SpyPool()
     guard.is_alive = False
