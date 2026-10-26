@@ -4,15 +4,15 @@
 
 Status: option B and attribution selected by Thomas on 2026-10-13.
 Verifier refinements incorporate the supplied Claude review; safeguards below make the
-proposed algebraic check precise. No application code has been implemented.
+proposed algebraic check precise. At this decision's original snapshot, no application code existed.
 
 ## Delivery order
 
-Deploy a skeleton early, complete three-topic practice, add RAG hints, then finish
-operations and release evaluation. Testing and measurement begin with the first feature.
-Keep the broader roadmap in order: diagnostic -> exam conditions/recap ->
-all 15 topics -> extraction pipeline -> LoRA. (Amended by [0005](0005-tutoring-datasets-and-fine-tuning.md) §6:
-LoRA runs directly after milestone C.)
+Deploy a skeleton early, complete three-topic practice, add RAG hints (C), run LoRA,
+then finish operations and release evaluation (D/E). Testing/measurement begin with the first feature.
+LoRA moved from after extraction to directly after C under
+[0005 §6](0005-tutoring-datasets-and-fine-tuning.md#6-timing-compute-and-serving-thomas-2026-10-22).
+The remaining roadmap stays ordered: diagnostic → exam conditions/recap → all 15 topics → extraction.
 Each stage requires the previous stage's exit evidence; do not drop queued features.
 The eight-week estimate covers the initial core, not a guarantee for the full queue.
 

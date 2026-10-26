@@ -35,7 +35,7 @@ Status: accepted by Thomas, 2026-10-22. Governs milestone C; amends the C evalua
   GPT-5.2 is about half the cost of Opus 4.6 per hint, and Opus 4.6 is superseded by Opus 5.5.
 - **Baseline to beat: GPT-5.2.** Compared under identical retrieval, prompts and limits against
   Claude Opus 5.5, Sonnet 5.5 and Haiku 5.5 on the development cases (estimated ≈ $5 in total).
-- **Added 2026-10-22: Meta Muse Spark** (Meta Model API, US public preview; $1.25 / $4.25 per 1M
+- **Historical candidate, now dropped: Meta Muse Spark** (2026-10-22 notes: US public preview; $1.25 / $4.25 per 1M
   tokens, about half of GPT-5.2 per hint). It leads the public TutorBench leaderboard at 68.5%
   vs 56.6% for the next entry (BenchLM mirror of Scale's 2026-09-29 snapshot). Caveats: a
   leaderboard row may include scaffolding, the version tested is unstated, and preview terms

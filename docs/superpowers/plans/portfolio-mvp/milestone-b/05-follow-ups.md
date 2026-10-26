@@ -4,11 +4,11 @@
 
 Updated 2026-10-22. Current review findings come first; historical/deferred observations follow.
 
-## Whole-branch review findings (one load-tool gap remains)
+## Whole-branch review findings (resolved)
 
 [Fix recheck](../../../../reviews/2026-10-22-milestone-b/07-recheck.md): B-R1/B-R2/B-R3/B-R5
 verified fixed in ca54407. B-R4's recheck case (HTTP 200 `unable_to_verify/internal_error`
-counted as graded) fixed in 04de2d2.
+counted as graded) fixed in 04de2d2. Thomas reports all fixes deployed at 8057590 with migration 0003.
 Deferred defense in depth: SQLite AUTOINCREMENT on `submissions` (needs a table rebuild with
 foreign keys on); the transaction-B identity check already makes a reused row id harmless.
 

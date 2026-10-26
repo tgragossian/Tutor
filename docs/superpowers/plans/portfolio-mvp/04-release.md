@@ -32,18 +32,26 @@ Possible evidence-backed bullet structure after shipping:
 evaluated [N] held-out cases and measured [metric] at [latency/cost].”
 Replace every bracket with a measured, clearly defined result.
 
-## Later fine-tuning experiment
+## Fine-tuning experiment: after C, before D/E
 
 Runs directly after milestone C ([decision 0005](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md) §6,
 amending the earlier "after extraction" order). C's baseline must be published and reproducible.
-Train a small LoRA adapter with PyTorch/Hugging Face tooling on a licensed dataset.
+Train Qwen3.5-9B with QLoRA and PyTorch/Hugging Face tooling under the dataset decisions below.
 Target hint behaviour, not calculus correctness ([decision 0004](../../../decisions/0004-rag-source-models-and-evaluation.md) §4).
 Datasets, TutorBench split and unpublished weights: [decision 0005](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md).
-Separate training, development and evaluation by original problem/conversation.
-Compare the same base model before/after adaptation, with fixed retrieval and decoding.
-Use held-out calculus interactions to measure transfer from MathDial.
+Train on TutorBench non-calculus, Eedi and MathDial; hold TutorBench Calculus, TutorMoments
+and milestone C cases out of training. Check task-ID/text overlap before every job.
+Separate training, development and final evaluation by original problem/conversation.
+A/B 1 pairs base versus LoRA with fixed retrieval/prompts/decoding; A/B 2 compares LoRA with
+C's hosted winner on quality and cost. Measure transfer from TutorBench/Eedi/MathDial.
+Train on AWS; serve both arms on one RunPod Serverless worker, with hosted fallback.
+Keep a student's live arm fixed; log actual model/fallback and next-attempt SymPy result,
+leak/reveal rates and thumbs up/down. Live results are descriptive at about 50 students.
+The offline paired comparison remains the headline result. Detailed gates and partitions:
+[evaluation](milestone-c/02-evaluation.md); hosting and test: [serving](../../../decisions/0005-tutoring/01-compute-and-serving.md).
 Report training resources, seed/config, checkpoints, gains, regressions and uncertainty.
 A useful negative finding still demonstrates experimental judgment.
+This experiment has no approved hours estimate yet; re-estimate the core schedule before starting it.
 
 ## Completion evidence
 

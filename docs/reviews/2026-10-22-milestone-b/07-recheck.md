@@ -6,6 +6,9 @@ Reviewed identical `main` / `milestone-b` **f3a4e40**, including fix ca54407.
 **B-R1/B-R2/B-R3/B-R5 are verified fixed in the reviewed paths. B-R4 remains partially open.**
 No production code was changed by this recheck. Documentation and isolated probes are in main.
 
+Later status: 04de2d2 fixes B-R4; [dispositions](06-dispositions.md) records passing probes.
+Thomas reports deployment at 8057590 with migration 0003. Findings below retain the f3a4e40 snapshot.
+
 ## Remaining B-R4 (P2): a crashed verifier still passes the load run
 
 Owner: [submit_burst.py](../../../tools/load/submit_burst.py), lines 78–84, 181–185, 219–224.

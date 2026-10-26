@@ -4,10 +4,11 @@
 
 Updated 2026-10-22. Fresh local checks and earlier/owner-reported runs are separated below.
 
-Latest: [fix recheck at f3a4e40](../../../../reviews/2026-10-22-milestone-b/07-recheck.md):
+Local [fix recheck at f3a4e40](../../../../reviews/2026-10-22-milestone-b/07-recheck.md):
 904 Python passed/3 platform skips, 26 Node passed; original probes and populated 0002→0003
-upgrade pass. Both recovery departures accepted. B-R4's verifier-crash case: fixed in
-04de2d2; all recheck probes pass. Browser/CI claims in dispositions were not independently rerun here.
+upgrade pass. Both recovery departures accepted; its B-R4 verifier-crash probe failed then.
+Later [dispositions](../../../../reviews/2026-10-22-milestone-b/06-dispositions.md) records 04de2d2's
+fix and passing recheck probes. Browser/CI claims there were not independently rerun here.
 
 ## Fresh whole-branch review at 15169a2
 
@@ -24,7 +25,9 @@ Source: [2026-10-22 validation](../../../../reviews/2026-10-22-milestone-b/04-va
 
 ## Recorded release evidence (2026-10-22)
 
-- Thomas approved all 22 problems (3c0141c). The handoff records deployment at 9bf6b29,
+- Thomas reports the later fix deploy at 8057590, migration 0003 applied and site healthy.
+  This documentation sync does not independently verify the host.
+- Thomas approved all 22 problems (3c0141c). The earlier handoff records deployment at 9bf6b29,
   `/readyz` 22, migrations 0001–0002, and green CI run 39828899000; not queried in this review.
 - 375ab7c adds worker settings, disables duplicate access logs and runs browser e2e against
   the image via `tests/container/smoke.sh`. The workflow/wiring was inspected locally.
@@ -32,7 +35,7 @@ Source: [2026-10-22 validation](../../../../reviews/2026-10-22-milestone-b/04-va
   peak app container 185.2 MiB, minimum available 281 MiB. Thomas deferred sizing to C,
   retaining 1 GB / one worker / 384 MB as an exception. B-R4 does not invalidate this record.
 - [Verifier guide](../../../../verifier/README.md) and [results](../../../../../evals/verifier/results/dev-b.md)
-  are published. Review fixes and actual hours remain before B closure.
+  are published. Review fixes are deployed; actual hours remain before B closure.
 
 ## Historical app track: tasks 10–15 at d428bd7
 

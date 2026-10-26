@@ -38,11 +38,12 @@ General implicit curves remain outside that checker's initial supported family.
 Expand selection policies and content coverage together; sparse banks cannot support
 meaningful diagnostics or adaptation merely because all topic names appear in a menu.
 
-## Extraction pipeline and LoRA
+## Extraction pipeline
 
 Use the original extraction goals, keeping candidates separate from approved graded content.
 A computed answer does not validate a transcribed statement; audit both.
-After extraction is stable, follow the [fine-tuning experiment](04-release.md) with
-separate problem/conversation splits and fixed retrieval/decoding.
+The [fine-tuning experiment](04-release.md#fine-tuning-experiment-after-c-before-de)
+runs after C, before D/E and this queue; extraction is not its prerequisite.
+Automated problem sets (templates or LLM generation) remain an [open scope decision](milestone-c/03-open-decisions.md).
 Other recorded future ideas stay in the background roadmap; this queue orders the
 named features without bringing every future course into the first release.

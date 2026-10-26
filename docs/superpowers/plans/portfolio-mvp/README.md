@@ -2,13 +2,13 @@
 
 [Handoff](../../../../handoff.md) · [Review](../../../reviews/2026-10-13/README.md)
 
-2026-10-22: B tasks 1–16 implemented; application review fixes verified, deployment pending.
-B-R4 fixed; deploy and hours remain. Host sizing stays deferred to C by Thomas.
+2026-10-22: B tasks 1–16 and review fixes deployed at 8057590, per Thomas; migration 0003 applied.
+B-R4 fixed; actual hours remain before B closure. Host sizing stays deferred to C by Thomas.
 See the [handoff](../../../../handoff.md).
 See [execution status](milestone-b/03-execution-status.md) and [review follow-ups](milestone-b/05-follow-ups.md).
 
 Status: option B selected; [milestone A](milestone-a/README.md) complete and live.
-[Milestone B plan](milestone-b/README.md) approved by Thomas; exit awaits review fixes.
+[Milestone B plan](milestone-b/README.md) approved by Thomas; exit awaits the hours gate.
 [Decision record](../../../decisions/0001-delivery-verifier-attribution.md) takes precedence over draft rules.
 Goal: a deployed Calculus I practice tutor with measured verification, citation-based
 hints, reproducible retrieval experiments and clear operational limits.
@@ -24,7 +24,7 @@ hints, reproducible retrieval experiments and clear operational limits.
 - Progressive hints, citations, documented correctness/abstention behavior.
 
 After RAG hints (C), run the LoRA experiment ([decision 0005](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md) §6),
-then restore features in this order:
+then complete D/E before restoring features in this order:
 diagnostic -> exam conditions and recap -> all 15 topics -> extraction pipeline.
 See the [expansion queue and gates](05-expansion-queue.md). Nothing in that queue is dropped.
 Implicit differentiation is retained for topic expansion using exact polynomial checks.
@@ -46,7 +46,7 @@ These are timebox proposals, not measured estimates or promises.
 | Total | 160 | Eight weeks at the assumed 20 hours/week |
 
 At each gate record actual hours; adjust delivery dates if a timebox is exceeded.
-These core timeboxes do not include the full expansion queue.
+These core timeboxes exclude LoRA and the full expansion queue; estimate LoRA before starting it.
 Never use an accuracy or resource-containment shortcut to recover schedule.
 The original first phase alone could plausibly take 80–120 hours; that is my
 engineering estimate, not a benchmark, and depends heavily on content work and familiarity.
@@ -60,14 +60,16 @@ This project should add evidence of serving a model-backed product and maintaini
 an inspectable API, deployment, CI, labeled evaluations, failure analysis and costs.
 Fine-tuning is valuable only with a controlled experiment and a defensible result.
 
-For later LoRA: hold the base model, retrieval, prompt and decoding fixed; train only
+For LoRA after C: hold the base model, retrieval, prompt and decoding fixed; train only
 the adapter, then evaluate on held-out calculus interactions and inspect regressions.
 Do not promise learning gains or a better tutor based solely on offline scores.
 
 ## Next implementation step
 
-Follow the selected order and [verifier decisions](../../../decisions/0001-delivery-verifier-attribution.md).
-Follow the approved [milestone B plan](milestone-b/README.md) and its human gates.
-Read the [plan review](../../../reviews/2026-10-15-milestone-b/README.md) before affected tasks.
-Thomas selected subagent-driven execution for milestone B.
+Close B's hours gate and hold the C design session; accepted direction is consolidated in
+the [AI handoff and completed doc sync](06-ai-decisions-handoff.md).
+[C's plan](03-rag.md) links its help contract, evaluation, open decisions and debugging children.
+Decision [0005](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md) links compute/serving
+and sizing/cost children. Keep decisions there; current implementation status belongs in the plan.
+Use the [B status](milestone-b/03-execution-status.md) for completed work; do not restart B tasks.
 The original 20 tasks remain linked [here](../2026-10-13-core-practice-loop.md) for reuse.

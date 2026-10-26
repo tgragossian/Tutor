@@ -41,7 +41,10 @@ Keep the 1 GB bundle with `MATHTUTOR_POOL_SIZE=1`, `MATHTUTOR_POOL_MEMORY_MB=384
 This is a **recorded exception** to the worst-case rule above, justified by the measured
 headroom (≥ 281 MiB available under the 16-user burst) and 1 GB swap as a backstop.
 
-Revisit in milestone C, when retrieval's memory is known: a local embedding model and index
-would run on this host; embeddings from an API would not. Re-run `tools/load/measure.sh` then.
-A fine-tuned model does not change this: it cannot run on this host at 1 or 2 GB and will be
-served by a provider or a separate GPU machine.
+Revisit in milestone C with the actual BM25 corpus/index and app memory. If dense retrieval is
+tested, distinguish local embedding-model memory from API embeddings; a local index still uses
+RAM with API embeddings. Re-run `tools/load/measure.sh` on the actual configuration.
+Qwen base/LoRA serving is planned on RunPod Serverless, separate from this 1 or 2 GB host;
+AWS is selected for training. See [compute/serving](../decisions/0005-tutoring/01-compute-and-serving.md)
+and [GPU sizing/cost assumptions](../decisions/0005-tutoring/02-sizing-and-costs.md).
+The RunPod fit/latency test is open; it does not resolve this web-host sizing exception.

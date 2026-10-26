@@ -6,7 +6,7 @@ Live: <https://tutor.thomasgragossian.dev>
 
 Status (2026-10-22): **milestone B: practice loop live.** Accounts, practice on three
 derivative topics (22 reviewed problems) with MathLive input and a proof-based SymPy grader,
-and history. Application review fixes are verified; one load-check gap, deployment and hours remain.
+and history. Review fixes, including the load-check gap, are deployed per Thomas; hours remain.
 Host sizing is deferred to C under a recorded exception. See the
 [handoff](handoff.md), [what the verifier accepts](docs/verifier/supported.md),
 [verifier results](evals/verifier/results/dev-b.md) and [API contracts](contracts/README.md).
@@ -23,6 +23,7 @@ and [active implementation sequence](docs/superpowers/plans/portfolio-mvp/README
 ```text
 README.md → handoff.md → docs/README.md
   docs/decisions/                  Accepted decisions and precedence
+    0005-tutoring/                 Compute/serving and provisional sizing/costs
   docs/ops/                       Local setup, host record, runbook, security
     debugging/                    Symptom → owner → focused check
   docs/verifier/                  What the grader accepts; results
@@ -30,6 +31,7 @@ README.md → handoff.md → docs/README.md
     milestone-b/                  Status, rulings, evidence and file map
       tasks/                      One implementation task per file
       r22-r23/, r24/              Verifier changes and debugging
+    milestone-c/                  Planned help contract, evaluation, open choices, debugging
   docs/superpowers/specs/          Approved contracts and preserved design
   docs/handoff/, docs/reviews/     Historical background and dated reviews
   contracts/, content/, evals/     API examples, authoring and evaluation
@@ -43,7 +45,7 @@ bound 7.1%), FR 0/49, coverage 49/49 and agreement 136/136. These are reviewed d
 [CI and result evidence](evals/verifier/results/README.md): Python, Node and container smoke
 passed for tasks 1–9. [App-track evidence](docs/superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md)
 records the app-track checks separately.
-RAG hints and final evaluation follow later.
+Next: [RAG hints (C)](docs/superpowers/plans/portfolio-mvp/03-rag.md), then LoRA, then D/E.
 
 ## Development
 
@@ -67,11 +69,12 @@ same licence and is not for commercial use. OpenStax and Rice University do not 
 project. Details: [source manifest](content/sources/openstax-calculus-v1.md) and
 [decision 0004](docs/decisions/0004-rag-source-models-and-evaluation.md).
 
-The fine-tuning experiment uses [TutorBench](https://huggingface.co/datasets/ScaleAI/TutorBench)
+The planned fine-tuning experiment uses [TutorBench](https://huggingface.co/datasets/ScaleAI/TutorBench)
 (Scale AI; Srinivasa et al., 2025, [paper](https://arxiv.org/abs/2510.02663) licensed CC BY-NC-ND 4.0)
 and [Eedi's tutoring dialogues](https://huggingface.co/datasets/Eedi/Question-Anchored-Tutoring-Dialogues-2k)
-(CC BY-NC 4.0). Their data and the trained weights are not redistributed here
-([decision 0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md)).
+(recorded licence discrepancy in decision 0005) and [MathDial](https://huggingface.co/datasets/eth-nlped/mathdial)
+(CC BY 4.0). Data splits, licence notes and private-weight restrictions are recorded in
+[decision 0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md).
 
 ## Acknowledgments
 

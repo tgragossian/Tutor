@@ -37,6 +37,6 @@ Actual hours remain blank for Thomas; no elapsed agent runtime is treated as own
 | 12 | 4 | | complete |
 | 13 | 2.5 | | complete |
 | 14 | 3.5 | | complete |
-| 15 | 3 | | 16 drafts await review |
-| 16 | 2.5 | | deployed 2026-10-21; load test open |
+| 15 | 3 | | complete; all 22 problems approved and deployed 2026-10-22 |
+| 16 | 2.5 | | fixes deployed at 8057590 per Thomas; load burst recorded; sizing deferred to C |
 | total | 43.5 | | 30 h timebox; reconcile actuals before contingency decision |

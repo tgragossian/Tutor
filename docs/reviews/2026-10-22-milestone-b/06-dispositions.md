@@ -11,7 +11,8 @@ Full-path tests (all-crash, crash among grades, abstention); `repro_recheck.py` 
 
 The implementation changes below landed in ca54407
 (`fix: review B-R1-B-R5 …`). The five original probes now pass unchanged; their cases
-moved into normal tests. Production must apply migration **0003** on the next deploy.
+moved into normal tests. Migration **0003** was required for deploy; Thomas later reports it
+applied with 8057590. See [current status](../../superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md).
 
 ## B-R5 (P1) and B-R2: recovery lease and original revision
 
