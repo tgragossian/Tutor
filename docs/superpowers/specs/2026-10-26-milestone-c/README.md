@@ -57,6 +57,6 @@ Estimate: C1 alone matches the old 40-hour budget; all of C is about 70–90 hou
 
 Accepted order remains **C → Qwen LoRA → D/E → expansion** (decision 0005).
 Automated all-of-Calc-1 graded sets need templates/drafts, review and a broader checker;
-C-O4 owns their placement. Do not put this project ahead of LoRA by implication.
+Thomas placed this project after the LoRA (C-O4, 2026-10-26).
 Exam/quiz workflows remain in the expansion queue; uploading a sheet in C3 is problem intake,
 not timed-test orchestration or broader automatic grading.

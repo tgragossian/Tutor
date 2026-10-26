@@ -19,8 +19,8 @@ code evidence and dispositions. No C modules, model evaluation or upload pipelin
    for parser/worker contracts, bounds, accounting and predeclared evaluation gates.
 3. Implement C1 buttons → C2 item-scoped questions → C3 own problems. Resolve C-P3 before C3.
 4. Accepted sequence remains **C → LoRA experiment → D/E → expansion**. Automated Calc 1
-   graded sets need a broader checker/review and a placement decision (C-O4); they do not
-   silently take priority over LoRA. Thomas supplies Anthropic access via secrets config (C-O5).
+   graded sets need a broader checker/review; Thomas placed them after the LoRA (C-O4,
+   2026-10-26). Thomas supplies Anthropic access via secrets config (C-O5).
 5. Measure corpus/index and mixed help/grading memory for C-O3; include decoder load in C3.
    Qwen serving is on RunPod, training on AWS, separate from the web host; no compute launched.
 

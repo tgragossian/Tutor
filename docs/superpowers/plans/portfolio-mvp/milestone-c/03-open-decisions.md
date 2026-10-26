@@ -12,7 +12,7 @@ Next: write implementation tasks and close the prerequisites below. No C code ex
 | C-O1 | RunPod serving test | Thomas's account/go-ahead; measure fit, cold/cached starts, latency and bill |
 | C-O2 | Training host alternative | AWS remains selected; Thomas may choose RunPod Pods after comparison |
 | C-O3 | Lightsail sizing | Measure C1 retrieval memory; Thomas allows 2 GB if needed (2026-10-26) |
-| C-O4 | Automated problem sets | All of Calc 1 only if automated (Thomas, 2026-10-26); placement remains open, without displacing accepted C → LoRA → D/E |
+| C-O4 | Automated problem sets | All of Calc 1 only if automated (Thomas, 2026-10-26); **placed after the LoRA** (Thomas, 2026-10-26); position relative to D/E set when the LoRA ends |
 | C-O5 | Hosted access | Thomas supplies an Anthropic API key through secrets configuration (no OpenAI, 2026-10-26) |
 | C-O6 | C design session | Complete 2026-10-26; Codex review incorporated; implementation plan still needed |
 
@@ -38,7 +38,7 @@ C-O6 stays complete; C-P entries describe remaining implementation choices.
   and [cost assumptions](../../../../decisions/0005-tutoring/02-sizing-and-costs.md) support C-O1/C-O2.
 - [Host sizing](../../../../ops/host-sizing.md) owns the B measurements and C-O3 exception.
 - [Expansion queue](../05-expansion-queue.md) still includes extraction; automated sets are a
-  separate proposed feature until C-O4 is decided. Generated candidates require human review.
+  separate feature placed after the LoRA (C-O4). Generated candidates require human review.
 - Keep keys out of documentation and git; [security](../../../../ops/security.md) owns secrets guidance.
 - B is closed; Thomas removed the hours gate on 2026-10-26. [B status](../milestone-b/03-execution-status.md).
   No API call, GPU job, endpoint creation or deployment was performed for this doc sync.
