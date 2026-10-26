@@ -15,8 +15,8 @@ code evidence and dispositions. No C modules, model evaluation or upload pipelin
 ## Resume here
 
 1. Read the [C review index](docs/reviews/2026-10-26-milestone-c/README.md), then the amended spec.
-2. Write C1 implementation tasks. Resolve [C-P1/C-P2](docs/superpowers/plans/portfolio-mvp/milestone-c/03-open-decisions.md)
-   for parser/worker contracts, bounds, accounting and predeclared evaluation gates.
+2. [C1 implementation plan](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/README.md) written
+   2026-10-26 (15 tasks); it proposes C-P1 values and C-P2 gates. Thomas reviews, then execution.
 3. Implement C1 buttons → C2 item-scoped questions → C3 own problems. Resolve C-P3 before C3.
 4. Accepted sequence remains **C → LoRA experiment → D/E → expansion**. Automated Calc 1
    graded sets need a broader checker/review; Thomas placed them after the LoRA (C-O4,

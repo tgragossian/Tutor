@@ -5,7 +5,8 @@
 Updated 2026-10-26. This page owns unresolved choices; accepted decisions stay in 0004/0005.
 Codex's [concept review](../../../../reviews/2026-10-26-milestone-c/README.md) is complete;
 the [C design spec](../../../specs/2026-10-26-milestone-c/README.md) includes review amendments.
-Next: write implementation tasks and close the prerequisites below. No C code exists yet.
+The [C1 plan](c1/README.md) proposes C-P1 ([pinned values](c1/01-pinned-values.md)) and C-P2
+([gates](c1/02-gates.md)) for Thomas's review. No C code exists yet.
 
 | ID | Open item | Next evidence or decision |
 |---|---|---|

@@ -4,7 +4,8 @@
 
 Status: design agreed 2026-10-26; the [C design spec](../../specs/2026-10-26-milestone-c/README.md)
 owns exact contracts and slices C1–C3. [Concept review](../../../reviews/2026-10-26-milestone-c/README.md)
-completed against `8126fc3`; review amendments are incorporated. Implementation tasks remain unwritten.
+completed against `8126fc3`; review amendments are incorporated. [C1 implementation plan](milestone-c/c1/README.md) written
+2026-10-26 (proposes C-P1/C-P2 values); awaiting Thomas's review. C2/C3 plans not written.
 Accepted decisions: [0004](../../../decisions/0004-rag-source-models-and-evaluation.md)
 and [0005](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md).
 Sequence: C → LoRA experiment → D/E → [expansion queue](05-expansion-queue.md).
