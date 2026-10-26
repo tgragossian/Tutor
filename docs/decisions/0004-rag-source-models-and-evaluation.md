@@ -2,7 +2,8 @@
 
 [Decisions index](README.md) · [Milestone C plan](../superpowers/plans/portfolio-mvp/03-rag.md)
 
-Status: accepted by Thomas, 2026-10-22. Governs milestone C; amends the C evaluation gate.
+Status: accepted by Thomas, 2026-10-22; §2 amended 2026-10-26 (Anthropic only). Governs
+milestone C; amends the C evaluation gate.
 
 ## 1. OpenStax text in retrieval
 
@@ -31,19 +32,20 @@ Status: accepted by Thomas, 2026-10-22. Governs milestone C; amends the C evalua
 
 ## 2. Generator candidates
 
-- Thomas prefers the cheaper of GPT-5.2 and Claude Opus 4.6. At list prices (2026-10-22)
-  GPT-5.2 is about half the cost of Opus 4.6 per hint, and Opus 4.6 is superseded by Opus 5.5.
-- **Baseline to beat: GPT-5.2.** Compared under identical retrieval, prompts and limits against
-  Claude Opus 5.5, Sonnet 5.5 and Haiku 5.5 on the development cases (estimated ≈ $5 in total).
-- **Historical candidate, now dropped: Meta Muse Spark** (2026-10-22 notes: US public preview; $1.25 / $4.25 per 1M
-  tokens, about half of GPT-5.2 per hint). It leads the public TutorBench leaderboard at 68.5%
-  vs 56.6% for the next entry (BenchLM mirror of Scale's 2026-09-29 snapshot). Caveats: a
-  leaderboard row may include scaffolding, the version tested is unstated, and preview terms
-  (data use, limits, use of outputs to train other models) must be checked before relying on it.
-  **Thomas, later 2026-10-22: not planning to use Muse Spark;** it is not a candidate unless re-added.
-- **Selection rule:** the cheapest candidate that is non-inferior to the best one on the
-  primary measures below, within a margin fixed before the run. Record prices on the date
-  checked, model versions and per-case results.
+- **Amended by Thomas, 2026-10-26: Anthropic only.** Candidates are **Claude Haiku 5.5 and
+  Sonnet 5.5**, compared under identical retrieval, prompts and limits on the development cases.
+  One provider means one API key and one integration; the Qwen LoRA (0005) is the cross-model test.
+- **Why Claude:** the TutorBench paper ([arXiv 2510.02663](https://arxiv.org/abs/2510.02663))
+  reports that Claude models "outperform others in supporting active learning" (hints), while
+  lagging on feedback and adaptive explanation. Hints are C's main feature; the other two use
+  cases are where the LoRA can show a gain. No model scored above ~56% overall; the versions
+  tested predate 5.5, so this is a prior, not a result for our cases.
+- **Selection rule:** Haiku 5.5 unless Sonnet 5.5 is better beyond a margin fixed before the run
+  on the primary measures below. Record prices on the date checked, model versions and
+  per-case results. Claude also serves as the rubric judge (0005 §3).
+- **Superseded (2026-10-22 plan):** GPT-5.2 baseline vs Claude Opus/Sonnet/Haiku 5.5, from
+  Thomas's earlier "cheaper of GPT-5.2 and Opus 4.6". Dropped to save a second provider.
+  Meta Muse Spark (TutorBench leaderboard 68.5%, preview terms unchecked) was dropped earlier.
 
 ## 3. Hint evaluation measures what models get wrong
 

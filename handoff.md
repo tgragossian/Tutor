@@ -47,7 +47,7 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
    [AI handoff](docs/superpowers/plans/portfolio-mvp/06-ai-decisions-handoff.md); its doc-update list is complete.
    [C plan](docs/superpowers/plans/portfolio-mvp/03-rag.md) links help, evaluation, open choices and debugging.
    [0004](docs/decisions/0004-rag-source-models-and-evaluation.md): OpenStax citations, BM25 first,
-   GPT-5.2 baseline vs Claude 5.5 candidates, Muse Spark dropped; evaluate hint behavior.
+   Anthropic only (2026-10-26): Claude Haiku vs Sonnet 5.5, no OpenAI; evaluate hint behavior.
    [0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md): three help buttons, dataset splits,
    Qwen3.5-9B QLoRA, paired offline and descriptive live A/B, AWS training/RunPod serving.
    [Open register](docs/superpowers/plans/portfolio-mvp/milestone-c/03-open-decisions.md): serving test,

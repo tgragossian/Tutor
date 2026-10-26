@@ -11,9 +11,9 @@ and [decision 0005 §§1–4](../../../../decisions/0005-tutoring-datasets-and-f
    Split by source problem/family into development and frozen final sets.
 2. Establish BM25; compare no retrieval, BM25 and a dense/hybrid candidate with one fixed generator.
    Promote dense/hybrid only if it improves measured Recall@k/MRR; report prose/equation failures.
-3. Compare GPT-5.2 baseline with the recorded Claude Opus 5.5, Sonnet 5.5 and Haiku 5.5 candidates
-   under identical retrieval, prompts and limits. Muse Spark is dropped.
-4. Use development cases to choose the cheapest model non-inferior to the best; fix the margin,
+3. Compare Claude Haiku 5.5 with Sonnet 5.5 under identical retrieval, prompts and limits
+   (Anthropic only, 0004 §2 amended 2026-10-26; GPT-5.2 and Muse Spark are dropped).
+4. Use development cases: keep Haiku unless Sonnet is better beyond a margin; fix the margin,
    primary measures and scoring procedure before running the comparison.
 5. Run the frozen final cases only after choices are fixed, at E's final evaluation gate.
 

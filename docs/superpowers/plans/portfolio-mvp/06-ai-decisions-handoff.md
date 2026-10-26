@@ -16,7 +16,7 @@ Thomas's recorded OpenStax/TutorBench licensing choices and revisit conditions a
 | 1 | C → LoRA → D/E → expansion | [0005 §6](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md#6-timing-compute-and-serving-thomas-2026-10-22) |
 | 2 | OpenStax retrieval with section links/licence | [0004 §1](../../../decisions/0004-rag-source-models-and-evaluation.md#1-openstax-text-in-retrieval) |
 | 3 | BM25 first; measured dense/hybrid comparison | [C evaluation](milestone-c/02-evaluation.md) |
-| 4 | GPT-5.2 baseline vs Claude 5.5 candidates; Muse Spark dropped | [0004 §2](../../../decisions/0004-rag-source-models-and-evaluation.md#2-generator-candidates) |
+| 4 | Anthropic only (2026-10-26): Claude Haiku vs Sonnet 5.5; GPT-5.2 and Muse Spark dropped | [0004 §2](../../../decisions/0004-rag-source-models-and-evaluation.md#2-generator-candidates) |
 | 5 | Hint behavior, not student-answer grading; Wilson intervals | [C evaluation](milestone-c/02-evaluation.md) |
 | 6 | Three help buttons and server-owned context | [Help contract](milestone-c/01-help-contract.md) |
 | 7 | Bounded SymPy answer-leak guard below reveal | [Help contract](milestone-c/01-help-contract.md) |

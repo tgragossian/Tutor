@@ -44,9 +44,9 @@ Set request/output limits, timeouts, per-user rate limits and a global budget be
 
 ## Evaluation gate
 
-Follow [evaluation gates](milestone-c/02-evaluation.md): GPT-5.2 baseline versus the recorded
-Claude Opus/Sonnet/Haiku 5.5 candidates, Muse Spark excluded. Choose the cheapest model
-non-inferior to the best on hint behavior, with a margin fixed before the run.
+Follow [evaluation gates](milestone-c/02-evaluation.md): Claude Haiku 5.5 versus Sonnet 5.5
+(Anthropic only, 0004 §2 amended 2026-10-26). Choose Haiku unless Sonnet is better on hint
+behavior beyond a margin fixed before the run.
 Retrieval uses Recall@k/MRR; tutoring measures leakage, error-specific help, mistaken-reasoning
 endorsement and citation support, with Wilson intervals. SymPy owns answer correctness.
 Freeze final cases before model/prompt selection; use development cases for selection.

@@ -11,7 +11,7 @@ Next step: milestone C design session with Thomas. Documentation sync does not a
 | C-O2 | Training host alternative | AWS remains selected; Thomas may choose RunPod Pods after comparison |
 | C-O3 | Lightsail sizing | Measure actual C retrieval memory and revisit the 1 GB exception |
 | C-O4 | Automated problem sets | Thomas chooses scope/order for templates or LLM generation; no task assigned yet |
-| C-O5 | Hosted access | Thomas supplies OpenAI/Anthropic API access through secrets configuration |
+| C-O5 | Hosted access | Thomas supplies an Anthropic API key through secrets configuration (no OpenAI, 2026-10-26) |
 | C-O6 | C design session | Turn the accepted direction into contracts, tasks, limits and acceptance checks |
 
 ## Design inputs still needed (C-O6)
