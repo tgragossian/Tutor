@@ -102,10 +102,76 @@ def test_create_app_passes_pool_settings(tmp_path: Path, monkeypatch: pytest.Mon
         return SpyPool()
 
     monkeypatch.setattr("mathtutor.web.app.VerifierPool", fake_pool)
-    settings = make_settings(tmp_path).model_copy(update={"pool_size": 2, "pool_memory_mb": 256})
+    settings = make_settings(tmp_path).model_copy(
+        update={"pool_size": 2, "pool_memory_mb": 256, "help_generator": "off"}
+    )
     with TestClient(create_app(settings)):
         pass
     assert seen == {"size": 2, "memory_mb": 256}
+
+
+def _recording_pools(monkeypatch: pytest.MonkeyPatch) -> list[tuple[dict[str, object], SpyPool]]:
+    made: list[tuple[dict[str, object], SpyPool]] = []
+
+    def fake_pool(**kwargs: object) -> SpyPool:
+        made.append((kwargs, SpyPool()))
+        return made[-1][1]
+
+    monkeypatch.setattr("mathtutor.web.app.VerifierPool", fake_pool)
+    return made
+
+
+def test_guard_pool_started_and_closed_when_help_on(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    made = _recording_pools(monkeypatch)
+    settings = make_settings(tmp_path).model_copy(update={"guard_pool_memory_mb": 200})
+    app = create_app(settings)
+    with TestClient(app) as c:
+        assert c.get("/readyz").status_code == 200
+        assert len(made) == 2
+        (_, grading), (guard_kwargs, guard) = made
+        assert app.state.pool is grading and app.state.guard_pool is guard
+    assert guard_kwargs == {
+        "size": 1,
+        "deadline_s": 2.0,
+        "queue_max": 4,
+        "queue_wait_s": 1.0,
+        "memory_mb": 200,
+    }
+    assert grading.closed and guard.closed
+
+
+def test_guard_pool_not_started_when_help_off(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    made = _recording_pools(monkeypatch)
+    settings = make_settings(tmp_path).model_copy(update={"help_generator": "off"})
+    app = create_app(settings)
+    with TestClient(app) as c:
+        assert c.get("/readyz").status_code == 200
+        assert len(made) == 1
+        assert app.state.guard_pool is None
+
+
+def test_injected_pools_are_used_as_is(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    made = _recording_pools(monkeypatch)
+    pool, guard = SpyPool(), SpyPool()
+    app = create_app(make_settings(tmp_path), pool=pool, guard_pool=guard)
+    with TestClient(app):
+        assert app.state.guard_pool is guard
+    assert made == [] and not guard.closed and not pool.closed
+    only_pool = create_app(make_settings(tmp_path), pool=SpyPool())
+    with TestClient(only_pool):
+        assert only_pool.state.guard_pool is None
+    assert made == []
+
+
+def test_readyz_ignores_guard_pool(tmp_path: Path) -> None:
+    guard = SpyPool()
+    guard.is_alive = False
+    app = create_app(make_settings(tmp_path), pool=SpyPool(), guard_pool=guard)
+    assert TestClient(app).get("/readyz").status_code == 200
 
 
 def test_index_lists_topics_and_attribution(client: TestClient) -> None:

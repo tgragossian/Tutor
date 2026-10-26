@@ -128,9 +128,15 @@ class _Pool(Pool, Protocol):
     def close(self) -> None: ...
 
 
-def create_app(settings: Settings, *, pool: _Pool | None = None) -> FastAPI:
+def create_app(
+    settings: Settings, *, pool: _Pool | None = None, guard_pool: _Pool | None = None
+) -> FastAPI:
     """Build the app. Without ``pool``, a ``VerifierPool`` is started when the app starts
-    (lifespan) and closed when it stops; an injected pool belongs to the caller."""
+    (lifespan) and closed when it stops; an injected pool belongs to the caller.
+
+    The leak guard's pool (``app.state.guard_pool``) is started alongside it only when the app
+    starts its own grading pool and help is not off; an injected ``guard_pool`` is used as is.
+    """
     # Eager: a ContentError here stops the process before it serves anything.
     content: LoadedContent = load_bundle(settings.content_path)
     templates = Jinja2Templates(
@@ -151,18 +157,32 @@ def create_app(settings: Settings, *, pool: _Pool | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-        owned: VerifierPool | None = None
+        owned: list[_Pool] = []
         try:
             if pool is None:
                 # check_fn=None: the worker imports the checker, never this process (R8).
-                owned = await run_in_threadpool(
+                grading = await run_in_threadpool(
                     lambda: VerifierPool(size=settings.pool_size, memory_mb=settings.pool_memory_mb)
                 )
-                attach_pool(owned)
+                owned.append(grading)
+                attach_pool(grading)
+                if settings.help_generator != "off":
+                    # The leak guard's own worker, so help checks never queue behind grading.
+                    guard = await run_in_threadpool(
+                        lambda: VerifierPool(
+                            size=1,
+                            deadline_s=2.0,
+                            queue_max=4,
+                            queue_wait_s=1.0,
+                            memory_mb=settings.guard_pool_memory_mb,
+                        )
+                    )
+                    owned.append(guard)
+                    app.state.guard_pool = guard
             yield
         finally:
-            if owned is not None:
-                await run_in_threadpool(owned.close)
+            for p in owned:
+                await run_in_threadpool(p.close)
             engine.dispose()
 
     app = _SecureFastAPI(title=APP_NAME, version=__version__, lifespan=lifespan)
@@ -171,6 +191,7 @@ def create_app(settings: Settings, *, pool: _Pool | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.sessions = sessions
     app.state.pool = None
+    app.state.guard_pool = guard_pool
     app.state.templates = templates
     app.state.vendor = vendor
     app.state.auth = AuthService(sessions, _utcnow)
