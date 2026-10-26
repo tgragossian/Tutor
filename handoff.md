@@ -1,12 +1,18 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-22, AI decisions/documentation sync after the B deploy.
-This is the main checkout handoff; `3284327`'s AI notes were read locally from `milestone-b`.
-The host runs `main` 8057590 (Thomas deployed; migration 0003 applied).
+Owner: Thomas Gragossian. Updated: 2026-10-26, milestone C design session (Claude).
+The host runs `main` 8057590 (Thomas deployed; migration 0003 applied). Docs-only commits since.
 
-**Milestone B status:** B-R1/B-R2/B-R3/B-R5 verified fixed by Codex; B-R4's remaining case
-(verifier crash counted as graded) fixed in 04de2d2. All fixes deployed. To close B: log hours.
-Host sizing stays deferred to milestone C under Thomas's recorded exception.
+**Milestone B: closed.** All review fixes deployed. Thomas (2026-10-26): logging actual hours is
+not a gate. Host sizing moved to C (C-O3); Thomas allows 2 GB if measurement needs it.
+
+**For Codex: please review the [milestone C design spec](docs/superpowers/specs/2026-10-26-milestone-c/README.md).**
+Agreed with Thomas section by section on 2026-10-26; no code or plan written yet. Key choices:
+Anthropic only (Haiku 5.5, Sonnet if it wins by 10 points; 0004 §2 amended, 7829282), whole-book
+BM25 corpus, own chunk-ID citations (same contract for the later Qwen LoRA), fail-closed SymPy
+leak guard with Reveal as the only answer path, slices C1 buttons → C2 free text → C3 own
+problems with photo/PDF upload (image deleted after reading; SymPy-solved or hints-only).
+All of Calc 1 as a graded bank is a later project, only if automated (C-O4).
 
 ## Live site (https://tutor.thomasgragossian.dev)
 
@@ -40,10 +46,11 @@ Host sizing stays deferred to milestone C under Thomas's recorded exception.
    milestone C once retrieval's memory is known (BM25/index and any embedding setup).
    Qwen base/LoRA is planned on RunPod Serverless; training is on AWS, separate from this host.
    Not a blocker for closing milestone B.
-3. Record actual hours with Thomas ([hours](docs/ops/hours.md)); 30-hour checkpoint pending.
+3. Hours: optional; Thomas does not treat the [hours log](docs/ops/hours.md) as a gate.
 4. [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): verifier is
    slow on wrong answers to nested trig (`sin(cos 7x)`); `content_check` lacks a hard deadline.
-5. **Next: C design session → C → LoRA → D/E → expansion.** Read the
+5. **Next: Thomas + Codex review the C spec → implementation plan → C1 → C2 → C3 → LoRA →
+   D/E → expansion.** Thomas's Anthropic key goes in secrets config (C-O5). Background: the
    [AI handoff](docs/superpowers/plans/portfolio-mvp/06-ai-decisions-handoff.md); its doc-update list is complete.
    [C plan](docs/superpowers/plans/portfolio-mvp/03-rag.md) links help, evaluation, open choices and debugging.
    [0004](docs/decisions/0004-rag-source-models-and-evaluation.md): OpenStax citations, BM25 first,

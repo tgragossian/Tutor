@@ -1,8 +1,9 @@
 # C — evaluated textbook-grounded hints
 
-[Plan index](README.md) · Budget target: 40 hours.
+[Plan index](README.md) · Budget: 40 hours for C1; about 70–90 hours for C1–C3.
 
-Status: design session next; the contracts below are planned, not shipped features.
+Status: design agreed 2026-10-26; the [C design spec](../../specs/2026-10-26-milestone-c/README.md)
+owns exact contracts and slices C1–C3 and supersedes this page where they differ. Under review.
 Accepted decisions: [0004](../../../decisions/0004-rag-source-models-and-evaluation.md)
 and [0005](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md).
 Sequence: C → LoRA experiment → D/E → [expansion queue](05-expansion-queue.md).

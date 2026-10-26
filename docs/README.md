@@ -9,6 +9,7 @@ Read the [current handoff](../handoff.md) before continuing work.
 - [Current handoff](../handoff.md): status, priorities and next action.
 - [Decisions](decisions/README.md): accepted direction and precedence.
 - [Active portfolio-core spec](superpowers/specs/2026-10-13-portfolio-core/README.md): approved contracts for milestones A–B.
+- [Milestone C design spec](superpowers/specs/2026-10-26-milestone-c/README.md): help, own problems, evaluation; under review.
 - [Active option B delivery plan](superpowers/plans/portfolio-mvp/README.md): milestones and gates.
   - [Milestone B tasks](superpowers/plans/portfolio-mvp/milestone-b/README.md): tasks 1–16 and fixes deployed; hours remain.
   - [R24 implementation](superpowers/plans/portfolio-mvp/milestone-b/r24/README.md): scoped precision, debugging and release checklist.

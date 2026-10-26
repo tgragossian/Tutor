@@ -2,17 +2,18 @@
 
 [Parent milestone C plan](../03-rag.md) · [AI handoff](../06-ai-decisions-handoff.md)
 
-Updated 2026-10-22. This page owns unresolved choices; accepted decisions stay in 0004/0005.
-Next step: milestone C design session with Thomas. Documentation sync does not authorize compute.
+Updated 2026-10-26. This page owns unresolved choices; accepted decisions stay in 0004/0005.
+Next step: Thomas and Codex review the [C design spec](../../../specs/2026-10-26-milestone-c/README.md),
+then the implementation plan. Documentation does not authorize compute.
 
 | ID | Open item | Next evidence or decision |
 |---|---|---|
 | C-O1 | RunPod serving test | Thomas's account/go-ahead; measure fit, cold/cached starts, latency and bill |
 | C-O2 | Training host alternative | AWS remains selected; Thomas may choose RunPod Pods after comparison |
-| C-O3 | Lightsail sizing | Measure actual C retrieval memory and revisit the 1 GB exception |
-| C-O4 | Automated problem sets | Thomas chooses scope/order for templates or LLM generation; no task assigned yet |
+| C-O3 | Lightsail sizing | Measure C1 retrieval memory; Thomas allows 2 GB if needed (2026-10-26) |
+| C-O4 | Automated problem sets | Thomas wants all of Calc 1 only if automated (2026-10-26): the bank project after C, with a broader checker |
 | C-O5 | Hosted access | Thomas supplies an Anthropic API key through secrets configuration (no OpenAI, 2026-10-26) |
-| C-O6 | C design session | Turn the accepted direction into contracts, tasks, limits and acceptance checks |
+| C-O6 | C design session | Held 2026-10-26; written in the C design spec, awaiting review |
 
 ## Design inputs still needed (C-O6)
 
