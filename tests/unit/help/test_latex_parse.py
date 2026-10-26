@@ -104,7 +104,6 @@ def test_notation_table(src: str) -> None:
         (r"-\frac{200}{49}", ["Negate", ["Divide", 200, 49]]),
         (r"0.54", {"num": "0.54"}),
         (r"e^{2x}", ["Power", "ExponentialE", ["Multiply", 2, "x"]]),
-        (r"x^23", ["Multiply", ["Power", "x", 2], 3]),
         (r"\sin(x)^2", ["Power", ["Sin", "x"], 2]),
         (r"\sin x^2", ["Sin", ["Power", "x", 2]]),
         (r"\log_{2} 8", ["Log", 8, 2]),
@@ -166,6 +165,57 @@ def test_rejects(src: str) -> None:
     assert result.reason
 
 
+def test_limit_reasons() -> None:
+    assert parse_latex("(" * 25 + "x" + ")" * 25) == ParseRejected("nested too deeply")
+    assert parse_latex("+".join(["x"] * 200)) == ParseRejected("too many nodes")
+
+
+@pytest.mark.parametrize("src", [r"1/2x", r"x \div 2x", r"1/2\sin x", r"x/2(x+1)", r"1/2^3x"])
+def test_rejects_ambiguous_division(src: str) -> None:
+    assert parse_latex(src) == ParseRejected("ambiguous inline division")
+
+
+@pytest.mark.parametrize(
+    ("src", "tree"),
+    [
+        (r"\frac{1}{2x}", ["Divide", 1, ["Multiply", 2, "x"]]),
+        (r"1/(2x)", ["Divide", 1, ["Multiply", 2, "x"]]),
+        (r"(1/2)x", ["Multiply", ["Divide", 1, 2], "x"]),
+        (r"x/2", ["Divide", "x", 2]),
+        (r"x/2 + 1", ["Add", ["Divide", "x", 2], 1]),
+        (r"x/2\cdot x", ["Multiply", ["Divide", "x", 2], "x"]),
+        (r"2x/3", ["Divide", ["Multiply", 2, "x"], 3]),
+    ],
+)
+def test_explicit_division(src: str, tree: object) -> None:
+    assert _parsed(src).tree == tree
+
+
+@pytest.mark.parametrize("src", [r"x2", r"{2}3", r"2.5.3", r"1e5", r"x^23", r"2\,3", r"2 3"])
+def test_rejects_juxtaposed_number(src: str) -> None:
+    result = parse_latex(src)
+    assert isinstance(result, ParseRejected), src
+    assert result.reason in ("number after a factor", "spaced digits")
+
+
+@pytest.mark.parametrize(
+    ("src", "tree"),
+    [
+        (r"2x", ["Multiply", 2, "x"]),
+        (r"2\pi", ["Multiply", 2, "Pi"]),
+        (r"3(x+1)", ["Multiply", 3, ["Add", "x", 1]]),
+        (r"x^2", ["Power", "x", 2]),
+        (r"2\cdot 3", ["Multiply", 2, 3]),
+        (r"\frac12", ["Divide", 1, 2]),
+        (r"\sqrt2 x", ["Multiply", ["Sqrt", 2], "x"]),
+        (r"2 x", ["Multiply", 2, "x"]),
+        (r"12.5", {"num": "12.5"}),
+    ],
+)
+def test_numbers_before_factors(src: str, tree: object) -> None:
+    assert _parsed(src).tree == tree
+
+
 def test_limits_are_inclusive() -> None:
     assert isinstance(parse_latex("+".join(["x"] * 199)), ParsedMath)  # 200 nodes
     assert isinstance(parse_latex("(" * 24 + "x" + ")" * 24), ParsedMath)
@@ -206,7 +256,10 @@ def test_parser_imports() -> None:
 @given(st.text(alphabet=st.characters(codec="utf-8"), max_size=400))
 def test_never_raises(src: str) -> None:
     src = src.encode("utf-8")[:400].decode("utf-8", errors="ignore")  # at most 400 bytes
-    assert isinstance(parse_latex(src), ParsedMath | ParseRejected)
+    result = parse_latex(src)
+    assert isinstance(result, ParsedMath | ParseRejected)
+    if isinstance(result, ParseRejected):
+        assert not result.reason.startswith("internal error"), result.reason
 
 
 _PIECES = [*"0123456789xyefu+-*/^_{}()[]|.' ", r"\frac", r"\sqrt", r"\sin", r"\cos", r"\ln"]
@@ -219,5 +272,7 @@ def test_never_raises_latexish(src: str) -> None:
     # LaTeX-like noise reaches the grammar; any tree it accepts passes the checker's bounds.
     result = parse_latex(src)
     assert isinstance(result, ParsedMath | ParseRejected)
-    if isinstance(result, ParsedMath):
+    if isinstance(result, ParseRejected):
+        assert not result.reason.startswith("internal error"), result.reason
+    else:
         assert check_structure(result.tree) is None

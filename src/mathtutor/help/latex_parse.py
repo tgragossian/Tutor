@@ -7,8 +7,11 @@ by recursive descent; anything else is ``ParseRejected``. Nothing is ever evalua
 Reading rules (parser version 1):
 
 - Juxtaposition multiplies (``2x``, ``x(x+1)``); ``\\left``/``\\right``, ``\\,``, ``\\!`` and
-  sizing commands are layout only. ``a/b c`` is ``(a/b)c``; ``-ab`` is ``-(ab)``.
-- One-token arguments follow TeX: ``\\frac12``, ``x^23`` = ``x^{2}3``.
+  sizing commands are layout only. ``-ab`` is ``-(ab)``.
+- Ambiguous forms are rejected (unchecked), not guessed: a juxtaposed factor after the right
+  operand of an inline ``/`` or ``\\div`` (``1/2x``); a number after a factor (``x2``, ``x^23``,
+  ``1e5``, as translate rejects it); digits split by spacing (``2\\,3``).
+- One-token arguments follow TeX: ``\\frac12``, ``x^2``.
 - ``\\sin^n x`` is ``Power(Sin(x), n)`` for an integer n >= 1 (``\\sin^{-1}`` is rejected).
 - A function input in parentheses (or ``|..|``) is that group; without them it is the run of
   juxtaposed factors up to the next function, operator or sign: ``\\sin 7x`` = ``Sin(7x)``,
@@ -115,12 +118,18 @@ def _is_letter(c: str) -> bool:
     return c.isascii() and c.isalpha()
 
 
+def _numeric(token: Token) -> bool:
+    return token[0] == "ch" and (token[1].isdigit() or token[1] == ".")
+
+
 def _tokenize(src: str) -> list[Token]:
     tokens: list[Token] = []
+    gap = False  # spacing was dropped since the last token
     i, n = 0, len(src)
     while i < n:
         c = src[i]
         if c.isspace() or c == "~":
+            gap = True
             i += 1
             continue
         if c != "\\":
@@ -128,9 +137,13 @@ def _tokenize(src: str) -> list[Token]:
             if mapped is not None:
                 tokens.append(mapped)
             elif _is_letter(c) or c in _CHARS:
+                if gap and tokens and _numeric(tokens[-1]) and _numeric(("ch", c)):
+                    # "2 3", "2\,3": spacing would silently join two numbers.
+                    raise _Reject("spaced digits")
                 tokens.append(("ch", c))
             else:
                 raise _Reject("unsupported character")
+            gap = False
             i += 1
             continue
         j = i + 1
@@ -143,7 +156,9 @@ def _tokenize(src: str) -> list[Token]:
         name = src[i + 1 : j]
         i = j
         if name in _LAYOUT:
+            gap = True
             continue
+        gap = False
         if name == "vert":
             tokens.append(("ch", "|"))
         elif name in ("operatorname", "mathrm"):
@@ -257,20 +272,33 @@ class _Parser:
         minus = self.signs()
         return self.negated(self.product(), minus)
 
+    def juxtaposed(self) -> JsonValue:
+        """A factor multiplied by juxtaposition; a number there is rejected, as translate does."""
+        if _numeric(self.take()):
+            raise _Reject("number after a factor")
+        self.pos -= 1
+        return self.power()
+
     def product(self) -> JsonValue:
         factors = [self.power()]
+        divided = False  # the last factor is the right operand of an inline / or \div
         while True:
             token = self.peek()
             if token in _TIMES:
                 self.pos += 1
                 minus = self.signs()
                 factors.append(self.negated(self.power(), minus))
+                divided = False
             elif token in _OVER:
                 self.pos += 1
                 minus = self.signs()
                 factors = [["Divide", _product(factors), self.negated(self.power(), minus)]]
+                divided = True
             elif self.starts_factor(token):
-                factors.append(self.power())
+                if divided:
+                    # 1/2x: x/2 or 1/(2x)? Unchecked rather than guessed.
+                    raise _Reject("ambiguous inline division")
+                factors.append(self.juxtaposed())
             else:
                 return _product(factors)
 
@@ -499,7 +527,7 @@ class _Parser:
         minus = self.signs()
         factors = [self.power()]
         while self.starts_factor(self.peek(), in_argument=True):
-            factors.append(self.power())
+            factors.append(self.juxtaposed())
         return self.negated(_product(factors), minus)
 
 
