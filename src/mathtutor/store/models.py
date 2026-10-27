@@ -68,6 +68,8 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(32), unique=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime]
+    # Bumped by "Clear history"; help requests started under an older epoch are discarded.
+    privacy_epoch: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     study_sessions: Mapped[list[StudySession]] = relationship(back_populates="user")
 
@@ -177,6 +179,82 @@ class AttemptResult(Base):
     applied: Mapped[bool] = mapped_column(Boolean)
 
     submission: Mapped[Submission] = relationship(back_populates="result")
+
+
+class ItemHelpState(Base):
+    """Per-presentation help counters and the single in-flight help request id."""
+
+    __tablename__ = "item_help_state"
+
+    session_item_id: Mapped[int] = mapped_column(ForeignKey("session_items.id"), primary_key=True)
+    hint_level: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    help_seq: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    in_flight: Mapped[str | None] = mapped_column(String(36))
+
+
+class HelpRequestRow(Base):
+    """One help request. Only ``output_json`` holds model text; the rest is metadata."""
+
+    __tablename__ = "help_requests"
+    __table_args__ = (
+        Index("ix_help_requests_user_id", "user_id"),
+        Index("ix_help_requests_session_item_id", "session_item_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    request_id: Mapped[str] = mapped_column(String(36), unique=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    session_item_id: Mapped[int] = mapped_column(ForeignKey("session_items.id"))
+    item_revision: Mapped[int] = mapped_column(Integer)
+    help_type: Mapped[str] = mapped_column(String(32))
+    confusion_id: Mapped[str | None] = mapped_column(String(64))
+    payload_hash: Mapped[str] = mapped_column(String(64))
+    privacy_epoch: Mapped[int] = mapped_column(Integer)
+    help_seq: Mapped[int] = mapped_column(Integer)
+    hint_level: Mapped[int | None] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(16))
+    reason: Mapped[str | None] = mapped_column(String(32))
+    model: Mapped[str | None] = mapped_column(String(64))
+    prompt_version: Mapped[str] = mapped_column(String(32))
+    corpus_hash: Mapped[str] = mapped_column(String(64))
+    index_fingerprint: Mapped[str] = mapped_column(String(64))
+    retrieved_ids: Mapped[list[str]] = mapped_column(JSON)
+    cited_ids: Mapped[list[str]] = mapped_column(JSON)
+    guard_counts: Mapped[dict[str, int]] = mapped_column(JSON)
+    calls: Mapped[int] = mapped_column(Integer)
+    latency_ms: Mapped[int | None] = mapped_column(Integer)
+    arm: Mapped[str] = mapped_column(String(16), default="none", server_default="none")
+    serving_model: Mapped[str | None] = mapped_column(String(64))
+    output_json: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime]
+    finished_at: Mapped[datetime | None]
+    cleared_at: Mapped[datetime | None]
+    next_submission_id: Mapped[str | None] = mapped_column(String(36))
+
+
+class UsageEntry(Base):
+    """Durable spend ledger. ``user_id`` has no foreign key: spend outlives users and help rows."""
+
+    __tablename__ = "usage_entries"
+    __table_args__ = (
+        Index("ix_usage_entries_user_id_created_at", "user_id", "created_at"),
+        Index("ix_usage_entries_month_state", "month", "state"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    request_id: Mapped[str] = mapped_column(String(36))
+    user_id: Mapped[int] = mapped_column(Integer)
+    kind: Mapped[str] = mapped_column(String(16))  # "help" | "eval"
+    call_no: Mapped[int] = mapped_column(Integer)
+    model: Mapped[str] = mapped_column(String(64))
+    month: Mapped[str] = mapped_column(String(7))  # UTC "YYYY-MM"
+    state: Mapped[str] = mapped_column(String(16))  # "reserved" | "settled" | "uncertain"
+    reserved_micros: Mapped[int] = mapped_column(Integer)
+    settled_micros: Mapped[int | None] = mapped_column(Integer)
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    created_at: Mapped[datetime]
+    settled_at: Mapped[datetime | None]
 
 
 class ItemEvent(Base):

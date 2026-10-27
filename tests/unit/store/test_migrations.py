@@ -87,6 +87,44 @@ def _write_lock_free(path: str) -> bool:
         other.close()
 
 
+def test_upgrade_0003_to_0004_keeps_rows(db_url: str) -> None:
+    upgrade(db_url, "0003")
+    path = db_url.removeprefix("sqlite:///")
+    raw = sqlite3.connect(path)
+    raw.execute(
+        "INSERT INTO users (username, password_hash, created_at) "
+        "VALUES ('ann', 'x', '2026-10-01 00:00:00')"
+    )
+    raw.commit()
+    raw.close()
+    upgrade(db_url)
+    engine = make_engine(db_url)
+    try:
+        with engine.connect() as conn:
+            row = conn.execute(text("SELECT username, privacy_epoch FROM users")).one()
+        assert tuple(row) == ("ann", 0)
+        assert {"help_requests", "item_help_state", "usage_entries"} <= set(
+            inspect(engine).get_table_names()
+        )
+    finally:
+        engine.dispose()
+
+
+def test_downgrade_0004(db_url: str) -> None:
+    upgrade(db_url)
+    downgrade(db_url, "0003")
+    tables = _tables(db_url)
+    assert not {"help_requests", "item_help_state", "usage_entries"} & tables
+    engine = make_engine(db_url)
+    try:
+        cols = {c["name"] for c in inspect(engine).get_columns("users")}
+    finally:
+        engine.dispose()
+    assert "privacy_epoch" not in cols
+    upgrade(db_url)
+    assert "usage_entries" in _tables(db_url)
+
+
 def test_write_transactions_begin_immediate_reads_do_not(db_url: str) -> None:
     """A write transaction takes the write lock when it begins, so writers queue on
     busy_timeout instead of failing on a lock upgrade; reads take no lock (review B-A3)."""
