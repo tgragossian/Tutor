@@ -1,0 +1,159 @@
+"""Versioned help prompts: ``build_prompt`` turns a ``HelpContext`` and passages into
+``(system, user)`` messages.
+
+The prompt text lives in ``prompts/<prompt_version>/*.md``. Student text (attempt LaTeX) is
+placed only inside ``<student_text>``; passages inside ``<passage id="...">``; any tag of ours
+appearing inside data is neutralized so data cannot close its block. Fields are clipped to the
+config's ``field_caps`` and, if the estimate still exceeds ``max_input_tokens``, passage text
+is truncated from the lowest-ranked passage up. Every passage id stays in the prompt, so the
+set of ids the model may cite is always exactly the ids of ``chunks``.
+"""
+
+from __future__ import annotations
+
+import re
+from functools import cache
+from pathlib import Path
+
+from mathtutor.domain import AnswerKind
+from mathtutor.help.config import DEFAULT_CONFIG_PATH, HelpConfig, load_help_config
+from mathtutor.help.context import HelpContext, HelpType
+from mathtutor.retrieval.corpus import Chunk, estimate_tokens
+
+PROMPTS_DIR = Path(__file__).with_name("prompts")
+REPAIR_INSTRUCTION = (
+    "Your previous draft revealed or could not be checked; give a smaller next step without "
+    "expressions equal to the answer."
+)
+TRUNCATED = " [passage shortened]"
+LEVEL_RULES = {
+    1: "a concept reminder. Name the idea or rule that applies and what it says, without "
+    "applying it to this problem.",
+    2: "a targeted next step. Point to the specific step the student should do next on this "
+    "problem and how to start it, without carrying it out.",
+    3: "a fuller explanation. Walk through the method on this problem step by step, still "
+    "stopping before the final answer.",
+}
+_TAGS = (
+    "student_text|passages?|problem|attempts?|misconception_note|confusion|task|repair|"
+    "system|user|assistant|instructions?"
+)
+_TAG = re.compile(rf"<(?=\s*/?\s*(?:{_TAGS})\b)", re.IGNORECASE)
+_PLACEHOLDER = re.compile(r"\{\{(\w+)\}\}")
+
+
+@cache
+def _default_config() -> HelpConfig:
+    return load_help_config(DEFAULT_CONFIG_PATH)
+
+
+@cache
+def _template(version: str, name: str) -> str:
+    return (PROMPTS_DIR / version / f"{name}.md").read_text(encoding="utf-8").strip()
+
+
+def estimate_prompt_tokens(system: str, user: str) -> int:
+    """The budget estimate, ``ceil(utf8_bytes / 3)``, over both messages."""
+    return estimate_tokens(system + user)
+
+
+def _clip(text: str, max_bytes: int) -> str:
+    return text.encode("utf-8")[:max_bytes].decode("utf-8", errors="ignore")
+
+
+def _data(text: str, max_bytes: int | None = None) -> str:
+    """Clip, then neutralize our tags (``<`` → ``&lt;``) so data cannot open or close a block."""
+    clipped = text if max_bytes is None else _clip(text, max_bytes)
+    return _TAG.sub("&lt;", clipped)
+
+
+def _fill(template: str, values: dict[str, str]) -> str:
+    # One pass: inserted values are never rescanned for placeholders.
+    return _PLACEHOLDER.sub(lambda m: values[m.group(1)], template)
+
+
+def _context_block(ctx: HelpContext, caps: dict[str, int]) -> str:
+    lines = [
+        "<problem>",
+        f"Topic: {_data(ctx.topic, 200)}",
+        f"Textbook section: {_data(ctx.section, 50)}",
+        f"Answer kind: {ctx.answer_kind.value}",
+    ]
+    if ctx.answer_kind is AnswerKind.EXPRESSION:  # numeric/choice carry a placeholder variable
+        lines.append(f"Variable: ${_data(ctx.variable, 20)}$")
+    lines += [f"Statement: {_data(ctx.statement, caps['statement'])}", "</problem>", ""]
+    if ctx.attempts:
+        lines.append(
+            f"<attempts> The student's recent attempts, newest first "
+            f"(tries used so far: {ctx.tries_used}):"
+        )
+        for i, a in enumerate(ctx.attempts, 1):
+            latex = _data(a.latex, caps["attempt_latex"])
+            lines.append(f"{i}. <student_text>{latex}</student_text> checked: {a.status.value}")
+        lines.append("</attempts>")
+    else:
+        lines.append("The student has not submitted an attempt on this problem yet.")
+    if ctx.misconception_note:
+        note = _data(ctx.misconception_note, caps["misconception_note"])
+        lines += [
+            "",
+            "<misconception_note> What the student likely did wrong, from a reviewed list of "
+            "common mistakes. Use it only to aim your help; never state the corrected "
+            f"expression or form. Note: {note}</misconception_note>",
+        ]
+    return "\n".join(lines)
+
+
+def _passages_block(chunks: list[Chunk], texts: list[str]) -> str:
+    parts = ["Textbook passages:"]
+    for c, text in zip(chunks, texts, strict=True):
+        title = _data(f"{c.section} {c.section_title}", 200).replace('"', "'")
+        parts.append(f'<passage id="{c.chunk_id}" section="{title}">\n{text}\n</passage>')
+    return "\n".join(parts)
+
+
+def _task(ctx: HelpContext, help_type: HelpType, label: str | None, cfg: HelpConfig) -> str:
+    template = _template(cfg.prompt_version, help_type)
+    if help_type == "hint":
+        level = min(max(ctx.hint_level, 1), 3)
+        return _fill(template, {"level": str(level), "level_rule": LEVEL_RULES[level]})
+    if help_type == "explain":
+        if not label:
+            raise ValueError("explain help needs a confusion label")
+        clipped = _data(label, cfg.field_caps["confusion_text"]).replace('"', "'")
+        return _fill(template, {"confusion": clipped})
+    return _fill(template, {})
+
+
+def build_prompt(
+    ctx: HelpContext,
+    help_type: HelpType,
+    chunks: list[Chunk],
+    confusion_label: str | None,
+    strict: bool,
+    *,
+    cfg: HelpConfig | None = None,
+) -> tuple[str, str]:
+    """``(system, user)`` for one generator call; ``ValueError`` if no trim fits the budget."""
+    cfg = cfg or _default_config()
+    system = _template(cfg.prompt_version, "system")
+    head = _context_block(ctx, cfg.field_caps)
+    tail = f"<task>\n{_task(ctx, help_type, confusion_label, cfg)}\n</task>"
+    if strict:
+        tail += f"\n\n<repair>{REPAIR_INSTRUCTION}</repair>"
+    texts = [_data(c.text) for c in chunks]
+
+    def user() -> str:
+        return f"{head}\n\n{_passages_block(chunks, texts)}\n\n{tail}"
+
+    budget = cfg.max_input_tokens
+    for i in reversed(range(len(texts))):
+        excess = estimate_prompt_tokens(system, user()) - budget
+        if excess <= 0:
+            break
+        keep = len(texts[i].encode("utf-8")) - 3 * excess - len(TRUNCATED)
+        texts[i] = _clip(texts[i], keep) + TRUNCATED if keep > 0 else TRUNCATED.strip()
+    message = user()
+    if estimate_prompt_tokens(system, message) > budget:
+        raise ValueError("prompt does not fit the input token budget")
+    return system, message
