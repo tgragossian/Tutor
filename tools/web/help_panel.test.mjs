@@ -226,6 +226,17 @@ test('panel cleared on advance, correct answer and reveal', async () => {
   }
 });
 
+test('panel kept when the item is exhausted: help is still offered there', async () => {
+  const p = page();
+  p.run('renderAnswer = () => {}; renderSource = () => {}');
+  p.reply(reply());
+  await p.run("askHelp('hint')");
+  p.run("render({ done: false, item: { ...item, tries_left: 0, allowed_actions: ['reveal', 'advance'] } }, null)");
+  assert.equal(p.el('help-body').innerHTML.includes('outer function'), true);
+  assert.equal(p.el('help-panel').hidden, false);
+  assert.equal(p.el('help-sources').children.length, 1);
+});
+
 test('same request id on poll', async () => {
   const p = page();
   p.reply(
@@ -250,9 +261,9 @@ test('a second click while a request is open sends nothing', async () => {
 
 test('fixed messages show; a failure never shows raw error text', async () => {
   const p = page();
-  p.reply(reply({ status: 'unavailable', html: '<p>Hints are unavailable right now.</p>', sources: [] }));
+  p.reply(reply({ status: 'unavailable', html: '<p>Help is unavailable right now.</p>', sources: [] }));
   await p.run("askHelp('hint')");
-  assert.equal(p.el('help-body').innerHTML, '<p>Hints are unavailable right now.</p>');
+  assert.equal(p.el('help-body').innerHTML, '<p>Help is unavailable right now.</p>');
   const limited = page();
   limited.reply({
     response: { status: 429, ok: false },

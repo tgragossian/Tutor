@@ -7,7 +7,6 @@ never import this module.
 
 from __future__ import annotations
 
-import re
 import sys
 import time
 from pathlib import Path
@@ -23,6 +22,7 @@ from mathtutor.content.schema import (
     NumericAnswer,
     Problem,
     split_misconception,
+    states_correction,
 )
 from mathtutor.domain import AnswerKind, ReviewStatus, VerdictStatus
 from mathtutor.verify.check import check
@@ -154,19 +154,6 @@ def _choice_checks(answer: ChoiceAnswer, budget: Budget) -> list[str]:
     return errors
 
 
-_MATHY = re.compile(r"[\d^\\(){}]")
-# "=" must be followed by one plain number (integer, fraction or decimal) and then a boundary.
-_BAD_EQUALS = re.compile(r"=(?!\s*-?\d+(?:/\d+)?(?:\.\d+)?(?=\s|$|[.,;)]))")
-
-
-def _states_correction(note: str) -> bool:
-    """R19: a note names the error; it never gives a corrected expression or derivative."""
-    _, instead, after = note.partition("instead of")
-    if instead and _MATHY.search(after):
-        return True
-    return _BAD_EQUALS.search(note) is not None
-
-
 def _misconception_checks(problem: Problem) -> list[str]:
     errors: list[str] = []
     spec = problem.answer
@@ -176,7 +163,7 @@ def _misconception_checks(problem: Problem) -> list[str]:
         if problem.review.status is ReviewStatus.HUMAN_VERIFIED:
             if note is None:
                 errors.append(f"{field}: needs a note after '  # ' (help text is built from it)")
-            elif _states_correction(note):
+            elif states_correction(note):
                 errors.append(f"{field}: note states a corrected expression; describe the error")
         if isinstance(spec, ChoiceAnswer):
             if head not in {c.id for c in spec.choices}:

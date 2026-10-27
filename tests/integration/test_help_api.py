@@ -361,3 +361,43 @@ def test_scripted_without_a_script_serves_the_fixed_cited_hint(tmp_path: Path) -
     assert body["status"] == "delivered"
     assert "outer function first" in body["html"]
     assert body["sources"][0]["url"].startswith("https://openstax.org/")
+
+
+def test_help_rate_limited_per_user(app_pool: tuple[FastAPI, SpyPool]) -> None:
+    """``web_per_user`` requests per window per user, refused before the service (429 with
+    Retry-After); another user is unaffected."""
+    app = app_pool[0]
+    limit = app.state.help._cfg.admission.web_per_user
+    with TestClient(app, base_url="https://testserver") as alice:
+        login(alice, "alice_1")
+        item = _item(alice, start(alice))
+        for _ in range(limit):
+            assert alice.post("/api/help", json=_help(alice, item)).status_code == 200
+        r = alice.post("/api/help", json=_help(alice, item))
+        assert r.status_code == 429 and r.json()["error"] == "rate_limited"
+        assert int(r.headers["retry-after"]) >= 1
+    assert len(_rows(app)) == limit
+    with TestClient(app, base_url="https://testserver") as bob:
+        login(bob, "bob_1")
+        assert bob.post("/api/help", json=_help(bob, _item(bob, start(bob)))).status_code == 200
+
+
+def test_guard_pool_built_from_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    cfg = json.loads((ROOT / "src/mathtutor/help/help_config.json").read_text(encoding="utf-8"))
+    cfg["guard"].update({"pool_deadline_s": 3.5, "queue_max": 7, "queue_wait_s": 0.25})
+    path = tmp_path / "help_config.json"
+    path.write_text(json.dumps(cfg), encoding="utf-8")
+    calls: list[dict[str, object]] = []
+
+    def fake_pool(**kwargs: object) -> SpyPool:
+        calls.append(kwargs)
+        return SpyPool()
+
+    monkeypatch.setattr("mathtutor.web.app.VerifierPool", fake_pool)
+    settings = make_settings(tmp_path).model_copy(
+        update={"help_generator": "scripted", "corpus_path": CORPUS, "help_config_path": path}
+    )
+    with TestClient(create_app(settings)):
+        pass
+    grading, guard = calls  # the grading pool starts first
+    assert (guard["deadline_s"], guard["queue_max"], guard["queue_wait_s"]) == (3.5, 7, 0.25)

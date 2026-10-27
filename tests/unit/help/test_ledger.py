@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from mathtutor.application.errors import AppError, HelpLimited
 from mathtutor.domain import ItemState
 from mathtutor.help.config import DEFAULT_CONFIG_PATH, load_help_config
-from mathtutor.help.ledger import Ledger, main, micros_for
+from mathtutor.help.ledger import Ledger, main, micros_for, month_of
 from mathtutor.store.db import make_engine, make_sessionmaker, upgrade, write_transaction
 from mathtutor.store.models import HelpRequestRow, SessionItem, StudySession, UsageEntry, User
 
@@ -392,23 +392,41 @@ def test_settle_uncertain_cli(
 def test_settle_uncertain_cli_with_micros(
     ledger: Ledger,
     sessions: sessionmaker[Session],
+    clock: FakeClock,
     db_url: str,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    clock.now = datetime.now(UTC)  # the CLI reconciles against the real clock
+    month = month_of(clock.now)
     a = _admit(ledger, sessions, 1)
-    keep = _admit(ledger, sessions, 2)  # still reserved: untouched
+    keep = _admit(ledger, sessions, 2)  # still reserved and fresh: untouched
     ledger.mark_uncertain(a)
     assert (
-        main(
-            ["settle-uncertain", "--month", "2026-10", "--micros", "500", "--database-url", db_url]
-        )
+        main(["settle-uncertain", "--month", month, "--micros", "500", "--database-url", db_url])
         == 0
     )
     capsys.readouterr()
-    assert ledger.month_total("2026-10") == 500 + WORST
+    assert ledger.month_total(month) == 500 + WORST
     with sessions() as db:
         row = db.get(UsageEntry, keep)
         assert row is not None and row.state == "reserved"
+
+
+def test_settle_uncertain_reconciles_stale_first(
+    ledger: Ledger, sessions: sessionmaker[Session], clock: FakeClock
+) -> None:
+    """A reservation past ``uncertain_after_s`` that no admission has reconciled yet (a quiet
+    month end) is settled too, not left reserved."""
+    stale = _admit(ledger, sessions, 1)
+    clock.advance(seconds=121)
+    fresh = _admit(ledger, sessions, 2)  # reconciles ``stale`` itself; make it reserved again
+    with write_transaction(sessions) as db:
+        db.execute(update(UsageEntry).where(UsageEntry.id == stale).values(state="reserved"))
+    assert ledger.settle_uncertain("2026-10") == (1, WORST)
+    with sessions() as db:
+        old, new = db.get(UsageEntry, stale), db.get(UsageEntry, fresh)
+        assert old is not None and old.state == "settled" and old.settled_micros == WORST
+        assert new is not None and new.state == "reserved"  # younger than 120 s: untouched
 
 
 def test_settle_uncertain_cli_rejects_bad_month(db_url: str) -> None:

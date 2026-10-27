@@ -7,7 +7,8 @@ directly (ruling R4) with a real one-worker guard pool, so retrieval, prompt, re
 guard are the production path. Spend is counted here in integer micro-USD with the ledger's
 tariff and worst-case formula: a call (help or judge) is made only if the spend so far plus
 its worst case stays within ``--max-usd``. The holdout needs ``--freeze <commit>`` on a
-clean tree at that commit. Unreviewed cases or queries are refused.
+clean tree at that commit, and writes ``started.json`` before its first provider call, so a
+crashed holdout still counts as run. Unreviewed cases or queries are refused.
 """
 
 from __future__ import annotations
@@ -45,6 +46,7 @@ from mathtutor.retrieval.corpus import Corpus
 
 API_KEY_ENV = "MATHTUTOR_ANTHROPIC_API_KEY"
 MICROS = 1_000_000
+STARTED_MARKER = "started.json"  # holdout only; see ``mark_started``
 GUARD_MEMORY_MB = 384  # 01-pinned-values: the guard pool's memory limit
 
 
@@ -409,12 +411,28 @@ def check_freeze(
     head = git(["rev-parse", "HEAD"])
     if head != git(["rev-parse", freeze]):
         raise RunnerError(f"HEAD is not the frozen commit {freeze}")
-    for path in sorted((root / "evals" / "help" / "results").glob("*/run.json")):
+    results = root / "evals" / "help" / "results"
+    for path in sorted(results.glob("*/run.json")):
         meta = json.loads(path.read_text(encoding="utf-8"))
         if meta.get("split") == "holdout" and meta.get("head") == head:
             raise RunnerError(
                 f"the holdout already ran at {head[:12]} ({path.parent.name}); it runs once"
             )
+    for path in sorted(results.glob(f"*/{STARTED_MARKER}")):
+        meta = json.loads(path.read_text(encoding="utf-8"))
+        if meta.get("split") == "holdout" and meta.get("head") == head:
+            raise RunnerError(
+                f"the holdout already started at {head[:12]} ({path.parent.name}); it runs once,"
+                " even if it never finished"
+            )
+
+
+def mark_started(out: Path, freeze: str, head: str) -> None:
+    """Record that the holdout started at ``head`` (written before the first provider call):
+    a run that crashes before ``run.json`` still counts as the one run for that commit."""
+    out.mkdir(parents=True, exist_ok=True)
+    marker = {"split": "holdout", "freeze": freeze, "head": head}
+    (out / STARTED_MARKER).write_text(json.dumps(marker) + "\n", encoding="utf-8")
 
 
 def _execute(args: argparse.Namespace, root: Path) -> int:
@@ -487,8 +505,11 @@ def _execute(args: argparse.Namespace, root: Path) -> int:
         queue_wait_s=g.queue_wait_s,
         memory_mb=GUARD_MEMORY_MB,
     )
+    out = root / "evals" / "help" / "results" / run_id
     started = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     try:
+        if args.split == "holdout":  # before any provider call: the holdout runs once
+            mark_started(out, args.freeze, _try_git(root, ["rev-parse", "HEAD"]))
         env = EvalEnv(cfg, problems, corpus, confusions, grading, guard, not args.no_retrieval)
         spend = SpendCounter(cfg, cap)
 
@@ -533,7 +554,6 @@ def _execute(args: argparse.Namespace, root: Path) -> int:
         "answers": {c.problem_id: answer_latex(problems[c.problem_id].answer) for c in cases},
     }
     run = report.RunData(meta, result.records, result.judgments, metrics)
-    out = root / "evals" / "help" / "results" / run_id
     gates = report.write_run(out, run)
     print(f"wrote {out}; spent {usd(spend.spent_micros)} USD")
     failed = [f"{m}:{r.name}" for m, results in gates.items() for r in results if not r.passed]

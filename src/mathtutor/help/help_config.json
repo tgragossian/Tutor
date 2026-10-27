@@ -30,7 +30,10 @@
     "per_day": 150,
     "concurrency": 4,
     "month_budget_micros": 15000000,
-    "uncertain_after_s": 120
+    "uncertain_after_s": 120,
+    "web_per_user": 10,
+    "web_window_s": 60.0,
+    "user_in_flight": 2
   },
   "retrieval": {
     "k1": 1.2,

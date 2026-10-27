@@ -158,7 +158,7 @@ class HelpPipeline:
         self, ctx: HelpContext, help_type: HelpType, confusion_label: str | None, answer: Answer
     ) -> list[Chunk]:
         """Top passages in the allowed roles, minus any that show the answer (R23)."""
-        query = build_query(ctx, help_type, confusion_label)
+        query = build_query(ctx, help_type, confusion_label, self._cfg.retrieval)
         hits = self._index.search(
             query, self._cfg.passages, boost_section=ctx.section, roles=self._roles
         )

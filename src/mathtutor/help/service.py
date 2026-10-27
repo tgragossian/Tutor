@@ -2,8 +2,10 @@
 
 1. Field checks, then one short write transaction (``BEGIN IMMEDIATE``): replay or conflict
    on a known request id; ownership, revision, open state, help-type eligibility and the
-   server-owned confusion id; one request in flight per item (else ``PENDING``); the ledger's
-   admission and call-1 reservation; a ``pending`` row; ``in_flight`` set. Commit.
+   server-owned confusion id; one request in flight per item (else ``PENDING``); at most
+   ``user_in_flight`` requests in flight per user across items (else ``UNAVAILABLE``, no
+   reservation), so one user never holds every slot; the ledger's admission and call-1
+   reservation; a ``pending`` row; ``in_flight`` set. Commit.
 2. With no transaction open: context, then ``HelpPipeline.run`` (retrieval, provider calls,
    citation and leak-guard checks, repair, fallback). A second call is reserved first in the
    ledger's own transaction.
@@ -13,6 +15,9 @@
    privacy epoch, the help sequence and ``in_flight``. Stale: no text is stored and the
    ladder does not move. Otherwise the result is stored, ``help_seq`` advances, and
    ``hint_level`` advances (cap 3) only for a delivered hint. ``in_flight`` is cleared.
+   A busy database gets one retry. If that fails too, the answer is ``UNAVAILABLE`` and the
+   item stays in flight (replies ``PENDING``) until the row is ``uncertain_after_s`` (120 s)
+   old; then the next request frees it (``_abandon``) and replays report it unavailable.
 
 Help never changes tries, verdicts or ``SessionItem.revision``. Logs carry status and reason
 codes only: never student text, model output, chunk text or the API key.
@@ -337,6 +342,10 @@ class HelpService:
                 state.in_flight, HelpStatus.PENDING, item.id, item.revision, state.help_seq,
                 None, None, [],
             )  # fmt: skip
+        if self._user_in_flight(db, user_id) >= self._cfg.admission.user_in_flight:
+            # Fairness: one user never holds every slot. No row and no reservation.
+            logger.info("help unavailable reason=user_in_flight")
+            return self._plain(rid, req, HelpStatus.UNAVAILABLE, state.help_seq)
         entry_id = self._ledger.admit(db, user_id, rid, self._cfg.model)
         level = state.hint_level if req.help_type == "hint" else None
         db.add(
@@ -390,6 +399,16 @@ class HelpService:
         state.in_flight = None
         return True
 
+    def _user_in_flight(self, db: Session, user_id: int) -> int:
+        """The user's pending requests across all items, not counting abandoned ones."""
+        rows = db.scalars(
+            select(HelpRequestRow).where(
+                HelpRequestRow.user_id == user_id,
+                HelpRequestRow.status == HelpStatus.PENDING.value,
+            )
+        )
+        return sum(1 for row in rows if not self._expired(row))
+
     def _expired(self, row: HelpRequestRow) -> bool:
         """A pending request older than ``uncertain_after_s`` (R21): its worker is gone."""
         age = self._now() - row.created_at
@@ -441,73 +460,87 @@ class HelpService:
     # -- transaction 2: finalization ---------------------------------------------------------
 
     def _finalize(self, admitted: _Admitted, result: PipelineResult, started: float) -> HelpOutcome:
-        rid = admitted.request_id
+        """Transaction 2, retried once when the database is busy. If both attempts fail, the
+        answer is ``UNAVAILABLE`` and nothing is delivered; the item stays in flight until
+        ``_abandon`` frees it once the row is ``uncertain_after_s`` (120 s) old."""
         latency = max(0, round((self._clock() - started) * 1000))
-        try:
-            with self._tx() as db:
-                row = db.scalar(select(HelpRequestRow).where(HelpRequestRow.request_id == rid))
-                item = db.get(SessionItem, admitted.session_item_id)
-                state = db.get(ItemHelpState, admitted.session_item_id)
-                user = db.get(User, admitted.user_id)
-                session = db.get(StudySession, item.session_id) if item is not None else None
-                pending = row is not None and row.status == HelpStatus.PENDING.value
-                if row is not None and pending and self._expired(row):
-                    # Finished after the abandonment window: replays already report it
-                    # unavailable, so it stays that way and stores nothing.
-                    self._mark_abandoned(row)
-                    pending = False
-                fresh = (
-                    pending
-                    and row is not None
-                    and item is not None
-                    and session is not None
-                    and session.user_id == admitted.user_id
-                    and item.revision == admitted.item_revision
-                    and item.state in OPEN_STATES
-                    and user is not None
-                    and user.privacy_epoch == row.privacy_epoch
-                    and state is not None
-                    and state.help_seq == admitted.help_seq
-                    and state.in_flight == rid
-                )
+        for attempt in (1, 2):
+            try:
+                return self._finalize_once(admitted, result, latency)
+            except DatabaseBusy:
+                if attempt == 1:
+                    logger.info("help finalize busy; retrying once")
+                    continue
+                logger.warning("help finalize failed: DatabaseBusy")
+            except OperationalError as exc:
+                logger.warning("help finalize failed: %s", type(exc).__name__)
+            break
+        return HelpOutcome(
+            admitted.request_id, HelpStatus.UNAVAILABLE, admitted.session_item_id,
+            admitted.item_revision, admitted.help_seq, admitted.hint_level,
+            render_help_html(messages.UNAVAILABLE), [],
+        )  # fmt: skip
+
+    def _finalize_once(
+        self, admitted: _Admitted, result: PipelineResult, latency: int
+    ) -> HelpOutcome:
+        rid = admitted.request_id
+        with self._tx() as db:
+            row = db.scalar(select(HelpRequestRow).where(HelpRequestRow.request_id == rid))
+            item = db.get(SessionItem, admitted.session_item_id)
+            state = db.get(ItemHelpState, admitted.session_item_id)
+            user = db.get(User, admitted.user_id)
+            session = db.get(StudySession, item.session_id) if item is not None else None
+            pending = row is not None and row.status == HelpStatus.PENDING.value
+            if row is not None and pending and self._expired(row):
+                # Finished after the abandonment window: replays already report it
+                # unavailable, so it stays that way and stores nothing.
+                self._mark_abandoned(row)
+                pending = False
+            fresh = (
+                pending
+                and row is not None
+                and item is not None
+                and session is not None
+                and session.user_id == admitted.user_id
+                and item.revision == admitted.item_revision
+                and item.state in OPEN_STATES
+                and user is not None
+                and user.privacy_epoch == row.privacy_epoch
+                and state is not None
+                and state.help_seq == admitted.help_seq
+                and state.in_flight == rid
+            )
+            if row is not None and pending:
+                row.calls = len(result.calls)
+                row.retrieved_ids = list(result.retrieved_ids)
+                row.cited_ids = list(result.cited_ids)
+                row.guard_counts = _guard_counts(result)
+                row.latency_ms = latency
+                row.serving_model = result.calls[-1].model if result.calls else None
+                row.finished_at = self._now()
+            if not fresh or row is None or state is None:
                 if row is not None and pending:
-                    row.calls = len(result.calls)
-                    row.retrieved_ids = list(result.retrieved_ids)
-                    row.cited_ids = list(result.cited_ids)
-                    row.guard_counts = _guard_counts(result)
-                    row.latency_ms = latency
-                    row.serving_model = result.calls[-1].model if result.calls else None
-                    row.finished_at = self._now()
-                if not fresh or row is None or state is None:
-                    if row is not None and pending:
-                        row.status = HelpStatus.STALE.value
-                        row.reason = "stale"
-                        row.output_json = None
-                    if state is not None and state.in_flight == rid:
-                        state.in_flight = None
-                    seq = state.help_seq if state is not None else admitted.help_seq
-                    return self._stale(admitted, seq)
-                state.help_seq += 1
-                if result.status is HelpStatus.DELIVERED and admitted.help_type == "hint":
-                    state.hint_level = min(state.hint_level + 1, MAX_HINT_LEVEL)
-                state.in_flight = None
-                row.status = result.status.value
-                row.reason = result.reason[:32]
-                row.help_seq = state.help_seq
-                if result.status in _TEXT_STATUSES and result.text is not None:
-                    row.output_json = json.dumps(
-                        {"text": result.text, "sources": [asdict(s) for s in result.sources]}
-                    )
-                text = result.text if result.status in _TEXT_STATUSES else None
-                return self._outcome(row, result.status, text, list(result.sources))
-        except (OperationalError, DatabaseBusy) as exc:
-            # The item stays in flight until ``_abandon`` frees it; nothing is delivered.
-            logger.warning("help finalize failed: %s", type(exc).__name__)
-            return HelpOutcome(
-                rid, HelpStatus.UNAVAILABLE, admitted.session_item_id, admitted.item_revision,
-                admitted.help_seq, admitted.hint_level, render_help_html(messages.UNAVAILABLE),
-                [],
-            )  # fmt: skip
+                    row.status = HelpStatus.STALE.value
+                    row.reason = "stale"
+                    row.output_json = None
+                if state is not None and state.in_flight == rid:
+                    state.in_flight = None
+                seq = state.help_seq if state is not None else admitted.help_seq
+                return self._stale(admitted, seq)
+            state.help_seq += 1
+            if result.status is HelpStatus.DELIVERED and admitted.help_type == "hint":
+                state.hint_level = min(state.hint_level + 1, MAX_HINT_LEVEL)
+            state.in_flight = None
+            row.status = result.status.value
+            row.reason = result.reason[:32]
+            row.help_seq = state.help_seq
+            if result.status in _TEXT_STATUSES and result.text is not None:
+                row.output_json = json.dumps(
+                    {"text": result.text, "sources": [asdict(s) for s in result.sources]}
+                )
+            text = result.text if result.status in _TEXT_STATUSES else None
+            return self._outcome(row, result.status, text, list(result.sources))
 
     # -- helpers -----------------------------------------------------------------------------
 

@@ -36,6 +36,7 @@ def test_config_values() -> None:
     assert (a.per_hour, a.per_day, a.concurrency) == (30, 150, 4)
     assert a.month_budget_micros == 15_000_000
     assert a.uncertain_after_s == 120
+    assert (a.web_per_user, a.web_window_s, a.user_in_flight) == (10, 60.0, 2)
     r = cfg.retrieval
     assert (r.k1, r.b, r.section_boost) == (1.2, 0.75, 1.3)
     assert r.roles == ["definition", "theorem", "rule", "example", "explanation"]
@@ -88,7 +89,7 @@ def test_settings_defaults() -> None:
 
 
 def test_messages_us_spelling() -> None:
-    assert messages.UNAVAILABLE == "Hints are unavailable right now."
+    assert messages.UNAVAILABLE == "Help is unavailable right now."
     assert messages.LIMITED == "You've reached the help limit for now."
     assert messages.ABSTAIN == "I can't answer that from the textbook."
     assert messages.NUDGE == "Here's a nudge without the answer: re-read {section}."

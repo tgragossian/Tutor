@@ -19,7 +19,7 @@ output; `gates.py` applies 02-gates mechanically to the delivered results.
 | `cases/{dev,holdout}.jsonl` | 36 / 24 help cases, grouped by problem (holdout: 7 problems, 3 topics) |
 | `retrieval/{dev,holdout}.jsonl` | 28 / 12 book queries with relevant chunk ids, grouped by home section |
 | `rubric/v1.md` | the judge's instructions (also yours for the audit) |
-| `results/<run_id>/` | `summary.md`, `run.json`, `audit.csv`, `audit_key.csv` (commit); `results.jsonl` (ignored) |
+| `results/<run_id>/` | `summary.md`, `run.json`, `audit.csv`, `audit_key.csv`, holdout `started.json` (commit); `results.jsonl` (ignored) |
 
 A case has one category tag (02-gates mix), `known_error` when it counts toward the primary
 measure, `attempts` (LaTeX, oldest first; option ids for choice problems) and a `note` for you
@@ -78,7 +78,8 @@ Your labels win everywhere, including the paired table.
 Credit first: sum `spent_micros` over every earlier `results/*/run.json`, subtract it from
 the credit, and pass the rest minus a margin (≥ $0.30) as `--max-usd`. A holdout that stops
 on the cap or on "credit too low" is spoiled (it ran once, incompletely): do not rerun it on
-the same commit (the runner refuses a second holdout per commit); it needs fresh cases.
+the same commit (the runner refuses a second holdout per commit, from `run.json` or the
+`started.json` it writes before the first call); it needs fresh cases.
 Commit everything, then on a clean tree at that commit:
 
 ```

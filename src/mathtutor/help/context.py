@@ -20,7 +20,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from mathtutor.application.practice import Pool
-from mathtutor.content.schema import ChoiceAnswer, ExpressionAnswer, Problem, split_misconception
+from mathtutor.content.schema import (
+    ChoiceAnswer,
+    ExpressionAnswer,
+    Problem,
+    split_misconception,
+    states_correction,
+)
 from mathtutor.domain import AnswerKind, VerdictStatus
 from mathtutor.help.latex_parse import ParsedMath, parse_latex
 from mathtutor.jsonio import loads_exact
@@ -64,8 +70,10 @@ class Confusion:
 
 
 def misconception_note(entry: str) -> str | None:
-    """The text after the two-space-hash separator of an authored misconception, if any."""
-    return split_misconception(entry)[1]
+    """The text after the two-space-hash separator of an authored misconception, if any.
+    None for a note that states a correction (R19), even on an item authored before the rule."""
+    note = split_misconception(entry)[1]
+    return None if note is None or states_correction(note) else note
 
 
 def _head(entry: str) -> str:

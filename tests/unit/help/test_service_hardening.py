@@ -130,22 +130,40 @@ def test_late_finish_without_newer_request_is_stale(kit: Kit) -> None:
     assert kit.help().status is HelpStatus.DELIVERED
 
 
-def test_finalize_db_failure_is_unavailable(kit: Kit) -> None:
+def _flaky_tx(kit: Kit, busy: set[int]) -> dict[str, int]:
+    """Make the service's write transactions number ``busy`` raise ``DatabaseBusy``."""
     real = kit.svc._tx
     calls = {"n": 0}
 
     @contextmanager
     def flaky() -> Iterator[Session]:
         calls["n"] += 1
-        if calls["n"] == 2:  # admission is 1, finalization is 2
+        if calls["n"] in busy:
             raise DatabaseBusy("busy")
         with real() as db:
             yield db
 
     kit.svc._tx = flaky  # type: ignore[method-assign]
+    return calls
+
+
+def test_finalize_retried_once_on_busy_db(kit: Kit) -> None:
+    calls = _flaky_tx(kit, {2})  # admission is 1, finalization is 2, its retry is 3
     kit.generator.script = [output()]
     rid = uuid.uuid4()
     out = kit.help(rid=rid)
+    assert out.status is HelpStatus.DELIVERED and calls["n"] == 3
+    state = kit.state()
+    assert state is not None and state.in_flight is None and state.hint_level == 2
+    assert kit.row(rid).status == "delivered"
+
+
+def test_finalize_db_failure_is_unavailable(kit: Kit) -> None:
+    calls = _flaky_tx(kit, {2, 3})  # the finalization and its one retry are both busy
+    kit.generator.script = [output()]
+    rid = uuid.uuid4()
+    out = kit.help(rid=rid)
+    assert calls["n"] == 3
     assert out.status is HelpStatus.UNAVAILABLE
     assert out.html == render_help_html(messages.UNAVAILABLE)
     assert kit.usage()[0].state == "settled"  # settled before finalization

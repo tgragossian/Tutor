@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -16,6 +17,7 @@ from mathtutor.help.eval.run import (
     SpendCounter,
     check_freeze,
     main,
+    mark_started,
     parse_usd,
     run_case,
     run_eval,
@@ -163,6 +165,60 @@ def test_holdout_runs_once_per_commit(tmp_path: Path) -> None:
     (done / "run.json").write_text(json.dumps(meta), encoding="utf-8")
     with pytest.raises(RunnerError, match="already ran"):
         check_freeze("holdout", "abc", tmp_path, git=_git())
+
+
+def test_holdout_started_marker_blocks_a_rerun(tmp_path: Path) -> None:
+    """A holdout that started but never wrote run.json (crash, Ctrl-C) still counts as run."""
+    out = tmp_path / "evals" / "help" / "results" / "20261101-holdout"
+    mark_started(out, "abc", "abc123")
+    marker = json.loads((out / "started.json").read_text(encoding="utf-8"))
+    assert marker == {"split": "holdout", "freeze": "abc", "head": "abc123"}
+    assert not (out / "run.json").exists()
+    with pytest.raises(RunnerError, match="already started"):
+        check_freeze("holdout", "abc", tmp_path, git=_git())
+    check_freeze("holdout", "def", tmp_path, git=_git(head="other"))  # another commit may run
+
+
+def test_holdout_marker_written_before_the_first_provider_call(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import shutil
+
+    from mathtutor.help.eval import cases as eval_cases
+    from mathtutor.help.eval import run as eval_run
+
+    root = Path(__file__).resolve().parents[3]
+    for part in ("content/compiled", "content/help", "content/corpus", "evals/help"):
+        shutil.copytree(root / part, tmp_path / part)
+    monkeypatch.setattr(eval_cases, "unreviewed", lambda _rows: [])
+    monkeypatch.setattr(eval_run, "_try_git", lambda _root, _args: "abc123")
+    monkeypatch.setenv("MATHTUTOR_ANTHROPIC_API_KEY", "sk-test")
+
+    class NoPool:
+        def __init__(self, **_kw: object) -> None:
+            pass
+
+        def close(self) -> None:
+            pass
+
+    monkeypatch.setattr("mathtutor.verify.pool.VerifierPool", NoPool)
+    monkeypatch.setattr("mathtutor.help.generator.ClaudeGenerator", lambda _key: None)
+    seen: list[bool] = []
+
+    def first_call(*_args: object, **_kw: object) -> None:
+        seen.append(any((tmp_path / "evals/help/results").glob("*/started.json")))
+        raise RunnerError("stop before any provider call")
+
+    monkeypatch.setattr(eval_run, "run_eval", first_call)
+    args = argparse.Namespace(
+        split="holdout", models=None, max_usd="1", no_retrieval=False, no_judge=True,
+        freeze="abc", seed=None, run_id="r1-holdout", retrieval_only=False, draft=False,
+    )  # fmt: skip
+    with pytest.raises(RunnerError, match="stop"):
+        eval_run._execute(args, tmp_path)
+    assert seen == [True]
+    marker = tmp_path / "evals/help/results/r1-holdout/started.json"
+    assert json.loads(marker.read_text(encoding="utf-8"))["head"] == "abc123"
 
 
 def _git(dirty: str = "", head: str = "abc123") -> object:

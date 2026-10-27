@@ -8,7 +8,7 @@ Branch `milestone-c1` holds C1 tasks 1-15; nothing is deployed and `main` is unt
 
 **C1 (Claude-written, textbook-grounded help) is implemented but not released.**
 [C1 status](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/20-status.md) owns the owner
-checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands. Rulings R1-R29
+checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands. Rulings R1-R30
 are in the local ledger `.superpowers/sdd/README/progress.md` (untracked).
 
 ## Resume here

@@ -53,9 +53,10 @@ $EC down -v                                # removes only the e2e volume
 $C start app
 ```
 
-The tool creates `load_*` and `loadh_*` accounts in that throwaway database only. Index build time:
+The tool creates `load_*` and `loadh_*` accounts in that throwaway database only. Index build
+time (no `Settings()`: the image is `MATHTUTOR_ENV=production` with no secret or key):
 ```bash
-sudo docker run --rm mathtutor:local python -c "import time;from mathtutor.settings import Settings as S;from mathtutor.help.config import load_help_config as L;from mathtutor.retrieval.bm25 import Bm25Index as B;from mathtutor.retrieval.corpus import load_corpus as C;s=S();c=C(s.corpus_path);g=L(s.help_config_path);t=time.perf_counter();B.build(c,g.retrieval);print(round(time.perf_counter()-t,2),'s')"
+sudo docker run --rm mathtutor:local python -c "import time;from pathlib import Path as P;from mathtutor.help.config import DEFAULT_CONFIG_PATH as D,load_help_config as L;from mathtutor.retrieval.bm25 import Bm25Index as B;from mathtutor.retrieval.corpus import load_corpus as C;c=C(P('content/corpus/chunks.jsonl'));g=L(D);t=time.perf_counter();B.build(c,g.retrieval);print(round(time.perf_counter()-t,2),'s')"
 ```
 
 Arguments: grading users (keep at most 8, the queue size, so any `verifier_busy` means help

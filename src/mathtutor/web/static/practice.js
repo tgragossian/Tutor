@@ -387,7 +387,11 @@ function render(current, revealedLatex) {
     unresolved = false;
     lastOutcome = null;
   }
-  if (isNew || revealedLatex || !next.allowed_actions.includes('submit')) clearHelp();
+  // Help stays open while the item is active or exhausted (submit or reveal still allowed);
+  // a new, revealed or closed (answered, completed) item clears the panel.
+  const actions = next.allowed_actions;
+  const helpOpen = actions.includes('submit') || actions.includes('reveal');
+  if (isNew || revealedLatex || !helpOpen) clearHelp();
   $('hint').textContent = next.precision_hint || '';
   $('hint').hidden = !next.precision_hint;
   $('revealed').hidden = !revealedLatex;

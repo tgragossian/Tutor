@@ -323,7 +323,10 @@ def request_help(
 ) -> HelpResponse:
     """200 with the finished outcome, 202 while the item's help is in flight, 409 for a stale
     revision or a reused request id, 429 ``help_limited``. Someone else's item is a 404.
-    Runs in the thread pool: the provider call blocks for seconds."""
+    Runs in the thread pool: the provider call blocks for seconds. Per-user rate limit first
+    (429 ``rate_limited`` with Retry-After), before the service."""
+    limiter: RateLimiter = request.app.state.help_limiter
+    limiter.hit(str(auth.user_id))
     req = HelpIn(
         help_request_id=body.help_request_id,
         session_item_id=body.session_item_id,

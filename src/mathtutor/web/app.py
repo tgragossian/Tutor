@@ -270,12 +270,13 @@ def create_app(
                 owned.append(grading)
                 if guard_pool is None and help_parts is not None:
                     # The leak guard's own worker, so help checks never queue behind grading.
+                    g = help_cfg.guard  # the same limits the evaluation runner uses
                     guard = await run_in_threadpool(
                         lambda: VerifierPool(
                             size=1,
-                            deadline_s=2.0,
-                            queue_max=4,
-                            queue_wait_s=1.0,
+                            deadline_s=g.pool_deadline_s,
+                            queue_max=g.queue_max,
+                            queue_wait_s=g.queue_wait_s,
                             memory_mb=settings.guard_pool_memory_mb,
                         )
                     )
@@ -303,6 +304,8 @@ def create_app(
     app.state.cookies = CookieCodec(secret, secure=settings.env != "development")
     app.state.auth_limiter = RateLimiter(*AUTH_LIMIT)
     app.state.submit_limiter = RateLimiter(*SUBMIT_LIMIT)
+    admission = help_cfg.admission
+    app.state.help_limiter = RateLimiter(admission.web_per_user, admission.web_window_s)
     if pool is not None:
         attach_pool(pool)
     app.add_middleware(BodyLimitMiddleware)

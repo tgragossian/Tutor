@@ -210,16 +210,19 @@ class Ledger:
 
     def settle_uncertain(self, month: str, micros: int | None = None) -> tuple[int, int]:
         """Settle every ``uncertain`` entry of ``month`` at its reserved worst case, or at
-        ``micros`` each. Returns (entries settled, micro-USD settled)."""
+        ``micros`` each. Stale reservations are reconciled to ``uncertain`` first (as
+        ``reconcile_stale``), in the same transaction, so none is left behind as reserved.
+        Returns (entries settled, micro-USD settled)."""
         if not MONTH_RE.match(month):
             raise ValueError(f"month must be YYYY-MM, got {month!r}")
         if micros is not None and micros < 0:
             raise ValueError("micros must be non-negative")
         with write_transaction(self._sessions) as db:
+            now = self._now()
+            self._reconcile(db, now)
             rows = db.scalars(
                 select(UsageEntry).where(UsageEntry.month == month, UsageEntry.state == UNCERTAIN)
             ).all()
-            now = self._now()
             total = 0
             for row in rows:
                 row.state = SETTLED

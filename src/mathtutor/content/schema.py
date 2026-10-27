@@ -181,6 +181,20 @@ def split_misconception(entry: str) -> tuple[str, str | None]:
     return head.strip(), (note if sep and note else None)
 
 
+_MATHY = re.compile(r"[\d^\\(){}]")
+# "=" must be followed by one plain number (integer, fraction or decimal) and then a boundary.
+_BAD_EQUALS = re.compile(r"=(?!\s*-?\d+(?:/\d+)?(?:\.\d+)?(?=\s|$|[.,;)]))")
+
+
+def states_correction(note: str) -> bool:
+    """R19: a note names the error; it never gives a corrected expression or derivative.
+    The content check rejects such notes; help drops them at runtime (older live items)."""
+    _, instead, after = note.partition("instead of")
+    if instead and _MATHY.search(after):
+        return True
+    return _BAD_EQUALS.search(note) is not None
+
+
 class Problem(_Model):
     id: Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9.\-]*$")]
     topic: str
