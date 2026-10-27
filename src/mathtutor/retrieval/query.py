@@ -19,9 +19,10 @@ def build_query(
     """The query, capped at ``params.query_max_bytes``; the confusion at ``question_max_bytes``."""
     parts = [ctx.statement, ctx.topic]
     if help_type == "feedback":
-        wrong = [a.latex for a in ctx.attempts if a.status is VerdictStatus.INCORRECT]
-        if wrong:
-            parts.append(wrong[-1])
+        # ``ctx.attempts`` is newest first: the latest wrong attempt is the first one (C1-R6).
+        latest = next((a.latex for a in ctx.attempts if a.status is VerdictStatus.INCORRECT), None)
+        if latest is not None:
+            parts.append(latest)
     if ctx.misconception_note:
         parts.append(ctx.misconception_note)
     if confusion_text:
