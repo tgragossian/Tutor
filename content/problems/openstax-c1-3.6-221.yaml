@@ -13,7 +13,7 @@ answer:
   latex: '18x(3x^2+1)^2'
   variable: x
 misconceptions:
-  - '3(3x^2+1)^2  # missing inner derivative 6x'
+  - '3(3x^2+1)^2  # missing inner derivative'
 review:
   status: human_verified
   reviewer: 'tg'

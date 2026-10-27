@@ -171,6 +171,16 @@ class Topic(_Model):
     section: str
 
 
+NOTE_SEPARATOR = "  # "
+
+
+def split_misconception(entry: str) -> tuple[str, str | None]:
+    """An authored misconception as (answer part, note); the note is None when absent/empty."""
+    head, sep, note = entry.partition(NOTE_SEPARATOR)
+    note = note.strip()
+    return head.strip(), (note if sep and note else None)
+
+
 class Problem(_Model):
     id: Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9.\-]*$")]
     topic: str

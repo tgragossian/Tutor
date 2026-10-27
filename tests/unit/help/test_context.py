@@ -36,7 +36,7 @@ from mathtutor.verify.types import CheckRequest, CheckResult, Verdict, VerifierB
 ROOT = Path(__file__).parents[3]
 BUNDLE = load_bundle(ROOT / "content" / "compiled" / "problems.json")
 PROBLEMS = {p.id: p for p in BUNDLE.bundle.problems}
-CONFUSIONS = ROOT / "content" / "help" / "confusions.yaml"
+CONFUSIONS = ROOT / "content" / "help" / "confusions.json"
 CORRECT = Verdict(VerdictStatus.CORRECT, VerdictReason.PROVEN, Method.SYMBOLIC)
 WRONG = Verdict(VerdictStatus.INCORRECT, VerdictReason.COUNTEREXAMPLE, Method.REFUTATION)
 INC = AttemptLine("x", VerdictStatus.INCORRECT)
@@ -190,10 +190,27 @@ def test_confusions_valid() -> None:
 
 
 def test_confusions_rejects_bad_file(tmp_path: Path) -> None:
-    path = tmp_path / "c.yaml"
-    path.write_text("t:\n  - {id: Bad-Id, label: x}\n", encoding="utf-8")
+    path = tmp_path / "c.json"
+    path.write_text('{"t": [{"id": "Bad-Id", "label": "x"}]}', encoding="utf-8")
     with pytest.raises(ValueError):
         load_confusions(path)
+
+
+def test_matching_is_capped_at_three_and_stops_on_match() -> None:
+    p = PROBLEMS["openstax-c1-3.6-215"]
+    many = p.model_copy(
+        update={
+            "misconceptions": [f"{n}x  # note {n}" for n in range(5)],
+            "misconceptions_mathjson": [["Multiply", n, "x"] for n in range(5)],
+        }
+    )
+    latest = AttemptLine("5x", VerdictStatus.INCORRECT)
+    pool = ScriptedPool(WRONG, WRONG, WRONG, CORRECT)
+    assert match_misconception(many, latest, None, pool) is None
+    assert len(pool.requests) == 3
+    pool = ScriptedPool(CORRECT)
+    assert match_misconception(many, latest, None, pool) == "note 0"
+    assert len(pool.requests) == 1
 
 
 def test_build_context_reads_submissions(tmp_path: Path) -> None:
@@ -220,7 +237,11 @@ def test_build_context_reads_submissions(tmp_path: Path) -> None:
         db.add_all([user, sess, item])
         db.flush()
         for n, (latex, status) in enumerate(
-            [("5x", VerdictStatus.INCORRECT), ("18(7x-4)^2", VerdictStatus.INCORRECT)]
+            [
+                ("5x", VerdictStatus.INCORRECT),
+                ("18(7x-4)^2", VerdictStatus.INCORRECT),
+                ("9x", VerdictStatus.INCORRECT),  # stored but not applied
+            ]
         ):
             sub = Submission(
                 submission_id=f"s{n}",
@@ -243,7 +264,7 @@ def test_build_context_reads_submissions(tmp_path: Path) -> None:
                     queue_ms=0,
                     seconds_on_item=1,
                     counts_as_try=True,
-                    applied=True,
+                    applied=n < 2,
                 )
             )
         item_id = item.id

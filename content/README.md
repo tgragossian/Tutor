@@ -62,5 +62,5 @@ web startup loads the schema without importing SymPy. Six problems exist; expans
 
 ### Misconception notes and help labels
 
-- Each `misconceptions` entry is `'<latex or choice id>  # <note>'` (two spaces, hash, space). The note is what the help text is told when a wrong attempt matches, so it says what went wrong in plain words. `content_check` rejects a `human_verified` problem with a note-less entry.
-- `help/confusions.yaml` lists the "I'm confused about..." choices per topic: 3-5 entries each, `id` matching `^[a-z_]{3,40}$` and unique within the topic, `label` of 80 characters or fewer in US spelling, worded as the student would ask it. Thomas approves the labels.
+- Each `misconceptions` entry is `'<latex or choice id>  # <note>'` (two spaces, hash, space). The note is what the help text is told when a wrong attempt matches, so it says what went wrong in plain words and never gives a corrected expression. `content_check` rejects a `human_verified` problem with a note-less entry, a note with "instead of" followed by math, or an `=` whose right side is more than one number.
+- `help/confusions.json` lists the "I'm confused about..." choices per topic: 3-5 entries each, `id` matching `^[a-z_]{3,40}$` and unique within the topic, `label` of 80 characters or fewer in US spelling, worded as the student would ask it. Thomas approves the labels.

@@ -16,7 +16,7 @@ answer:
     intervals: [['-inf', 'inf', open, open]]
     exclude: ['5/2']
 misconceptions:
-  - '-\frac{2}{(5-2x)^3}  # missing inner derivative -2'
+  - '-\frac{2}{(5-2x)^3}  # missing inner derivative'
   - '-\frac{4}{(5-2x)^3}  # sign error in the inner derivative'
 review:
   status: human_verified

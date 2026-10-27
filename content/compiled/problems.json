@@ -190,7 +190,7 @@
       "difficulty": 1,
       "id": "adapted-c1-3.6-sinx2",
       "misconceptions": [
-        "b  # missing inner derivative 2x",
+        "b  # missing inner derivative",
         "c  # differentiated the inside in place",
         "d  # derivative of sin taken as sin"
       ],
@@ -1372,7 +1372,7 @@
       "difficulty": 2,
       "id": "openstax-c1-3.6-221",
       "misconceptions": [
-        "3(3x^2+1)^2  # missing inner derivative 6x"
+        "3(3x^2+1)^2  # missing inner derivative"
       ],
       "misconceptions_mathjson": [
         [
@@ -1615,7 +1615,7 @@
       "difficulty": 2,
       "id": "openstax-c1-3.6-229",
       "misconceptions": [
-        "-\\frac{2}{(5-2x)^3}  # missing inner derivative -2",
+        "-\\frac{2}{(5-2x)^3}  # missing inner derivative",
         "-\\frac{4}{(5-2x)^3}  # sign error in the inner derivative"
       ],
       "misconceptions_mathjson": [
@@ -1859,7 +1859,7 @@
       "difficulty": 3,
       "id": "openstax-c1-3.6-253",
       "misconceptions": [
-        "-\\frac{200}{49}  # power rule exponent not lowered: -200(t+1)^{-2} instead of -200(t+1)^{-3}"
+        "-\\frac{200}{49}  # power rule applied without lowering the exponent"
       ],
       "misconceptions_mathjson": [
         [

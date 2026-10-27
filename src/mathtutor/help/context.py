@@ -8,19 +8,19 @@ Web process only: no SymPy; misconceptions are graded through the verifier pool.
 
 from __future__ import annotations
 
+import json
 import re
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Literal
 
-import yaml
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from mathtutor.application.practice import Pool
-from mathtutor.content.schema import ChoiceAnswer, ExpressionAnswer, Problem
+from mathtutor.content.schema import ChoiceAnswer, ExpressionAnswer, Problem, split_misconception
 from mathtutor.domain import AnswerKind, VerdictStatus
 from mathtutor.help.latex_parse import ParsedMath, parse_latex
 from mathtutor.jsonio import loads_exact
@@ -32,8 +32,8 @@ HelpType = Literal["hint", "feedback", "explain"]
 MAX_ATTEMPTS = 3
 MAX_ATTEMPT_BYTES = 400
 MATCH_DEADLINE_S = 3.0
+MAX_MATCHES = 3
 MAX_LABEL = 80
-_NOTE_SEPARATOR = "  # "
 _CONFUSION_ID = re.compile(r"^[a-z_]{3,40}$")
 
 
@@ -65,13 +65,11 @@ class Confusion:
 
 def misconception_note(entry: str) -> str | None:
     """The text after the two-space-hash separator of an authored misconception, if any."""
-    _, sep, note = entry.partition(_NOTE_SEPARATOR)
-    note = note.strip()
-    return note if sep and note else None
+    return split_misconception(entry)[1]
 
 
 def _head(entry: str) -> str:
-    return entry.partition(_NOTE_SEPARATOR)[0].strip()
+    return split_misconception(entry)[0]
 
 
 def _clip(latex: str) -> str:
@@ -84,7 +82,11 @@ def assemble_context(
     hint_level: int,
     misconception_note: str | None,
 ) -> HelpContext:
-    """``attempts`` are oldest first, as submitted; the context lists the newest three first."""
+    """``attempts`` are oldest first, as submitted; the context lists the newest three first.
+
+    ``tries_used`` here is an approximation (the count of incorrect attempts given) for callers
+    without an item; ``build_context`` replaces it with the item's own counter.
+    """
     answer = problem.answer
     recent = [AttemptLine(_clip(a.latex), a.status) for a in reversed(attempts[-MAX_ATTEMPTS:])]
     return HelpContext(
@@ -113,8 +115,10 @@ def match_misconception(
 
     Only an ``incorrect`` attempt is matched. Choice problems compare the chosen id; the
     others submit the attempt to the grading pool against each misconception as an expression
-    answer, within ``MATCH_DEADLINE_S`` in total. Busy, error, timeout or anything but
-    ``correct`` is no match.
+    answer, trying at most the first ``MAX_MATCHES`` and stopping at the first match. The
+    ``MATCH_DEADLINE_S`` budget is soft: it is checked before each submit, because
+    ``Pool.submit`` takes no deadline, so one slow call can overrun it. Busy, error, timeout
+    or anything but ``correct`` is no match.
     """
     if latest is None or latest.status is not VerdictStatus.INCORRECT:
         return None
@@ -134,7 +138,7 @@ def match_misconception(
         return None
     started = clock()
     submitted = SubmittedAnswer(AnswerKind.EXPRESSION, parsed.tree, latest.latex, None)
-    for entry, tree in zip(problem.misconceptions, trees, strict=True):
+    for entry, tree in list(zip(problem.misconceptions, trees, strict=True))[:MAX_MATCHES]:
         if tree is None:
             continue
         if clock() - started >= MATCH_DEADLINE_S:
@@ -159,12 +163,13 @@ def match_misconception(
 def build_context(
     db: Session, item: SessionItem, problem: Problem, hint_level: int, pool: Pool
 ) -> HelpContext:
-    """Read the item's graded submissions, then assemble. The pool is called here, so the
-    caller holds no write transaction."""
+    """Read the item's applied results (a stored-but-not-applied result changed nothing for the
+    student), then assemble. The pool is called here, so the caller holds no write
+    transaction. ``tries_used`` is the item's own counter."""
     rows = db.execute(
         select(Submission, AttemptResult)
         .join(AttemptResult, AttemptResult.submission_pk == Submission.id)
-        .where(Submission.session_item_id == item.id)
+        .where(Submission.session_item_id == item.id, AttemptResult.applied.is_(True))
         .order_by(Submission.id)
     ).all()
     choices = (
@@ -182,12 +187,12 @@ def build_context(
     latest = attempts[-1] if attempts else None
     note = match_misconception(problem, latest, last_choice, pool)
     context = assemble_context(problem, attempts, hint_level, note)
-    return HelpContext(**{**context.__dict__, "tries_used": item.tries_used})
+    return replace(context, tries_used=item.tries_used)
 
 
 def load_confusions(path: Path) -> dict[str, list[Confusion]]:
     """Per-topic "I'm confused about..." entries; ValueError on any malformed entry."""
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise ValueError(f"{path.name}: expected a mapping of topic to entries")
     out: dict[str, list[Confusion]] = {}
