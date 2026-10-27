@@ -410,16 +410,17 @@ def test_prose_numbers_block_on_numeric(text: str) -> None:
 
 
 def test_prose_numbers_extracted_only_for_numeric() -> None:
+    # A signed number is kept as its magnitude; the sign flip is checked for every number.
     assert extract_candidates("Step 2 gives 12 and -3.5 or 1/4.", LIMITS, numbers=True) == [
         Candidate("2", "prose_number"),
         Candidate("12", "prose_number"),
-        Candidate("-3.5", "prose_number"),
         Candidate("3.5", "prose_number"),
         Candidate("1/4", "prose_number"),
     ]
     result, pool = _check("Step 2 gives 7.", answer=TWELVE, pool=TreePool("12"))
     assert (result.decision, result.reason) == ("pass", "checked")
-    assert len(pool.requests) == 2
+    sent = [r.answer.mathjson for r in pool.requests]
+    assert sent == [2, ["Negate", 2], 7, ["Negate", 7]]
     result, pool = _check("The answer is 12.", answer=EXPR, pool=TreePool("12"))
     assert result.decision == "no_detected_math" and pool.requests == []
 
@@ -481,3 +482,137 @@ def test_bang_is_kept_inside_math() -> None:
     result, _ = _check("Note $5!$ here", pool=TreePool("5"))
     assert (result.decision, result.reason) == ("block", "parse_rejected")
     assert extract_candidates("y' = 2x!", LIMITS) == [Candidate("2x", "equation_rhs")]
+
+
+# -- fix round 3 (rulings R11-R13) -----------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Option A is correct",
+        "Choice A works",
+        "choice a is the one",
+        "I'd select option a since",
+        "Option #a fits",
+        "choice#a fits",
+    ],
+)
+def test_noun_then_letter_blocks(text: str) -> None:
+    result, _ = _check(text, answer=CHOICE)
+    assert (result.decision, result.reason) == ("block", "choice_reference"), text
+
+
+@pytest.mark.parametrize(
+    ("text", "magnitude"),
+    [
+        ("So 12 / 121 here", "12/121"),
+        ("It is -200 / 343", "200/343"),
+        ("It is 200÷343", "200/343"),
+        ("It is (-200)/343", "200/343"),
+        ("It is -(200/343)", "200/343"),
+        ("It is −200/343", "200/343"),
+    ],
+)
+def test_prose_fractions(text: str, magnitude: str) -> None:
+    assert extract_candidates(text, LIMITS, numbers=True) == [Candidate(magnitude, "prose_number")]
+    pool = TreePool()
+    _check(text, answer=TWELVE, pool=pool)
+    tree = _mj(magnitude)
+    assert [r.answer.mathjson for r in pool.requests] == [tree, ["Negate", tree]]
+
+
+def test_sign_flip_leak_blocks() -> None:
+    pool = FakePool(COUNTER, CORRECT)
+    result, _ = _check("It is 200/343.", answer=TWELVE, pool=pool)
+    assert (result.decision, result.reason) == ("block", "leak")
+
+
+@pytest.mark.parametrize("text", ["It is 12cm", "So 12x", "About 1.2e1", "Use 3/0.25", "12/121ths"])
+def test_glued_numbers_are_malformed_on_numeric(text: str) -> None:
+    result, pool = _check(text, answer=TWELVE)
+    assert (result.decision, result.reason) == ("block", "malformed_math"), text
+    assert pool.requests == []
+
+
+def test_glued_numbers_ignored_off_numeric() -> None:
+    result, _ = _check("It is 12cm long", answer=EXPR)
+    assert result.decision == "no_detected_math"
+
+
+def test_repeated_numbers_dedupe_before_cap() -> None:
+    text = (
+        "Start with 2 and 3. Multiply 2 by 3 to get 6. Add 2 to 6 to get 8. "
+        "Now 8 minus 3 is 5, and 5 plus 2 is 7. Check: 7 minus 2 is 5, 5 plus 3 is 8, "
+        "8 minus 2 is 6, 6 over 3 is 2, and 2 times 3 is 6 again. So 2, 3, 5, 6, 7 and 8."
+    )
+    found = extract_candidates(text, LIMITS, numbers=True)
+    assert found is not None and len(found) == 6
+    result, _ = _check(text, answer=TWELVE)
+    assert result.decision == "pass"
+
+
+def test_each_foreign_letter_tried_alone() -> None:
+    pool = TreePool()
+    result, _ = _check("So $2t + C$.", answer=TWO_X, pool=pool)
+    assert (result.decision, result.foreign) == ("pass", 1)
+    sent = [r.answer.mathjson for r in pool.requests]
+    assert sorted(map(str, sent)) == sorted(
+        map(
+            str,
+            [
+                ["Add", ["Multiply", 2, "x"], "x"],  # all -> x
+                ["Add", ["Multiply", 2, 0], 0],  # all -> 0
+                ["Add", ["Multiply", 2, "x"], 0],  # t -> x, C -> 0
+                ["Add", ["Multiply", 2, 0], "x"],  # C -> x, t -> 0
+            ],
+        )
+    )
+    # Only the t -> x, C -> 0 variant is the tree 2x + 0.
+    leak, _ = _check("So $2t + C$.", answer=TWO_X, pool=TreePool("2x + 0"))
+    assert (leak.decision, leak.reason) == ("block", "leak")
+
+
+def test_more_than_three_foreign_letters_unchecked() -> None:
+    result, pool = _check("Say $a + b + c + d$.", answer=TWO_X, pool=TreePool())
+    assert (result.decision, result.reason) == ("block", "too_many_foreign")
+    assert result.counts[LeakStatus.UNCHECKED] == 1 and pool.requests == []
+    ok, _ = _check("Say $a + b + c$.", answer=TWO_X, pool=TreePool())
+    assert ok.decision == "pass"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "option" + " " * 20_000 + "1x",
+        "answer" + " " * 20_000,
+        "\n" * 20_000 + "z",
+        "7" * 20_000,
+        "1" * 20_000 + ".5",
+        "pick" + "*" * 20_000,
+        "option is is " * 1_500,
+    ],
+    ids=["spaces", "answer", "newlines", "digits", "decimal", "marks", "fillers"],
+)
+def test_rules_are_fast_on_20kb(text: str) -> None:
+    import time
+
+    from mathtutor.help.leak_guard import _rule_violation
+
+    for answer in (CHOICE, ROUNDED_NUMERIC):
+        started = time.perf_counter()
+        _rule_violation(text, answer)
+        assert time.perf_counter() - started < 0.1, text[:20]
+
+
+@pytest.mark.parametrize(
+    ("text", "decision"),
+    [("The answer is 2x.", "block"), ("Answer: **2x**", "block"), ("multiply by 3x", "pass")],
+)
+def test_prose_terms_on_expression(text: str, decision: str) -> None:
+    result, _ = _check(text, answer=TWO_X, pool=TreePool("2x"))
+    assert result.decision == decision, text
+    assert extract_candidates("by 3x and 4y.", LIMITS, terms=True) == [
+        Candidate("3x", "prose_term"),
+        Candidate("4y", "prose_term"),
+    ]

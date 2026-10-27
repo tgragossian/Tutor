@@ -90,3 +90,25 @@ def test_round_1_paths_with_real_checker(
 ) -> None:
     result = guard.check(text, answer, time.monotonic() + 10.0)
     assert result.decision == decision, result
+
+
+@pytest.mark.parametrize(
+    ("answer", "text", "decision"),
+    [
+        ("openstax-c1-3.6-253", "It is 200/343", "block"),
+        ("openstax-c1-3.6-253", "It is -200 / 343", "block"),
+        ("openstax-c1-3.6-253", "Use 7 and 3 first.", "pass"),
+        ("openstax-c1-3.3-145", "So 12 / 121", "block"),
+        ("openstax-c1-3.6-215", "First $18u^2$.", "pass"),
+        (TWO_X, "So $2t + C$.", "block"),
+        (TWO_X, "The answer is 2x.", "block"),
+        (TWO_X, "Answer: **2x**", "block"),
+        (TWO_X, "multiply by 3x", "pass"),
+    ],
+)
+def test_round_3_paths_with_real_checker(
+    guard: LeakGuard, answer: Answer | str, text: str, decision: str
+) -> None:
+    spec = _answer(answer) if isinstance(answer, str) else answer
+    result = guard.check(text, spec, time.monotonic() + 10.0)
+    assert result.decision == decision, result
