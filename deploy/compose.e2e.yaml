@@ -1,0 +1,11 @@
+# Browser-test override: NEVER used for the deployed stack. Layer it over compose.yaml
+# (docker compose -f compose.yaml -f compose.e2e.yaml) to run the app offline with the fixed
+# scripted help generator. MATHTUTOR_HELP_GENERATOR=scripted is refused unless env is test.
+# tests/container/smoke.sh starts the same configuration with `docker run`.
+services:
+  app:
+    environment:
+      MATHTUTOR_ENV: test
+      MATHTUTOR_HELP_GENERATOR: scripted
+    ports:
+      - "127.0.0.1:18001:8000"

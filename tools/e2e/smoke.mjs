@@ -109,10 +109,31 @@ try {
   check((await page.innerHTML('#statement')) === statement, 'reload keeps the same item');
   check((await triesLeft()) === 'Tries left: 2', 'reload keeps the tries count');
 
+  // Milestone C1: help. Needs a server started with MATHTUTOR_ENV=test and
+  // MATHTUTOR_HELP_GENERATOR=scripted (tests/container/smoke.sh does this; HELP_E2E=1).
+  if (process.env.HELP_E2E === '1') {
+    check(await page.isVisible('#help-hint'), 'the Hint button is shown');
+    check(await page.isVisible('#help-feedback'), 'What did I do wrong? is shown after a wrong answer');
+    check((await page.textContent('#help-note')).includes('use Reveal for that'), 'the AI note is shown');
+    await page.click('#help-hint');
+    await page.waitForSelector('#help-panel:not([hidden])');
+    await page.waitForFunction(() => document.getElementById('help-body').textContent.trim() !== '');
+    const helpText = await page.textContent('#help-body');
+    check(helpText.includes('Name the outer function first, then the inner one.'),
+      `the panel shows the scripted hint: "${helpText.trim()}"`);
+    const href = await page.getAttribute('#help-sources a', 'href');
+    check(Boolean(href) && href.startsWith('https://openstax.org/'), `a source links to openstax.org (${href})`);
+    check((await page.textContent('#help-sources')).includes('CC BY-NC-SA 4.0'), 'the license is shown');
+    check(!(await page.isDisabled('#help-hint')), 'Hint is enabled again after the reply');
+  }
+
   // 4. The right answer, then Next.
   await enter(answers.right);
   const right = await submitAndRead();
   check(right === 'Correct', `right answer feedback: "${right}"`);
+  if (process.env.HELP_E2E === '1') {
+    check(await page.isHidden('#help-panel'), 'the help panel clears after a correct answer');
+  }
   await page.click('#next');
   await page.waitForFunction((s) => {
     const done = !document.getElementById('done').hidden;

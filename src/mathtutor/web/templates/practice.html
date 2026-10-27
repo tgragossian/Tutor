@@ -23,6 +23,21 @@
       <button type="button" id="skip" data-action="skip" class="secondary" hidden>Skip</button>
       <button type="button" id="reveal" data-action="reveal" class="secondary" hidden>Show answer</button>
     </div>
+    <div id="help-controls" class="help-controls" hidden>
+      <button type="button" id="help-hint" class="secondary" hidden>Hint</button>
+      <button type="button" id="help-feedback" class="secondary" hidden>What did I do wrong?</button>
+      <button type="button" id="help-explain" class="secondary" hidden>Explain this</button>
+      <span id="help-explain-row" class="help-explain-row" hidden>
+        <select id="help-confusion" aria-label="What are you confused about?"></select>
+        <button type="button" id="help-explain-go">Explain</button>
+      </span>
+    </div>
+    <div id="help-panel" class="help-panel" role="status" aria-live="polite" hidden>
+      <div id="help-body"></div>
+      <p id="help-sources" class="source"></p>
+      <p id="help-message"></p>
+    </div>
+    <p id="help-note" class="hint" hidden>Help is written by an AI model using the textbook and is designed not to give away the final answer; use Reveal for that.</p>
   </div>
   <div id="done" hidden>
     <p id="done-message"></p>

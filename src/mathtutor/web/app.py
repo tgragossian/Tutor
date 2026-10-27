@@ -33,7 +33,12 @@ from mathtutor.application.practice import Pool, PracticeService
 from mathtutor.content.loader import LoadedContent, load_bundle, servable
 from mathtutor.help.config import HelpConfig, load_help_config
 from mathtutor.help.context import Confusion, load_confusions
-from mathtutor.help.generator import ClaudeGenerator, Generator, ScriptedGenerator
+from mathtutor.help.generator import (
+    ClaudeGenerator,
+    FixedHintGenerator,
+    Generator,
+    ScriptedGenerator,
+)
 from mathtutor.help.leak_guard import LeakGuard
 from mathtutor.help.ledger import Ledger
 from mathtutor.help.pipeline import HelpPipeline
@@ -178,7 +183,7 @@ def _load_help(
         return None
     if generator is None:
         if settings.help_generator == "scripted":
-            generator = ScriptedGenerator([])
+            generator = FixedHintGenerator()  # env=test only (Settings enforces it)
         else:
             assert settings.anthropic_api_key is not None  # _help_wanted checked it
             generator = ClaudeGenerator(settings.anthropic_api_key.get_secret_value())

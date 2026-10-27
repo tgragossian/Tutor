@@ -9,6 +9,8 @@ no chained exception, so nothing the provider echoed (or the API key) can reach 
 
 from __future__ import annotations
 
+import json
+import re
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -209,3 +211,18 @@ class ScriptedGenerator:
         if isinstance(step, GeneratorError):
             raise step
         return step
+
+
+class FixedHintGenerator:
+    """env=test only: answers every request with one fixed hint citing the first passage in the
+    prompt, so the browser e2e needs no provider and no script. Used for
+    ``MATHTUTOR_HELP_GENERATOR=scripted`` when no generator is injected."""
+
+    TEXT = "Name the outer function first, then the inner one."
+    _PASSAGE = re.compile(r'<passage id="([^"]+)"')
+
+    def generate(self, req: GenerationRequest) -> GenerationResult:
+        found = self._PASSAGE.search(req.user)
+        ids = [found.group(1)] if found else []
+        reply = {"text": self.TEXT, "source_ids": ids, "abstain": False}
+        return GenerationResult(json.dumps(reply), "end_turn", 0, 0, "fixed-test", None, 0)

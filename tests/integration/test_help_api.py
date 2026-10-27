@@ -349,3 +349,15 @@ def test_logs_have_no_student_or_model_text(
     assert '"help_status": "delivered"' in logged
     for secret in (WRONG_LATEX, HINT, "outside in", chunk_text.group(1)[:40]):
         assert secret not in logged
+
+
+def test_scripted_without_a_script_serves_the_fixed_cited_hint(tmp_path: Path) -> None:
+    """The env=test container (browser e2e) has no script: every request gets one fixed hint."""
+    app, _pool = _app(tmp_path)
+    with TestClient(app, base_url="https://testserver") as c:
+        login(c)
+        item = _item(c, start(c))
+        body = c.post("/api/help", json=_help(c, item)).json()
+    assert body["status"] == "delivered"
+    assert "outer function first" in body["html"]
+    assert body["sources"][0]["url"].startswith("https://openstax.org/")
