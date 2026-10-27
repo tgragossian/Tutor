@@ -20,3 +20,5 @@ test-results/
 models/
 *.safetensors
 *.gguf
+# Help evaluation raw outputs (per run); summary.md, run.json and audit.csv are committed
+evals/help/results/*/results.jsonl
