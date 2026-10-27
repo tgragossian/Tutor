@@ -50,7 +50,7 @@ module = ["mathtutor.domain", "mathtutor.domain.*", "mathtutor.content", "mathtu
 strict = true
 
 [[tool.mypy.overrides]]
-module = ["sympy", "sympy.*", "mpmath", "mpmath.*"]
+module = ["sympy", "sympy.*", "mpmath", "mpmath.*", "yaml"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

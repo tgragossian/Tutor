@@ -22,7 +22,7 @@ from mathtutor.content.schema import (
     NumericAnswer,
     Problem,
 )
-from mathtutor.domain import AnswerKind, VerdictStatus
+from mathtutor.domain import AnswerKind, ReviewStatus, VerdictStatus
 from mathtutor.verify.check import check
 from mathtutor.verify.equivalence import Budget, equivalent, to_sympy_set, violation_set
 from mathtutor.verify.latex_rules import unparenthesized_function
@@ -152,12 +152,19 @@ def _choice_checks(answer: ChoiceAnswer, budget: Budget) -> list[str]:
     return errors
 
 
+def _has_note(text: str) -> bool:
+    _, sep, note = text.partition("  # ")
+    return bool(sep and note.strip())
+
+
 def _misconception_checks(problem: Problem) -> list[str]:
     errors: list[str] = []
     spec = problem.answer
     for i, text in enumerate(problem.misconceptions):
         field = f"misconceptions[{i}]"
         head = text.split("  #")[0].strip()
+        if problem.review.status is ReviewStatus.HUMAN_VERIFIED and not _has_note(text):
+            errors.append(f"{field}: needs a note after '  # ' (help text is built from it)")
         if isinstance(spec, ChoiceAnswer):
             if head not in {c.id for c in spec.choices}:
                 errors.append(f"{field}: {head!r} is not a choice id")

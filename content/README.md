@@ -59,3 +59,8 @@ CI recompiles and fails if the committed bundle is out of date. Commit the YAML 
 Milestone B bundles use schema version 2 with compiled `statement_html` and
 `misconceptions_mathjson`. CI and Docker builds run the offline mathematical check;
 web startup loads the schema without importing SymPy. Six problems exist; expansion is task 15.
+
+### Misconception notes and help labels
+
+- Each `misconceptions` entry is `'<latex or choice id>  # <note>'` (two spaces, hash, space). The note is what the help text is told when a wrong attempt matches, so it says what went wrong in plain words. `content_check` rejects a `human_verified` problem with a note-less entry.
+- `help/confusions.yaml` lists the "I'm confused about..." choices per topic: 3-5 entries each, `id` matching `^[a-z_]{3,40}$` and unique within the topic, `label` of 80 characters or fewer in US spelling, worded as the student would ask it. Thomas approves the labels.
