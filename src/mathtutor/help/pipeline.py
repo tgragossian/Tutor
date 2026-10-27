@@ -16,14 +16,14 @@ from __future__ import annotations
 import logging
 import re
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import StrEnum
 
 from pydantic import ValidationError
 
 from mathtutor.content.schema import Answer, ChoiceAnswer
 from mathtutor.help import messages
-from mathtutor.help.config import HelpConfig
+from mathtutor.help.config import MAX_CALLS, HelpConfig
 from mathtutor.help.context import HelpContext, HelpType
 from mathtutor.help.generator import (
     HELP_OUTPUT_SCHEMA,
@@ -33,7 +33,7 @@ from mathtutor.help.generator import (
     GeneratorError,
     HelpOutput,
 )
-from mathtutor.help.leak_guard import GuardResult, LeakGuard
+from mathtutor.help.leak_guard import GuardResult, LeakGuard, MalformedMath, split_spans
 from mathtutor.help.prompts import build_prompt
 from mathtutor.retrieval.bm25 import Bm25Index
 from mathtutor.retrieval.corpus import LICENCE, Chunk, ChunkRole, Corpus
@@ -42,7 +42,9 @@ from mathtutor.retrieval.query import build_query
 logger = logging.getLogger(__name__)
 
 BOOK = "Calculus Volume 1"
+MIN_SUBSTRING_ANSWER = 5
 _SPACE = re.compile(r"\s+")
+_CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")  # every C0/C1 control but \t and \n
 
 
 class HelpStatus(StrEnum):
@@ -103,6 +105,21 @@ def _squash(text: str) -> str:
     return _SPACE.sub("", text)
 
 
+def _shows_answer(text: str, secret: str) -> bool:
+    """Ruling R23: an answer of at least ``MIN_SUBSTRING_ANSWER`` characters (whitespace
+    removed) matches as a substring; a shorter one (``2``, ``x``) only as a whole math span,
+    so it cannot empty retrieval by matching every passage that mentions a digit."""
+    if not secret:
+        return False
+    if len(secret) >= MIN_SUBSTRING_ANSWER:
+        return secret in _squash(text)
+    try:
+        spans = split_spans(text)
+    except MalformedMath:
+        return secret in _squash(text)  # unreadable math: fall back to the strict test
+    return any(kind != "prose" and _squash(body) == secret for kind, body in spans)
+
+
 class _Invalid(Exception):
     """A reply that cannot be delivered; ``reason`` is a fixed code."""
 
@@ -140,16 +157,14 @@ class HelpPipeline:
     def retrieve(
         self, ctx: HelpContext, help_type: HelpType, confusion_label: str | None, answer: Answer
     ) -> list[Chunk]:
-        """Top passages in the allowed roles, minus any whose text contains the answer."""
+        """Top passages in the allowed roles, minus any that show the answer (R23)."""
         query = build_query(ctx, help_type, confusion_label)
         hits = self._index.search(
             query, self._cfg.passages, boost_section=ctx.section, roles=self._roles
         )
         secret = _squash(answer_latex(answer))
         chunks = [self._corpus.chunks[h.chunk_id] for h in hits]
-        if secret:
-            chunks = [c for c in chunks if secret not in _squash(c.text)]
-        return chunks
+        return [c for c in chunks if not _shows_answer(c.text, secret)]
 
     def run(
         self,
@@ -233,7 +248,8 @@ class HelpPipeline:
         allowed = {c.chunk_id for c in chunks}
 
         reason = ""
-        for call_no in range(1, self._cfg.max_calls + 1):
+        max_calls = min(max(self._cfg.max_calls, 1), MAX_CALLS)  # never more than two
+        for call_no in range(1, max_calls + 1):
             if call_no > 1 and (may_call is not None and not may_call(call_no)):
                 return fallback("budget")
             remaining = deadline - self._clock()
@@ -262,24 +278,28 @@ class HelpPipeline:
                     CallRecord(call_no, req.model, None, None, unknown, f"error_{err.kind}", None)
                 )
                 return result(HelpStatus.UNAVAILABLE, f"generator_{err.kind}")
+            # Recorded with its usage before any check, so an unexpected error later in this
+            # call still reports what the provider billed.
+            calls.append(self._record(call_no, reply, "received"))
             try:
                 out = self._parse(reply, allowed)
                 if not out.abstain:
                     self._check(out.text, answer, deadline, guards)
             except _Invalid as bad:
-                calls.append(self._record(call_no, reply, bad.reason))
+                calls[-1] = replace(calls[-1], outcome=bad.reason)
                 reason = bad.reason
                 if bad.reason == "deadline":
                     return fallback("deadline")
                 continue
             if out.abstain:  # its text and ids are never delivered
-                calls.append(self._record(call_no, reply, "abstain"))
+                calls[-1] = replace(calls[-1], outcome="abstain")
                 return result(HelpStatus.ABSTAINED, "abstained")
-            calls.append(self._record(call_no, reply, "ok"))
+            calls[-1] = replace(calls[-1], outcome="ok")
             return result(HelpStatus.DELIVERED, "delivered", out.text, list(out.source_ids))
         return fallback(reason)
 
-    def _record(self, call_no: int, reply: GenerationResult, outcome: str) -> CallRecord:
+    @staticmethod
+    def _record(call_no: int, reply: GenerationResult, outcome: str) -> CallRecord:
         return CallRecord(
             call_no,
             reply.model,
@@ -299,6 +319,9 @@ class HelpPipeline:
             raise _Invalid("invalid_schema") from None
         if out.abstain:
             return out
+        if _CONTROL.search(out.text):
+            # The guard and the renderer must read the same spans; no NULs or other controls.
+            raise _Invalid("invalid_control_char")
         if len(out.text) > self._cfg.max_output_chars or len(out.source_ids) > (
             self._cfg.max_source_ids
         ):

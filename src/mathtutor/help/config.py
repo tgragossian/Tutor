@@ -5,9 +5,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 DEFAULT_CONFIG_PATH = Path(__file__).with_name("help_config.json")
+MAX_CALLS = 2
 
 
 class _Frozen(BaseModel):
@@ -53,7 +54,7 @@ class HelpConfig(_Frozen):
     model: str
     effort: str
     deadline_s: float
-    max_calls: int
+    max_calls: int = Field(ge=1, le=MAX_CALLS)  # spec 06: at most two calls per request
     max_output_tokens: int
     max_input_tokens: int
     passages: int

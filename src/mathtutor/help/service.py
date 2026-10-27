@@ -198,7 +198,15 @@ class HelpService:
         deadline = started + self._cfg.deadline_s
         self._validate_fields(req)
         if not self._enabled or not self._slots.acquire(blocking=False):
-            return self._plain(rid, req, HelpStatus.UNAVAILABLE, self._peek(user_id, req))
+            # Only new work needs help enabled and a slot; a known id still replays.
+            with self._sessions() as db:
+                item = self._owned_item(db, user_id, req.session_item_id)
+                replay = self._known(db, user_id, rid, req, item)
+                if replay is not None:
+                    return replay
+                state = db.get(ItemHelpState, item.id)
+                seq = state.help_seq if state is not None else 0
+            return self._plain(rid, req, HelpStatus.UNAVAILABLE, seq)
         try:
             return self._serve(user_id, rid, req, started, deadline)
         finally:
@@ -271,7 +279,7 @@ class HelpService:
         with self._sessions() as db:
             item = db.get(SessionItem, admitted.session_item_id)
             if item is None:
-                raise NotFound("Problem not found.")
+                raise NotFound(messages.PROBLEM_NOT_FOUND)
             return build_context(db, item, admitted.problem, admitted.ladder, self._pool)
 
     def _reserve(self, admitted: _Admitted, call_no: int, entries: dict[int, int]) -> bool:
@@ -310,17 +318,15 @@ class HelpService:
 
     def _admit(self, db: Session, user_id: int, rid: str, req: HelpIn) -> HelpOutcome | _Admitted:
         item = self._owned_item(db, user_id, req.session_item_id)
+        replay = self._known(db, user_id, rid, req, item)
+        if replay is not None:
+            return replay
         payload = _payload_hash(user_id, req)
-        row = db.scalar(select(HelpRequestRow).where(HelpRequestRow.request_id == rid))
-        if row is not None:
-            if row.user_id != user_id or row.payload_hash != payload:
-                raise Conflict("This help request id was already used for another request.")
-            return self._replay(db, row, item)
         problem = self._problem(item)
         label = self._validate(db, item, req, problem)
         user = db.get(User, user_id)
         if user is None:
-            raise NotFound("User not found.")
+            raise NotFound(messages.USER_NOT_FOUND)
         state = db.get(ItemHelpState, item.id)
         if state is None:
             state = ItemHelpState(session_item_id=item.id, hint_level=1, help_seq=0)
@@ -377,22 +383,43 @@ class HelpService:
         died (any live request ends by the deadline). If it ever finishes, it finalizes as
         stale. Returns False while the in-flight request may still be running."""
         old = db.scalar(select(HelpRequestRow).where(HelpRequestRow.request_id == state.in_flight))
-        now = self._now()
         if old is not None and old.status == HelpStatus.PENDING.value:
-            age = now - old.created_at
-            if age < timedelta(seconds=self._cfg.admission.uncertain_after_s):
+            if not self._expired(old):
                 return False
-            old.status = HelpStatus.UNAVAILABLE.value
-            old.reason = "abandoned"
-            old.finished_at = now
+            self._mark_abandoned(old)
         state.in_flight = None
         return True
 
+    def _expired(self, row: HelpRequestRow) -> bool:
+        """A pending request older than ``uncertain_after_s`` (R21): its worker is gone."""
+        age = self._now() - row.created_at
+        return age >= timedelta(seconds=self._cfg.admission.uncertain_after_s)
+
+    def _mark_abandoned(self, row: HelpRequestRow) -> None:
+        row.status = HelpStatus.UNAVAILABLE.value
+        row.reason = "abandoned"
+        row.output_json = None
+        row.finished_at = self._now()
+
+    def _known(
+        self, db: Session, user_id: int, rid: str, req: HelpIn, item: SessionItem
+    ) -> HelpOutcome | None:
+        """The replay of an already-used request id, or None for a new id. Read-only."""
+        row = db.scalar(select(HelpRequestRow).where(HelpRequestRow.request_id == rid))
+        if row is None:
+            return None
+        if row.user_id != user_id or row.payload_hash != _payload_hash(user_id, req):
+            raise Conflict(messages.ID_REUSED)
+        return self._replay(db, row, item)
+
     def _replay(self, db: Session, row: HelpRequestRow, item: SessionItem) -> HelpOutcome:
-        """A known request id with the same payload: pending, or its stored result while the
-        presentation and the privacy epoch are unchanged, else stale (no text)."""
+        """A known request id with the same payload: pending (or, past ``uncertain_after_s``,
+        its abandoned outcome), or its stored result while the presentation and the privacy
+        epoch are unchanged, else stale (no text)."""
         status = HelpStatus(row.status)
         if status is HelpStatus.PENDING:
+            if self._expired(row):
+                return self._outcome(row, HelpStatus.UNAVAILABLE, None, [])
             return self._outcome(row, status, None, [])
         user = db.get(User, row.user_id)
         valid = (
@@ -424,6 +451,11 @@ class HelpService:
                 user = db.get(User, admitted.user_id)
                 session = db.get(StudySession, item.session_id) if item is not None else None
                 pending = row is not None and row.status == HelpStatus.PENDING.value
+                if row is not None and pending and self._expired(row):
+                    # Finished after the abandonment window: replays already report it
+                    # unavailable, so it stays that way and stores nothing.
+                    self._mark_abandoned(row)
+                    pending = False
                 fresh = (
                     pending
                     and row is not None
@@ -481,34 +513,32 @@ class HelpService:
 
     def _validate_fields(self, req: HelpIn) -> None:
         if req.help_type not in HELP_TYPES:
-            raise InvalidInput("Unknown help type.", code="unknown_help_type")
+            raise InvalidInput(messages.UNKNOWN_HELP_TYPE, code="unknown_help_type")
         if req.help_type == "explain":
             if not isinstance(req.confusion, str) or not 0 < len(req.confusion) <= (
                 MAX_CONFUSION_ID
             ):
-                raise InvalidInput("Choose what you're confused about.", code="unknown_confusion")
+                raise InvalidInput(messages.CHOOSE_CONFUSION, code="unknown_confusion")
         elif req.confusion is not None:
-            raise InvalidInput("Only explain help takes a confusion.", code="unknown_confusion")
+            raise InvalidInput(messages.CONFUSION_ONLY_EXPLAIN, code="unknown_confusion")
 
     def _validate(
         self, db: Session, item: SessionItem, req: HelpIn, problem: Problem
     ) -> str | None:
         """Presentation and eligibility checks; returns the confusion label for explain."""
         if item.revision != req.item_revision:
-            raise StaleItem("This problem changed; reload it.")
+            raise StaleItem(messages.PROBLEM_CHANGED)
         if item.state not in OPEN_STATES:
-            raise InvalidAction("Help isn't available for this problem now.", code="help_closed")
+            raise InvalidAction(messages.HELP_CLOSED, code="help_closed")
         if req.help_type == "feedback" and self._latest_status(db, item) is not (
             VerdictStatus.INCORRECT
         ):
-            raise InvalidAction(
-                "Feedback needs an incorrect answer to look at.", code="no_wrong_attempt"
-            )
+            raise InvalidAction(messages.FEEDBACK_NEEDS_WRONG, code="no_wrong_attempt")
         if req.help_type == "explain":
             by_id = {c.id: c.label for c in self._confusions.get(problem.topic, [])}
             label = by_id.get(req.confusion or "")
             if label is None:
-                raise InvalidInput("Choose what you're confused about.", code="unknown_confusion")
+                raise InvalidInput(messages.CHOOSE_CONFUSION, code="unknown_confusion")
             return label
         return None
 
@@ -527,10 +557,10 @@ class HelpService:
     def _owned_item(db: Session, user_id: int, session_item_id: int) -> SessionItem:
         item = db.get(SessionItem, session_item_id)
         if item is None:
-            raise NotFound("Problem not found.")
+            raise NotFound(messages.PROBLEM_NOT_FOUND)
         session = db.get(StudySession, item.session_id)
         if session is None or session.user_id != user_id:
-            raise Forbidden("This is not your problem.")
+            raise Forbidden(messages.NOT_YOUR_PROBLEM)
         return item
 
     def _peek(self, user_id: int, req: HelpIn) -> int:
@@ -584,5 +614,5 @@ class HelpService:
                 yield db
         except OperationalError as exc:
             if is_lock_error(exc):
-                raise DatabaseBusy("The database is busy. Please try again.") from exc
+                raise DatabaseBusy(messages.DATABASE_BUSY) from exc
             raise

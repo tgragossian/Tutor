@@ -60,7 +60,20 @@ def test_blank_input_is_empty() -> None:
 
 
 def test_math_fields_match_guard_spans() -> None:
-    texts = (r"a $x$ b $$y$$ \(z\) \[w\] \$5", "plain", r"$a$$b$", "$x=1$, then $y$.")
+    texts = (
+        r"a $x$ b $$y$$ \(z\) \[w\] \$5",
+        "plain",
+        r"$a$$b$",
+        "$x=1$, then $y$.",
+        "See $\x00$ 18x times stuff $\x00$ ok",  # the reviewer's NUL probe
+        "\x000\x00 $q$ and \x001\x00",  # placeholder look-alikes in prose
+    )
     for text in texts:
         spans = [k for k, _ in split_spans(text) if k != "prose"]
         assert render_help_html(text).count("<math-field read-only>") == len(spans)
+
+
+def test_prose_nul_is_not_a_placeholder() -> None:
+    html = render_help_html("\x000\x00 then $q$")
+    assert html.count("<math-field read-only>q</math-field>") == 1
+    assert "\x00" not in html

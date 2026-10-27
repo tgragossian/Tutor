@@ -21,26 +21,30 @@ _PARAGRAPH_BREAK = re.compile(r"\n[ \t]*\n\s*")
 
 
 def _math_field(latex: str) -> str:
-    return f"<math-field read-only>{html.escape(latex.strip())}</math-field>"
+    latex = latex.strip().replace(_HOLE, "�")
+    return f"<math-field read-only>{html.escape(latex)}</math-field>"
 
 
 def render_help_html(text: str) -> str:
     """``text`` as HTML: blank lines become ``<p>``, ``**x**`` ``<strong>``, math spans
     ``<math-field read-only>``; every other character is escaped."""
-    text = text.replace(_HOLE, "")
+    # Spans are split from ``text`` exactly as the guard splits it (delivered text never holds
+    # control characters: the pipeline rejects them). A NUL left in the prose is replaced only
+    # after splitting, so it can never be mistaken for a math placeholder.
     fields: list[str] = []
     try:
         pieces: list[str] = []
         for kind, content in split_spans(text):
             if kind == "prose":
-                pieces.append(html.escape(_PROSE_ESCAPE.sub(r"\1", content)))
+                prose = _PROSE_ESCAPE.sub(r"\1", content).replace(_HOLE, "�")
+                pieces.append(html.escape(prose))
             else:
                 pieces.append(f"{_HOLE}{len(fields)}{_HOLE}")
                 fields.append(_math_field(content))
         body = "".join(pieces)
     except MalformedMath:
         fields = []
-        body = html.escape(text)
+        body = html.escape(text.replace(_HOLE, "�"))
     paragraphs = []
     for para in _PARAGRAPH_BREAK.split(body.strip()):
         para = para.strip()
