@@ -36,7 +36,7 @@ Rules:
   - `test_question_delivered_records_use_case`: scripted reply with `use_case="explain"` →
     `DELIVERED`, row `use_case == "explain"`, row has no column containing the question text.
   - `test_question_does_not_advance_ladder`: after a wrong answer, a delivered question leaves
-    `hint_level`, `hint_attempt_pk` unchanged and never sends `HINT_CHOICE_SCHEMA`.
+    `hint_counts`, `hint_type`, `hint_attempt_pk` unchanged; never sends `HINT_CHOICE_SCHEMA`.
   - `test_question_validation_codes`: empty, 501 chars, `\x07`, question on `hint` → each
     `InvalidInput` with `code == "invalid_question"`; no row, no ledger entry.
   - `test_question_replay_same_text_and_conflict_on_other_text`.

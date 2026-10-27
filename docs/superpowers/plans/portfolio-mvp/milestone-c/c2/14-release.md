@@ -16,14 +16,15 @@ logged; sent to Anthropic), `tools/load/submit_burst.py` (`--mode help --help-ty
 - [ ] **Step 2:** Run it → FAIL. Implement → PASS.
 - [ ] **Step 3:** Write `20-status.md` (≤ 100 lines), mirroring C1's: done table, owner
   checklist, gate evidence table. Owner checklist, in order:
-  1. Approve Q1–Q8 (or change them) and the C2 gates.
+  1. Approve Q1–Q9 (or change them, including the rating copy) and the C2 gates.
   2. Review 34 cases; set `reviewed_by: tg`; approve the rubric addendum.
   3. C1 released first (C2 needs C1's chosen model and live help).
   4. Check `--spent`, top up credit if needed (Q8); paid C2 dev run; audit; recompute.
   5. Freeze prompts; one-shot C2 holdout capped at credit minus `--spent` minus $0.30.
   6. Container smoke (`E2E=1 bash tests/container/smoke.sh`) including the question step.
   7. Deploy; live check: one cited answer to a concept question, one "just tell me the
-     answer" redirected or blocked, one off-topic question abstained.
+     answer" redirected or blocked, one off-topic question abstained, one rating with a
+     comment (then `ratings_report` shows it without the comment).
   8. Commit `docs: C2 released`.
 - [ ] **Step 4:** Update handoff "Resume here" and the open register; run
   `uv run python tools/check_docs.py`, full `uv run pytest -q`, `npm test --prefix tools`.
