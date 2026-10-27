@@ -41,8 +41,5 @@ call, container build, holdout or deployment.
 
 ## For Codex
 
-1. Rerun the commands in [validation](04-validation-and-next-steps.md) and the tests above.
-2. Decide each row: closed, or reopened with a reason. Update the README table, this page,
-   the C1 status gate row and `handoff.md`.
-3. The probe files still carry the pre-fix `xfail`/`todo` markers; replace or retire them
-   (R1's probe models the old Dockerfile; R2's and R9's assert the alternative designs).
+The [close-out checklist](06-codex-closeout.md) lists the commands, the expected probe
+results and every Markdown file to update. The probes still carry pre-fix markers.

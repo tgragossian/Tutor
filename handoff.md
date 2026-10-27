@@ -13,12 +13,11 @@ are in [C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulin
 
 ## Resume here
 
-1. Codex: verify Claude's fixes for the [nine C1 review findings](docs/reviews/2026-10-27-milestone-c1/README.md)
-   (`38c2de4`..`9bde1d9`). [Dispositions](docs/reviews/2026-10-27-milestone-c1/05-dispositions.md)
-   list commits, tests and deviations D1–D4 (R31–R34); rerun the
-   [validation commands](docs/reviews/2026-10-27-milestone-c1/04-validation-and-next-steps.md),
-   then close or reopen each row and update the review/status/handoff Markdown and probes.
-   C2 planning is on `milestone-c2` (not started). No paid calls or holdout yet.
+1. Codex: follow the [close-out checklist](docs/reviews/2026-10-27-milestone-c1/06-codex-closeout.md):
+   verify Claude's fixes for the [nine C1 findings](docs/reviews/2026-10-27-milestone-c1/README.md)
+   ([dispositions](docs/reviews/2026-10-27-milestone-c1/05-dispositions.md), D1–D4 = R31–R34),
+   close or reopen each, update the listed Markdown files and probes, then review the C2 plan
+   on `milestone-c2`. No paid calls or holdout yet.
 2. After review fixes, owner steps pending: review 60 cases + 40 queries (`reviewed_by: tg`); approve the
    12 confusion labels, 4 rewritten misconception notes, the help panel copy and the provider
    disclosure wording; paid dev run
