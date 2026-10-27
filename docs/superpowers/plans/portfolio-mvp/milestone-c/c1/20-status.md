@@ -21,13 +21,15 @@ The remaining steps are Thomas's and need his key, credit, Docker and the host.
 ## Owner checklist (in order)
 
 1. Review 60 cases and 40 queries; set `reviewed_by: tg` ([step 6](../../../../../../evals/help/README.md)).
-2. Approve the 12 confusion labels, the 4 rewritten misconception notes (R19: 3.6-221, 3.6-229,
-   3.6-253 and the `sinx2` choice) and the help panel copy (R24).
+2. Approve the 12 confusion labels, the 4 rewritten misconception notes (error-only wording:
+   3.6-221, 3.6-229, 3.6-253 and the `sinx2` choice), the help panel copy and the **provider
+   disclosure wording** (practice page, `#help-disclosure`; spec 09 requires it).
 3. Paid dev run with `--max-usd 4`; blind audit; recompute.
 4. **Decide on the retrieval gate before the holdout:** dev Recall@6 0.79 is below the 0.80
    gate (disclosure: a reviewer scored the draft holdout labels at 0.576 on BM25 before the
-   labeling policy; no holdout label was edited in response, R29).
-5. One-shot holdout; write the chosen model into `help_config.json`.
+   labeling policy; no holdout label was edited in response; ledger ruling on retrieval fixes).
+5. One-shot holdout; write the chosen model into `help_config.json`. Holdout cap: credit
+   minus the sum of earlier `spent_micros` minus at least $0.30 ([eval README](../../../../../../evals/help/README.md), step 9).
 6. `E2E=1 bash tests/container/smoke.sh`, then the container mixed-load measurement; apply
    the headroom rule; move to 2 GB if it fails (approved 2026-10-26).
 7. Gate check (all true, links added here): CI green (Python, Node, container e2e);
@@ -46,3 +48,4 @@ The remaining steps are Thomas's and need his key, credit, Docker and the host.
 | Holdout gates | pending (dev Recall@6 0.79) |
 | Container mixed-load and memory | pending (preliminary only) |
 | Demo | pending |
+| Provider disclosure wording approved | pending (implemented, wording awaits Thomas) |

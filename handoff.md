@@ -15,11 +15,13 @@ are in the local ledger `.superpowers/sdd/README/progress.md` (untracked).
 
 1. Codex: review the C1 branch (harness, guard, service, UI, ops docs), then Thomas proceeds.
 2. Owner steps pending, in order: review 60 cases + 40 queries (`reviewed_by: tg`); approve the
-   12 confusion labels, 4 rewritten misconception notes and the help panel copy; paid dev run
+   12 confusion labels, 4 rewritten misconception notes, the help panel copy and the provider
+   disclosure wording; paid dev run
    (`--max-usd 4`) and audit; **decide on the retrieval gate before the holdout** (dev
    Recall@6 0.79 < 0.80); one-shot holdout; `E2E=1 bash tests/container/smoke.sh`; container
    mixed-load measurement; deploy; live check (one cited hint on a wrong derivative, one
    abstention). Then commit `docs: C1 released`.
+   Holdout cap formula and the 0.576 draft-holdout disclosure: C1 status page and runbook C1.
 3. Key: `MATHTUTOR_ANTHROPIC_API_KEY` only in the host's `deploy/.env`; console spend limit,
    auto-reload off; $5 credit. Turn help off with `MATHTUTOR_HELP_GENERATOR=off`.
 4. Then C2 item-scoped questions and C3 own problems (resolve C-P3 first). Sequence remains

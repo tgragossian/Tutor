@@ -170,3 +170,24 @@ def test_help_mode_main_fails_on_grading_busy(monkeypatch: pytest.MonkeyPatch) -
         burst, "burst_mixed", lambda g, h, t: ([(503, "verifier_busy", 1.0)] * 2, helps)
     )
     assert burst.main(args) == 1
+
+
+def test_help_mode_fails_when_no_help_was_delivered_or_abstained(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    import load.submit_burst as burst
+
+    monkeypatch.setattr(burst, "register", lambda client, name: None)
+    monkeypatch.setattr(burst, "open_at_target", lambda client, target: {})
+    args = ["--base-url", "http://x", "--mode", "help", "--users", "2", "--help-users", "2"]
+    grading = [(200, "incorrect", 1.0)] * 2
+    monkeypatch.setattr(
+        burst, "burst_mixed", lambda g, h, t: (grading, [(200, "unavailable", 1.0)] * 2)
+    )
+    assert burst.main(args) == 1
+    assert "no help request was delivered or abstained" in capsys.readouterr().err
+    monkeypatch.setattr(
+        burst, "burst_mixed", lambda g, h, t: (grading, [(200, "abstained", 1.0)] * 2)
+    )
+    assert burst.main(args) == 0
+    assert "help delivered or abstained: 2 of 2" in capsys.readouterr().out

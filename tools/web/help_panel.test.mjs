@@ -279,3 +279,10 @@ test('explain sends the chosen confusion; hint sends none', async () => {
   assert.equal(p.context.sent[1].confusion, null);
   assert.equal(p.context.sent[1].item_revision, 0);
 });
+
+test('provider disclosure is hidden when help is null and shown when enabled', () => {
+  const off = page({ help: null });
+  assert.equal(off.el('help-disclosure').hidden, true);
+  const on = page();
+  assert.equal(on.el('help-disclosure').hidden, false);
+});

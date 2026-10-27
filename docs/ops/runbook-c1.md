@@ -46,7 +46,8 @@ overlay on a throwaway project (its own volume; never touches live data):
 ```bash
 E2E=1 bash tests/container/smoke.sh        # on a machine with Docker, clean tree
 EC="sudo docker compose -f deploy/compose.yaml -f deploy/compose.e2e.yaml"
-$EC up -d app                              # app on 127.0.0.1:18001, scripted help
+$EC up -d app          # 127.0.0.1:18001, scripted help; uses mathtutor:local (smoke.sh built it)
+                       # or set MATHTUTOR_IMAGE
 APP=mathtutor-e2e-app-1 bash tools/load/measure.sh http://127.0.0.1:18001 8 help 20
 $EC down -v                                # removes only the e2e volume
 $C start app
@@ -74,10 +75,12 @@ the [runbook](runbook.md). Check `/readyz`, update [host](host.md) with the new 
 
 1. Review the 60 help cases and 40 retrieval queries, set `reviewed_by: tg`
    ([evals/help/README.md](../../evals/help/README.md), step 6).
-2. Approve the 12 confusion labels, the 4 rewritten misconception notes and the help panel copy.
+2. Approve the 12 confusion labels, the 4 rewritten misconception notes, the help panel copy
+   and the provider disclosure wording.
 3. Paid dev run (`--max-usd 4`), blind audit, then **decide on the retrieval gate before the
    holdout**: dev Recall@6 is 0.79 against the 0.80 holdout gate.
-4. One-shot holdout (cap = credit minus earlier spend minus $0.30); write the chosen model
+4. One-shot holdout (cap = credit minus the sum of earlier `spent_micros` minus $0.30; the
+   draft holdout once scored 0.576 on BM25, no label edited, see status page); write the chosen model
    into `help_config.json`.
 5. Container smoke `E2E=1 bash tests/container/smoke.sh`, then the mixed-load measurement above.
 6. Gate check, [deploy](runbook.md), set the key, `/readyz`; on the live site one cited hint

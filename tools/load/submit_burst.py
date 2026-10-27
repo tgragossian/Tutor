@@ -332,11 +332,18 @@ def _main_help(
     print(f"mixed burst finished in {(time.perf_counter() - t0) * 1000:.0f} ms")
     text, failures = summarize_mixed(grading, helps)
     print(text)
+    answered = sum(1 for st, lab, _ in helps if st == 200 and lab in ("delivered", "abstained"))
+    print(f"  help delivered or abstained: {answered} of {len(helps)}")
+    if answered == 0:
+        print(
+            "FAIL: no help request was delivered or abstained; help was not measured",
+            file=sys.stderr,
+        )
     if failures:
         print(f"FAIL: {failures} grading or help replies were not as expected", file=sys.stderr)
     if graded(grading) == 0:
         print("FAIL: no answer was graded; not usable for sizing", file=sys.stderr)
-    return 1 if failures or graded(grading) == 0 else 0
+    return 1 if failures or graded(grading) == 0 or answered == 0 else 0
 
 
 if __name__ == "__main__":

@@ -236,6 +236,7 @@ function renderHelpButtons() {
   const wrong = lastOutcome === null || (lastOutcome.status === 'incorrect' && !lastOutcome.code);
   $('help-controls').hidden = !enabled;
   $('help-note').hidden = !enabled;
+  $('help-disclosure').hidden = !enabled;
   $('help-hint').hidden = !types.includes('hint');
   $('help-feedback').hidden = !(types.includes('feedback') && wrong);
   $('help-explain').hidden = !(types.includes('explain') && help.confusions.length > 0);
