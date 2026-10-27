@@ -28,13 +28,14 @@ owns fix order and fresh local evidence; the owner steps still need key, credit,
 2. Approve the 12 confusion labels, the 4 rewritten misconception notes (error-only wording:
    3.6-221, 3.6-229, 3.6-253 and the `sinx2` choice), the help panel copy, the **provider
    disclosure wording** (practice page, `#help-disclosure`; spec 09 requires it) and the hint
-   level wording (R35: `LEVEL_RULES` in `help/prompts.py`, `prompts/v1/hint_choice.md`).
+   level and mistake-type wording (R35: `LEVEL_RULES` in `help/prompts.py`,
+   `MISTAKE_DESCRIPTIONS` in `help/generator.py`, `prompts/v1/hint_choice.md`).
 3. Paid dev run with `--max-usd 4`; blind audit; recompute.
 4. **Decide on the retrieval gate before the holdout:** dev Recall@6 0.79 is below the 0.80
    gate (disclosure: a reviewer scored the draft holdout labels at 0.576 on BM25 before the
    labeling policy; no holdout label was edited in response; ledger ruling on retrieval fixes).
 5. One-shot holdout; write the chosen model into `help_config.json`. Holdout cap: credit
-   minus the sum of earlier `spent_micros` minus at least $0.30 ([eval README](../../../../../../evals/help/README.md), step 9).
+   minus the `--spent` total minus at least $0.30 ([eval README](../../../../../../evals/help/README.md), step 9).
 6. `E2E=1 bash tests/container/smoke.sh`, then the container mixed-load measurement; apply
    the headroom rule; move to 2 GB if it fails (approved 2026-10-26).
 7. Gate check (all true, links added here): CI green (Python, Node, container e2e);

@@ -41,8 +41,8 @@ Claude replaced (D1, D4) and fail. Judge D1–D4 on the regression tests in disp
 9. `handoff.md` "Resume here" item 1: the result and the next owner step.
 
 Also review ruling R35 (a change Thomas asked for after this review, commit after `fb0ccd5`):
-hint level 0 before a wrong answer, and a same/new mistake judgment that can reset the ladder
-to 1 (`_hint_plan` in `help/service.py`, migration 0005, `tests/unit/help/test_hint_ladder.py`).
+hint level 0 before a wrong answer, and a ladder per mistake type that the model labels
+(`_hint_plan` in `help/service.py`, migration 0005, `tests/unit/help/test_hint_ladder.py`).
 
 ## C. Then review the C2 plan (branch `milestone-c2`)
 

@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 
 from mathtutor.content.schema import ChoiceAnswer, Problem
 from mathtutor.help.context import Confusion, HelpType
+from mathtutor.help.generator import MISTAKE_TYPES, MistakeType
 
 SPLITS: tuple[str, ...] = ("dev", "holdout")
 Split = Literal["dev", "holdout"]
@@ -53,10 +54,11 @@ class HelpCase(_Row):
     attempts: list[str] = Field(max_length=6)
     confusion_id: str | None
     hint_level: int = Field(ge=0, le=3)
-    # R35: a hint after a new wrong attempt, where the model judges same or new mistake;
-    # ``expect_mistake`` is the reviewer's answer.
-    hint_choice: bool = False
-    expect_mistake: Literal["same", "new"] | None = None
+    # R35: a hint with attempts is the first hint on the latest attempt, so the model names its
+    # mistake type. ``prior_hints``: hints each type already had on this problem; the right type
+    # gives ``hint_level`` = its prior count + 1. ``expect_mistake_type`` is the reviewer's label.
+    expect_mistake_type: MistakeType | None = None
+    prior_hints: dict[str, int] = Field(default_factory=dict)
     tags: frozenset[str]
     expect_abstain: bool
     withhold_sections: list[str] = Field(default_factory=list)
@@ -86,12 +88,19 @@ class HelpCase(_Row):
             raise ValueError("known_error needs an attempt and a hint or feedback request")
         if self.help_type == "hint" and (self.hint_level == 0) != (not self.attempts):
             raise ValueError("a hint is level 0 exactly when there is no wrong attempt yet")
-        if self.hint_choice and (
-            self.help_type != "hint" or len(self.attempts) < 2 or self.hint_level < 2
-        ):
-            raise ValueError("a same-or-new choice is a level 2-3 hint after two attempts")
-        if self.hint_choice != (self.expect_mistake is not None):
-            raise ValueError("expect_mistake is set exactly on hint_choice cases")
+        classifies = self.help_type == "hint" and bool(self.attempts)
+        if classifies != (self.expect_mistake_type is not None):
+            raise ValueError("expect_mistake_type is set exactly on hint cases with attempts")
+        if self.prior_hints and not classifies:
+            raise ValueError("prior_hints is only for hint cases with attempts")
+        if not set(self.prior_hints) <= set(MISTAKE_TYPES):
+            raise ValueError(f"prior_hints keys are mistake types {MISTAKE_TYPES}")
+        if any(not 0 <= n <= 2 for n in self.prior_hints.values()):
+            raise ValueError("prior_hints counts are 0-2")
+        if classifies and self.expect_mistake_type is not None:
+            expected = self.prior_hints.get(self.expect_mistake_type, 0) + 1
+            if expected != self.hint_level:
+                raise ValueError("hint_level must be prior_hints[expect_mistake_type] + 1")
         if cats[0] in ("mistaken_reasoning", "nearly_right") and not self.known_error:
             raise ValueError(f"{cats[0]} cases are known_error cases")
         return self

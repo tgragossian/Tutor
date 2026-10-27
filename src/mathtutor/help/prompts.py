@@ -12,12 +12,14 @@ set of ids the model may cite is always exactly the ids of ``chunks``.
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from functools import cache
 from pathlib import Path
 
 from mathtutor.domain import AnswerKind
 from mathtutor.help.config import DEFAULT_CONFIG_PATH, HelpConfig, load_help_config
 from mathtutor.help.context import HelpContext, HelpType
+from mathtutor.help.generator import MISTAKE_DESCRIPTIONS, MISTAKE_TYPES
 from mathtutor.retrieval.corpus import Chunk, estimate_tokens
 
 PROMPTS_DIR = Path(__file__).with_name("prompts")
@@ -26,8 +28,8 @@ REPAIR_INSTRUCTION = (
     "expressions equal to the answer."
 )
 TRUNCATED = " [passage shortened]"
-# Ruling R35 (Thomas, 2026-10-27): level 0 before any wrong answer; level 1 after a wrong
-# answer (or a new kind of mistake); 2 and 3 while the student stays on the same mistake.
+# Ruling R35 (Thomas, 2026-10-27): level 0 before any wrong answer; after one, each mistake
+# type climbs 1 -> 2 -> 3 with the hints it has had on this problem.
 LEVEL_RULES = {
     0: "how to start. The student has not submitted a wrong answer yet: name the rule or idea "
     "that applies to this problem and the first move to make, without carrying it out.",
@@ -119,21 +121,28 @@ def _passages_block(chunks: list[Chunk], texts: list[str]) -> str:
     return "\n".join(parts)
 
 
+def _choice_task(levels: Mapping[str, int], cfg: HelpConfig) -> str:
+    """The classifying hint (R35): each mistake type with its level, then those levels' rules."""
+    if set(levels) != set(MISTAKE_TYPES) or not all(1 <= v <= 3 for v in levels.values()):
+        raise ValueError("a classifying hint needs a level 1-3 for every mistake type")
+    types = "\n".join(
+        f"- `{t}` ({MISTAKE_DESCRIPTIONS[t]}): Level {levels[t]}" for t in MISTAKE_TYPES
+    )
+    rules = "\n".join(f"- Level {n}: {LEVEL_RULES[n]}" for n in sorted(set(levels.values())))
+    return _fill(_template(cfg.prompt_version, "hint_choice"), {"types": types, "rules": rules})
+
+
 def _task(
     ctx: HelpContext,
     help_type: HelpType,
     label: str | None,
     cfg: HelpConfig,
-    hint_choice: bool = False,
+    hint_levels: Mapping[str, int] | None = None,
 ) -> str:
-    if hint_choice:  # a new wrong attempt: the model judges same or new mistake (R35)
-        if help_type != "hint" or ctx.hint_level < 2:
-            raise ValueError("a same-or-new choice is a hint at level 2 or 3")
-        level = min(ctx.hint_level, 3)
-        return _fill(
-            _template(cfg.prompt_version, "hint_choice"),
-            {"level": str(level), "level_rule": LEVEL_RULES[level], "level1_rule": LEVEL_RULES[1]},
-        )
+    if hint_levels is not None:
+        if help_type != "hint":
+            raise ValueError("only a hint classifies the mistake")
+        return _choice_task(hint_levels, cfg)
     template = _template(cfg.prompt_version, help_type)
     if help_type == "hint":
         level = min(max(ctx.hint_level, 0), 3)
@@ -155,7 +164,7 @@ def build_prompt(
     *,
     cfg: HelpConfig | None = None,
     no_passages: bool = False,
-    hint_choice: bool = False,
+    hint_levels: Mapping[str, int] | None = None,
 ) -> tuple[str, str]:
     """``(system, user)`` for one generator call; ``ValueError`` if no trim fits the budget.
     ``no_passages`` is the evaluation-only baseline (review C1-R7): ``chunks`` must be empty
@@ -167,7 +176,7 @@ def build_prompt(
             raise ValueError("the no-passage baseline takes no passages")
         system += "\n\n" + _template(cfg.prompt_version, "no_passages")
     head = _context_block(ctx, cfg.field_caps)
-    tail = f"<task>\n{_task(ctx, help_type, confusion_label, cfg, hint_choice)}\n</task>"
+    tail = f"<task>\n{_task(ctx, help_type, confusion_label, cfg, hint_levels)}\n</task>"
     if strict:
         tail += f"\n\n<repair>{REPAIR_INSTRUCTION}</repair>"
     texts = [_data(c.text) for c in chunks]

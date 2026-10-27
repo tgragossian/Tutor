@@ -37,7 +37,12 @@ from mathtutor.help.eval.holdout import claim, legacy_markers, partition_of
 from mathtutor.help.eval.judge import JUDGE_MODEL, Judgment
 from mathtutor.help.eval.spend import JOURNAL, SpendJournal, call_micros, total_spend
 from mathtutor.help.eval.spend import SpendCounter as SpendCounter  # re-exported for callers
-from mathtutor.help.generator import GenerationRequest, GenerationResult, Generator
+from mathtutor.help.generator import (
+    MISTAKE_TYPES,
+    GenerationRequest,
+    GenerationResult,
+    Generator,
+)
 from mathtutor.help.leak_guard import LeakGuard
 from mathtutor.help.pipeline import HelpPipeline, answer_latex
 from mathtutor.retrieval.bm25 import Bm25Index
@@ -115,9 +120,8 @@ class CaseRecord:
     elapsed_ms: int
     cost_micros: int
     budget_stopped: bool = False
-    hint_choice: bool = False
-    expect_mistake: str | None = None
-    mistake: str | None = None  # the model's same/new call when delivered (R35)
+    expect_mistake_type: str | None = None
+    mistake_type: str | None = None  # the model's mistake type when delivered (R35)
 
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
@@ -150,6 +154,14 @@ def _attempts(case: HelpCase, problem: Problem) -> tuple[list[AttemptLine], str 
         lines = [AttemptLine(latex[a], VerdictStatus.INCORRECT) for a in case.attempts]
         return lines, case.attempts[-1] if case.attempts else None
     return [AttemptLine(a, VerdictStatus.INCORRECT) for a in case.attempts], None
+
+
+def hint_levels(case: HelpCase) -> dict[str, int] | None:
+    """A hint case with attempts classifies the mistake (R35): each type's level from the
+    hints it already had (``prior_hints``), as the service would offer them."""
+    if case.help_type != "hint" or not case.attempts:
+        return None
+    return {t: min(case.prior_hints.get(t, 0) + 1, 3) for t in MISTAKE_TYPES}
 
 
 def run_case(
@@ -192,7 +204,8 @@ def run_case(
         problem.answer,
         started + cfg.deadline_s,
         may_call=ask,
-        hint_choice=case.hint_choice,
+        # The no-passage baseline writes at the case's level without classifying (C1-R7).
+        hint_levels=hint_levels(case) if env.retrieval else None,
     )
     elapsed_ms = round((env.clock() - started) * 1000)
     replies = iter(recorder.replies)
@@ -233,9 +246,8 @@ def run_case(
         elapsed_ms=elapsed_ms,
         cost_micros=cost,
         budget_stopped=bool(refused),
-        hint_choice=case.hint_choice,
-        expect_mistake=case.expect_mistake,
-        mistake=result.mistake,
+        expect_mistake_type=case.expect_mistake_type,
+        mistake_type=result.mistake_type,
     )
 
 

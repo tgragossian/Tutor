@@ -58,6 +58,7 @@ from mathtutor.domain import ItemState, VerdictStatus
 from mathtutor.help import messages
 from mathtutor.help.config import HelpConfig
 from mathtutor.help.context import Confusion, HelpContext, HelpType, build_context
+from mathtutor.help.generator import MISTAKE_TYPES
 from mathtutor.help.leak_guard import LeakStatus
 from mathtutor.help.ledger import Ledger
 from mathtutor.help.pipeline import HelpPipeline, HelpStatus, PipelineResult, SourceRef
@@ -135,27 +136,43 @@ class _Admitted:
     help_type: HelpType
     confusion_label: str | None
     problem: Problem
-    hint_level: int | None  # the level offered (the 'same' level on a choice); None if not a hint
-    hint_choice: bool  # the model judges same-or-new mistake (R35)
+    hint_level: int | None  # the hint's level (highest offered when classifying); None: no hint
+    plan: HintPlan | None  # the hint ladder's plan for this request (R35); None if not a hint
     latest_wrong: int | None  # the latest applied wrong submission's pk
     ladder: int  # the item's hint level at admission (the context's level)
     help_seq: int
     entry_id: int
 
 
-def _hint_plan(state: ItemHelpState | None, latest_wrong: int | None) -> tuple[int, bool]:
-    """The next hint's level and whether the model judges same-or-new (ruling R35, Thomas
-    2026-10-27). No wrong answer yet: level 0 (how to start), which never moves the ladder.
-    The ladder's level (1-3) when the latest wrong answer is the one the last hint addressed,
-    or no hint has followed a wrong answer yet. A newer wrong answer at level 2-3: the model
-    writes at that level if it repeats the mistake, or at level 1 if it is a new one."""
+@dataclass(frozen=True)
+class HintPlan:
+    """How the next hint is written (ruling R35, Thomas 2026-10-27).
+
+    ``levels`` is set when the latest wrong attempt has no mistake type yet: the model picks
+    the type and writes at that type's level. Otherwise ``hint_type`` is the attempt's known
+    type (None at level 0) and ``level`` the level to write."""
+
+    level: int
+    levels: dict[str, int] | None = None
+    hint_type: str | None = None
+
+
+def _type_level(counts: dict[str, int], mistake_type: str) -> int:
+    return min(counts.get(mistake_type, 0) + 1, MAX_HINT_LEVEL)
+
+
+def _hint_plan(state: ItemHelpState | None, latest_wrong: int | None) -> HintPlan:
+    """Level 0 (how to start) while the item has no wrong answer; it never moves the ladder.
+    Once there is one, each mistake type climbs 1 -> 2 -> 3 with the hints it has had on this
+    presentation. Further hints on the attempt the last hint addressed reuse its type; a newer
+    wrong attempt is classified by the model, which can only pick among the offered levels."""
     if latest_wrong is None:
-        return 0, False
-    level = state.hint_level if state is not None else 1
-    addressed = state.hint_attempt_pk if state is not None else None
-    if addressed is None or addressed == latest_wrong:
-        return level, False
-    return level, level >= 2
+        return HintPlan(0)
+    counts = dict(state.hint_counts or {}) if state is not None else {}
+    if state is not None and state.hint_attempt_pk == latest_wrong and state.hint_type:
+        return HintPlan(_type_level(counts, state.hint_type), None, state.hint_type)
+    levels = {t: _type_level(counts, t) for t in MISTAKE_TYPES}
+    return HintPlan(max(levels.values()), levels)
 
 
 def _payload_hash(user_id: int, req: HelpIn) -> str:
@@ -248,7 +265,8 @@ class HelpService:
                     types.append("feedback")
                 if confusions:
                     types.append("explain")
-            level = _hint_plan(state, self._latest_wrong(db, item))[0]
+            # When the next hint classifies the mistake, this is the highest level it may use.
+            level = _hint_plan(state, self._latest_wrong(db, item)).level
         return HelpAvailability(self._enabled, types, confusions, level)
 
     # -- the request -------------------------------------------------------------------------
@@ -295,7 +313,7 @@ class HelpService:
             admitted.problem.answer,
             deadline,
             may_call=lambda n: self._reserve(admitted, n, entries),
-            hint_choice=admitted.hint_choice,
+            hint_levels=admitted.plan.levels if admitted.plan is not None else None,
         )
 
     def _build_context(self, admitted: _Admitted) -> HelpContext:
@@ -369,10 +387,8 @@ class HelpService:
             return self._plain(rid, req, HelpStatus.UNAVAILABLE, state.help_seq)
         entry_id = self._ledger.admit(db, user_id, rid, self._cfg.model)
         latest_wrong = self._latest_wrong(db, item)
-        level: int | None = None
-        choice = False
-        if req.help_type == "hint":
-            level, choice = _hint_plan(state, latest_wrong)
+        plan = _hint_plan(state, latest_wrong) if req.help_type == "hint" else None
+        level = plan.level if plan is not None else None
         db.add(
             HelpRequestRow(
                 request_id=rid,
@@ -385,7 +401,7 @@ class HelpService:
                 privacy_epoch=user.privacy_epoch,
                 help_seq=state.help_seq,
                 hint_level=level,
-                hint_mistake=None,
+                mistake_type=None,
                 status=HelpStatus.PENDING.value,
                 reason=None,
                 model=self._cfg.model,
@@ -410,7 +426,7 @@ class HelpService:
         db.flush()
         return _Admitted(
             rid, user_id, item.id, item.revision, req.help_type, label, problem, level,
-            choice, latest_wrong, state.hint_level, state.help_seq, entry_id,
+            plan, latest_wrong, state.hint_level, state.help_seq, entry_id,
         )  # fmt: skip
 
     def _abandon(self, db: Session, state: ItemHelpState) -> bool:
@@ -556,7 +572,7 @@ class HelpService:
                 return self._stale(admitted, seq)
             state.help_seq += 1
             if result.status is HelpStatus.DELIVERED and admitted.hint_level is not None:
-                self._advance_ladder(state, row, admitted, result.mistake)
+                self._advance_ladder(state, row, admitted, result.mistake_type)
             state.in_flight = None
             row.status = result.status.value
             row.reason = result.reason[:32]
@@ -570,20 +586,30 @@ class HelpService:
 
     @staticmethod
     def _advance_ladder(
-        state: ItemHelpState, row: HelpRequestRow, admitted: _Admitted, mistake: str | None
+        state: ItemHelpState, row: HelpRequestRow, admitted: _Admitted, mistake_type: str | None
     ) -> None:
-        """After a delivered hint (R35): a "new" mistake was written at level 1, otherwise at
-        the offered level. Level 0 leaves the ladder alone; from 1 up the next hint is one level
-        higher (cap 3) and is about the wrong answer this hint addressed."""
-        assert admitted.hint_level is not None
-        if not admitted.hint_choice:
-            mistake = None  # only a choice request may move the ladder down
-        written = 1 if mistake == "new" else admitted.hint_level
+        """After a delivered hint (R35): the hint was written at its type's level (the type the
+        model chose when classifying, else the attempt's known type). Count it for that type and
+        remember the attempt and type; level 0 leaves the ladder alone."""
+        plan = admitted.plan
+        assert plan is not None
+        if plan.levels is not None:
+            if mistake_type not in plan.levels:  # cannot happen: the schema requires a type
+                return
+            kind: str | None = mistake_type
+            written = plan.levels[mistake_type]
+        else:
+            kind, written = plan.hint_type, plan.level
         row.hint_level = written
-        row.hint_mistake = mistake
-        if written >= 1:
-            state.hint_level = min(written + 1, MAX_HINT_LEVEL)
-            state.hint_attempt_pk = admitted.latest_wrong
+        row.mistake_type = kind
+        if kind is None:
+            return
+        counts = dict(state.hint_counts or {})
+        counts[kind] = counts.get(kind, 0) + 1
+        state.hint_counts = counts  # a new dict, so the JSON column is written
+        state.hint_attempt_pk = admitted.latest_wrong
+        state.hint_type = kind
+        state.hint_level = _type_level(counts, kind)
 
     # -- helpers -----------------------------------------------------------------------------
 

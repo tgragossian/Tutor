@@ -24,8 +24,9 @@ Admission, replay and stale completion follow [state/accounting](06-state-and-ac
 - Problem statement, topic and version; answer kind (expression, numeric or choice).
 - The student's last 3 attempts on this item with their verdicts; tries used.
 - Hint level (amended 2026-10-27, Thomas, ruling R35): 0 "how to start" before any wrong
-  answer; then 1 → 2 → 3 while the student repeats the same mistake, capped at 3; a new
-  mistake restarts at 1. The model only judges same or new; the server sets the level.
+  answer; then per mistake type (algebra, wrong rule, rule misapplied, incomplete), 1 → 2
+  → 3 with that type's hints on the item. The model labels a new attempt's type; the server
+  sets each type's level, so the label can only pick among offered levels.
 - A recorded misconception matched by the latest wrong answer, checked through the existing
   bounded SymPy path (choice problems: the chosen distractor's note).
 - Match only reviewed misconception entries. Existing content has expression strings/compiled

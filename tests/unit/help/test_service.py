@@ -73,21 +73,32 @@ def test_delivered_hint_with_citation(kit: Kit) -> None:
 
 
 def test_level_0_before_a_wrong_answer_then_ladder_1_2_3(kit: Kit) -> None:
-    """R35: level 0 (how to start) never moves the ladder; after a wrong answer the same
-    mistake climbs 1 -> 2 -> 3 and stays at 3."""
+    """R35: level 0 (how to start) never moves the ladder; after a wrong answer the first hint
+    classifies the mistake (all types at level 1), then the same attempt climbs 2 -> 3 -> 3."""
     kit.generator.script = [output() for _ in range(6)]
     assert [kit.help().hint_level for _ in range(2)] == [0, 0]
     state = kit.state()
-    assert state is not None and (state.hint_level, state.hint_attempt_pk) == (1, None)
+    assert state is not None and (state.hint_counts, state.hint_attempt_pk) == ({}, None)
     kit.submit_wrong()
     assert [kit.help().hint_level for _ in range(4)] == [1, 2, 3, 3]
-    prompts = [r.user for r in kit.generator.requests]
-    assert all("Level 0" in u for u in prompts[:2])
-    assert ["Level 1" in prompts[2], "Level 2" in prompts[3], "Level 3" in prompts[4]] == [True] * 3
-    assert all(r.schema == HELP_OUTPUT_SCHEMA for r in kit.generator.requests)
+    reqs = kit.generator.requests
+    assert all("Level 0" in r.user for r in reqs[:2])
+    assert [r.schema == HINT_CHOICE_SCHEMA for r in reqs] == [
+        False,
+        False,
+        True,
+        False,
+        False,
+        False,
+    ]
+    assert "Level 2" in reqs[3].user and "Level 3" in reqs[4].user
     state = kit.state()
-    assert state is not None and (state.hint_level, state.help_seq) == (3, 6)
-    assert state.hint_attempt_pk is not None
+    assert state is not None and state.help_seq == 6
+    assert (state.hint_type, state.hint_counts, state.hint_level) == (
+        "rule_misapplied",
+        {"rule_misapplied": 4},
+        3,
+    )
 
 
 def test_feedback_and_explain_do_not_advance_ladder(kit: Kit) -> None:
@@ -536,76 +547,72 @@ def test_epoch_recorded_at_admission(kit: Kit) -> None:
     assert kit.row(rid).privacy_epoch == 4
 
 
-# -- ruling R35: the hint ladder follows the mistake ------------------------------------------
+# -- ruling R35: a hint ladder per mistake type -------------------------------------------------
 
 
-def _choice(mistake: str | None) -> GenerationResult:
-    body = {"text": GOOD_TEXT, "source_ids": ["c1-3.6-rule1"], "abstain": False}
-    if mistake is not None:
-        body["mistake"] = mistake
+def _typed(mistake_type: str | None) -> GenerationResult:
+    body: dict[str, object] = {"text": GOOD_TEXT, "source_ids": ["c1-3.6-rule1"], "abstain": False}
+    if mistake_type is not None:
+        body["mistake_type"] = mistake_type
     return GenerationResult(json.dumps(body), "end_turn", 2000, 300, CFG.model, "req_x", 12)
 
 
-def _climb_to_3(kit: Kit) -> None:
-    """A wrong answer, then two hints on it: the next hint would be level 3."""
+def _two_hints_on(kit: Kit, mistake_type: str) -> None:
+    """A wrong answer classified as ``mistake_type``, then a second hint on it."""
     kit.submit_wrong()
-    kit.generator.script = [output(), output()]
+    kit.generator.script = [_typed(mistake_type), output()]
     assert [kit.help().hint_level for _ in range(2)] == [1, 2]
 
 
-def test_same_mistake_on_a_new_attempt_keeps_climbing(kit: Kit) -> None:
-    _climb_to_3(kit)
+def test_classifying_prompt_offers_each_type_its_level(kit: Kit) -> None:
+    _two_hints_on(kit, "algebra")  # algebra has had 2 hints: next is level 3
     kit.submit_wrong()
-    kit.generator.script = [_choice("same")]
+    kit.generator.script = [_typed("wrong_rule")]
     rid = uuid.uuid4()
     out = kit.help(rid=rid)
-    assert out.status is HelpStatus.DELIVERED and out.hint_level == 3
     req = kit.generator.requests[-1]
     assert req.schema == HINT_CHOICE_SCHEMA
-    assert "Level 3" in req.user and "Level 1" in req.user and 'mistake` to "new"' in req.user
+    assert "`algebra` (an arithmetic, sign or simplifying slip): Level 3" in req.user
+    assert "`wrong_rule` (picked the wrong rule or method): Level 1" in req.user
+    assert "- Level 1:" in req.user and "- Level 3:" in req.user and "- Level 2:" not in req.user
+    assert out.status is HelpStatus.DELIVERED and out.hint_level == 1  # wrong_rule's level
     row = kit.row(rid)
-    assert (row.hint_level, row.hint_mistake) == (3, "same")
+    assert (row.hint_level, row.mistake_type) == (1, "wrong_rule")
     state = kit.state()
-    assert state is not None and state.hint_level == 3
+    assert state is not None
+    assert state.hint_counts == {"algebra": 2, "wrong_rule": 1} and state.hint_type == "wrong_rule"
 
 
-def test_new_mistake_drops_back_to_level_1(kit: Kit) -> None:
-    _climb_to_3(kit)
-    first = kit.state()
-    assert first is not None
+def test_same_type_on_a_new_attempt_keeps_climbing(kit: Kit) -> None:
+    _two_hints_on(kit, "algebra")
     kit.submit_wrong()
-    kit.generator.script = [_choice("new"), output()]
-    rid = uuid.uuid4()
-    out = kit.help(rid=rid)
-    assert out.status is HelpStatus.DELIVERED and out.hint_level == 1
-    assert (kit.row(rid).hint_level, kit.row(rid).hint_mistake) == (1, "new")
-    state = kit.state()
-    assert state is not None and state.hint_level == 2
-    assert state.hint_attempt_pk is not None and state.hint_attempt_pk != first.hint_attempt_pk
-    # The next hint is about the same (latest) attempt: level 2, no judgment.
-    assert kit.help().hint_level == 2
-    assert kit.generator.requests[-1].schema == HELP_OUTPUT_SCHEMA
+    kit.generator.script = [_typed("algebra")]
+    assert kit.help().hint_level == 3
 
 
-def test_new_attempt_at_level_1_needs_no_judgment(kit: Kit) -> None:
+def test_returning_to_an_earlier_type_resumes_its_level(kit: Kit) -> None:
+    _two_hints_on(kit, "algebra")  # algebra: 2 hints
     kit.submit_wrong()
-    kit.submit_wrong()  # two wrong answers, no hint yet
-    kit.generator.script = [output()]
-    assert kit.help().hint_level == 1
-    assert kit.generator.requests[-1].schema == HELP_OUTPUT_SCHEMA
-
-
-def test_choice_reply_without_mistake_is_repaired(kit: Kit) -> None:
-    _climb_to_3(kit)
+    kit.generator.script = [_typed("incomplete")]
+    assert kit.help().hint_level == 1  # a new type starts at 1
     kit.submit_wrong()
-    kit.generator.script = [_choice(None), _choice("same")]
+    kit.generator.script = [_typed("algebra")]
+    assert kit.help().hint_level == 3  # back to algebra: its third hint
+
+
+def test_classifying_reply_without_a_type_is_repaired(kit: Kit) -> None:
+    kit.submit_wrong()
+    kit.generator.default_mistake_type = None
+    kit.generator.script = [_typed(None), _typed("incomplete")]
     out = kit.help()
-    assert out.status is HelpStatus.DELIVERED and out.hint_level == 3
-    assert len(kit.generator.requests) == 4  # two climbing hints, then invalid + repair
+    assert out.status is HelpStatus.DELIVERED and out.hint_level == 1
+    assert len(kit.generator.requests) == 2  # invalid, then the repair call
+    state = kit.state()
+    assert state is not None and state.hint_counts == {"incomplete": 1}
 
 
-def test_undelivered_choice_leaves_the_ladder(kit: Kit) -> None:
-    _climb_to_3(kit)
+def test_undelivered_classifying_hint_leaves_the_ladder(kit: Kit) -> None:
+    _two_hints_on(kit, "algebra")
     before = kit.state()
     assert before is not None
     kit.submit_wrong()
@@ -613,4 +620,16 @@ def test_undelivered_choice_leaves_the_ladder(kit: Kit) -> None:
     assert kit.help().status is HelpStatus.UNAVAILABLE
     after = kit.state()
     assert after is not None
-    assert (after.hint_level, after.hint_attempt_pk) == (3, before.hint_attempt_pk)
+    assert (after.hint_counts, after.hint_attempt_pk) == (
+        before.hint_counts,
+        before.hint_attempt_pk,
+    )
+
+
+def test_feedback_never_classifies_or_counts(kit: Kit) -> None:
+    kit.submit_wrong()
+    kit.generator.script = [output()]
+    assert kit.help("feedback").status is HelpStatus.DELIVERED
+    assert kit.generator.requests[-1].schema == HELP_OUTPUT_SCHEMA
+    state = kit.state()
+    assert state is not None and state.hint_counts == {}

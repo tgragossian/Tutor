@@ -13,7 +13,7 @@ import json
 import re
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Literal, Protocol
 
 import anthropic
@@ -140,32 +140,36 @@ HELP_OUTPUT_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
 }
 
-Mistake = Literal["same", "new"]
+# Ruling R35 (Thomas, 2026-10-27): four broad mistake types; the hint ladder counts each.
+MISTAKE_TYPES: tuple[str, ...] = ("algebra", "wrong_rule", "rule_misapplied", "incomplete")
+MistakeType = Literal["algebra", "wrong_rule", "rule_misapplied", "incomplete"]
+MISTAKE_DESCRIPTIONS: dict[str, str] = {
+    "algebra": "an arithmetic, sign or simplifying slip",
+    "wrong_rule": "picked the wrong rule or method",
+    "rule_misapplied": "used the right rule but applied it wrongly",
+    "incomplete": "answered a different question or stopped early",
+}
 
 
 class HintChoiceOutput(HelpOutput):
-    """A hint written after a new wrong attempt, when the model also judges whether it repeats
-    the mistake the last hint was about (``same``) or is a different one (``new``); the
-    server moves the ladder by that answer (ruling R35)."""
+    """A hint on a wrong attempt not yet classified: the model also names the attempt's mistake
+    type and writes at the level the server set for that type (ruling R35)."""
 
-    mistake: Mistake
+    mistake_type: MistakeType
 
 
-# The hint-with-judgment schema: ``HELP_OUTPUT_SCHEMA`` plus a required ``mistake``.
+# The classifying hint's schema: ``HELP_OUTPUT_SCHEMA`` plus a required ``mistake_type``.
 HINT_CHOICE_SCHEMA: dict[str, Any] = {
     **HELP_OUTPUT_SCHEMA,
     "properties": {
         **HELP_OUTPUT_SCHEMA["properties"],
-        "mistake": {
+        "mistake_type": {
             "type": "string",
-            "enum": ["same", "new"],
-            "description": (
-                '"same" if the latest attempt repeats the mistake of the earlier attempt, '
-                '"new" if the student fixed that and made a different mistake.'
-            ),
+            "enum": list(MISTAKE_TYPES),
+            "description": "The kind of mistake in the latest attempt; it sets the hint's level.",
         },
     },
-    "required": [*HELP_OUTPUT_SCHEMA["required"], "mistake"],
+    "required": [*HELP_OUTPUT_SCHEMA["required"], "mistake_type"],
 }
 
 _TEXT_STOP_REASONS = frozenset({"end_turn"})
@@ -254,9 +258,18 @@ class ScriptedGenerator:
     """Replays ``script`` in order (a ``GeneratorError`` entry is raised); records requests.
     Drives every test and the e2e run: no provider call."""
 
-    def __init__(self, script: list[GenerationResult | GeneratorError]) -> None:
+    def __init__(
+        self,
+        script: list[GenerationResult | GeneratorError],
+        *,
+        default_mistake_type: str | None = "rule_misapplied",
+    ) -> None:
+        """``default_mistake_type``: added to a scripted JSON reply to a classifying hint
+        (``HINT_CHOICE_SCHEMA``, R35) that has none, so ordinary scripts serve both shapes.
+        None leaves replies exactly as scripted."""
         self.script = list(script)
         self.requests: list[GenerationRequest] = []
+        self.default_mistake_type = default_mistake_type
 
     def generate(self, req: GenerationRequest) -> GenerationResult:
         self.requests.append(req)
@@ -265,6 +278,14 @@ class ScriptedGenerator:
         step = self.script.pop(0)
         if isinstance(step, GeneratorError):
             raise step
+        if req.schema == HINT_CHOICE_SCHEMA and self.default_mistake_type and step.text:
+            try:
+                body = json.loads(step.text)
+            except ValueError:
+                return step
+            if isinstance(body, dict) and "mistake_type" not in body:
+                body["mistake_type"] = self.default_mistake_type
+                return replace(step, text=json.dumps(body))
         return step
 
 
@@ -281,5 +302,5 @@ class FixedHintGenerator:
         ids = [found.group(1)] if found else []
         reply: dict[str, Any] = {"text": self.TEXT, "source_ids": ids, "abstain": False}
         if req.schema == HINT_CHOICE_SCHEMA:
-            reply["mistake"] = "same"
+            reply["mistake_type"] = "rule_misapplied"
         return GenerationResult(json.dumps(reply), "end_turn", 0, 0, "fixed-test", None, 0)

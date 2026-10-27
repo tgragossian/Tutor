@@ -38,6 +38,11 @@ def make_case(**kw: Any) -> HelpCase:
     fields.update(kw)
     if not fields["attempts"] and "hint_level" not in kw:
         fields["hint_level"] = 0  # R35: a hint with no wrong attempt yet is level 0
+    classifies = fields["help_type"] == "hint" and bool(fields["attempts"])
+    if classifies and "expect_mistake_type" not in kw:  # R35: label the latest attempt
+        fields["expect_mistake_type"] = "rule_misapplied"
+        prior = max(fields["hint_level"] - 1, 0)
+        fields["prior_hints"] = {"rule_misapplied": prior} if prior else {}
     return HelpCase.model_validate(fields)
 
 

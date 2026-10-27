@@ -18,7 +18,13 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from mathtutor.content.schema import ChoiceAnswer
 from mathtutor.help.eval.cases import HelpCase, confusion_label
-from mathtutor.help.generator import GenerationRequest, Generator, GeneratorError, HelpOutput
+from mathtutor.help.generator import (
+    GenerationRequest,
+    Generator,
+    GeneratorError,
+    HelpOutput,
+    HintChoiceOutput,
+)
 from mathtutor.help.pipeline import answer_latex
 from mathtutor.retrieval.corpus import Chunk, estimate_tokens
 
@@ -138,9 +144,14 @@ def judge_items(records: list[CaseRecord]) -> list[JudgeItem]:
         for raw in rec.raws:
             if raw.text is None:
                 continue
-            try:
-                out = HelpOutput.model_validate_json(raw.text)
-            except ValidationError:
+            out: HelpOutput | None = None
+            for shape in (HelpOutput, HintChoiceOutput):  # a classifying hint adds a field (R35)
+                try:
+                    out = shape.model_validate_json(raw.text)
+                    break
+                except ValidationError:
+                    continue
+            if out is None:
                 continue
             if not out.abstain:
                 items.append(JudgeItem(f"{rec.model}#{raw.call_no}", out.text, out.source_ids))
@@ -161,12 +172,8 @@ def _level_note(case: HelpCase) -> str:
     """The hint level the response should be written at (ruling R35)."""
     if case.help_type != "hint":
         return ""
-    if case.hint_choice:
-        written = 1 if case.expect_mistake == "new" else case.hint_level
-        return (
-            f" (hint level {written}: the latest attempt is a {case.expect_mistake} mistake "
-            "compared with the earlier one)"
-        )
+    if case.expect_mistake_type is not None:
+        return f" (hint level {case.hint_level}; mistake type {case.expect_mistake_type})"
     return f" (hint level {case.hint_level})"
 
 
