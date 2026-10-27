@@ -10,6 +10,7 @@ comment. Ratings collect continuously from live students and are kept as product
 
 **Files:** Create `migrations/versions/0007_help_ratings.py`, `src/mathtutor/help/ratings.py`.
 Modify `store/models.py`, `web/api.py`, `web/schemas.py`, `help/messages.py`,
+`web/pages.py`, `templates/index.html`, `application/practice.py` (`clear_history`),
 `docs/superpowers/specs/2026-10-26-milestone-c/06-state-and-accounting.md` (Q9 amendment),
 `docs/ops/security.md`, `templates/practice.html`,
 `static/practice.js`, `static/app.css`. Test: `tests/unit/help/test_ratings.py`,
@@ -27,8 +28,13 @@ Modify `store/models.py`, `web/api.py`, `web/schemas.py`, `help/messages.py`,
   removes it). Never touches tries, verdicts, the ladder or the ledger.
 - `POST /api/help/{request_id}/rating` body `{"rating": 1-5, "comment": str | null}` →
   204; CSRF and the per-user help limiter apply; 422 outside 1–5.
-- `clear_history` does **not** touch `help_ratings` (Q9): numbers and comments are kept.
-  The row joins `help_requests` for help type, level, mistake type and model; no report code,
+- Two clears on the history page (Q9): **Clear problem history** (`POST /history/clear`,
+  today's behavior; `help_ratings` untouched) and **Clear problem and feedback history**
+  (`POST /history/clear?feedback=1`: the same, plus deleting the user's `help_ratings` rows in
+  the same transaction). `clear_history(user_id, *, include_feedback: bool = False)`. Confirm
+  texts: "Clear your practice history? Your progress on problems and your feedback are kept."
+  and "Clear your practice history and your ratings and comments? Your progress is kept."
+- Kept rows join `help_requests` for help type, level, mistake type and model; no report code,
   Thomas queries SQLite directly. Comments are never logged or sent to the provider.
 
 UI (copy is Q9): after `showHelp`, a row "Was this helpful?" with buttons `1`…`5`
@@ -39,7 +45,8 @@ use the C1-R8 retry rule: an unanswered rating keeps its body for one retry.
 
 - [ ] **Step 1: Failing tests:** `test_rate_then_rerate_replaces`, `test_rate_someone_elses_request_forbidden`,
   `test_pending_or_stale_not_rateable`, `test_comment_never_logged_or_sent` (sentinel text in
-  no log record, request-log line or generator request), `test_clear_history_keeps_rating_and_comment`,
+  no log record, request-log line or generator request), `test_clear_problem_history_keeps_ratings`, `test_clear_with_feedback_deletes_ratings`,
+  `test_both_clear_buttons_render_with_csrf`,
   `test_rating_does_not_change_ladder_or_tries`, `test_fallback_and_abstain_not_rateable`; API: 204,
   422 for 0 and 6, CSRF required; Node: `rating buttons appear after help`, `one click sends
   the number`, `comment is optional and separate`, `new help resets the rating row`.
