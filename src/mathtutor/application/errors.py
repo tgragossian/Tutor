@@ -60,6 +60,17 @@ class RateLimited(AppError):
     code = "rate_limited"
 
 
+class HelpLimited(AppError):
+    """Help admission refused by the ledger: ``reason`` is "hour", "day" or "budget"."""
+
+    status = 429
+    code = "help_limited"
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"help limited: {reason}")
+        self.reason = reason
+
+
 class Busy(AppError):
     status = 503
     code = "verifier_busy"
