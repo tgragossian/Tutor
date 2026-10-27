@@ -9,7 +9,7 @@ Branch `milestone-c1` holds C1 tasks 1-15; nothing is deployed and `main` is unt
 **C1 (Claude-written, textbook-grounded help) is implemented but not released.**
 [C1 status](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/20-status.md) owns the owner
 checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands. Rulings R1-R30
-are in the local ledger `.superpowers/sdd/README/progress.md` (untracked).
+are in [C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulings.md).
 
 ## Resume here
 
@@ -85,5 +85,6 @@ are in the local ledger `.superpowers/sdd/README/progress.md` (untracked).
 - No assistant co-author trailers; assistance is acknowledged in [README](README.md#acknowledgments).
 - Actual hours are optional owner records; never infer them from agent runtime.
 - Windows/OneDrive: `UV_LINK_MODE=copy` for `uv add`; explicit UTF-8 and raw strings for LaTeX.
-  Playwright MathLive input needs `{delay: 80}`. Local `.superpowers/sdd/README/progress.md` is ignored;
-  tracked [app rulings](docs/superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md) own B decisions.
+  Playwright MathLive input needs `{delay: 80}`. Local `.superpowers/` is ignored scratch; tracked
+  [B rulings](docs/superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md) and
+  [C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulings.md) own decisions.

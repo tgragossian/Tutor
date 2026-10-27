@@ -28,7 +28,7 @@ amendments; [Codex review](../../../../../reviews/2026-10-26-milestone-c/README.
   [4–5 corpus](12-corpus.md) · [6 retrieval](13-retrieval.md) · [7–8 state, ledger](14-state.md) ·
   [9–10 context, generator](15-context-generator.md) · [11–12 service, API](16-service-api.md) ·
   [13 UI](17-ui.md) · [14 evaluation](18-evaluation.md) · [15 release](19-release.md) ·
-  [status and owner checklist](20-status.md).
+  [status and owner checklist](20-status.md) · [execution rulings](21-rulings.md).
 
 Order: 1 → 2 → 3; 4 → 5 → 6; 7 → 8; 9, 10; then 11 → 12 → 13; 14 after 11; 15 last.
 Tasks 4 and 14 have owner steps (Thomas reviews cases and labels); the rest is code.
