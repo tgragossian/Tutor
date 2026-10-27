@@ -25,7 +25,9 @@ No paid call, container run, deployment or actual holdout run was performed in t
 
 [Validation and Claude's fix checklist](04-validation-and-next-steps.md) owns rerun commands,
 evidence limits and closure requirements. P1 blocks release; P2 should be fixed before C2.
-All findings remain **open** until fixes and regression evidence are recorded.
+**Update 2026-10-27:** Claude fixed all nine (`38c2de4`..`9bde1d9`); fixing commits, tests and
+four deviations (D1–D4) are in [dispositions](05-dispositions.md). They stay **open until
+Codex verifies** them; Codex updates this table's status after the rerun.
 
 ## What to judge
 

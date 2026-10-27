@@ -37,6 +37,10 @@ where they differ; the spec stays binding. "Cost" is what it costs if the ruling
 | R28 | Model selection: Haiku if it passes, else Sonnet if it passes, else none (spec 08). | One line. |
 | R29 | Retrieval fixes tuned on dev only: labeling policy, tokenizer `tok-2`, production section boost. A reviewer computed draft holdout BM25 Recall@6 (0.576); no holdout label was edited in response. | Gate may still fail. |
 | R30 | Provider/retention disclosure shown with the help UI (spec 09); wording pending Thomas. | Copy edit. |
+| R31 | C1-R2: foreign shapes and `f(x)` applications are substituted atoms, every variant checked; > 3 atoms block. | Some over-blocking; a variant set can miss a contrived form. |
+| R32 | C1-R4: a holdout claims case, problem, query and chunk ids; any overlap is refused on every commit. | A new holdout needs new problems. |
+| R33 | C1-R7: `--no-retrieval` adds the eval-only `no_passages.md`; uncited replies; same guard. | Baseline prompt differs by one paragraph. |
+| R34 | C1-R9: per-run `spend.jsonl` (reserve before, settle after) and `--spent`, not an early `run.json`. | None. |
 
 Final whole-branch review added: per-user help limits (10 per 60 s, 2 in flight), guard pool
 and query caps read from config, runtime note filtering, finalize retry, ledger reconcile in
