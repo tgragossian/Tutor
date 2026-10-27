@@ -1,0 +1,72 @@
+{
+  "edition": "calculus-volume-1@8dbc2ce",
+  "base_url": "https://openstax.org/apps/archive/20260604.144757/contents",
+  "fetched_at": "2026-10-27T00:40:59Z",
+  "source_kind": "archive_json",
+  "toc": [
+    {
+      "slug": "3-introduction",
+      "section": "3.intro",
+      "title": "Introduction",
+      "kind": "intro",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:b56f3f62-f26d-4a04-a9fd-dd9bb6e23fda.json",
+      "sha256": "baa7fb2fc96c90e4053ca5143660a8bf79a2fe1453d33b15cbed91ad2362e085",
+      "bytes": 7802
+    },
+    {
+      "slug": "3-2-the-derivative-as-a-function",
+      "section": "3.2",
+      "title": "The Derivative as a Function",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:272d1a59-5e99-4a80-90e1-ccf60fb3cc1c.json",
+      "sha256": "b9fcfc18030baf5d0ae78817c670bcab73cad4c96ac375767952df24d9a99b5a",
+      "bytes": 22371
+    },
+    {
+      "slug": "3-3-differentiation-rules",
+      "section": "3.3",
+      "title": "Differentiation Rules",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:f1a25413-3af2-4f97-8aac-dd75a16c8aea.json",
+      "sha256": "43bafca97226dff311840ca06c060a151ab929accaa928643ff3b8378f830e1f",
+      "bytes": 11860
+    },
+    {
+      "slug": "3-key-terms",
+      "section": "3.key-terms",
+      "title": "Key Terms",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:6f639523-1c2d-5f14-9341-85528e6879e4.json",
+      "sha256": "934421d202441bb7480681de83b12ab3c033134f9ec55c34d457f527310cf53c",
+      "bytes": 2144
+    },
+    {
+      "slug": "3-key-concepts",
+      "section": "3.key-concepts",
+      "title": "Key Concepts",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:aeb4347a-89f0-5313-a7b2-48cbe2127ab9.json",
+      "sha256": "b81927774df51cb469e583c9b3edcaef6384446a514fb034302527a84070b7da",
+      "bytes": 2926
+    },
+    {
+      "slug": "3-review-exercises",
+      "section": "3.review-exercises",
+      "title": "Review Exercises",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:7a176c30-a757-5743-bf03-07880edea272.json",
+      "sha256": "4902746d680809da021eccfba7a91f63e6cd3e66090037a353e90023f5cb6848",
+      "bytes": 2220
+    },
+    {
+      "slug": "chapter-3",
+      "section": "answer-key.chapter-3",
+      "title": "Chapter 3",
+      "kind": "answer-key",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:a329ca25-ddf9-5b35-8d21-8a816d63bb2d.json",
+      "sha256": "673178a265226964c94c76b4c812d9b683fa392e1313ced338efd6101c17f29e",
+      "bytes": 5245
+    }
+  ],
+  "fetch_tool_version": "1"
+}
