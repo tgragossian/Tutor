@@ -164,12 +164,12 @@ def test_misconception_note_drops_a_stated_correction() -> None:
     """R19 at runtime too: a live item's note written before the rule (3.6-253's old text)
     is never handed to the model."""
     old = (
-        r"-rac{200}{49}  # power rule exponent not lowered: "
+        r"-\frac{200}{49}  # power rule exponent not lowered: "
         r"-200(t+1)^{-2} instead of -200(t+1)^{-3}"
     )
     assert misconception_note(old) is None
     assert misconception_note("18x  # the inner derivative = 6x") is None
-    new = r"-rac{200}{49}  # power rule applied without lowering the exponent"
+    new = r"-\frac{200}{49}  # power rule applied without lowering the exponent"
     assert misconception_note(new) == "power rule applied without lowering the exponent"
 
 

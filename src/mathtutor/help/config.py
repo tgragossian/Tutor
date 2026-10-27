@@ -38,8 +38,8 @@ class AdmissionLimits(_Frozen):
     concurrency: int
     month_budget_micros: int
     uncertain_after_s: int
-    web_per_user: int  # POST /api/help per user per ``web_window_s`` (web rate limiter)
-    web_window_s: float
+    web_per_user: int = Field(ge=1)  # POST /api/help per user per ``web_window_s``
+    web_window_s: float = Field(gt=0)
     user_in_flight: int = Field(ge=1)  # one user's requests in flight across all items
 
 
