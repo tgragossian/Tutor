@@ -41,7 +41,9 @@ Fetcher = Callable[[str], bytes]
 
 
 class FetchError(RuntimeError):
-    pass
+    def __init__(self, message: str, retryable: bool = True) -> None:
+        super().__init__(message)
+        self.retryable = retryable
 
 
 def validate_url(url: str) -> None:
@@ -64,6 +66,9 @@ def http_fetch(url: str) -> bytes:
     try:
         with opener.open(req, timeout=TIMEOUT_S) as resp:
             return bytes(resp.read())
+    except urllib.error.HTTPError as exc:
+        retryable = exc.code == 429 or exc.code >= 500
+        raise FetchError(f"{url}: HTTP {exc.code}", retryable=retryable) from exc
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         raise FetchError(f"{url}: {exc}") from exc
 
@@ -156,13 +161,15 @@ def _atomic_write(path: Path, data: bytes) -> None:
 def _get(url: str, fetcher: Fetcher, sleep: Callable[[float], None]) -> bytes:
     validate_url(url)
     last: Exception | None = None
-    for _ in range(ATTEMPTS):
+    for attempt in range(ATTEMPTS):
         try:
             data = fetcher(url)
             sleep(MIN_INTERVAL_S)
             return data
         except FetchError as exc:
             last = exc
+            if not exc.retryable or attempt == ATTEMPTS - 1:
+                break
             sleep(MIN_INTERVAL_S)
     raise FetchError(str(last))
 
@@ -185,6 +192,7 @@ def run(
     archive_path: str | None = None,
     version: str | None = None,
 ) -> int:
+    snapshot_path.unlink(missing_ok=True)  # never leave a manifest that may disagree with raw files
     stamp = now or (lambda: datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))
     try:
         if archive_path is None or version is None:

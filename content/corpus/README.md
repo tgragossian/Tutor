@@ -30,7 +30,8 @@ Used only as retrieval text so hints can cite the textbook; attribution goes in 
 `uv run python tools/corpus/fetch.py --out data/corpus-raw` resolves the current archive and
 version from `release.json`, fetches the tree and every leaf page, and writes
 `content/corpus/snapshot.json` atomically only if all pages arrived. Any failure exits non-zero
-and writes no manifest. Pin a re-run with `--archive-path` and `--version`.
+and writes no manifest. A run first deletes any existing `snapshot.json`, so a failed run
+never leaves a stale manifest next to partly re-fetched raw files. Pin a re-run with `--archive-path` and `--version`.
 
 Rules: HTTPS `openstax.org` only (redirects are checked too), one request per second, up to 3
 attempts per URL, User-Agent `mathtutor-corpus/1 (+https://tutor.thomasgragossian.dev)`.
@@ -39,6 +40,9 @@ attempts per URL, User-Agent `mathtutor-corpus/1 (+https://tutor.thomasgragossia
 
 `snapshot.json`: `edition`, `base_url`, `fetched_at`, `source_kind`, `fetch_tool_version`, and
 `toc` (book order) with `slug`, `section`, `title`, `kind`, `url`, `sha256`, `bytes`.
+
+Conventions: `section` is `N.M` for numbered sections, `N.intro` for chapter openers,
+`N.<name>` for composite pages (slug `N-<name>`), `Appendix X`, and `answer-key.<slug>`.
 
 `kind` labels each page so Task 5 can include or exclude it:
 

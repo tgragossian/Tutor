@@ -2,6 +2,8 @@
 
 import hashlib
 import json
+import re
+import urllib.request
 from pathlib import Path
 
 import pytest
@@ -84,9 +86,83 @@ def test_snapshot_records_hashes(tmp_path: Path) -> None:
 
 
 def test_incomplete_fetch_fails(tmp_path: Path) -> None:
+    (tmp_path / "snapshot.json").write_text("{}", encoding="utf-8")
     code = _run(tmp_path, FakeSource(missing="7cfe0552"))
     assert code != 0
     assert not (tmp_path / "snapshot.json").exists()
+
+
+def test_redirect_to_foreign_host_exits_1(tmp_path: Path) -> None:
+    req = urllib.request.Request("https://openstax.org/x")
+    with pytest.raises(ValueError):
+        fetch._CheckedRedirects().redirect_request(req, None, 302, "", {}, "https://evil.com/x")
+
+    def redirected(url: str) -> bytes:
+        raise ValueError("redirect to https://evil.com/x")
+
+    code = fetch.run(
+        out_dir=tmp_path / "raw",
+        snapshot_path=tmp_path / "snapshot.json",
+        fetcher=redirected,
+        sleep=lambda _s: None,
+    )
+    assert code == 1
+    assert not (tmp_path / "snapshot.json").exists()
+
+
+def test_client_errors_are_not_retried() -> None:
+    calls: list[str] = []
+
+    def gone(url: str) -> bytes:
+        calls.append(url)
+        raise fetch.FetchError("404", retryable=False)
+
+    naps: list[float] = []
+    with pytest.raises(fetch.FetchError):
+        fetch._get("https://openstax.org/x", gone, naps.append)
+    assert len(calls) == 1 and naps == []
+
+
+def test_server_errors_retry_without_final_sleep() -> None:
+    calls: list[str] = []
+
+    def flaky(url: str) -> bytes:
+        calls.append(url)
+        raise fetch.FetchError("503")
+
+    naps: list[float] = []
+    with pytest.raises(fetch.FetchError):
+        fetch._get("https://openstax.org/x", flaky, naps.append)
+    assert len(calls) == fetch.ATTEMPTS and len(naps) == fetch.ATTEMPTS - 1
+
+
+def test_committed_snapshot_is_whole_book() -> None:
+    path = Path(__file__).resolve().parents[3] / "content" / "corpus" / "snapshot.json"
+    toc = json.loads(path.read_text(encoding="utf-8"))["toc"]
+    counts = {
+        "numbered-section": 45,
+        "composite-page": 24,
+        "intro": 6,
+        "answer-key": 6,
+        "appendix": 3,
+        "preface": 1,
+        "index": 1,
+    }
+    for kind, n in counts.items():
+        assert sum(e["kind"] == kind for e in toc) == n, kind
+    assert len(toc) == sum(counts.values())
+    sizes = {1: 5, 2: 5, 3: 9, 4: 10, 5: 7, 6: 9}
+    for ch, n in sizes.items():
+        rows = [e for e in toc if e["slug"].startswith(f"{ch}-") and e["kind"] != "answer-key"]
+        kinds = [e["kind"] for e in rows]
+        assert kinds == ["intro"] + ["numbered-section"] * n + ["composite-page"] * 4, ch
+        assert [e["section"] for e in rows if e["kind"] == "numbered-section"] == [
+            f"{ch}.{i}" for i in range(1, n + 1)
+        ]
+    assert len({e["slug"] for e in toc}) == len(toc)
+    for e in toc:
+        assert e["bytes"] > 0
+        assert re.fullmatch(r"[0-9a-f]{64}", e["sha256"])
 
 
 def test_rate_limit_sleeps_between_requests(tmp_path: Path) -> None:
@@ -98,7 +174,16 @@ def test_rate_limit_sleeps_between_requests(tmp_path: Path) -> None:
         sleep=naps.append,
         now=lambda: "t",
     )
-    assert naps and all(n >= 1.0 for n in naps)
+    source = FakeSource()
+    fetch.run(
+        out_dir=tmp_path / "raw2",
+        snapshot_path=tmp_path / "snapshot2.json",
+        fetcher=source,
+        sleep=lambda _s: None,
+        now=lambda: "t",
+    )
+    assert len(naps) >= len(source.urls)
+    assert all(n >= 1.0 for n in naps)
 
 
 @pytest.mark.parametrize(
