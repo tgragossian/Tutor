@@ -551,7 +551,11 @@ class LeakGuard:
             answer=SubmittedAnswer(AnswerKind.EXPRESSION, tree, "", None),
             request_id=f"guard:{next(ids)}",
         )
-        return self._submit(request)
+        status, reason = self._submit(request)
+        if status is LeakStatus.NO_MATCH and self._clock() >= deadline:
+            # A clearance that arrives after the deadline is not trusted (review C1-R5).
+            return LeakStatus.UNCHECKED, "deadline"
+        return status, reason
 
     def _submit(self, request: CheckRequest) -> tuple[LeakStatus, str]:
         try:

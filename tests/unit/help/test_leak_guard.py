@@ -790,3 +790,16 @@ def test_ordinals_are_not_numbers(text: str) -> None:
 def test_ordinal_lookalikes_stay_malformed(text: str) -> None:
     result, _ = _check(text, answer=TWELVE)
     assert (result.decision, result.reason) == ("block", "malformed_math"), text
+
+
+def test_clearance_after_the_deadline_is_unchecked() -> None:
+    """Review C1-R5: a no-match verdict that returns after the deadline blocks."""
+    clock = Clock()
+
+    class LatePool(FakePool):
+        def submit(self, req: CheckRequest) -> CheckResult:
+            clock.now += 5.0
+            return super().submit(req)
+
+    result = _guard(LatePool(), clock).check("So $3u$.", TWO_X, clock() + 1.0)
+    assert (result.decision, result.reason) == ("block", "deadline")

@@ -83,9 +83,7 @@ def test_interrupt_during_judging_leaves_the_judge_reservation(tmp_path: Path) -
 def _offline(monkeypatch: pytest.MonkeyPatch, generator: ScriptedGenerator, cases: list) -> None:
     """``_execute`` with synthetic data, a scripted provider and fake pools (review probe)."""
     env = make_env()
-    monkeypatch.setattr(
-        "mathtutor.help.eval.cases.load_split", lambda *_: (cases, [make_query()])
-    )
+    monkeypatch.setattr("mathtutor.help.eval.cases.load_split", lambda *_: (cases, [make_query()]))
     monkeypatch.setattr("mathtutor.content.loader.load_bundle", lambda *_: CONTENT)
     monkeypatch.setattr("mathtutor.help.context.load_confusions", lambda *_: CONFUSIONS)
     monkeypatch.setattr("mathtutor.retrieval.corpus.load_corpus", lambda *_: env.corpus)

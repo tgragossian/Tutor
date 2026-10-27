@@ -358,3 +358,5 @@ class HelpPipeline:
         guards.append(verdict)
         if verdict.decision == "block":
             raise _Invalid(f"invalid_guard_{verdict.reason}"[:32])
+        if self._clock() >= deadline:  # the guard returned too late: never deliver (C1-R5)
+            raise _Invalid("deadline")

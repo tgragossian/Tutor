@@ -101,3 +101,42 @@ def test_pipeline_unexpected_error_is_unavailable() -> None:
     ctx = assemble_context(PROBLEM, [], 1, None)
     result = pipe.run(ctx, "hint", None, PROBLEM.answer, clock() + 15)
     assert result.status is HelpStatus.UNAVAILABLE and result.reason == "internal_error"
+
+
+def _late_pipeline(guard_seconds: float) -> tuple[HelpPipeline, MonoClock]:
+    """The provider uses all but 0.1 s of the deadline; each guard verdict then takes
+    ``guard_seconds`` (review C1-R5)."""
+    corpus = Corpus({c.chunk_id: c for c in DEFAULT_CHUNKS}, "h", "e")
+    clock = MonoClock()
+
+    def slow_verdict(_req: object) -> object:
+        clock.t += guard_seconds
+        return FakePool().verdict
+
+    class SlowGenerator(ScriptedGenerator):
+        def generate(self, req):  # type: ignore[no-untyped-def]
+            clock.t += CFG.deadline_s - 0.1
+            return super().generate(req)
+
+    gen = SlowGenerator([output(text="Look for the inner expression $x$.")])
+    guard = LeakGuard(FakePool(slow_verdict), CFG.guard, clock)  # type: ignore[arg-type]
+    return HelpPipeline(
+        CFG, corpus, Bm25Index.build(corpus, CFG.retrieval), gen, guard, clock
+    ), clock
+
+
+def test_pipeline_does_not_deliver_after_guard_overruns() -> None:
+    pipe, clock = _late_pipeline(guard_seconds=2.0)
+    start = clock()
+    ctx = assemble_context(PROBLEM, [], 1, None)
+    result = pipe.run(ctx, "hint", None, PROBLEM.answer, start + CFG.deadline_s)
+    assert clock() - start > CFG.deadline_s
+    assert result.status is not HelpStatus.DELIVERED, result.status
+    assert result.calls[0].input_tokens is not None  # the late call's usage is still reported
+
+
+def test_pipeline_delivers_when_guard_finishes_in_time() -> None:
+    pipe, clock = _late_pipeline(guard_seconds=0.01)
+    ctx = assemble_context(PROBLEM, [], 1, None)
+    result = pipe.run(ctx, "hint", None, PROBLEM.answer, clock() + CFG.deadline_s)
+    assert result.status is HelpStatus.DELIVERED
