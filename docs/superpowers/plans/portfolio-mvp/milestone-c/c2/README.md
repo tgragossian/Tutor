@@ -28,9 +28,9 @@ The question is never stored; only the routing label and a hash are.
 - Tasks: [1–2 foundation, pipeline](10-foundation-pipeline.md) ·
   [3–4 service, API](11-service-api.md) · [5 UI](12-ui.md) ·
   [6–7 evaluation](13-evaluation.md) · [8 release](14-release.md) ·
-  [9 ratings](15-ratings.md).
+  [9 ratings](15-ratings.md) · [10 clear history](16-clear-history.md).
 
-Order: 1 → 2 → 3 → 4 → 5 → 9; 6 after 2; 7 after 6; 8 last. Branch `milestone-c2` is rebased on
+Order: 1 → 2 → 3 → 4 → 5 → 9 → 10; 6 after 2; 7 after 6; 8 last. Branch `milestone-c2` is rebased on
 `milestone-c1` `ab77f8f` (review fixes and R35); rebase onto `main` once C1 merges. Do not start
 Task 1 until Codex has closed the C1 review. Owner steps: Q1–Q8, case review, paid runs.
 

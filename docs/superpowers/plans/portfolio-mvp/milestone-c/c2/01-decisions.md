@@ -5,17 +5,19 @@
 Proposed by Claude on 2026-10-27. Each has a default the tasks implement; Thomas approves or
 changes it before execution. "Cost" is what the default costs if it is wrong.
 
+**Status 2026-10-27 (Thomas):** Q2, Q4, Q5, Q8, Q9 decided (notes below). Q1, Q3, Q6, Q7 open.
+
 | # | Decision | Proposed default | Cost if wrong |
 |---|---|---|---|
 | Q1 | How much a question may disclose | `_hint_plan(...).level` (C1 ruling R35: 0 before a wrong answer, else the known type's level, or the highest level offered when the attempt is not yet labeled), but at least level 2 (`QUESTION_MIN_LEVEL = 2`). Questions never move the ladder and never label a mistake type. | At level 0/1 a typed "how do I start?" gets a pointer a Hint would not give yet. |
-| Q2 | Storing the question | Never stored. `payload_hash` covers it (replay/conflict); clearing history overwrites that hash on question rows with `CLEARED_HASH` (64 zeros). | No record of questions for later review; the eval cases are the only question data. |
+| Q2 | Storing the question — **decided**: never stored; and Clear history keeps only complete/incomplete per problem, removing everything typed, incl. C3 own problems ([Task 10](16-clear-history.md)) | Never stored. `payload_hash` covers it (replay/conflict); clearing history overwrites that hash on question rows with `CLEARED_HASH` (64 zeros). | No record of questions for later review; the eval cases are the only question data. |
 | Q3 | Prompt versioning | Additive files in `prompts/v1/`: `question.md` (task) and `question_system.md` (appended to `system.md` for questions only). C1 prompt files unchanged. | If you prefer a clean `v2`, C1's evaluated prompt set changes and C1 evidence no longer covers it. |
-| Q4 | Routing labels | `hint`, `feedback`, `explain`, set by the model on every valid reply (abstentions too), stored in `help_requests.use_case`; agreement with your label is reported, not gated. | Labels are model opinions; a bad label changes nothing for the student. |
-| Q5 | Out-of-scope rule | Questions not about this problem abstain, including other calculus topics (spec 06: item-scoped). | Students asking "what is a limit?" mid-problem get an abstention. |
+| Q4 | Routing labels — **decided** | `hint`, `feedback`, `explain`, set by the model on every valid reply (abstentions too), stored in `help_requests.use_case`; agreement with your label is reported, not gated. | Labels are model opinions; a bad label changes nothing for the student. |
+| Q5 | Out-of-scope rule — **decided** | Questions not about this problem abstain, including other calculus topics (spec 06: item-scoped). | Students asking "what is a limit?" mid-problem get an abstention. |
 | Q6 | Availability | Same as Hint: active or exhausted items; behind `question.enabled` in `help_config.json` (default `true`). | None; one switch. |
 | Q7 | Student-facing copy | Label "Ask about this problem"; placeholder "For example: why does the chain rule apply here?"; button "Ask"; counter "N/500"; error "Type a question (up to 500 characters)." Disclosure adds "and any question you type". | Copy edit. |
 | Q9 | Rating help — **decided by Thomas 2026-10-27** | Under every generated response (not fixed messages): "Was this helpful?" 1–5, then "Tell us more (optional)" (≤ 1,000 characters); re-rating replaces. Numbers **and** comments are kept as product feedback; never sent to Anthropic or logged. Two buttons replace "Clear history": **Clear problem history** (as today; ratings kept) and **Clear problem and feedback history** (also deletes the user's ratings and comments). No report: the data stays in SQLite. Disclosure: "Ratings and comments you leave are kept to improve the tutor unless you choose Clear problem and feedback history." ([Task 9](15-ratings.md)) | Copy edit. |
-| Q8 | C2 eval budget | C2 cases need about $0.5–1.5 (Haiku help + Sonnet judge; worst case $2.30 for 34 cases: 2 × 1,300 µ$ help + 64,000 µ$ judge each). C1 may use most of the $5; check `--spent` and top up before the paid run. | The run stops at the cap; nothing breaks. |
+| Q8 | C2 eval budget — **decided: no top-up**; C1 and C2 paid runs share the $5 (cap each run from `--spent`) | C2 cases need about $0.5–1.5 (Haiku help + Sonnet judge; worst case $2.30 for 34 cases: 2 × 1,300 µ$ help + 64,000 µ$ judge each). C1 may use most of the $5; check `--spent` and top up before the paid run. | The run stops at the cap; nothing breaks. |
 
 ## Rulings already made in this plan
 
