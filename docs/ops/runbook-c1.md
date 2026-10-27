@@ -3,6 +3,8 @@
 [Operations](README.md) · [Runbook](runbook.md) · [Host sizing](host-sizing.md) ·
 [C1 status](../superpowers/plans/portfolio-mvp/milestone-c/c1/20-status.md)
 
+Paid evaluation/release is blocked by the open [C1 review](../reviews/2026-10-27-milestone-c1/README.md).
+
 Same conventions as the [runbook](runbook.md): host commands run from `/srv/mathtutor`, with
 `C="sudo docker compose -f deploy/compose.yaml"`. Never put a key in git, chat or a command line.
 

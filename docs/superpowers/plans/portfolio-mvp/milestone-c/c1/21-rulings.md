@@ -41,3 +41,8 @@ where they differ; the spec stays binding. "Cost" is what it costs if the ruling
 Final whole-branch review added: per-user help limits (10 per 60 s, 2 in flight), guard pool
 and query caps read from config, runtime note filtering, finalize retry, ledger reconcile in
 `settle-uncertain`, a holdout "started" marker.
+
+Codex's subsequent [implementation review](../../../../../reviews/2026-10-27-milestone-c1/README.md)
+leaves nine findings open. In particular, R8/R14 do not contain foreign composites (C1-R2),
+R26 needs durable interrupted-run accounting (C1-R9), and a per-commit started marker does
+not enforce one-shot dataset use (C1-R4). These are required corrections, not completed fixes.

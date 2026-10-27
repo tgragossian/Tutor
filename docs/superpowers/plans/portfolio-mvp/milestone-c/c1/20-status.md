@@ -5,7 +5,10 @@
 
 Tasks 1 to 15 are implemented on branch `milestone-c1`; reviewed by subagent per task. The
 branch is **not released**: nothing is deployed, no holdout has run and no key is on the host.
-The remaining steps are Thomas's and need his key, credit, Docker and the host.
+[Codex review](../../../../../reviews/2026-10-27-milestone-c1/README.md) of `3be5808` found nine
+open issues (five P1 blockers). Claude must fix them before the paid/release steps below.
+The [review checklist](../../../../../reviews/2026-10-27-milestone-c1/04-validation-and-next-steps.md)
+owns fix order and fresh local evidence; the owner steps still need key, credit, Docker and host.
 
 ## Done
 
@@ -43,6 +46,7 @@ The remaining steps are Thomas's and need his key, credit, Docker and the host.
 
 | Gate | Link or result |
 |---|---|
+| Code review fixes | pending: C1-R1 through C1-R9; P1 blocks release |
 | CI green | pending |
 | Verifier and `content_check` unchanged | pending |
 | Holdout gates | pending (dev Recall@6 0.79) |

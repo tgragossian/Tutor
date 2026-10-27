@@ -1,8 +1,8 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-27, C1 pre-release (for Codex review).
+Owner: Thomas Gragossian. Updated: 2026-10-27, Codex C1 code review complete.
 Host deployment remains Thomas's reported `main` 8057590, migration 0003. No new host probe.
-Branch `milestone-c1` holds C1 tasks 1-15; nothing is deployed and `main` is untouched.
+Branch `milestone-c1` holds C1 tasks 1-15; reviewed HEAD `3be5808`. Nothing merged or deployed.
 
 **Milestone B is closed.** Thomas removed actual hours as a gate on 2026-10-26.
 
@@ -13,10 +13,12 @@ are in [C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulin
 
 ## Resume here
 
-1. Codex: deep-dive review of branch `milestone-c1` per the
-   [C1 review brief](docs/reviews/2026-10-27-milestone-c1/README.md) (scope, files, known limits,
-   output format). No paid calls, no holdout. C2 planning runs in parallel on `milestone-c2`.
-2. Owner steps pending, in order: review 60 cases + 40 queries (`reviewed_by: tg`); approve the
+1. Claude: fix the [nine open C1 review findings](docs/reviews/2026-10-27-milestone-c1/README.md).
+   P1: image config, foreign-math bypass, lost call costs, reusable holdout, interrupted eval
+   accounting. Follow the [fix order and probes](docs/reviews/2026-10-27-milestone-c1/04-validation-and-next-steps.md),
+   record fixing commits/tests in a disposition page, then update this handoff/status. P2 fixes
+   precede C2 implementation; C2 planning is on `milestone-c2`. No paid calls or holdout yet.
+2. After review fixes, owner steps pending: review 60 cases + 40 queries (`reviewed_by: tg`); approve the
    12 confusion labels, 4 rewritten misconception notes, the help panel copy and the provider
    disclosure wording; paid dev run
    (`--max-usd 4`) and audit; **decide on the retrieval gate before the holdout** (dev

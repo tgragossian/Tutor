@@ -1,6 +1,6 @@
 # Design and code reviews
 
-- [2026-10-27 milestone C1 implementation review](2026-10-27-milestone-c1/README.md): brief for Codex; findings pending
+- [2026-10-27 milestone C1 implementation review](2026-10-27-milestone-c1/README.md): nine open findings, five release blockers; offline reproductions and Claude fix checklist
 
 - [2026-10-26 milestone C concept review](2026-10-26-milestone-c/README.md): eight findings, amended contracts and implementation prerequisites
 - [2026-10-22 milestone B whole-branch review](2026-10-22-milestone-b/README.md): five open findings, reproductions and fresh validation
