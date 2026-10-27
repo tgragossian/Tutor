@@ -287,7 +287,12 @@ def test_guard_budget_caps_the_deadline() -> None:
 
 
 def test_choice_letter_blocks() -> None:
-    for text in ["Pick option (a).", "I'd go with Choice A", "the answer a is", "Try (A) first."]:
+    for text in [
+        "Pick option (a).",
+        "I'd go with Choice A",
+        "the answer a; done",
+        "Try (A) first.",
+    ]:
         result, pool = _check(text, answer=CHOICE)
         assert (result.decision, result.reason) == ("block", "choice_reference"), text
         assert pool.requests == []
@@ -365,6 +370,10 @@ TWELVE = NumericAnswer(
         "a) is right",
         "  (a) is right",
         "Select a",
+        "Pick A\nthen check it",
+        "Pick a, it fits",
+        "The answer is ( a ) here",
+        "Option “a” fits",
         "The first option is right.",
         "Go with the first choice",
         "the 1st one",
@@ -378,7 +387,16 @@ def test_choice_phrasings_block(text: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "text", ["Now consider (b).", "First, differentiate.", "The second option is wrong."]
+    "text",
+    [
+        "Now consider (b).",
+        "First, differentiate.",
+        "The second option is wrong.",
+        "Pick a test point",
+        "The answer is a product of two functions",
+        "Choose a value of x",
+        "Select a point, then",  # "a point": the article, not the choice
+    ],
 )
 def test_choice_wrong_letter_and_plain_prose_pass(text: str) -> None:
     result, _ = _check(text, answer=CHOICE, pool=TreePool())
@@ -448,6 +466,14 @@ def test_prose_latex_is_malformed(text: str) -> None:
 def test_escaped_dollar_prose_passes() -> None:
     result, _ = _check(r"It costs \$5 to print $2x$.", pool=TreePool())
     assert result.decision == "pass"
+
+
+def test_escaped_percent_amp_hash_prose_pass() -> None:
+    result, _ = _check(r"About 5\% of R\&D, item \#3: $2x$.", pool=TreePool())
+    assert result.decision == "pass"
+    for text in [r"Use \textbf{this}", r"a \, b", "end \\"]:
+        result, _ = _check(text)
+        assert (result.decision, result.reason) == ("block", "malformed_math"), text
 
 
 def test_bang_is_kept_inside_math() -> None:

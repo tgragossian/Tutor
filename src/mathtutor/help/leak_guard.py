@@ -75,6 +75,7 @@ class MalformedMath(ValueError):
 
 _SENTINEL = "\x00"  # stands for a math span inside the prose
 _PROSE_PUNCT = ".,;:!?"
+_PROSE_ESCAPES = frozenset("$%&#")
 _MATH_PUNCT = ".,;:?"  # never "!" inside math: $5!$ is a factorial, not 5
 _PROSE_DECIMAL = re.compile(r"(?<![\w.])-?\d*\.\d+(?![\w]|\.\d)")
 # Numeric problems: signed integers, decimals and simple a/b.
@@ -115,8 +116,8 @@ def _split_math(text: str) -> tuple[list[Candidate], str]:
             start = i + 2
         elif c == "\\" and nxt in (")", "]"):
             raise MalformedMath("closing delimiter without an opener")
-        elif c == "\\" and nxt == "$":
-            prose.append("\\$")  # an escaped dollar is prose
+        elif c == "\\" and nxt in _PROSE_ESCAPES:
+            prose.append(text[i : i + 2])  # \$, \%, \&, \# are prose characters
             i += 2
             continue
         elif c == "\\":
@@ -239,6 +240,17 @@ _KEYWORD = r"\b(?:option|choice|answer|pick|select)"
 _NOUN = r"(?:option|choice|answer)"
 # Between a keyword and the letter: spaces, "is", "would be", "=", ":", emphasis, quotes, dashes.
 _FILLER = r"(?:\s|\bis\b|\bwould\s+be\b|[=:*_'\"`‘’“”–—-])*"
+_MARKS = r"[*_'\"`‘’“”]"  # emphasis and quotes that can wrap a letter
+
+
+def _letter_token(letter: str) -> str:
+    """The letter as a standalone choice token: ``(a)``, ``**a**``/``'a'``, or a bare ``a``
+    followed by closing punctuation or the line end (so the article in "pick a point" is not)."""
+    return (
+        rf"(?:\(\s*{letter}\s*\)"
+        rf"|(?<={_MARKS}){letter}(?={_MARKS})"
+        rf"|\b{letter}(?=\s*(?:[).,:;!?]|$)))"
+    )
 
 
 def _choice_patterns(answer: ChoiceAnswer) -> list[re.Pattern[str]]:
@@ -247,7 +259,7 @@ def _choice_patterns(answer: ChoiceAnswer) -> list[re.Pattern[str]]:
     index = [c.id for c in answer.choices].index(answer.correct)
     flags = re.IGNORECASE | re.MULTILINE
     return [
-        re.compile(rf"{_KEYWORD}{_FILLER}\(?{letter}\)?\b", flags),
+        re.compile(rf"{_KEYWORD}{_FILLER}{_letter_token(letter)}", flags),
         re.compile(rf"\({letter}\)", flags),
         re.compile(rf"^\s*\(?{letter}[).]", flags),
         re.compile(rf"\b{_ORDINALS[index]}\s+{_NOUN}", flags),
