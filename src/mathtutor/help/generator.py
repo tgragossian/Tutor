@@ -140,6 +140,34 @@ HELP_OUTPUT_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
 }
 
+Mistake = Literal["same", "new"]
+
+
+class HintChoiceOutput(HelpOutput):
+    """A hint written after a new wrong attempt, when the model also judges whether it repeats
+    the mistake the last hint was about (``same``) or is a different one (``new``); the
+    server moves the ladder by that answer (ruling R35)."""
+
+    mistake: Mistake
+
+
+# The hint-with-judgment schema: ``HELP_OUTPUT_SCHEMA`` plus a required ``mistake``.
+HINT_CHOICE_SCHEMA: dict[str, Any] = {
+    **HELP_OUTPUT_SCHEMA,
+    "properties": {
+        **HELP_OUTPUT_SCHEMA["properties"],
+        "mistake": {
+            "type": "string",
+            "enum": ["same", "new"],
+            "description": (
+                '"same" if the latest attempt repeats the mistake of the earlier attempt, '
+                '"new" if the student fixed that and made a different mistake.'
+            ),
+        },
+    },
+    "required": [*HELP_OUTPUT_SCHEMA["required"], "mistake"],
+}
+
 _TEXT_STOP_REASONS = frozenset({"end_turn"})
 
 
@@ -251,5 +279,7 @@ class FixedHintGenerator:
     def generate(self, req: GenerationRequest) -> GenerationResult:
         found = self._PASSAGE.search(req.user)
         ids = [found.group(1)] if found else []
-        reply = {"text": self.TEXT, "source_ids": ids, "abstain": False}
+        reply: dict[str, Any] = {"text": self.TEXT, "source_ids": ids, "abstain": False}
+        if req.schema == HINT_CHOICE_SCHEMA:
+            reply["mistake"] = "same"
         return GenerationResult(json.dumps(reply), "end_turn", 0, 0, "fixed-test", None, 0)

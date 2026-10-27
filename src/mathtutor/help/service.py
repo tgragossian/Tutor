@@ -14,7 +14,8 @@
 4. A second short write transaction rechecks ownership, revision, open state, the user's
    privacy epoch, the help sequence and ``in_flight``. Stale: no text is stored and the
    ladder does not move. Otherwise the result is stored, ``help_seq`` advances, and
-   ``hint_level`` advances (cap 3) only for a delivered hint. ``in_flight`` is cleared.
+   the hint ladder moves only for a delivered hint (``_hint_plan``, ruling R35).
+   ``in_flight`` is cleared.
    A busy database gets one retry. If that fails too, the answer is ``UNAVAILABLE`` and the
    item stays in flight (replies ``PENDING``) until the row is ``uncertain_after_s`` (120 s)
    old; then the next request frees it (``_abandon``) and replays report it unavailable.
@@ -134,10 +135,27 @@ class _Admitted:
     help_type: HelpType
     confusion_label: str | None
     problem: Problem
-    hint_level: int | None  # the level this hint is written at; None for other types
+    hint_level: int | None  # the level offered (the 'same' level on a choice); None if not a hint
+    hint_choice: bool  # the model judges same-or-new mistake (R35)
+    latest_wrong: int | None  # the latest applied wrong submission's pk
     ladder: int  # the item's hint level at admission (the context's level)
     help_seq: int
     entry_id: int
+
+
+def _hint_plan(state: ItemHelpState | None, latest_wrong: int | None) -> tuple[int, bool]:
+    """The next hint's level and whether the model judges same-or-new (ruling R35, Thomas
+    2026-10-27). No wrong answer yet: level 0 (how to start), which never moves the ladder.
+    The ladder's level (1-3) when the latest wrong answer is the one the last hint addressed,
+    or no hint has followed a wrong answer yet. A newer wrong answer at level 2-3: the model
+    writes at that level if it repeats the mistake, or at level 1 if it is a new one."""
+    if latest_wrong is None:
+        return 0, False
+    level = state.hint_level if state is not None else 1
+    addressed = state.hint_attempt_pk if state is not None else None
+    if addressed is None or addressed == latest_wrong:
+        return level, False
+    return level, level >= 2
 
 
 def _payload_hash(user_id: int, req: HelpIn) -> str:
@@ -230,7 +248,7 @@ class HelpService:
                     types.append("feedback")
                 if confusions:
                     types.append("explain")
-        level = state.hint_level if state is not None else 1
+            level = _hint_plan(state, self._latest_wrong(db, item))[0]
         return HelpAvailability(self._enabled, types, confusions, level)
 
     # -- the request -------------------------------------------------------------------------
@@ -277,15 +295,18 @@ class HelpService:
             admitted.problem.answer,
             deadline,
             may_call=lambda n: self._reserve(admitted, n, entries),
+            hint_choice=admitted.hint_choice,
         )
 
     def _build_context(self, admitted: _Admitted) -> HelpContext:
-        """Reads the item and may call the grading pool: no write transaction is open."""
+        """Reads the item and may call the grading pool: no write transaction is open. A hint's
+        context carries the level it is written at (0-3); other types carry the ladder."""
+        level = admitted.hint_level if admitted.hint_level is not None else admitted.ladder
         with self._sessions() as db:
             item = db.get(SessionItem, admitted.session_item_id)
             if item is None:
                 raise NotFound(messages.PROBLEM_NOT_FOUND)
-            return build_context(db, item, admitted.problem, admitted.ladder, self._pool)
+            return build_context(db, item, admitted.problem, level, self._pool)
 
     def _reserve(self, admitted: _Admitted, call_no: int, entries: dict[int, int]) -> bool:
         """Reserve a later call in the ledger's own transaction; refusal ends the run."""
@@ -347,7 +368,11 @@ class HelpService:
             logger.info("help unavailable reason=user_in_flight")
             return self._plain(rid, req, HelpStatus.UNAVAILABLE, state.help_seq)
         entry_id = self._ledger.admit(db, user_id, rid, self._cfg.model)
-        level = state.hint_level if req.help_type == "hint" else None
+        latest_wrong = self._latest_wrong(db, item)
+        level: int | None = None
+        choice = False
+        if req.help_type == "hint":
+            level, choice = _hint_plan(state, latest_wrong)
         db.add(
             HelpRequestRow(
                 request_id=rid,
@@ -360,6 +385,7 @@ class HelpService:
                 privacy_epoch=user.privacy_epoch,
                 help_seq=state.help_seq,
                 hint_level=level,
+                hint_mistake=None,
                 status=HelpStatus.PENDING.value,
                 reason=None,
                 model=self._cfg.model,
@@ -384,7 +410,7 @@ class HelpService:
         db.flush()
         return _Admitted(
             rid, user_id, item.id, item.revision, req.help_type, label, problem, level,
-            state.hint_level, state.help_seq, entry_id,
+            choice, latest_wrong, state.hint_level, state.help_seq, entry_id,
         )  # fmt: skip
 
     def _abandon(self, db: Session, state: ItemHelpState) -> bool:
@@ -529,8 +555,8 @@ class HelpService:
                 seq = state.help_seq if state is not None else admitted.help_seq
                 return self._stale(admitted, seq)
             state.help_seq += 1
-            if result.status is HelpStatus.DELIVERED and admitted.help_type == "hint":
-                state.hint_level = min(state.hint_level + 1, MAX_HINT_LEVEL)
+            if result.status is HelpStatus.DELIVERED and admitted.hint_level is not None:
+                self._advance_ladder(state, row, admitted, result.mistake)
             state.in_flight = None
             row.status = result.status.value
             row.reason = result.reason[:32]
@@ -541,6 +567,23 @@ class HelpService:
                 )
             text = result.text if result.status in _TEXT_STATUSES else None
             return self._outcome(row, result.status, text, list(result.sources))
+
+    @staticmethod
+    def _advance_ladder(
+        state: ItemHelpState, row: HelpRequestRow, admitted: _Admitted, mistake: str | None
+    ) -> None:
+        """After a delivered hint (R35): a "new" mistake was written at level 1, otherwise at
+        the offered level. Level 0 leaves the ladder alone; from 1 up the next hint is one level
+        higher (cap 3) and is about the wrong answer this hint addressed."""
+        assert admitted.hint_level is not None
+        if not admitted.hint_choice:
+            mistake = None  # only a choice request may move the ladder down
+        written = 1 if mistake == "new" else admitted.hint_level
+        row.hint_level = written
+        row.hint_mistake = mistake
+        if written >= 1:
+            state.hint_level = min(written + 1, MAX_HINT_LEVEL)
+            state.hint_attempt_pk = admitted.latest_wrong
 
     # -- helpers -----------------------------------------------------------------------------
 
@@ -583,6 +626,21 @@ class HelpService:
             .join(Submission, Submission.id == AttemptResult.submission_pk)
             .where(Submission.session_item_id == item.id, AttemptResult.applied.is_(True))
             .order_by(AttemptResult.id.desc())
+            .limit(1)
+        )
+
+    @staticmethod
+    def _latest_wrong(db: Session, item: SessionItem) -> int | None:
+        """The pk of the item's latest applied (consumed) wrong submission, if any."""
+        return db.scalar(
+            select(Submission.id)
+            .join(AttemptResult, AttemptResult.submission_pk == Submission.id)
+            .where(
+                Submission.session_item_id == item.id,
+                AttemptResult.applied.is_(True),
+                AttemptResult.status == VerdictStatus.INCORRECT,
+            )
+            .order_by(Submission.id.desc())
             .limit(1)
         )
 

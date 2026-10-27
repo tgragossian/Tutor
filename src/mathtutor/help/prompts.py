@@ -26,11 +26,16 @@ REPAIR_INSTRUCTION = (
     "expressions equal to the answer."
 )
 TRUNCATED = " [passage shortened]"
+# Ruling R35 (Thomas, 2026-10-27): level 0 before any wrong answer; level 1 after a wrong
+# answer (or a new kind of mistake); 2 and 3 while the student stays on the same mistake.
 LEVEL_RULES = {
-    1: "a concept reminder. Name the idea or rule that applies and what it says, without "
-    "applying it to this problem.",
-    2: "a targeted next step. Point to the specific step the student should do next on this "
-    "problem and how to start it, without carrying it out.",
+    0: "how to start. The student has not submitted a wrong answer yet: name the rule or idea "
+    "that applies to this problem and the first move to make, without carrying it out.",
+    1: "a gentle nudge about their latest attempt. Say what they got right, say that "
+    "something is missing or off without naming it, and ask them to compare their answer with "
+    "the original problem.",
+    2: "a more direct pointer. Name the specific part of the problem or of their answer to "
+    "look at, and the question to ask about it, without writing the corrected step.",
     3: "a fuller explanation. Walk through the method on this problem step by step, still "
     "stopping before the final answer.",
 }
@@ -114,10 +119,24 @@ def _passages_block(chunks: list[Chunk], texts: list[str]) -> str:
     return "\n".join(parts)
 
 
-def _task(ctx: HelpContext, help_type: HelpType, label: str | None, cfg: HelpConfig) -> str:
+def _task(
+    ctx: HelpContext,
+    help_type: HelpType,
+    label: str | None,
+    cfg: HelpConfig,
+    hint_choice: bool = False,
+) -> str:
+    if hint_choice:  # a new wrong attempt: the model judges same or new mistake (R35)
+        if help_type != "hint" or ctx.hint_level < 2:
+            raise ValueError("a same-or-new choice is a hint at level 2 or 3")
+        level = min(ctx.hint_level, 3)
+        return _fill(
+            _template(cfg.prompt_version, "hint_choice"),
+            {"level": str(level), "level_rule": LEVEL_RULES[level], "level1_rule": LEVEL_RULES[1]},
+        )
     template = _template(cfg.prompt_version, help_type)
     if help_type == "hint":
-        level = min(max(ctx.hint_level, 1), 3)
+        level = min(max(ctx.hint_level, 0), 3)
         return _fill(template, {"level": str(level), "level_rule": LEVEL_RULES[level]})
     if help_type == "explain":
         if not label:
@@ -136,6 +155,7 @@ def build_prompt(
     *,
     cfg: HelpConfig | None = None,
     no_passages: bool = False,
+    hint_choice: bool = False,
 ) -> tuple[str, str]:
     """``(system, user)`` for one generator call; ``ValueError`` if no trim fits the budget.
     ``no_passages`` is the evaluation-only baseline (review C1-R7): ``chunks`` must be empty
@@ -147,7 +167,7 @@ def build_prompt(
             raise ValueError("the no-passage baseline takes no passages")
         system += "\n\n" + _template(cfg.prompt_version, "no_passages")
     head = _context_block(ctx, cfg.field_caps)
-    tail = f"<task>\n{_task(ctx, help_type, confusion_label, cfg)}\n</task>"
+    tail = f"<task>\n{_task(ctx, help_type, confusion_label, cfg, hint_choice)}\n</task>"
     if strict:
         tail += f"\n\n<repair>{REPAIR_INSTRUCTION}</repair>"
     texts = [_data(c.text) for c in chunks]

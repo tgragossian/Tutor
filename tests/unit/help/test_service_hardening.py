@@ -148,6 +148,7 @@ def _flaky_tx(kit: Kit, busy: set[int]) -> dict[str, int]:
 
 
 def test_finalize_retried_once_on_busy_db(kit: Kit) -> None:
+    kit.submit_wrong()  # so the delivered hint moves the ladder (R35)
     calls = _flaky_tx(kit, {2})  # admission is 1, finalization is 2, its retry is 3
     kit.generator.script = [output()]
     rid = uuid.uuid4()

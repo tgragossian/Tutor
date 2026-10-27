@@ -496,6 +496,18 @@ def _ops(model: str, recs: list[CaseRecord], s: Summary) -> str:
     )
 
 
+def mistake_agreement(records: list[CaseRecord]) -> str:
+    """Per model, how often its same/new call on delivered hint-choice cases matches the
+    case label (ruling R35); reported, not a gate."""
+    parts = []
+    for model in dict.fromkeys(r.model for r in records):
+        judged = [r for r in records if r.model == model and r.hint_choice and r.mistake]
+        if judged:
+            agree = sum(1 for r in judged if r.mistake == r.expect_mistake)
+            parts.append(f"{model} {agree}/{len(judged)}")
+    return ", ".join(parts) or "none delivered"
+
+
 def render_summary(
     run: RunData,
     summaries: dict[str, Summary],
@@ -520,6 +532,7 @@ def render_summary(
         f"- Spend {usd(int(m.get('spent_micros', 0)))} of {usd(int(m.get('cap_micros', 0)))} "
         f"USD; stopped: {m.get('stopped')}; cases {m.get('cases')}",
         f"- Mix warnings: {m.get('mix_warnings') or 'none'}",
+        f"- Same/new mistake calls (R35, reported only): {mistake_agreement(run.records)}",
         f"- {note or 'human labels: none yet (judge labels only)'}",
         "",
         f"## {title.capitalize()} (delivered responses, Wilson 95%)",

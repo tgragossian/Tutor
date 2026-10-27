@@ -36,6 +36,8 @@ def make_case(**kw: Any) -> HelpCase:
         "reviewed_by": "tg",
     }
     fields.update(kw)
+    if not fields["attempts"] and "hint_level" not in kw:
+        fields["hint_level"] = 0  # R35: a hint with no wrong attempt yet is level 0
     return HelpCase.model_validate(fields)
 
 
@@ -82,7 +84,7 @@ def mix_cases(split: str, problems: list[tuple[str, str]]) -> list[HelpCase]:
                     help_type=help_type,
                     attempts=["x"] if category != "out_of_scope" else [],
                     confusion_id=label if help_type == "explain" else None,
-                    hint_level=1,
+                    hint_level=1 if category != "out_of_scope" else 0,
                     tags=[category] + (["known_error"] if known else []),
                     expect_abstain=category == "out_of_scope",
                     withhold_sections=["3", "4", "5", "6"] if category == "out_of_scope" else [],

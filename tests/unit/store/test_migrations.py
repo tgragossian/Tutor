@@ -196,3 +196,36 @@ def test_write_transactions_begin_immediate_reads_do_not(db_url: str) -> None:
             assert _write_lock_free(path)
     finally:
         engine.dispose()
+
+
+def test_0005_adds_hint_ladder_columns_and_downgrades(db_url: str) -> None:
+    """R35: nullable columns only; 0004 rows survive the upgrade and the downgrade."""
+    upgrade(db_url)
+    path = db_url.removeprefix("sqlite:///")
+    _populate_0004(path)
+    raw = sqlite3.connect(path)
+    raw.execute("INSERT INTO item_help_state (session_item_id) VALUES (1)")
+    raw.commit()
+    raw.close()
+    engine = make_engine(db_url)
+    try:
+        cols = {c["name"] for c in inspect(engine).get_columns("item_help_state")}
+        assert "hint_attempt_pk" in cols
+        cols = {c["name"] for c in inspect(engine).get_columns("help_requests")}
+        assert "hint_mistake" in cols
+        with engine.connect() as conn:
+            row = conn.execute(
+                text("SELECT hint_level, hint_attempt_pk FROM item_help_state")
+            ).one()
+        assert tuple(row) == (1, None)
+    finally:
+        engine.dispose()
+    downgrade(db_url, "0004")
+    engine = make_engine(db_url)
+    try:
+        cols = {c["name"] for c in inspect(engine).get_columns("item_help_state")}
+        assert "hint_attempt_pk" not in cols
+        with engine.connect() as conn:
+            assert conn.execute(text("SELECT request_id FROM help_requests")).all() == [("r1",)]
+    finally:
+        engine.dispose()

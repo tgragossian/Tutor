@@ -26,8 +26,9 @@ owns fix order and fresh local evidence; the owner steps still need key, credit,
 
 1. Review 60 cases and 40 queries; set `reviewed_by: tg` ([step 6](../../../../../../evals/help/README.md)).
 2. Approve the 12 confusion labels, the 4 rewritten misconception notes (error-only wording:
-   3.6-221, 3.6-229, 3.6-253 and the `sinx2` choice), the help panel copy and the **provider
-   disclosure wording** (practice page, `#help-disclosure`; spec 09 requires it).
+   3.6-221, 3.6-229, 3.6-253 and the `sinx2` choice), the help panel copy, the **provider
+   disclosure wording** (practice page, `#help-disclosure`; spec 09 requires it) and the hint
+   level wording (R35: `LEVEL_RULES` in `help/prompts.py`, `prompts/v1/hint_choice.md`).
 3. Paid dev run with `--max-usd 4`; blind audit; recompute.
 4. **Decide on the retrieval gate before the holdout:** dev Recall@6 0.79 is below the 0.80
    gate (disclosure: a reviewer scored the draft holdout labels at 0.576 on BM25 before the

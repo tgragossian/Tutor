@@ -41,6 +41,7 @@ where they differ; the spec stays binding. "Cost" is what it costs if the ruling
 | R32 | C1-R4: a holdout claims case, problem, query and chunk ids; any overlap is refused on every commit. | A new holdout needs new problems. |
 | R33 | C1-R7: `--no-retrieval` adds the eval-only `no_passages.md`; uncited replies; same guard. | Baseline prompt differs by one paragraph. |
 | R34 | C1-R9: per-run `spend.jsonl` (reserve before, settle after) and `--spent`, not an early `run.json`. | None. |
+| R35 | Hint ladder by mistake (Thomas, 2026-10-27): level 0 before a wrong answer; 1 → 2 → 3 on the same mistake; a newer wrong attempt at level 2–3 asks the model "same" or "new" (new → level 1). Migration 0005. Feedback unchanged. | Model misjudges same/new: one hint too gentle or one step too direct (guard still applies). |
 
 Final whole-branch review added: per-user help limits (10 per 60 s, 2 in flight), guard pool
 and query caps read from config, runtime note filtering, finalize retry, ledger reconcile in

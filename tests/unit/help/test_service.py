@@ -23,7 +23,13 @@ from support.helpkit import (
 from mathtutor.application.errors import Conflict, Forbidden, InvalidAction, InvalidInput, StaleItem
 from mathtutor.domain import ItemState
 from mathtutor.help import messages
-from mathtutor.help.generator import ClaudeGenerator, GenerationResult, GeneratorError
+from mathtutor.help.generator import (
+    HELP_OUTPUT_SCHEMA,
+    HINT_CHOICE_SCHEMA,
+    ClaudeGenerator,
+    GenerationResult,
+    GeneratorError,
+)
 from mathtutor.help.render import render_help_html
 from mathtutor.help.service import HelpIn, HelpOutcome, HelpService, HelpStatus, SourceRef
 from mathtutor.retrieval.corpus import ChunkRole
@@ -39,12 +45,13 @@ def kit(tmp_path: Path) -> Kit:
 
 
 def test_delivered_hint_with_citation(kit: Kit) -> None:
+    kit.submit_wrong()
     kit.generator.script = [output()]
     rid = uuid.uuid4()
     out = kit.help(rid=rid)
     assert out.status is HelpStatus.DELIVERED
     assert out.request_id == str(rid)
-    assert (out.session_item_id, out.item_revision) == (kit.item.session_item_id, 0)
+    assert (out.session_item_id, out.item_revision) == (kit.item.session_item_id, 1)
     assert out.help_seq == 1 and out.hint_level == 1
     assert out.html is not None
     assert "<strong>chain rule</strong>" in out.html
@@ -65,15 +72,22 @@ def test_delivered_hint_with_citation(kit: Kit) -> None:
     assert req.model == CFG.model and 0 < req.timeout_s <= CFG.deadline_s
 
 
-def test_level_ladder_1_2_3_then_stays_3(kit: Kit) -> None:
-    kit.generator.script = [output() for _ in range(4)]
-    levels = [kit.help().hint_level for _ in range(4)]
-    assert levels == [1, 2, 3, 3]
-    prompts = [r.user for r in kit.generator.requests]
-    assert ["Level 1" in prompts[0], "Level 2" in prompts[1], "Level 3" in prompts[2]] == [True] * 3
-    assert "Level 3" in prompts[3]
+def test_level_0_before_a_wrong_answer_then_ladder_1_2_3(kit: Kit) -> None:
+    """R35: level 0 (how to start) never moves the ladder; after a wrong answer the same
+    mistake climbs 1 -> 2 -> 3 and stays at 3."""
+    kit.generator.script = [output() for _ in range(6)]
+    assert [kit.help().hint_level for _ in range(2)] == [0, 0]
     state = kit.state()
-    assert state is not None and (state.hint_level, state.help_seq) == (3, 4)
+    assert state is not None and (state.hint_level, state.hint_attempt_pk) == (1, None)
+    kit.submit_wrong()
+    assert [kit.help().hint_level for _ in range(4)] == [1, 2, 3, 3]
+    prompts = [r.user for r in kit.generator.requests]
+    assert all("Level 0" in u for u in prompts[:2])
+    assert ["Level 1" in prompts[2], "Level 2" in prompts[3], "Level 3" in prompts[4]] == [True] * 3
+    assert all(r.schema == HELP_OUTPUT_SCHEMA for r in kit.generator.requests)
+    state = kit.state()
+    assert state is not None and (state.hint_level, state.help_seq) == (3, 6)
+    assert state.hint_attempt_pk is not None
 
 
 def test_feedback_and_explain_do_not_advance_ladder(kit: Kit) -> None:
@@ -114,6 +128,7 @@ def test_unknown_help_type_rejected(kit: Kit) -> None:
 
 
 def test_unknown_citation_repairs_then_fallback(kit: Kit) -> None:
+    kit.submit_wrong()
     kit.generator.script = [output(ids=("nope",)), output(ids=("c1-3.6-key1",))]
     rid = uuid.uuid4()
     out = kit.help(rid=rid)
@@ -131,6 +146,7 @@ def test_unknown_citation_repairs_then_fallback(kit: Kit) -> None:
 
 
 def test_unknown_citation_repaired_on_second_call(kit: Kit) -> None:
+    kit.submit_wrong()
     kit.generator.script = [output(ids=("nope",)), output()]
     out = kit.help()
     assert out.status is HelpStatus.DELIVERED and out.hint_level == 1
@@ -288,6 +304,7 @@ def test_only_answer_hits_abstain(tmp_path: Path) -> None:
 
 
 def test_same_id_replays(kit: Kit) -> None:
+    kit.submit_wrong()
     kit.generator.script = [output()]
     rid = uuid.uuid4()
     first = kit.help(rid=rid)
@@ -385,6 +402,7 @@ def test_abandoned_in_flight_is_recovered(kit: Kit) -> None:
         kit.wall.advance(seconds=CFG.admission.uncertain_after_s + 1)
         inner.append(kit.help(rid=new))
 
+    kit.submit_wrong()
     kit.generator.script = [output(), output()]
     kit.generator.before = stuck
     outer = kit.help(rid=old)
@@ -486,10 +504,11 @@ def test_disabled_service_is_unavailable(tmp_path: Path) -> None:
 
 def test_availability(kit: Kit) -> None:
     av = kit.svc.availability(kit.item, kit.user)
-    assert av.enabled and av.types == ["hint", "explain"] and av.hint_level == 1
+    assert av.enabled and av.types == ["hint", "explain"] and av.hint_level == 0
     assert [c.id for c in av.confusions][0] == "why_multiply_inside"
     kit.submit_wrong()
-    assert kit.svc.availability(kit.item, kit.user).types == ["hint", "feedback", "explain"]
+    after = kit.svc.availability(kit.item, kit.user)
+    assert after.types == ["hint", "feedback", "explain"] and after.hint_level == 1
     with pytest.raises(Forbidden):
         kit.svc.availability(kit.item, kit.user + 99)
 
@@ -515,3 +534,83 @@ def test_epoch_recorded_at_admission(kit: Kit) -> None:
     rid = uuid.uuid4()
     assert kit.help(rid=rid).status is HelpStatus.DELIVERED
     assert kit.row(rid).privacy_epoch == 4
+
+
+# -- ruling R35: the hint ladder follows the mistake ------------------------------------------
+
+
+def _choice(mistake: str | None) -> GenerationResult:
+    body = {"text": GOOD_TEXT, "source_ids": ["c1-3.6-rule1"], "abstain": False}
+    if mistake is not None:
+        body["mistake"] = mistake
+    return GenerationResult(json.dumps(body), "end_turn", 2000, 300, CFG.model, "req_x", 12)
+
+
+def _climb_to_3(kit: Kit) -> None:
+    """A wrong answer, then two hints on it: the next hint would be level 3."""
+    kit.submit_wrong()
+    kit.generator.script = [output(), output()]
+    assert [kit.help().hint_level for _ in range(2)] == [1, 2]
+
+
+def test_same_mistake_on_a_new_attempt_keeps_climbing(kit: Kit) -> None:
+    _climb_to_3(kit)
+    kit.submit_wrong()
+    kit.generator.script = [_choice("same")]
+    rid = uuid.uuid4()
+    out = kit.help(rid=rid)
+    assert out.status is HelpStatus.DELIVERED and out.hint_level == 3
+    req = kit.generator.requests[-1]
+    assert req.schema == HINT_CHOICE_SCHEMA
+    assert "Level 3" in req.user and "Level 1" in req.user and 'mistake` to "new"' in req.user
+    row = kit.row(rid)
+    assert (row.hint_level, row.hint_mistake) == (3, "same")
+    state = kit.state()
+    assert state is not None and state.hint_level == 3
+
+
+def test_new_mistake_drops_back_to_level_1(kit: Kit) -> None:
+    _climb_to_3(kit)
+    first = kit.state()
+    assert first is not None
+    kit.submit_wrong()
+    kit.generator.script = [_choice("new"), output()]
+    rid = uuid.uuid4()
+    out = kit.help(rid=rid)
+    assert out.status is HelpStatus.DELIVERED and out.hint_level == 1
+    assert (kit.row(rid).hint_level, kit.row(rid).hint_mistake) == (1, "new")
+    state = kit.state()
+    assert state is not None and state.hint_level == 2
+    assert state.hint_attempt_pk is not None and state.hint_attempt_pk != first.hint_attempt_pk
+    # The next hint is about the same (latest) attempt: level 2, no judgment.
+    assert kit.help().hint_level == 2
+    assert kit.generator.requests[-1].schema == HELP_OUTPUT_SCHEMA
+
+
+def test_new_attempt_at_level_1_needs_no_judgment(kit: Kit) -> None:
+    kit.submit_wrong()
+    kit.submit_wrong()  # two wrong answers, no hint yet
+    kit.generator.script = [output()]
+    assert kit.help().hint_level == 1
+    assert kit.generator.requests[-1].schema == HELP_OUTPUT_SCHEMA
+
+
+def test_choice_reply_without_mistake_is_repaired(kit: Kit) -> None:
+    _climb_to_3(kit)
+    kit.submit_wrong()
+    kit.generator.script = [_choice(None), _choice("same")]
+    out = kit.help()
+    assert out.status is HelpStatus.DELIVERED and out.hint_level == 3
+    assert len(kit.generator.requests) == 4  # two climbing hints, then invalid + repair
+
+
+def test_undelivered_choice_leaves_the_ladder(kit: Kit) -> None:
+    _climb_to_3(kit)
+    before = kit.state()
+    assert before is not None
+    kit.submit_wrong()
+    kit.generator.script = [GeneratorError("rate_limited", status_code=429)]
+    assert kit.help().status is HelpStatus.UNAVAILABLE
+    after = kit.state()
+    assert after is not None
+    assert (after.hint_level, after.hint_attempt_pk) == (3, before.hint_attempt_pk)

@@ -52,7 +52,11 @@ class HelpCase(_Row):
     help_type: HelpType
     attempts: list[str] = Field(max_length=6)
     confusion_id: str | None
-    hint_level: int = Field(ge=1, le=3)
+    hint_level: int = Field(ge=0, le=3)
+    # R35: a hint after a new wrong attempt, where the model judges same or new mistake;
+    # ``expect_mistake`` is the reviewer's answer.
+    hint_choice: bool = False
+    expect_mistake: Literal["same", "new"] | None = None
     tags: frozenset[str]
     expect_abstain: bool
     withhold_sections: list[str] = Field(default_factory=list)
@@ -80,6 +84,14 @@ class HelpCase(_Row):
             raise ValueError("withhold_sections is only for out_of_scope cases")
         if self.known_error and (not self.attempts or self.help_type == "explain"):
             raise ValueError("known_error needs an attempt and a hint or feedback request")
+        if self.help_type == "hint" and (self.hint_level == 0) != (not self.attempts):
+            raise ValueError("a hint is level 0 exactly when there is no wrong attempt yet")
+        if self.hint_choice and (
+            self.help_type != "hint" or len(self.attempts) < 2 or self.hint_level < 2
+        ):
+            raise ValueError("a same-or-new choice is a level 2-3 hint after two attempts")
+        if self.hint_choice != (self.expect_mistake is not None):
+            raise ValueError("expect_mistake is set exactly on hint_choice cases")
         if cats[0] in ("mistaken_reasoning", "nearly_right") and not self.known_error:
             raise ValueError(f"{cats[0]} cases are known_error cases")
         return self

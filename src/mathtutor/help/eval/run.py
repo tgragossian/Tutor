@@ -115,6 +115,9 @@ class CaseRecord:
     elapsed_ms: int
     cost_micros: int
     budget_stopped: bool = False
+    hint_choice: bool = False
+    expect_mistake: str | None = None
+    mistake: str | None = None  # the model's same/new call when delivered (R35)
 
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
@@ -183,7 +186,13 @@ def run_case(
 
     started = env.clock()
     result = pipeline.run(
-        ctx, case.help_type, label, problem.answer, started + cfg.deadline_s, may_call=ask
+        ctx,
+        case.help_type,
+        label,
+        problem.answer,
+        started + cfg.deadline_s,
+        may_call=ask,
+        hint_choice=case.hint_choice,
     )
     elapsed_ms = round((env.clock() - started) * 1000)
     replies = iter(recorder.replies)
@@ -224,6 +233,9 @@ def run_case(
         elapsed_ms=elapsed_ms,
         cost_micros=cost,
         budget_stopped=bool(refused),
+        hint_choice=case.hint_choice,
+        expect_mistake=case.expect_mistake,
+        mistake=result.mistake,
     )
 
 

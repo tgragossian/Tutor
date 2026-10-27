@@ -121,7 +121,7 @@ def _rows(app: FastAPI) -> list[HelpRequestRow]:
 def test_item_carries_help_availability(client: TestClient) -> None:
     sid = start(client)
     help_ = _item(client, sid)["help"]
-    assert help_["enabled"] is True and help_["hint_level"] == 1
+    assert help_["enabled"] is True and help_["hint_level"] == 0  # no wrong answer yet (R35)
     assert help_["types"][0] == "hint" and "feedback" not in help_["types"]
     assert all(set(c) == {"id", "label"} for c in help_["confusions"])
 
@@ -132,10 +132,11 @@ def test_hint_delivered(client: TestClient, gen: CitingGenerator) -> None:
     r = client.post("/api/help", json=_help(client, item))
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["status"] == "delivered" and body["hint_level"] == 1 and body["help_seq"] == 1
+    # No wrong answer yet: a level-0 "how to start" hint, which never moves the ladder (R35).
+    assert body["status"] == "delivered" and body["hint_level"] == 0 and body["help_seq"] == 1
     assert "outside in" in body["html"] and len(body["sources"]) == 1
     assert set(body["sources"][0]) == {"label", "url", "license"}
-    assert _item(client, sid)["help"]["hint_level"] == 2
+    assert _item(client, sid)["help"]["hint_level"] == 0
     assert len(gen.requests) == 1
 
 

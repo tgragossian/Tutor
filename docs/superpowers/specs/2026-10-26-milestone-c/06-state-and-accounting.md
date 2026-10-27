@@ -17,7 +17,8 @@ Review amendment, 2026-10-26. These are required new interfaces, not existing B 
 4. Release the transaction before retrieval, provider, parsing or worker calls.
 5. Recheck ownership, current item/revision, deletion epoch and help sequence before finalizing.
    Discard stale text; retain content-free usage. The browser also rejects stale responses.
-6. Increment the hint ladder only for an accepted generated hint, once, capped at 3.
+6. Increment the hint ladder only for an accepted generated hint, once, capped at 3
+   (R35: level 0 never moves it; a "new" mistake on a newer attempt resets it to 1).
    Feedback/explain, failure, blocked fallback and replay do not advance it.
 7. Return a terminal status, request ID, item ID/revision, help sequence and validated payload.
    A crash after dispatch is an uncertain outcome, never automatic permission to call again.

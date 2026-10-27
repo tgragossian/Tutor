@@ -182,12 +182,17 @@ class AttemptResult(Base):
 
 
 class ItemHelpState(Base):
-    """Per-presentation help counters and the single in-flight help request id."""
+    """Per-presentation help counters and the single in-flight help request id.
+
+    ``hint_level`` (1-3) is the next hint's level once the item has a wrong answer (level 0,
+    "how to start", is used while it has none). ``hint_attempt_pk`` is the latest wrong
+    submission the last delivered hint addressed (ruling R35)."""
 
     __tablename__ = "item_help_state"
 
     session_item_id: Mapped[int] = mapped_column(ForeignKey("session_items.id"), primary_key=True)
     hint_level: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    hint_attempt_pk: Mapped[int | None] = mapped_column(Integer)
     help_seq: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     in_flight: Mapped[str | None] = mapped_column(String(36))
 
@@ -211,7 +216,8 @@ class HelpRequestRow(Base):
     payload_hash: Mapped[str] = mapped_column(String(64))
     privacy_epoch: Mapped[int] = mapped_column(Integer)
     help_seq: Mapped[int] = mapped_column(Integer)
-    hint_level: Mapped[int | None] = mapped_column(Integer)
+    hint_level: Mapped[int | None] = mapped_column(Integer)  # the level written (0-3)
+    hint_mistake: Mapped[str | None] = mapped_column(String(8))  # "same" / "new" (R35)
     status: Mapped[str] = mapped_column(String(16))
     reason: Mapped[str | None] = mapped_column(String(32))
     model: Mapped[str | None] = mapped_column(String(64))

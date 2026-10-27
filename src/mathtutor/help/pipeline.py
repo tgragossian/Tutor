@@ -27,11 +27,13 @@ from mathtutor.help.config import MAX_CALLS, HelpConfig
 from mathtutor.help.context import HelpContext, HelpType
 from mathtutor.help.generator import (
     HELP_OUTPUT_SCHEMA,
+    HINT_CHOICE_SCHEMA,
     GenerationRequest,
     GenerationResult,
     Generator,
     GeneratorError,
     HelpOutput,
+    HintChoiceOutput,
     UncitedHelpOutput,
 )
 from mathtutor.help.leak_guard import GuardResult, LeakGuard, MalformedMath, split_spans
@@ -89,6 +91,7 @@ class PipelineResult:
     retrieved_ids: list[str] = field(default_factory=list)
     reason: str = ""
     sources: list[SourceRef] = field(default_factory=list)
+    mistake: str | None = None  # the model's same/new call on a hint choice (R35)
 
 
 def source_ref(chunk: Chunk) -> SourceRef:
@@ -182,16 +185,28 @@ class HelpPipeline:
         deadline: float,
         *,
         may_call: Callable[[int], bool] | None = None,
+        hint_choice: bool = False,
     ) -> PipelineResult:
         """``deadline`` is on the pipeline clock's scale. ``may_call(n)`` is asked before each
         call after the first (the caller reserves its cost); False ends the run with the
-        fallback. Never raises: an unexpected error is ``UNAVAILABLE``."""
+        fallback. ``hint_choice``: a hint after a new wrong attempt, where the model also says
+        whether it is the same mistake as before (``result.mistake``, ruling R35). Never
+        raises: an unexpected error is ``UNAVAILABLE``."""
         calls: list[CallRecord] = []
         guards: list[GuardResult] = []
         chunks: list[Chunk] = []
         try:
             return self._run(
-                ctx, help_type, confusion_label, answer, deadline, may_call, calls, guards, chunks
+                ctx,
+                help_type,
+                confusion_label,
+                answer,
+                deadline,
+                may_call,
+                calls,
+                guards,
+                chunks,
+                hint_choice,
             )
         except Exception as exc:  # noqa: BLE001 - fail closed; log the type only
             logger.warning("help pipeline error: %s", type(exc).__name__)
@@ -217,12 +232,14 @@ class HelpPipeline:
         calls: list[CallRecord],
         guards: list[GuardResult],
         chunks: list[Chunk],
+        hint_choice: bool = False,
     ) -> PipelineResult:
         def result(
             status: HelpStatus,
             reason: str,
             text: str | None = None,
             cited: list[str] | None = None,
+            mistake: str | None = None,
         ) -> PipelineResult:
             by_id = {c.chunk_id: c for c in chunks}
             if status is HelpStatus.DELIVERED:
@@ -241,6 +258,7 @@ class HelpPipeline:
                 [c.chunk_id for c in chunks],
                 reason,
                 list(dict.fromkeys(refs)),
+                mistake,
             )
 
         def fallback(reason: str) -> PipelineResult:
@@ -274,6 +292,7 @@ class HelpPipeline:
                     call_no > 1,
                     cfg=self._cfg,
                     no_passages=self._no_passages,
+                    hint_choice=hint_choice,
                 )
             except ValueError:
                 return result(HelpStatus.UNAVAILABLE, "prompt_budget")
@@ -282,7 +301,7 @@ class HelpPipeline:
                 effort=self._cfg.effort,
                 system=system,
                 user=user,
-                schema=HELP_OUTPUT_SCHEMA,
+                schema=HINT_CHOICE_SCHEMA if hint_choice else HELP_OUTPUT_SCHEMA,
                 max_output_tokens=self._cfg.max_output_tokens,
                 timeout_s=remaining,
             )
@@ -302,7 +321,7 @@ class HelpPipeline:
             # still reports what the provider billed.
             calls[-1] = self._record(call_no, reply, "received")
             try:
-                out = self._parse(reply, allowed)
+                out = self._parse(reply, allowed, hint_choice)
                 if not out.abstain:
                     self._check(out.text, answer, deadline, guards)
             except _Invalid as bad:
@@ -315,7 +334,10 @@ class HelpPipeline:
                 calls[-1] = replace(calls[-1], outcome="abstain")
                 return result(HelpStatus.ABSTAINED, "abstained")
             calls[-1] = replace(calls[-1], outcome="ok")
-            return result(HelpStatus.DELIVERED, "delivered", out.text, list(out.source_ids))
+            mistake = out.mistake if isinstance(out, HintChoiceOutput) else None
+            return result(
+                HelpStatus.DELIVERED, "delivered", out.text, list(out.source_ids), mistake
+            )
         return fallback(reason)
 
     @staticmethod
@@ -330,10 +352,18 @@ class HelpPipeline:
             reply.latency_ms,
         )
 
-    def _parse(self, reply: GenerationResult, allowed: set[str]) -> HelpOutput | UncitedHelpOutput:
+    def _parse(
+        self, reply: GenerationResult, allowed: set[str], hint_choice: bool = False
+    ) -> HelpOutput | UncitedHelpOutput:
         if reply.text is None:
             raise _Invalid(f"invalid_{reply.stop_reason}"[:32])
-        shape = UncitedHelpOutput if self._no_passages else HelpOutput
+        shape: type[HelpOutput] | type[UncitedHelpOutput]
+        if self._no_passages:
+            shape = UncitedHelpOutput
+        elif hint_choice:
+            shape = HintChoiceOutput
+        else:
+            shape = HelpOutput
         try:
             out = shape.model_validate_json(reply.text)
         except ValidationError:

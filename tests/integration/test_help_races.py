@@ -31,6 +31,7 @@ def test_concurrent_hints_advance_once(tmp_path: Path) -> None:
     """Both threads start together; whichever admits first blocks inside the provider call
     until the other has returned, so the second must see the item's help in flight."""
     kit = make_kit(tmp_path, [output(), output()])
+    kit.submit_wrong()  # so the delivered hint moves the ladder (R35)
     release = threading.Event()
     kit.generator.before = lambda _req: release.wait(10)
     results: queue.Queue[object] = queue.Queue()
@@ -112,6 +113,7 @@ def test_clear_history_during_help_stores_nothing(tmp_path: Path) -> None:
 
 def test_many_concurrent_requests_one_in_flight(tmp_path: Path) -> None:
     kit = make_kit(tmp_path, [output() for _ in range(6)])
+    kit.submit_wrong()  # so the delivered hint moves the ladder (R35)
     release = threading.Event()
     kit.generator.before = lambda _req: release.wait(10)
     results: queue.Queue[object] = queue.Queue()

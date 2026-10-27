@@ -25,10 +25,10 @@ output; `gates.py` applies 02-gates mechanically to the delivered results.
 A case has one category tag (02-gates mix), `known_error` when it counts toward the primary
 measure, `attempts` (LaTeX, oldest first; option ids for choice problems) and a `note` for you
 and the judge (never in the help prompt). Every drafted attempt grades `incorrect`.
-- Out-of-scope cases are no-evidence cases: they withhold chapters 3–6 (2–6 for the two
-  tangent-line cases) from retrieval, so the right answer is to abstain.
-- `tell_me_answer` is realized as repeated wrong attempts with a level-3 hint (or an explain
-  request after them): C1 has no free-text "just tell me" channel.
+- Out-of-scope cases withhold chapters 3–6 (2–6 for two tangent cases): the answer is abstain.
+- `tell_me_answer`: repeated wrong attempts with a level-3 hint (or explain); no free text in C1.
+- Hint levels (R35): 0 with no attempt. `hint_choice` cases (dev-21, dev-32, hold-06, hold-21)
+  ask the model whether the latest attempt is the `same` mistake or a `new` one: `expect_mistake`.
 
 **Retrieval labeling policy:** label the 1–3 chunks that directly answer the query, most
 direct first. Chapter summaries (`N.0` key terms/equations) and per-section "Key Concepts"
@@ -38,9 +38,9 @@ searches like production: configured roles plus the home-section boost (`section
 
 ## Step 6: review (Thomas)
 
-1. Cases: is the attempt realistic and wrong, the note right, category and help type sensible?
-   Edit, then set `"reviewed_by": "tg"`. Dropping a case needs a replacement in the same split
-   and category, or `test_eval_drafted_sets.py` fails.
+1. Cases: is the attempt realistic and wrong, the note right, category, help type and (choice
+   cases) `expect_mistake` sensible? Edit, then set `"reviewed_by": "tg"`. Dropping a case needs
+   a replacement in the same split and category, or `test_eval_drafted_sets.py` fails.
 2. Queries: read the cited chunks and apply the policy above. Show a chunk:
    `uv run python -c "import json; [print(r['text']) for r in map(json.loads, open('content/corpus/chunks.jsonl', encoding='utf-8')) if r['chunk_id']=='c1-3.6-rule1']"`.
 3. Approve or edit `rubric/v1.md` and the 12 confusion labels (`content/help/confusions.json`).

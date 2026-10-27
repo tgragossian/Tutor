@@ -157,6 +157,19 @@ def _answer_block(case: HelpCase, problem: Any) -> list[str]:
     return lines
 
 
+def _level_note(case: HelpCase) -> str:
+    """The hint level the response should be written at (ruling R35)."""
+    if case.help_type != "hint":
+        return ""
+    if case.hint_choice:
+        written = 1 if case.expect_mistake == "new" else case.hint_level
+        return (
+            f" (hint level {written}: the latest attempt is a {case.expect_mistake} mistake "
+            "compared with the earlier one)"
+        )
+    return f" (hint level {case.hint_level})"
+
+
 def build_judge_prompt(
     case: HelpCase,
     problem: Any,
@@ -178,8 +191,7 @@ def build_judge_prompt(
         "<case>",
         f"Problem statement: {problem.statement}",
         *_answer_block(case, problem),
-        f"Help requested: {case.help_type}"
-        + (f" (hint level {case.hint_level})" if case.help_type == "hint" else ""),
+        f"Help requested: {case.help_type}" + _level_note(case),
     ]
     if label:
         lines.append(f'Confusion the student picked: "{label}"')
