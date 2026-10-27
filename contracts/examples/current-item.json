@@ -18,7 +18,8 @@
       "submit",
       "skip"
     ],
-    "tries_left": 3
+    "tries_left": 3,
+    "help": null
   },
   "done": false,
   "reason": null,

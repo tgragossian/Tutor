@@ -52,6 +52,23 @@ class PublicChoice(_Model):
     label_latex: str
 
 
+HelpTypeName = Literal["hint", "feedback", "explain"]  # "question" arrives in C2
+
+
+class ConfusionOut(_Model):
+    id: str
+    label: str
+
+
+class HelpAvailabilityOut(_Model):
+    """Which help a student may ask for on this item now; ``hint_level`` is the next hint's."""
+
+    enabled: bool
+    types: list[HelpTypeName]
+    confusions: list[ConfusionOut]
+    hint_level: int
+
+
 class PublicItem(_Model):
     session_item_id: int
     revision: int
@@ -62,6 +79,7 @@ class PublicItem(_Model):
     source: Source
     allowed_actions: list[Action]
     tries_left: int
+    help: HelpAvailabilityOut | None = None  # null while help is not enabled
 
 
 class ErrorBody(_Model):
@@ -126,3 +144,35 @@ class SessionSummaryOut(_Model):
     started_at: datetime
     answered: int
     correct: int
+
+
+class HelpRequest(_Model):
+    help_request_id: UUID4
+    session_item_id: Annotated[int, Field(gt=0)]
+    item_revision: Annotated[int, Field(ge=0)]
+    help_type: HelpTypeName
+    confusion: Annotated[str, Field(min_length=1, max_length=64)] | None = None
+
+
+class SourceRefOut(_Model):
+    label: str
+    url: str
+    license: str
+
+
+HelpStatusName = Literal[
+    "delivered", "abstained", "fallback", "unavailable", "limited", "stale", "pending"
+]
+
+
+class HelpResponse(_Model):
+    """200 for a finished request, 202 while ``pending``. ``html`` is sanitized server-side."""
+
+    request_id: str
+    status: HelpStatusName
+    session_item_id: int
+    item_revision: int
+    help_seq: int
+    hint_level: int | None
+    html: str | None
+    sources: list[SourceRefOut]

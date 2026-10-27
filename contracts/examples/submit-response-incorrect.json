@@ -23,7 +23,8 @@
       "submit",
       "skip"
     ],
-    "tries_left": 2
+    "tries_left": 2,
+    "help": null
   },
   "replayed": false
 }

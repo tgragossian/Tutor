@@ -33,7 +33,15 @@ from mathtutor.content.schema import Answer, ChoiceAnswer, Decimals, NumericAnsw
 from mathtutor.domain import Action, AnswerKind, ItemState, VerdictStatus
 from mathtutor.jsonio import loads_exact
 from mathtutor.store.db import is_lock_error, write_transaction
-from mathtutor.store.models import AttemptResult, ItemEvent, SessionItem, StudySession, Submission
+from mathtutor.store.models import (
+    AttemptResult,
+    HelpRequestRow,
+    ItemEvent,
+    SessionItem,
+    StudySession,
+    Submission,
+    User,
+)
 from mathtutor.verify.types import (
     CheckRequest,
     CheckResult,
@@ -201,20 +209,35 @@ class PracticeService:
             return self._view(db, item)
 
     def clear_history(self, user_id: int) -> int:
-        """Hide every listed session. Answers are kept, so progress and selection still use
-        them; returns how many sessions were hidden."""
+        """Hide every listed session and erase the user's help text. Answers are kept, so
+        progress and selection still use them; help rows keep their metadata and the usage
+        ledger is untouched. ``privacy_epoch`` moves on in the same transaction, so a help
+        request in flight finalizes stale with no text. Returns how many sessions were hidden.
+        """
         listed = {s.session_id for s in self.session_summary(user_id)}
-        if not listed:
-            return 0
+        now = self._clock()
         with self._tx() as db:
-            db.execute(
-                update(StudySession)
-                .where(
-                    StudySession.user_id == user_id,
-                    StudySession.id.in_(listed),
-                    StudySession.hidden_at.is_(None),
+            if listed:
+                db.execute(
+                    update(StudySession)
+                    .where(
+                        StudySession.user_id == user_id,
+                        StudySession.id.in_(listed),
+                        StudySession.hidden_at.is_(None),
+                    )
+                    .values(hidden_at=now)
+                    .execution_options(synchronize_session=False)
                 )
-                .values(hidden_at=self._clock())
+            db.execute(
+                update(HelpRequestRow)
+                .where(HelpRequestRow.user_id == user_id, HelpRequestRow.cleared_at.is_(None))
+                .values(output_json=None, cleared_at=now)
+                .execution_options(synchronize_session=False)
+            )
+            db.execute(
+                update(User)
+                .where(User.id == user_id)
+                .values(privacy_epoch=User.privacy_epoch + 1)
                 .execution_options(synchronize_session=False)
             )
         return len(listed)
@@ -449,6 +472,7 @@ class PracticeService:
             )
             db.add(sub)
             db.flush()  # the unique submission_id stops a concurrent duplicate here
+            self._link_help(db, item.id, key, now)
             return _Reservation(sub.id, key, item.id, item_revision, spec, answer, 0, now)
 
     def _grade(self, user_id: int, session_id: int, res: _Reservation) -> SubmitView:
@@ -532,11 +556,30 @@ class PracticeService:
             raise StaleItem("This problem changed while it was being checked.")
         return SubmitView(outcome, view, False, checked.worker_ms, checked.queue_ms)
 
+    @staticmethod
+    def _link_help(db: Session, session_item_id: int, submission_id: str, now: datetime) -> None:
+        """Follow-up link: the item's latest delivered help, finished before this reservation,
+        names this submission as the attempt that followed it, once."""
+        latest = db.scalar(
+            select(HelpRequestRow)
+            .where(
+                HelpRequestRow.session_item_id == session_item_id,
+                HelpRequestRow.status == "delivered",
+                HelpRequestRow.finished_at.is_not(None),
+                HelpRequestRow.finished_at < now,
+            )
+            .order_by(HelpRequestRow.finished_at.desc(), HelpRequestRow.id.desc())
+            .limit(1)
+        )
+        if latest is not None and latest.next_submission_id is None:
+            latest.next_submission_id = submission_id
+
     def _release(self, res: _Reservation) -> None:
         """Delete a reservation only while this request still holds its lease and no result
-        exists; otherwise someone else now owns it (B-R5)."""
+        exists; otherwise someone else now owns it (B-R5). A released answer changed nothing,
+        so it is not the follow-up attempt of any help either."""
         with self._tx() as db:
-            db.execute(
+            deleted = db.execute(
                 delete(Submission).where(
                     Submission.id == res.submission_pk,
                     Submission.submission_id == res.submission_id,
@@ -546,6 +589,13 @@ class PracticeService:
                     .exists(),
                 )
             )
+            if cast(CursorResult[Any], deleted).rowcount == 1:
+                db.execute(
+                    update(HelpRequestRow)
+                    .where(HelpRequestRow.next_submission_id == res.submission_id)
+                    .values(next_submission_id=None)
+                    .execution_options(synchronize_session=False)
+                )
 
     # -- helpers ----------------------------------------------------------------------------
 

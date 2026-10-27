@@ -66,8 +66,8 @@ class HelpLimited(AppError):
     status = 429
     code = "help_limited"
 
-    def __init__(self, reason: str) -> None:
-        super().__init__(f"help limited: {reason}")
+    def __init__(self, reason: str, message: str | None = None) -> None:
+        super().__init__(message or f"help limited: {reason}")
         self.reason = reason
 
 

@@ -1,0 +1,51 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "help_request_id": {
+      "format": "uuid4",
+      "title": "Help Request Id",
+      "type": "string"
+    },
+    "session_item_id": {
+      "exclusiveMinimum": 0,
+      "title": "Session Item Id",
+      "type": "integer"
+    },
+    "item_revision": {
+      "minimum": 0,
+      "title": "Item Revision",
+      "type": "integer"
+    },
+    "help_type": {
+      "enum": [
+        "hint",
+        "feedback",
+        "explain"
+      ],
+      "title": "Help Type",
+      "type": "string"
+    },
+    "confusion": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confusion"
+    }
+  },
+  "required": [
+    "help_request_id",
+    "session_item_id",
+    "item_revision",
+    "help_type"
+  ],
+  "title": "HelpRequest",
+  "type": "object"
+}

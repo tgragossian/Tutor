@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import secrets
+import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
@@ -18,6 +21,7 @@ from fastapi.templating import Jinja2Templates
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy import Engine, text
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
+from sqlalchemy.orm import Session, sessionmaker
 from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -27,10 +31,19 @@ from mathtutor.application.auth import AuthService
 from mathtutor.application.errors import AppError, DatabaseBusy
 from mathtutor.application.practice import Pool, PracticeService
 from mathtutor.content.loader import LoadedContent, load_bundle, servable
+from mathtutor.help.config import HelpConfig, load_help_config
+from mathtutor.help.context import Confusion, load_confusions
+from mathtutor.help.generator import ClaudeGenerator, Generator, ScriptedGenerator
+from mathtutor.help.leak_guard import LeakGuard
+from mathtutor.help.ledger import Ledger
+from mathtutor.help.pipeline import HelpPipeline
+from mathtutor.help.service import HelpService
+from mathtutor.retrieval.bm25 import Bm25Index
+from mathtutor.retrieval.corpus import Corpus, CorpusError, load_corpus
 from mathtutor.settings import Settings
 from mathtutor.store.db import is_lock_error, make_engine, make_sessionmaker
 from mathtutor.verify.pool import VerifierPool
-from mathtutor.web.api import auth_router, practice_router
+from mathtutor.web.api import auth_router, help_router, practice_router
 from mathtutor.web.logging import BodyLimitMiddleware, RequestLogMiddleware
 from mathtutor.web.pages import APP_NAME, pages_router, render_error
 from mathtutor.web.security import CookieCodec, RateLimiter
@@ -85,6 +98,8 @@ AUTH_LIMIT = (10, 60.0)  # per client IP
 SUBMIT_LIMIT = (30, 60.0)  # per user
 
 
+logger = logging.getLogger(__name__)
+
 HTTP_CODES = {404: "not_found", 405: "method_not_allowed", 413: "payload_too_large"}
 
 
@@ -128,15 +143,94 @@ class _Pool(Pool, Protocol):
     def close(self) -> None: ...
 
 
+@dataclass(frozen=True)
+class _HelpParts:
+    """What enabled help needs, loaded once at startup: the index is never rebuilt per request."""
+
+    corpus: Corpus
+    index: Bm25Index
+    confusions: dict[str, list[Confusion]]
+    generator: Generator
+
+
+def _help_wanted(settings: Settings) -> bool:
+    if settings.help_generator == "off":
+        return False
+    if settings.help_generator == "claude":
+        key = settings.anthropic_api_key
+        return key is not None and bool(key.get_secret_value())
+    return True
+
+
+def _load_help(
+    settings: Settings, cfg: HelpConfig, generator: Generator | None
+) -> _HelpParts | None:
+    """Help is enabled only when it is not off, a ``claude`` generator has a key, and the corpus
+    loads with a valid hash. Otherwise None: items carry ``help: null``, ``/api/help`` answers
+    ``unavailable``, and the app still starts and stays ready. Logs the error type only."""
+    if not _help_wanted(settings):
+        return None
+    try:
+        corpus = load_corpus(settings.corpus_path)
+        confusions = load_confusions(settings.confusions_path)
+    except (CorpusError, OSError, ValueError) as exc:
+        logger.warning("help disabled: %s", type(exc).__name__)
+        return None
+    if generator is None:
+        if settings.help_generator == "scripted":
+            generator = ScriptedGenerator([])
+        else:
+            assert settings.anthropic_api_key is not None  # _help_wanted checked it
+            generator = ClaudeGenerator(settings.anthropic_api_key.get_secret_value())
+    return _HelpParts(corpus, Bm25Index.build(corpus, cfg.retrieval), confusions, generator)
+
+
+def _help_service(
+    sessions: sessionmaker[Session],
+    cfg: HelpConfig,
+    parts: _HelpParts | None,
+    grading: Pool,
+    guard: Pool | None,
+) -> HelpService:
+    """The help service. Without ``parts`` or a guard pool it is disabled and never touches a
+    corpus, generator or guard: help text that cannot be checked is never served."""
+    ledger = Ledger(sessions, cfg, _utcnow)
+    if parts is None or guard is None:
+        empty = Corpus({}, "", "none")
+        pipeline = HelpPipeline(
+            cfg,
+            empty,
+            Bm25Index.build(empty, cfg.retrieval),
+            ScriptedGenerator([]),
+            LeakGuard(grading, cfg.guard, time.monotonic),
+            time.monotonic,
+        )
+        return HelpService(sessions, cfg, ledger, pipeline, grading, {}, now=_utcnow, enabled=False)
+    pipeline = HelpPipeline(
+        cfg,
+        parts.corpus,
+        parts.index,
+        parts.generator,
+        LeakGuard(guard, cfg.guard, time.monotonic),
+        time.monotonic,
+    )
+    return HelpService(sessions, cfg, ledger, pipeline, grading, parts.confusions, now=_utcnow)
+
+
 def create_app(
-    settings: Settings, *, pool: _Pool | None = None, guard_pool: _Pool | None = None
+    settings: Settings,
+    *,
+    pool: _Pool | None = None,
+    guard_pool: _Pool | None = None,
+    generator: Generator | None = None,
 ) -> FastAPI:
     """Build the app. Without ``pool``, a ``VerifierPool`` is started when the app starts
     (lifespan) and closed when it stops; an injected pool belongs to the caller.
 
     The leak guard's pool (``app.state.guard_pool``) is started alongside it only when the app
-    starts its own grading pool, help is not off and no ``guard_pool`` is injected; an injected
-    one is used as is and never closed by the app.
+    starts its own grading pool, help is enabled (``_load_help``) and no ``guard_pool`` is
+    injected; an injected one is used as is and never closed by the app. ``generator``
+    replaces the one ``settings.help_generator`` selects (tests).
     """
     # Eager: a ContentError here stops the process before it serves anything.
     content: LoadedContent = load_bundle(settings.content_path)
@@ -144,6 +238,8 @@ def create_app(
         env=Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
     )
     vendor = _vendor_tags(STATIC_DIR / "vendor" / "manifest.json")
+    help_cfg = load_help_config(settings.help_config_path)
+    help_parts = _load_help(settings, help_cfg, generator)
 
     engine = make_engine(settings.database_url)
     sessions = make_sessionmaker(engine)
@@ -155,6 +251,7 @@ def create_app(
     def attach_pool(p: _Pool) -> None:
         app.state.pool = p
         app.state.practice = PracticeService(sessions, content, p, _utcnow)
+        app.state.help = _help_service(sessions, help_cfg, help_parts, p, app.state.guard_pool)
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
@@ -166,8 +263,7 @@ def create_app(
                     lambda: VerifierPool(size=settings.pool_size, memory_mb=settings.pool_memory_mb)
                 )
                 owned.append(grading)
-                attach_pool(grading)
-                if guard_pool is None and settings.help_generator != "off":
+                if guard_pool is None and help_parts is not None:
                     # The leak guard's own worker, so help checks never queue behind grading.
                     guard = await run_in_threadpool(
                         lambda: VerifierPool(
@@ -180,6 +276,7 @@ def create_app(
                     )
                     owned.append(guard)
                     app.state.guard_pool = guard
+                attach_pool(grading)  # after the guard pool: help is built with it
             yield
         finally:
             for p in owned:
@@ -193,6 +290,8 @@ def create_app(
     app.state.sessions = sessions
     app.state.pool = None
     app.state.guard_pool = guard_pool
+    app.state.help = None
+    app.state.help_generator = None if help_parts is None else help_parts.generator
     app.state.templates = templates
     app.state.vendor = vendor
     app.state.auth = AuthService(sessions, _utcnow)
@@ -239,6 +338,7 @@ def create_app(
 
     app.include_router(auth_router)
     app.include_router(practice_router)
+    app.include_router(help_router)
     app.include_router(pages_router)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 

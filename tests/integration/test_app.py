@@ -125,7 +125,10 @@ def test_guard_pool_started_and_closed_when_help_on(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     made = _recording_pools(monkeypatch)
-    settings = make_settings(tmp_path).model_copy(update={"guard_pool_memory_mb": 200})
+    corpus = ROOT / "content" / "corpus" / "chunks.jsonl"
+    settings = make_settings(tmp_path).model_copy(
+        update={"guard_pool_memory_mb": 200, "help_generator": "scripted", "corpus_path": corpus}
+    )
     app = create_app(settings)
     with TestClient(app) as c:
         assert c.get("/readyz").status_code == 200

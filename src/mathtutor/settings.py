@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     # Milestone C1 help. "scripted" drives tests only; "off" disables help.
     anthropic_api_key: SecretStr | None = None
     corpus_path: Path = Path("content/corpus/chunks.jsonl")
+    confusions_path: Path = Path("content/help/confusions.json")
     help_generator: Literal["claude", "scripted", "off"] = "claude"
     guard_pool_memory_mb: int = Field(default=384, ge=1)
     help_config_path: Path = Path(__file__).parent / "help" / "help_config.json"

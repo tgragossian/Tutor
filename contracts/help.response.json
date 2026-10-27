@@ -1,0 +1,102 @@
+{
+  "$defs": {
+    "SourceRefOut": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "license": {
+          "title": "License",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "url",
+        "license"
+      ],
+      "title": "SourceRefOut",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "200 for a finished request, 202 while ``pending``. ``html`` is sanitized server-side.",
+  "properties": {
+    "request_id": {
+      "title": "Request Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "delivered",
+        "abstained",
+        "fallback",
+        "unavailable",
+        "limited",
+        "stale",
+        "pending"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "session_item_id": {
+      "title": "Session Item Id",
+      "type": "integer"
+    },
+    "item_revision": {
+      "title": "Item Revision",
+      "type": "integer"
+    },
+    "help_seq": {
+      "title": "Help Seq",
+      "type": "integer"
+    },
+    "hint_level": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Hint Level"
+    },
+    "html": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Html"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/SourceRefOut"
+      },
+      "title": "Sources",
+      "type": "array"
+    }
+  },
+  "required": [
+    "request_id",
+    "status",
+    "session_item_id",
+    "item_revision",
+    "help_seq",
+    "hint_level",
+    "html",
+    "sources"
+  ],
+  "title": "HelpResponse",
+  "type": "object"
+}

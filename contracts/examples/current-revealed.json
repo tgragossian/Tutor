@@ -17,7 +17,8 @@
     "allowed_actions": [
       "advance"
     ],
-    "tries_left": 0
+    "tries_left": 0,
+    "help": null
   },
   "done": false,
   "reason": null,

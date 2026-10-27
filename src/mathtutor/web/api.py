@@ -3,15 +3,25 @@
 from __future__ import annotations
 
 import logging
+from typing import cast
 
 from fastapi import APIRouter, Request, Response
 from pydantic import ValidationError
 from starlette.concurrency import run_in_threadpool
 
 from mathtutor.application.auth import AuthService
-from mathtutor.application.errors import InvalidInput, StaleItem, Unauthorized
+from mathtutor.application.errors import (
+    Forbidden,
+    HelpLimited,
+    InvalidInput,
+    NotFound,
+    StaleItem,
+    Unauthorized,
+)
 from mathtutor.application.practice import Done, ItemView, PracticeService
 from mathtutor.domain import AnswerKind
+from mathtutor.help import messages as help_messages
+from mathtutor.help.service import HelpIn, HelpService, HelpStatus
 from mathtutor.jsonio import JsonTooDeep, loads_exact
 from mathtutor.verify.structure import check_structure
 from mathtutor.verify.types import FormatIssue, SubmittedAnswer, Verdict
@@ -20,12 +30,19 @@ from mathtutor.web.schemas import (
     ActionRequest,
     AuthUser,
     ChoiceAnswerIn,
+    ConfusionOut,
     Credentials,
     CurrentResponse,
+    ErrorBody,
     FormatIssueOut,
+    HelpAvailabilityOut,
+    HelpRequest,
+    HelpResponse,
+    HelpStatusName,
     PublicChoice,
     PublicItem,
     SessionSummaryOut,
+    SourceRefOut,
     StartRequest,
     StartResponse,
     SubmissionRequest,
@@ -109,7 +126,26 @@ def practice_service(request: Request) -> PracticeService:
     return service
 
 
-def to_public(view: ItemView) -> PublicItem:
+def help_service(request: Request) -> HelpService:
+    service: HelpService = request.app.state.help
+    return service
+
+
+def help_availability(request: Request, user_id: int, view: ItemView) -> HelpAvailabilityOut | None:
+    """Null while help is not enabled, so a disabled deployment looks exactly as before."""
+    service = help_service(request)
+    if not service.enabled:
+        return None
+    a = service.availability(view, user_id)
+    return HelpAvailabilityOut(
+        enabled=a.enabled,
+        types=list(a.types),
+        confusions=[ConfusionOut(id=c.id, label=c.label) for c in a.confusions],
+        hint_level=a.hint_level,
+    )
+
+
+def to_public(view: ItemView, help_: HelpAvailabilityOut | None = None) -> PublicItem:
     return PublicItem(
         session_item_id=view.session_item_id,
         revision=view.revision,
@@ -122,13 +158,22 @@ def to_public(view: ItemView) -> PublicItem:
         source=view.source,
         allowed_actions=view.allowed_actions,
         tries_left=view.tries_left,
+        help=help_,
     )
 
 
-def to_current(result: ItemView | Done) -> CurrentResponse:
+def public_item(request: Request, user_id: int, view: ItemView) -> PublicItem:
+    return to_public(view, help_availability(request, user_id, view))
+
+
+def to_current(request: Request, user_id: int, result: ItemView | Done) -> CurrentResponse:
     if isinstance(result, Done):
         return CurrentResponse(item=None, done=True, reason=result.reason)
-    return CurrentResponse(item=to_public(result), done=False, revealed_latex=result.revealed_latex)
+    return CurrentResponse(
+        item=public_item(request, user_id, result),
+        done=False,
+        revealed_latex=result.revealed_latex,
+    )
 
 
 def _outcome(outcome: Verdict | FormatIssue) -> VerdictOut | FormatIssueOut:
@@ -164,7 +209,9 @@ def list_sessions(auth: CurrentUser, request: Request) -> list[SessionSummaryOut
 
 @practice_router.get("/{session_id}/current")
 def current(session_id: int, auth: CurrentUser, request: Request) -> CurrentResponse:
-    return to_current(practice_service(request).current_item(auth.user_id, session_id))
+    return to_current(
+        request, auth.user_id, practice_service(request).current_item(auth.user_id, session_id)
+    )
 
 
 @practice_router.post("/{session_id}/submit")
@@ -186,7 +233,8 @@ async def submit(session_id: int, auth: CsrfUser, request: Request) -> SubmitRes
             view = await run_in_threadpool(service.current_item, auth.user_id, session_id)
             if isinstance(view, Done) or view.session_item_id != req.session_item_id:
                 raise StaleItem("This problem changed; reload it.")
-            return SubmitResponse(outcome=_outcome(issue), item=to_public(view), replayed=False)
+            item = await run_in_threadpool(public_item, request, auth.user_id, view)
+            return SubmitResponse(outcome=_outcome(issue), item=item, replayed=False)
     submitted = SubmittedAnswer(
         kind=AnswerKind(answer.kind),
         mathjson=None if isinstance(answer, ChoiceAnswerIn) else answer.mathjson,
@@ -214,9 +262,8 @@ async def submit(session_id: int, auth: CsrfUser, request: Request) -> SubmitRes
         }
     else:
         request.state.log = {"format_issue": result.outcome.code.value}
-    return SubmitResponse(
-        outcome=_outcome(result.outcome), item=to_public(result.item), replayed=result.replayed
-    )
+    item = await run_in_threadpool(public_item, request, auth.user_id, result.item)
+    return SubmitResponse(outcome=_outcome(result.outcome), item=item, replayed=result.replayed)
 
 
 def _bad_body(exc: Exception) -> str:
@@ -233,18 +280,22 @@ def advance(
     session_id: int, body: ActionRequest, auth: CsrfUser, request: Request
 ) -> CurrentResponse:
     return to_current(
+        request,
+        auth.user_id,
         practice_service(request).advance(
             auth.user_id, session_id, body.session_item_id, body.item_revision
-        )
+        ),
     )
 
 
 @practice_router.post("/{session_id}/skip")
 def skip(session_id: int, body: ActionRequest, auth: CsrfUser, request: Request) -> CurrentResponse:
     return to_current(
+        request,
+        auth.user_id,
         practice_service(request).skip(
             auth.user_id, session_id, body.session_item_id, body.item_revision
-        )
+        ),
     )
 
 
@@ -253,7 +304,51 @@ def reveal(
     session_id: int, body: ActionRequest, auth: CsrfUser, request: Request
 ) -> CurrentResponse:
     return to_current(
+        request,
+        auth.user_id,
         practice_service(request).reveal(
             auth.user_id, session_id, body.session_item_id, body.item_revision
-        )
+        ),
+    )
+
+
+# -- help -----------------------------------------------------------------------------------
+
+help_router = APIRouter(prefix="/api/help")
+
+
+@help_router.post("", responses={202: {"model": HelpResponse}, 429: {"model": ErrorBody}})
+def request_help(
+    body: HelpRequest, auth: CsrfUser, request: Request, response: Response
+) -> HelpResponse:
+    """200 with the finished outcome, 202 while the item's help is in flight, 409 for a stale
+    revision or a reused request id, 429 ``help_limited``. Someone else's item is a 404.
+    Runs in the thread pool: the provider call blocks for seconds."""
+    req = HelpIn(
+        help_request_id=body.help_request_id,
+        session_item_id=body.session_item_id,
+        item_revision=body.item_revision,
+        help_type=body.help_type,
+        confusion=body.confusion,
+    )
+    try:
+        outcome = help_service(request).request_help(auth.user_id, req)
+    except Forbidden:
+        raise NotFound(help_messages.PROBLEM_NOT_FOUND) from None
+    request.state.log = {"help_type": body.help_type, "help_status": outcome.status.value}
+    if outcome.status is HelpStatus.LIMITED:
+        raise HelpLimited("limited", help_messages.LIMITED)
+    if outcome.status is HelpStatus.PENDING:
+        response.status_code = 202
+    return HelpResponse(
+        request_id=outcome.request_id,
+        status=cast(HelpStatusName, outcome.status.value),
+        session_item_id=outcome.session_item_id,
+        item_revision=outcome.item_revision,
+        help_seq=outcome.help_seq,
+        hint_level=outcome.hint_level,
+        html=outcome.html,
+        sources=[
+            SourceRefOut(label=r.label, url=r.url, license=r.license) for r in outcome.sources
+        ],
     )
