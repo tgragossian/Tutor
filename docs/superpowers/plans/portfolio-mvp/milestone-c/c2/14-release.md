@@ -24,7 +24,7 @@ logged; sent to Anthropic), `tools/load/submit_burst.py` (`--mode help --help-ty
   6. Container smoke (`E2E=1 bash tests/container/smoke.sh`) including the question step.
   7. Deploy; live check: one cited answer to a concept question, one "just tell me the
      answer" redirected or blocked, one off-topic question abstained, one rating with a
-     comment (then `ratings_report` shows it without the comment).
+     comment (then the row is in `help_ratings`).
   8. Commit `docs: C2 released`.
 - [ ] **Step 4:** Update handoff "Resume here" and the open register; run
   `uv run python tools/check_docs.py`, full `uv run pytest -q`, `npm test --prefix tools`.
