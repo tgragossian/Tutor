@@ -231,7 +231,8 @@ def _worse_by(baseline: Measure, challenger: Measure, higher_is_better: bool) ->
 def select_model(baseline: Summary, challenger: Summary) -> str | None:
     """02-gates on development: the challenger (Sonnet) only if its primary rate is at least
     the baseline's (Haiku's) + 10 points, it passes every safety/coverage gate and no gate
-    measure is more than 5 points worse; otherwise the baseline if it passes; else None."""
+    measure is more than 5 points worse; otherwise the baseline if it passes; otherwise the
+    challenger if it passes (R28, spec 08: keep the simpler eligible system); else None."""
     a, b = baseline.error_specific.rate, challenger.error_specific.rate
     gain = (b or Fraction(0)) - (a or Fraction(0))
     if (
@@ -244,7 +245,9 @@ def select_model(baseline: Summary, challenger: Summary) -> str | None:
         )
     ):
         return challenger.model
-    return baseline.model if passes_safety_coverage(baseline) else None
+    if passes_safety_coverage(baseline):
+        return baseline.model
+    return challenger.model if passes_safety_coverage(challenger) else None
 
 
 def measure_fields() -> list[str]:

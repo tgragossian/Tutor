@@ -6,13 +6,14 @@ import hashlib
 import json
 import math
 import re
+import unicodedata
 from collections import Counter
 from dataclasses import dataclass
 
 from mathtutor.help.config import RetrievalParams
 from mathtutor.retrieval.corpus import ChunkRole, Corpus
 
-TOKENIZER_VERSION = "tok-1"
+TOKENIZER_VERSION = "tok-2"
 
 STOPWORDS = frozenset(
     "a an and are as at be but by can for from has have if in is it its of on or so such "
@@ -21,17 +22,40 @@ STOPWORDS = frozenset(
 STRUCTURAL_COMMANDS = frozenset(
     "frac dfrac tfrac left right begin end text mathrm mathbf quad qquad displaystyle".split()
 )
-_TOKEN = re.compile(r"\\([a-z]+)|\\.|([a-z]+)|([0-9]+)|((?<=[a-z])')")
+_TOKEN = re.compile(r"\\([a-z]+)|\\.|([a-z]+)|([0-9]+)|((?<=[a-z'])')")
+_QUOTES = str.maketrans({"\u2019": "'", "\u2018": "'", "\u02bc": "'"})
+_INVERSE_TRIG = re.compile(r"\\(sin|cos|tan)\s*\^\s*(?:\{\s*-\s*1\s*\}|-\s*1)")
+# Synonym map (tok-2), applied to index and query alike; keep it short:
+#   e^{x} / e^x        -> "exponential"
+#   "critical number"  -> "critical point"
+_EXP_X = re.compile(r"(?<![a-z\\])e\s*\^\s*(?:\{\s*x\s*\}|x)(?![a-z0-9])")
+_POSSESSIVE = re.compile(r"(?<=[a-z])'s\b")
+_JOINED = re.compile(r"(?<=[a-z])'(?=[a-z])")  # l'hopital -> lhopital; a trailing ' is prime
+_SYNONYMS = {("critical", "number"): "point", ("critical", "numbers"): "points"}
+
+
+def _normalize(text: str) -> str:
+    """NFKD accent folding, curly apostrophes to ``'``, lower case, then the rewrites."""
+    folded = unicodedata.normalize("NFKD", text)
+    folded = "".join(c for c in folded if not unicodedata.combining(c))
+    text = folded.translate(_QUOTES).lower()
+    text = _INVERSE_TRIG.sub(lambda m: f" arc{m.group(1)} ", text)
+    text = _EXP_X.sub(" exponential ", text)
+    text = _POSSESSIVE.sub("", text)
+    return _JOINED.sub("", text)
 
 
 def tokenize(text: str) -> list[str]:
-    """Lowercase letter/digit runs and LaTeX command names; ``'`` after a letter is ``prime``.
+    """Lowercase letter/digit runs and LaTeX command names; each ``'`` after a letter (or
+    another prime) is ``prime``, so ``f''`` gives two.
 
+    tok-2 adds accent folding, apostrophe-joined names (``L'Hôpital`` = ``lhopital``),
+    ``\\sin^{-1}`` -> ``arcsin`` (also cos, tan) and the small synonym map above.
     ``\\$`` (an escaped prose dollar sign) and every other backslash escape are dropped, as are
     stopwords and purely structural commands such as ``\\frac``.
     """
     out: list[str] = []
-    for m in _TOKEN.finditer(text.lower()):
+    for m in _TOKEN.finditer(_normalize(text)):
         command, word, digits, prime = m.groups()
         if command is not None:
             if command not in STRUCTURAL_COMMANDS:
@@ -43,7 +67,7 @@ def tokenize(text: str) -> list[str]:
             out.append(digits)
         elif prime is not None:
             out.append("prime")
-    return out
+    return [_SYNONYMS.get((prev, tok), tok) for prev, tok in zip(["", *out], out, strict=False)]
 
 
 @dataclass(frozen=True)

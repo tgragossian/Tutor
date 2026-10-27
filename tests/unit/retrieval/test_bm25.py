@@ -53,6 +53,32 @@ def test_tokenize_prime_and_escaped_dollar() -> None:
     assert len(STOPWORDS) == 40
 
 
+def test_tok2_accents_and_apostrophe_names() -> None:
+    want = ["lhopital", "rule"]
+    assert tokenize("L’Hôpital’s rule") == want
+    assert tokenize("L'Hopital rule") == want and tokenize("lhopital rule") == want
+    assert tokenize("naïve") == ["naive"]
+
+
+def test_tok2_primes() -> None:
+    assert tokenize("f'(x)") == ["f", "prime", "x"]
+    assert tokenize("f''(x)") == ["f", "prime", "prime", "x"]
+    assert tokenize("y'") == ["y", "prime"]
+
+
+def test_tok2_inverse_trig() -> None:
+    assert tokenize(r"\sin^{-1}x") == ["arcsin", "x"]
+    assert tokenize(r"\cos^{-1}(x)") == ["arccos", "x"]
+    assert tokenize(r"\tan^{-1} x and arctan") == ["arctan", "x", "arctan"]
+
+
+def test_tok2_synonyms() -> None:
+    assert tokenize("critical number") == tokenize("critical point") == ["critical", "point"]
+    assert tokenize(r"$e^{x}$") == tokenize("e^x") == ["exponential"]
+    assert tokenize("the exponential function") == ["exponential", "function"]
+    assert tokenize(r"e^{2x}") == ["e", "2", "x"]  # only e^x itself is mapped
+
+
 def test_bm25_scores_known_case() -> None:
     corpus = corpus_of(
         chunk("d1", "chain rule chain"),
@@ -111,13 +137,13 @@ def test_deterministic_ties_and_fingerprint() -> None:
         chunk("z", "slope"), chunk("m", "slope"), chunk("a", "slope"), corpus_hash="h2"
     )
     assert Bm25Index.build(other, params()).fingerprint != one.fingerprint
-    assert TOKENIZER_VERSION == "tok-1"
+    assert TOKENIZER_VERSION == "tok-2"
 
 
 def test_fingerprint_tracks_tokenizer_version(monkeypatch: pytest.MonkeyPatch) -> None:
     corpus = corpus_of(chunk("a", "slope"))
     before = Bm25Index.build(corpus, params()).fingerprint
-    monkeypatch.setattr("mathtutor.retrieval.bm25.TOKENIZER_VERSION", "tok-2")
+    monkeypatch.setattr("mathtutor.retrieval.bm25.TOKENIZER_VERSION", "tok-x")
     assert Bm25Index.build(corpus, params()).fingerprint != before
 
 

@@ -1,5 +1,6 @@
 """Scores, the run files and the summary: ``results/<run_id>/{results.jsonl,run.json,
-summary.md,audit.csv}`` (``results.jsonl`` is git-ignored; the rest is small and committable).
+summary.md,audit.csv,audit_key.csv}`` (``results.jsonl`` is git-ignored; the rest is small and
+committable). ``audit.csv`` is model-blind; ``audit_key.csv`` maps its items to models.
 
 Delivered scoring follows what the student saw: a delivered reply carries the judge's score
 of that raw output; a fallback nudge, abstention or unavailable reply is never useful help.
@@ -70,11 +71,13 @@ def retrieval_metrics(
     index: Bm25Index, queries: list[RetrievalQuery], cfg: HelpConfig
 ) -> RetrievalMetrics:
     """Recall@6 (mean per-query share of labeled chunks in the top 6, the gate measure) and
-    MRR@6, with the configured roles and no section boost."""
+    MRR@6, searched exactly as production does: configured roles and the own-section boost,
+    with the query's home section standing in for the problem's section (R29c)."""
     roles = frozenset(ChunkRole(r) for r in cfg.retrieval.roles)
     rows: list[tuple[str, float, float]] = []
     for q in queries:
-        top = [h.chunk_id for h in index.search(q.text, K, boost_section=None, roles=roles)]
+        hits = index.search(q.text, K, boost_section=q.section, roles=roles)
+        top = [h.chunk_id for h in hits]
         relevant = set(q.relevant_ids)
         recall = len(relevant & set(top)) / len(relevant)
         rank = next((n for n, cid in enumerate(top, 1) if cid in relevant), None)
@@ -262,7 +265,6 @@ def _answer_in(text: str, rec: CaseRecord, answers: dict[str, str]) -> bool:
 AUDIT_COLUMNS = [
     "audit",
     "case_id",
-    "model",
     "item",
     "delivered",
     "help_type",
@@ -280,15 +282,43 @@ def _yn(value: bool) -> str:
     return "y" if value else "n"
 
 
-def audit_rows(run: RunData, answers: dict[str, str]) -> list[dict[str, str]]:
-    """One row per judged (or judge-less) raw output; ``audit`` says which rows Thomas must
-    label: the random sample and every flagged leak, endorsement, math error, guard miss,
-    judge/heuristic disagreement or unjudged item."""
+KEY_COLUMNS = ["item", "case_id", "model", "key"]
+
+
+def _blind_ids(run: RunData) -> dict[tuple[str, str], str]:
+    """``<case_id>-r<n>`` per raw output, numbered in a seeded shuffled order per case, so the
+    audit sheet never shows which model wrote a row (``audit_key.csv`` maps them back)."""
+    by_case: dict[str, list[str]] = {}
+    for rec in run.records:
+        for item in judge_items([rec]):
+            by_case.setdefault(rec.case_id, []).append(item.key)
+    ids: dict[tuple[str, str], str] = {}
+    for case_id, keys in by_case.items():
+        order = sorted(keys)
+        random.Random(f"{run.meta.get('seed', '')}:audit:{case_id}").shuffle(order)
+        for n, key in enumerate(order, 1):
+            ids[(case_id, key)] = f"{case_id}-r{n}"
+    return ids
+
+
+def audit_rows(
+    run: RunData, answers: dict[str, str]
+) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+    """One blinded row per judged (or judge-less) raw output, plus key rows mapping each
+    blinded ``item`` to its model. ``audit`` says which rows Thomas must label: the random
+    sample and every flagged leak, endorsement, math error, guard miss, judge/heuristic
+    disagreement or unjudged item."""
     sample = _strata_sample(run)
-    rows = []
+    blind = _blind_ids(run)
+    rows: list[dict[str, str]] = []
+    keys: list[dict[str, str]] = []
     for rec in run.records:
         delivered = _delivered_key(rec)
         for item in judge_items([rec]):
+            item_id = blind[(rec.case_id, item.key)]
+            keys.append(
+                {"item": item_id, "case_id": rec.case_id, "model": rec.model, "key": item.key}
+            )
             score = score_of(run, rec.case_id, item.key, {})
             flags = []
             if score is None:
@@ -310,8 +340,7 @@ def audit_rows(run: RunData, answers: dict[str, str]) -> list[dict[str, str]]:
             row = {
                 "audit": ";".join(marks),
                 "case_id": rec.case_id,
-                "model": rec.model,
-                "item": item.key,
+                "item": item_id,
                 "delivered": _yn(item.key == delivered),
                 "help_type": rec.help_type,
                 "topic": rec.topic,
@@ -326,11 +355,15 @@ def audit_rows(run: RunData, answers: dict[str, str]) -> list[dict[str, str]]:
                 row[f"human_{f}"] = ""
             rows.append(row)
     rows.sort(key=lambda r: (r["audit"] == "", r["case_id"], r["item"]))
-    return rows
+    keys.sort(key=lambda k: k["item"])
+    return rows, keys
 
 
-def read_human_labels(path: Path) -> tuple[Overrides, list[dict[str, str]]]:
+def read_human_labels(path: Path, key_path: Path) -> tuple[Overrides, list[dict[str, str]]]:
+    """Thomas's labels from the blinded sheet, joined to models through the key file."""
     overrides: Overrides = {}
+    with key_path.open(encoding="utf-8", newline="") as fh:
+        key_of = {k["item"]: k["key"] for k in csv.DictReader(fh)}
     with path.open(encoding="utf-8", newline="") as fh:
         rows = list(csv.DictReader(fh))
     for row in rows:
@@ -348,7 +381,9 @@ def read_human_labels(path: Path) -> tuple[Overrides, list[dict[str, str]]]:
             else:
                 raise ValueError(f"audit.csv {row['case_id']}: {f} must be y or n")
         if labels:
-            overrides[(row["case_id"], row["item"])] = labels
+            if row["item"] not in key_of:
+                raise ValueError(f"audit.csv: {row['item']} is not in audit_key.csv")
+            overrides[(row["case_id"], key_of[row["item"]])] = labels
     return overrides, rows
 
 
@@ -379,11 +414,16 @@ def write_run(
     (run_dir / "run.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
     (run_dir / "results.jsonl").write_text(_records_jsonl(run), encoding="utf-8")
     answers = run.meta.get("answers", {})
-    if not (run_dir / "audit.csv").exists():
-        with (run_dir / "audit.csv").open("w", encoding="utf-8", newline="") as fh:
-            writer = csv.DictWriter(fh, fieldnames=AUDIT_COLUMNS)
-            writer.writeheader()
-            writer.writerows(audit_rows(run, answers))
+    if not (run_dir / "audit.csv").exists():  # never overwrite Thomas's labels
+        rows, keys = audit_rows(run, answers)
+        for name, columns, data in (
+            ("audit.csv", AUDIT_COLUMNS, rows),
+            ("audit_key.csv", KEY_COLUMNS, keys),
+        ):
+            with (run_dir / name).open("w", encoding="utf-8", newline="") as fh:
+                writer = csv.DictWriter(fh, fieldnames=columns)
+                writer.writeheader()
+                writer.writerows(data)
     over = overrides or {}
     summaries = {m: summarize(m, run, over) for m in _models(run)}
     gates = {m: evaluate(s) for m, s in summaries.items()}
@@ -395,7 +435,7 @@ def write_run(
 def recompute(run_dir: Path) -> dict[str, Summary]:
     """Re-score with Thomas's labels from ``audit.csv`` and rewrite ``summary.md``."""
     run = load_run(run_dir)
-    overrides, rows = read_human_labels(run_dir / "audit.csv")
+    overrides, rows = read_human_labels(run_dir / "audit.csv", run_dir / "audit_key.csv")
     rand, targeted = agreement(rows)
     note = (
         f"human labels: {len(overrides)} items; judge-human field agreement, random sample "
@@ -496,7 +536,7 @@ def render_summary(
     if BASELINE in summaries and CHALLENGER in summaries and split == "dev":
         choice = select_model(summaries[BASELINE], summaries[CHALLENGER])
         out += ["", f"**Selection rule:** {choice or 'neither ships'}"]
-        out += _paired(run)
+        out += _paired(run, overrides)
     out += [
         "",
         "## Raw vs delivered",
@@ -538,14 +578,14 @@ def render_summary(
     return "\n".join(out) + "\n"
 
 
-def _paired(run: RunData) -> list[str]:
+def _paired(run: RunData, overrides: Overrides) -> list[str]:
     """Paired primary outcomes on known-error cases (both / Haiku only / Sonnet only / none)."""
     by: dict[str, dict[str, bool]] = {}
     for rec in run.records:
         if not rec.known_error:
             continue
         key = _delivered_key(rec)
-        s = score_of(run, rec.case_id, key, {}) if key else None
+        s = score_of(run, rec.case_id, key, overrides) if key else None
         ok = bool(s and s.addresses_error and s.leak == "none")
         by.setdefault(rec.case_id, {})[rec.model] = ok
     pairs = Counter(

@@ -10,6 +10,7 @@ from support.evalkit import make_case, make_env
 from support.helpkit import CFG, output
 
 from mathtutor.help.config import worst_case_micros
+from mathtutor.help.eval.judge import Judgment
 from mathtutor.help.eval.run import (
     RunnerError,
     SpendCounter,
@@ -105,9 +106,9 @@ def test_spend_cap_refuses_a_repair_call() -> None:
 
 def test_unknown_usage_is_charged_at_worst_case() -> None:
     spend = SpendCounter(CFG, parse_usd("4"))
-    assert spend.charge(HAIKU, None, None, billed_unknown=True) == 1_300
-    assert spend.charge(HAIKU, None, None, billed_unknown=False) == 0
-    assert spend.charge(HAIKU, 2_000, 300) == 350
+    assert spend.charge(spend.help_cfg, HAIKU, None, None, billed_unknown=True) == 1_300
+    assert spend.charge(spend.help_cfg, HAIKU, None, None, billed_unknown=False) == 0
+    assert spend.charge(spend.help_cfg, HAIKU, 2_000, 300) == 350
     assert spend.spent_micros == 1_650
 
 
@@ -116,6 +117,52 @@ def test_parse_usd_is_exact_integer_micros() -> None:
     for bad in ("-1", "0", "abc", "1.0000001"):
         with pytest.raises(ValueError):
             parse_usd(bad)
+
+
+def test_judge_reply_without_usage_is_charged_at_judge_worst_case() -> None:
+    spend = SpendCounter(CFG, parse_usd("4"))
+
+    def judge(case: object, recs: object) -> Judgment:
+        return Judgment("dev-001", "s", [], {}, "invalid", (None, 400))
+
+    run_eval([make_case()], [HAIKU], ScriptedGenerator([output()]), make_env(), spend, judge=judge)
+    # Haiku help call (2,000 in / 300 out = 350) + the judge's worst case (64,000).
+    assert spend.worst_judge() == 64_000 and spend.spent_micros == 350 + 64_000
+
+
+def test_help_reply_without_usage_is_charged_at_worst_case() -> None:
+    spend = SpendCounter(CFG, parse_usd("4"))
+    reply = GenerationResult(output().text, "end_turn", None, None, HAIKU, None, 1)
+    result = run_eval(
+        [make_case()], [HAIKU], ScriptedGenerator([reply]), make_env(), spend, judge=None
+    )
+    assert spend.spent_micros == 1_300 and result.records[0].cost_micros == 1_300
+
+
+def test_default_git_targets_the_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: list[list[str]] = []
+
+    class Done:
+        stdout = "abc123\n"
+
+    def fake_run(cmd: list[str], **_kw: object) -> Done:
+        seen.append(cmd)
+        Done.stdout = "" if "status" in cmd else "abc123\n"
+        return Done()
+
+    monkeypatch.setattr("mathtutor.help.eval.run.subprocess.run", fake_run)
+    check_freeze("holdout", "abc123", tmp_path)
+    assert seen and all(cmd[:3] == ["git", "-C", str(tmp_path)] for cmd in seen)
+
+
+def test_holdout_runs_once_per_commit(tmp_path: Path) -> None:
+    check_freeze("holdout", "abc", tmp_path, git=_git())
+    done = tmp_path / "evals" / "help" / "results" / "20261101-holdout"
+    done.mkdir(parents=True)
+    meta = {"split": "holdout", "head": "abc123"}
+    (done / "run.json").write_text(json.dumps(meta), encoding="utf-8")
+    with pytest.raises(RunnerError, match="already ran"):
+        check_freeze("holdout", "abc", tmp_path, git=_git())
 
 
 def _git(dirty: str = "", head: str = "abc123") -> object:
@@ -132,14 +179,14 @@ def _git(dirty: str = "", head: str = "abc123") -> object:
 
 
 def test_runner_refuses_holdout_without_freeze() -> None:
-    check_freeze("dev", None, _git(dirty=" M x"))  # development runs need no freeze
+    check_freeze("dev", None, git=_git(dirty=" M x"))  # development runs need no freeze
     with pytest.raises(RunnerError, match="--freeze"):
-        check_freeze("holdout", None, _git())
+        check_freeze("holdout", None, git=_git())
     with pytest.raises(RunnerError, match="clean"):
-        check_freeze("holdout", "abc123", _git(dirty=" M src/x.py"))
+        check_freeze("holdout", "abc123", git=_git(dirty=" M src/x.py"))
     with pytest.raises(RunnerError, match="HEAD"):
-        check_freeze("holdout", "abc123", _git(head="def456"))
-    check_freeze("holdout", "abc", _git())
+        check_freeze("holdout", "abc123", git=_git(head="def456"))
+    check_freeze("holdout", "abc", git=_git())
 
 
 def test_main_refuses_holdout_without_freeze(tmp_path: Path) -> None:

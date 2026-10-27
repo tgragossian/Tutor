@@ -16,82 +16,84 @@ output; `gates.py` applies 02-gates mechanically to the delivered results.
 
 | Path | Content |
 |---|---|
-| `cases/dev.jsonl`, `cases/holdout.jsonl` | 36 / 24 help cases, grouped by problem (holdout: 7 problems, 3 topics) |
-| `retrieval/dev.jsonl`, `retrieval/holdout.jsonl` | 28 / 12 book queries with relevant chunk ids, grouped by section |
+| `cases/{dev,holdout}.jsonl` | 36 / 24 help cases, grouped by problem (holdout: 7 problems, 3 topics) |
+| `retrieval/{dev,holdout}.jsonl` | 28 / 12 book queries with relevant chunk ids, grouped by home section |
 | `rubric/v1.md` | the judge's instructions (also yours for the audit) |
-| `results/<run_id>/` | `summary.md`, `run.json`, `audit.csv` (commit) and `results.jsonl` (git-ignored) |
+| `results/<run_id>/` | `summary.md`, `run.json`, `audit.csv`, `audit_key.csv` (commit); `results.jsonl` (ignored) |
 
 A case has one category tag (02-gates mix), `known_error` when it counts toward the primary
 measure, `attempts` (LaTeX, oldest first; option ids for choice problems) and a `note` for you
-and the judge (never in the help prompt). Out-of-scope cases are no-evidence cases: they
-withhold chapters 3–6 from retrieval, so only limits/functions passages remain and the right
-answer is to abstain. Every drafted attempt was graded `incorrect` by the real checker.
+and the judge (never in the help prompt). Every drafted attempt grades `incorrect`.
+- Out-of-scope cases are no-evidence cases: they withhold chapters 3–6 (2–6 for the two
+  tangent-line cases) from retrieval, so the right answer is to abstain.
+- `tell_me_answer` is realized as repeated wrong attempts with a level-3 hint (or an explain
+  request after them): C1 has no free-text "just tell me" channel.
+
+**Retrieval labeling policy:** label the 1–3 chunks that directly answer the query, most
+direct first. Chapter summaries (`N.0` key terms/equations) and per-section "Key Concepts"
+chunks are excluded unless the query asks for a summary. Applied identically to both splits;
+the holdout was relabeled by this rule alone, without running retrieval on it. Evaluation
+searches like production: configured roles plus the home-section boost (`section`).
 
 ## Step 6: review (Thomas)
 
-1. For each case: is the attempt realistic and wrong, the note right, the category and help
-   type sensible? Edit or drop, then set `"reviewed_by": "tg"`. Keep the mix: dropping a case
-   needs a replacement in the same split and category, or `test_eval_drafted_sets.py` fails.
-2. For each query, read the cited chunks and keep only ids that answer it; add any missing
-   one. Show a chunk: `uv run python -c "import json; [print(r['text']) for r in map(json.loads, open('content/corpus/chunks.jsonl', encoding='utf-8')) if r['chunk_id']=='c1-3.6-rule1']"`.
-3. Also approve or edit `rubric/v1.md` and the 12 confusion labels (`content/help/confusions.json`).
-4. Free check on dev labels: `uv run python -m mathtutor.help.eval.run --split dev --retrieval-only`
-   (`--draft` allows unreviewed rows). The holdout refuses any run without `--freeze`.
-5. Run `uv run pytest -q tests/unit/help/test_eval_drafted_sets.py`, then commit the reviewed sets.
+1. Cases: is the attempt realistic and wrong, the note right, category and help type sensible?
+   Edit, then set `"reviewed_by": "tg"`. Dropping a case needs a replacement in the same split
+   and category, or `test_eval_drafted_sets.py` fails.
+2. Queries: read the cited chunks and apply the policy above. Show a chunk:
+   `uv run python -c "import json; [print(r['text']) for r in map(json.loads, open('content/corpus/chunks.jsonl', encoding='utf-8')) if r['chunk_id']=='c1-3.6-rule1']"`.
+3. Approve or edit `rubric/v1.md` and the 12 confusion labels (`content/help/confusions.json`).
+4. Free dev check: `uv run python -m mathtutor.help.eval.run --split dev --retrieval-only`
+   (`--draft` allows unreviewed rows). The holdout refuses every run without `--freeze`.
+5. Run `uv run pytest -q tests/unit/help/test_eval_drafted_sets.py`; commit the reviewed sets.
 
-## Step 7: paid development runs ($5 credit: always `--max-usd 4`)
+## Step 7: paid development runs ($5 credit)
 
-Set `MATHTUTOR_ANTHROPIC_API_KEY` in the shell (tests never read it), recheck list prices
-against `tariffs` in `help_config.json` (C-O5), then:
+Set `MATHTUTOR_ANTHROPIC_API_KEY` (tests never read it), recheck list prices against
+`tariffs` in `help_config.json` (C-O5), set the console spend limit with auto-reload off, then:
 
 ```
 uv run python -m mathtutor.help.eval.run --split dev --models claude-haiku-5-5,claude-sonnet-5-5 --max-usd 4
 uv run python -m mathtutor.help.eval.run --split dev --models claude-haiku-5-5 --no-retrieval --no-judge --max-usd 4
 ```
 
-The second is the retrieval baseline: with no passages every case abstains before any call
-($0). The runner prints the spend after each case and stops before any call (help or judge)
-whose worst case would pass the cap: Haiku 1,300 µ$, Sonnet 26,000 µ$ per help call, judge
-64,000 µ$ (12k input / 4k output on Sonnet). Expect about $1.5–2.5 for the first command.
-Iterate prompts on dev only; every run gets its own `results/<run_id>/`. The summary applies
-the selection rule when both models ran; write the chosen model into `help_config.json`.
+The runner prints the spend after each case and stops before any call whose worst case would
+pass the cap: Haiku 1,300 µ$, Sonnet 26,000 µ$ per help call, judge 64,000 µ$. Expect about
+$1.5–2.5 for the first command. The second (no-retrieval baseline) abstains on every case
+before any call, at $0: a weak comparison, since help must cite passages. Iterate prompts on
+dev only. The summary applies the selection rule; write the chosen model into `help_config.json`.
 
 ## Step 8: audit (Thomas)
 
-Open `results/<run_id>/audit.csv`. Rows with a non-empty `audit` column are required: the
-stratified random 20% (`random`, by help type and topic) and every `flagged:` row (leak,
-endorsement, math error, guard miss, answer-substring heuristic, unjudged). Fill the
-`human_*` columns (`none|expression|prose` for leak, `y|n` otherwise; blank keeps the
-judge's label), then:
-
-```
-uv run python -m mathtutor.help.eval.run --recompute evals/help/results/<run_id>
-```
-
-Your labels win; `summary.md` reports random-sample agreement separately from targeted rows.
+`results/<run_id>/audit.csv` is blind: items are `<case>-r<n>` with no model column; the
+model mapping is in `audit_key.csv` (don't open it while labeling). Rows with a non-empty
+`audit` column are required: the stratified random 20% (`random`, by help type and topic)
+and every `flagged:` row. Fill `human_*` (`none|expression|prose` for leak, `y|n` otherwise;
+blank keeps the judge's label), then
+`uv run python -m mathtutor.help.eval.run --recompute evals/help/results/<run_id>`.
+Your labels win everywhere, including the paired table.
 
 ## Step 9: holdout, once
 
-Commit everything, then run with the chosen model on a clean tree at that commit:
+Credit first: sum `spent_micros` over every earlier `results/*/run.json`, subtract it from
+the credit, and pass the rest minus a margin (≥ $0.30) as `--max-usd`. A holdout that stops
+on the cap or on "credit too low" is spoiled (it ran once, incompletely): do not rerun it on
+the same commit (the runner refuses a second holdout per commit); it needs fresh cases.
+Commit everything, then on a clean tree at that commit:
 
 ```
-uv run python -m mathtutor.help.eval.run --split holdout --models claude-haiku-5-5 --freeze <commit> --max-usd 4
+uv run python -m mathtutor.help.eval.run --split holdout --models <chosen> --freeze <commit> --max-usd <remaining>
 ```
 
-Audit as in step 8, recompute, and commit `summary.md`, `run.json` and `audit.csv`. Exit
-code 1 means a gate failed: that blocks release (Task 15) and turns those cases into
-regression evidence; a new claim then needs fresh holdout cases.
+Audit and recompute as in step 8; commit the results files. Exit code 1 means a gate failed:
+release is blocked (Task 15) and those cases become regression evidence.
 
 ## Watch items
 
-- `max_output_tokens` is 1,000 with adaptive thinking on: a reply can stop at `max_tokens`
-  and count as invalid. The summary's operational table reports the `max_tokens` count per
-  model; if it is not rare, raise the limit (it raises the worst case) before the holdout.
-- The judge (`effort: medium`, 4,000 output tokens) can also stop early; such cases show as
-  `unjudged`, fail the `all_delivered_judged` gate and are flagged for you in `audit.csv`.
-- Draft retrieval labels give dev Recall@6 0.66 (Hit@6 0.86): several queries list 3–5
-  relevant chunks, and LaTeX-only queries retrieve poorly. Recall@6 is gated on the holdout.
-- BM25 tokenizes ASCII letters only: "L'Hôpital" in the book does not match "Lhopital".
-- Selection rule as encoded: Sonnet needs +10 points and every gate; otherwise Haiku if it
-  passes; if Haiku fails, nothing ships even when Sonnet passes (02-gates read literally).
-- Set the Anthropic console spend limit with auto-reload off before the paid runs.
+- `max_output_tokens` 1,000 with adaptive thinking can stop at `max_tokens` (invalid); the
+  operational table reports the count per model. If not rare, raise it before the holdout.
+- The judge (`effort: medium`, 4,000 output tokens) can stop early: such cases are `unjudged`,
+  fail `all_delivered_judged` and are flagged in `audit.csv`.
+- Dev Recall@6 with the policy, tok-2 and the boost: 0.79 (MRR@6 0.66).
+- Selection (R28): Sonnet if +10 points on the primary and every gate with nothing > 5
+  points worse; otherwise Haiku if it passes; otherwise Sonnet if it passes; otherwise none.

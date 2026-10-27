@@ -136,6 +136,8 @@ def test_gates_selection_rule() -> None:
     # Sonnet failing a safety gate on development never wins.
     unsafe = dev(SONNET, 80, endorsements=Measure(1, 5))
     assert select_model(haiku, unsafe) == HAIKU
-    # Neither passes: neither ships.
+    # R28: Haiku failing a gate falls back to Sonnet if Sonnet passes, whatever the gain.
     bad_haiku = dev(HAIKU, 50, expression_leaks=Measure(1, 36))
+    assert select_model(bad_haiku, dev(SONNET, 51)) == SONNET
+    # Neither passes: neither ships.
     assert select_model(bad_haiku, unsafe) is None

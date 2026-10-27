@@ -13,6 +13,7 @@ clean tree at that commit. Unreviewed cases or queries are refused.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -220,7 +221,7 @@ def run_case(
         raws.append(RawOutput(call.call_no, reply.text, reply.stop_reason, call.outcome))
     # Charged at the requested model's tariff, as the ledger reserves and settles it.
     cost = sum(
-        call_micros(cfg, model, c.input_tokens, c.output_tokens, c.billed_unknown)
+        call_micros(cfg, model, c.input_tokens, c.output_tokens, _unknown_usage(asdict(c)))
         for c in result.calls
     )
     return CaseRecord(
@@ -256,27 +257,29 @@ class SpendCounter:
     """The run's own spend, in integer micro-USD, against ``cap_micros``."""
 
     def __init__(self, cfg: HelpConfig, cap_micros: int) -> None:
-        self._cfg = cfg
+        self.help_cfg = cfg
+        self.judge_cfg = judge_cfg(cfg)
         self.cap_micros = cap_micros
         self.spent_micros = 0
 
     def worst_call(self, model: str) -> int:
-        return worst_case_micros(self._cfg, model)
+        return worst_case_micros(self.help_cfg, model)
 
     def worst_judge(self) -> int:
-        return worst_case_micros(judge_cfg(self._cfg), JUDGE_MODEL)
+        return worst_case_micros(self.judge_cfg, JUDGE_MODEL)
 
     def allows(self, worst: int) -> bool:
         return self.spent_micros + worst <= self.cap_micros
 
     def charge(
         self,
+        cfg: HelpConfig,
         model: str,
         input_tokens: int | None,
         output_tokens: int | None,
         billed_unknown: bool = False,
     ) -> int:
-        cfg = judge_cfg(self._cfg) if model == JUDGE_MODEL and input_tokens is None else self._cfg
+        """``cfg`` (``help_cfg`` or ``judge_cfg``) gives the token limits of the worst case."""
         micros = call_micros(cfg, model, input_tokens, output_tokens, billed_unknown)
         self.spent_micros += micros
         return micros
@@ -340,9 +343,8 @@ def run_eval(
 
             rec = run_case(case, generator, model, env, may_call=may_call)
             for call in rec.calls:
-                spend.charge(
-                    model, call["input_tokens"], call["output_tokens"], call["billed_unknown"]
-                )
+                tokens = (call["input_tokens"], call["output_tokens"])
+                spend.charge(spend.help_cfg, model, *tokens, _unknown_usage(call))
             done.append(rec)
             if rec.budget_stopped:
                 stopped = f"spend cap reached during {case.case_id} on {model}"
@@ -354,9 +356,11 @@ def run_eval(
             else:
                 j = judge(case, done)
                 judgments[case.case_id] = j
-                if j.usage is not None or j.billed_unknown:
-                    tokens = j.usage or (None, None)
-                    spend.charge(JUDGE_MODEL, tokens[0], tokens[1], j.billed_unknown)
+                if j.usage is not None:  # a reply came back: missing usage counts at worst
+                    unknown = None in j.usage or j.billed_unknown
+                    spend.charge(spend.judge_cfg, JUDGE_MODEL, *j.usage, unknown)
+                elif j.billed_unknown:
+                    spend.charge(spend.judge_cfg, JUDGE_MODEL, None, None, True)
         statuses = " ".join(f"{r.model.split('-')[1]}={r.status}" for r in done)
         log(
             f"{case.case_id}: {statuses} | spent {usd(spend.spent_micros)} of "
@@ -368,21 +372,49 @@ def run_eval(
     return EvalResult(records, judgments, stopped)
 
 
-def _git(args: list[str]) -> str:
-    out = subprocess.run(["git", *args], capture_output=True, text=True, check=True)
+def _unknown_usage(call: dict[str, Any]) -> bool:
+    """A reply that came back was billed: missing token counts are charged at worst case."""
+    if call["billed_unknown"]:
+        return True
+    missing = call["input_tokens"] is None or call["output_tokens"] is None
+    return missing and not str(call["outcome"]).startswith("error_")
+
+
+def _git(root: Path, args: list[str]) -> str:
+    out = subprocess.run(
+        ["git", "-C", str(root), *args], capture_output=True, text=True, check=True
+    )
     return out.stdout.strip()
 
 
-def check_freeze(split: str, freeze: str | None, git: Callable[[list[str]], str] = _git) -> None:
-    """The holdout runs once, frozen: ``--freeze <commit>``, a clean tree, HEAD at it."""
+def check_freeze(
+    split: str,
+    freeze: str | None,
+    root: Path = Path("."),
+    git: Callable[[list[str]], str] | None = None,
+) -> None:
+    """The holdout runs once, frozen: ``--freeze <commit>``, a clean tree at ``root``, HEAD at
+    the commit, and no earlier holdout results for that commit."""
     if split != "holdout":
         return
     if not freeze:
         raise RunnerError("the holdout split needs --freeze <commit>")
+    if git is None:
+
+        def git(args: list[str]) -> str:
+            return _git(root, args)
+
     if git(["status", "--porcelain"]):
         raise RunnerError("the holdout needs a clean working tree (commit or drop changes)")
-    if git(["rev-parse", "HEAD"]) != git(["rev-parse", freeze]):
+    head = git(["rev-parse", "HEAD"])
+    if head != git(["rev-parse", freeze]):
         raise RunnerError(f"HEAD is not the frozen commit {freeze}")
+    for path in sorted((root / "evals" / "help" / "results").glob("*/run.json")):
+        meta = json.loads(path.read_text(encoding="utf-8"))
+        if meta.get("split") == "holdout" and meta.get("head") == head:
+            raise RunnerError(
+                f"the holdout already ran at {head[:12]} ({path.parent.name}); it runs once"
+            )
 
 
 def _execute(args: argparse.Namespace, root: Path) -> int:
@@ -489,8 +521,8 @@ def _execute(args: argparse.Namespace, root: Path) -> int:
         "tariffs": {m: t.model_dump() for m, t in cfg.tariffs.items()},
         "corpus_hash": corpus.corpus_hash,
         "index_fingerprint": index.fingerprint,
-        "head": _try_git(["rev-parse", "HEAD"]),
-        "dirty": bool(_try_git(["status", "--porcelain"])),
+        "head": _try_git(root, ["rev-parse", "HEAD"]),
+        "dirty": bool(_try_git(root, ["status", "--porcelain"])),
         "freeze": args.freeze,
         "cap_micros": cap,
         "spent_micros": spend.spent_micros,
@@ -509,9 +541,9 @@ def _execute(args: argparse.Namespace, root: Path) -> int:
     return 1 if failed and args.split == "holdout" else 0
 
 
-def _try_git(args: list[str]) -> str:
+def _try_git(root: Path, args: list[str]) -> str:
     try:
-        return _git(args)
+        return _git(root, args)
     except (OSError, subprocess.CalledProcessError):
         return ""
 
@@ -543,7 +575,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         if args.split is None:
             raise RunnerError("--split is required")
-        check_freeze(args.split, args.freeze)
+        check_freeze(args.split, args.freeze, root)
         return _execute(args, root)
     except (RunnerError, ValueError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)
