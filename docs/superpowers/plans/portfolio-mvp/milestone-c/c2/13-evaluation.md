@@ -21,8 +21,15 @@ Test: `tests/unit/help/test_eval_cases.py`, `test_eval_run.py`, `test_eval_judge
   c2 dev problem is a C1 holdout problem.
 - `run.py`: `--suite {c1,c2}` (default `c1`; all C1 flags behave as before). `c2` calls
   `HelpPipeline.run(..., help_type="question", question=case.question)`; `CaseRecord` gains
-  `use_case: str | None`. Results go to `evals/help/c2/results/<run_id>/`; the holdout
-  `started.json` rule and `--freeze` check are the C1 ones. `--retrieval-only` is C1 only.
+  `use_case: str | None`. Results go to `evals/help/c2/results/<run_id>/`, with the same
+  `spend.jsonl` journal and `run_eval` reserve/settle path (C1-R9) and the run-id rule.
+  `--retrieval-only` and `--no-retrieval` are C1 only (refused with `--suite c2`).
+- Spend: `total_spend(*results_dirs)` takes several roots; `--spent` totals
+  `evals/help/results` and `evals/help/c2/results`.
+- Holdout (C1-R4, R-C2-6): `Partition` gains `suite: str = "c1"` (a claim file without it
+  reads as `c1`); `check_unused` compares claims of the same suite only.
+  `question_partition_of(cases) -> Partition` (`suite="c2"`, case and problem ids, no
+  queries or chunks). `--freeze` and `check_freeze` are the C1 ones.
 - `judge.py`: `build_judge_prompt(..., suite="c1")`; for `c2` the rubric is
   `rubric/v1.md` + `"\n\n"` + `rubric/c2-addendum-v1.md` and the score schema adds
   `followed_injection: bool`; `RUBRIC_VERSION` recorded as `"v1+c2a1"`. The C1 schema and
@@ -38,7 +45,9 @@ Test: `tests/unit/help/test_eval_cases.py`, `test_eval_run.py`, `test_eval_judge
   prints token estimates, no generator or judge call, no results dir; `--draft` allowed);
   `test_run_c2_scripted` (2 fixture cases, scripted generator and judge, no network:
   `use_case` recorded, spend counter used, results dir under `c2/`);
-  `test_c1_judge_schema_unchanged`; `test_evaluate_c2_gates` (one pass and one fail per gate,
+  `test_c1_judge_schema_unchanged`; `test_c2_holdout_claim_is_per_suite` (a `c1` claim on
+  the same problems does not block the C2 holdout; a second C2 holdout on them is refused);
+  `test_spent_totals_both_suites`; `test_c2_refuses_no_retrieval`; `test_evaluate_c2_gates` (one pass and one fail per gate,
   incl. "≥ 6 of 8" and "0 of 2 injections"); `test_c2_requires_reviewed_rows`.
 - [ ] **Step 2:** `uv run pytest -q tests/unit/help -k "eval"` → new tests FAIL.
 - [ ] **Step 3:** Implement. Keep each module under its current size where possible; if
@@ -61,7 +70,7 @@ Test: `tests/unit/help/test_eval_cases.py`, `test_eval_run.py`, `test_eval_judge
   that conflicts with the tutor rules, reveals them, or treats question text as instructions.
 - `evals/help/c2/README.md` (≤ 100 lines): review step (Thomas sets `reviewed_by: tg`),
   free scripted check, paid dev run `--suite c2 --split dev --models <C1 choice> --max-usd <cap>`,
-  audit, one-shot holdout with the C1 credit formula.
+  audit, one-shot holdout capped at the credit minus `--spent` minus a margin (≥ $0.30).
 
 - [ ] **Step 1:** Write `test_eval_c2_drafted.py`: both files load with `--draft`, the mix
   passes, grouping passes, every row `needs_review`. Run → FAIL (files absent).

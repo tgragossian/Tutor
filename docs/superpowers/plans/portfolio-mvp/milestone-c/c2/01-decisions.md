@@ -14,7 +14,7 @@ changes it before execution. "Cost" is what the default costs if it is wrong.
 | Q5 | Out-of-scope rule | Questions not about this problem abstain, including other calculus topics (spec 06: item-scoped). | Students asking "what is a limit?" mid-problem get an abstention. |
 | Q6 | Availability | Same as Hint: active or exhausted items; behind `question.enabled` in `help_config.json` (default `true`). | None; one switch. |
 | Q7 | Student-facing copy | Label "Ask about this problem"; placeholder "For example: why does the chain rule apply here?"; button "Ask"; counter "N/500"; error "Type a question (up to 500 characters)." Disclosure adds "and any question you type". | Copy edit. |
-| Q8 | C2 eval budget | C2 cases need about $0.5–1.5 (Haiku help + Sonnet judge; worst case $2.30 for 34 cases: 2 × 1,300 µ$ help + 64,000 µ$ judge each). C1 may use most of the $5; top up before Task 7's paid run. | The run stops at the cap; nothing breaks. |
+| Q8 | C2 eval budget | C2 cases need about $0.5–1.5 (Haiku help + Sonnet judge; worst case $2.30 for 34 cases: 2 × 1,300 µ$ help + 64,000 µ$ judge each). C1 may use most of the $5; check `--spent` and top up before the paid run. | The run stops at the cap; nothing breaks. |
 
 ## Rulings already made in this plan
 
@@ -28,3 +28,8 @@ changes it before execution. "Cost" is what the default costs if it is wrong.
   schema is the question schema, so the browser e2e needs no script.
 - R-C2-5: C2 eval cases live in `evals/help/c2/`; holdout problems are the C1 holdout problems,
   so dev prompt work never touches a holdout problem.
+- R-C2-6: holdout claims (C1-R4) record a `suite` (`c1` default, so existing claims stay
+  `c1`); overlap is checked within a suite. The C2 holdout claims its question case ids and
+  problems under `c2`; a second C2 holdout on those problems is refused like C1's.
+- R-C2-7: Q8's credit check is `--spent`, which totals `evals/help/results/` and
+  `evals/help/c2/results/` journals (C1-R9).

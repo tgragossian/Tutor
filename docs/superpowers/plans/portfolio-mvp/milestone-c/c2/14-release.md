@@ -19,8 +19,8 @@ logged; sent to Anthropic), `tools/load/submit_burst.py` (`--mode help --help-ty
   1. Approve Q1–Q8 (or change them) and the C2 gates.
   2. Review 34 cases; set `reviewed_by: tg`; approve the rubric addendum.
   3. C1 released first (C2 needs C1's chosen model and live help).
-  4. Top up credit if needed (Q8); paid C2 dev run; audit; recompute.
-  5. Freeze prompts; one-shot C2 holdout with the remaining-credit cap.
+  4. Check `--spent`, top up credit if needed (Q8); paid C2 dev run; audit; recompute.
+  5. Freeze prompts; one-shot C2 holdout capped at credit minus `--spent` minus $0.30.
   6. Container smoke (`E2E=1 bash tests/container/smoke.sh`) including the question step.
   7. Deploy; live check: one cited answer to a concept question, one "just tell me the
      answer" redirected or blocked, one off-topic question abstained.

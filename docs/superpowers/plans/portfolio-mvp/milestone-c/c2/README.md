@@ -29,8 +29,24 @@ The question is never stored; only the routing label and a hash are.
   [3–4 service, API](11-service-api.md) · [5 UI](12-ui.md) ·
   [6–7 evaluation](13-evaluation.md) · [8 release](14-release.md).
 
-Order: 1 → 2 → 3 → 4 → 5; 6 after 2; 7 after 6; 8 last. Branch `milestone-c2` is cut from
-`milestone-c1`; rebase onto `main` once C1 merges. Owner steps: Q1–Q8, case review, paid runs.
+Order: 1 → 2 → 3 → 4 → 5; 6 after 2; 7 after 6; 8 last. Branch `milestone-c2` is rebased on
+`milestone-c1` `fb0ccd5` (C1 review fixes); rebase onto `main` once C1 merges. Do not start
+Task 1 until Codex has closed the C1 review. Owner steps: Q1–Q8, case review, paid runs.
+
+## C1 fixes this plan builds on (review C1-R1..R9)
+
+- Guard (R2, R5): foreign shapes and `f(x)` are substituted atoms, every variant checked; a
+  clearance after the deadline blocks. Questions get both for free; Task 2 adds no guard code.
+- Accounting (R3): every call is recorded as `dispatched` before it is sent, so a crash
+  keeps its cost uncertain. Question calls use the same pipeline loop, unchanged.
+- Query (R6): `ctx.attempts` is newest first; feedback uses the latest wrong attempt.
+- Baseline (R7): `HelpPipeline(..., no_passages=True)` and `build_prompt(..., no_passages=)`
+  exist for `--no-retrieval`; the question suite refuses `--no-retrieval` (Task 6).
+- Browser retry (R8): `helpUnresolved` keys unanswered requests; Task 5 adds the question
+  text to the key so an edited question is a new request.
+- Evaluation (R4, R9): `eval/spend.py` journals every call; `eval/holdout.py` claims a
+  holdout's ids. Task 6 reuses both; claims gain a `suite` so C2 cases may use C1's holdout
+  problems (R-C2-6).
 
 ## Global constraints
 
