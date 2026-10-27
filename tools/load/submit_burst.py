@@ -7,6 +7,11 @@ runs on the host's system Python:
 
     python3 tools/load/submit_burst.py --base-url https://tutor.thomasgragossian.dev
 
+``--mode help`` adds ``--help-users`` hint requests released with the grading submits
+(the help generator runs for real, or scripted in a test container) and reports grading and
+help latency separately. Keep ``--users`` within the grading queue (8) so any grading
+``verifier_busy`` means help traffic starved grading.
+
 Expected replies: 200 with a verdict, or 503 verifier_busy when the burst exceeds the
 queue. Anything else (database_busy, format replies, a verifier internal_error even under
 200, other errors, transport failures) is unexpected, and so is a run with no graded answer;
@@ -160,40 +165,63 @@ def open_at_target(client: Client, target: Target) -> dict[str, Any]:
     raise SystemExit(f"never reached {target.problem_id} in session {sid}")
 
 
-def burst(clients: list[tuple[Client, dict[str, Any]]], target: Target) -> list[Any]:
-    gate = threading.Barrier(len(clients))
-    results: list[Any] = [None] * len(clients)
+def _submit_one(client: Client, at: dict[str, Any], target: Target) -> tuple[int, str, float]:
+    body = {
+        "submission_id": str(uuid.uuid4()),
+        "session_item_id": at["item"]["session_item_id"],
+        "item_revision": at["item"]["revision"],
+        "answer": target.answer,
+    }
+    t0 = time.perf_counter()
+    try:
+        status, reply, _ = client.call("POST", f"/api/sessions/{at['session_id']}/submit", body)
+    except (OSError, ValueError) as exc:  # URLError, timeouts, a non-JSON body
+        return 0, f"transport:{exc}"[:80], (time.perf_counter() - t0) * 1000
+    ms = (time.perf_counter() - t0) * 1000
+    if status == 200:
+        out = reply["outcome"]
+        label = out.get("status") or f"format:{out.get('code')}"
+        # A crashed verifier answers 200 unable_to_verify/internal_error: keep the reason
+        # so it is not counted as graded work (review recheck B-R4). Ordinary abstentions
+        # (not_proven, a timeout) stay plain verdicts.
+        if out.get("reason") == "internal_error":
+            label = f"{label}:internal_error"
+    else:
+        label = (reply or {}).get("error", "no_body")
+    return status, label, ms
 
-    def submit(i: int, client: Client, at: dict[str, Any]) -> None:
-        body = {
-            "submission_id": str(uuid.uuid4()),
-            "session_item_id": at["item"]["session_item_id"],
-            "item_revision": at["item"]["revision"],
-            "answer": target.answer,
-        }
+
+def _help_one(client: Client, at: dict[str, Any]) -> tuple[int, str, float]:
+    """One hint request on the user's own open item (no student text is sent)."""
+    body = {
+        "help_request_id": str(uuid.uuid4()),
+        "session_item_id": at["item"]["session_item_id"],
+        "item_revision": at["item"]["revision"],
+        "help_type": "hint",
+    }
+    t0 = time.perf_counter()
+    try:
+        status, reply, _ = client.call("POST", "/api/help", body)
+    except (OSError, ValueError) as exc:
+        return 0, f"transport:{exc}"[:80], (time.perf_counter() - t0) * 1000
+    ms = (time.perf_counter() - t0) * 1000
+    if status == 200:
+        label = (reply or {}).get("status", "no_status")
+    else:
+        label = (reply or {}).get("error", "no_body")
+    return status, label, ms
+
+
+def _run_gated(jobs: list[Any]) -> list[Any]:
+    """Run every job in its own thread, released together by a barrier."""
+    gate = threading.Barrier(len(jobs))
+    results: list[Any] = [None] * len(jobs)
+
+    def run(i: int, job: Any) -> None:
         gate.wait()
-        t0 = time.perf_counter()
-        try:
-            status, reply, _ = client.call("POST", f"/api/sessions/{at['session_id']}/submit", body)
-        except (OSError, ValueError) as exc:  # URLError, timeouts, a non-JSON body
-            results[i] = (0, f"transport:{exc}"[:80], (time.perf_counter() - t0) * 1000)
-            return
-        ms = (time.perf_counter() - t0) * 1000
-        if status == 200:
-            out = reply["outcome"]
-            label = out.get("status") or f"format:{out.get('code')}"
-            # A crashed verifier answers 200 unable_to_verify/internal_error: keep the reason
-            # so it is not counted as graded work (review recheck B-R4). Ordinary abstentions
-            # (not_proven, a timeout) stay plain verdicts.
-            if out.get("reason") == "internal_error":
-                label = f"{label}:internal_error"
-        else:
-            label = (reply or {}).get("error", "no_body")
-        results[i] = (status, label, ms)
+        results[i] = job()
 
-    threads = [
-        threading.Thread(target=submit, args=(i, c, at)) for i, (c, at) in enumerate(clients)
-    ]
+    threads = [threading.Thread(target=run, args=(i, j)) for i, j in enumerate(jobs)]
     for th in threads:
         th.start()
     for th in threads:
@@ -201,11 +229,66 @@ def burst(clients: list[tuple[Client, dict[str, Any]]], target: Target) -> list[
     return results
 
 
+def burst(clients: list[tuple[Client, dict[str, Any]]], target: Target) -> list[Any]:
+    return _run_gated([lambda c=c, at=at: _submit_one(c, at, target) for c, at in clients])
+
+
+def burst_mixed(
+    grading: list[tuple[Client, dict[str, Any]]],
+    helpers: list[tuple[Client, dict[str, Any]]],
+    target: Target,
+) -> tuple[list[Any], list[Any]]:
+    """Grading submits and help requests released at the same moment."""
+    jobs = [lambda c=c, at=at: _submit_one(c, at, target) for c, at in grading]
+    jobs += [lambda c=c, at=at: _help_one(c, at) for c, at in helpers]
+    results = _run_gated(jobs)
+    return results[: len(grading)], results[len(grading) :]
+
+
+HELP_OK = frozenset({"delivered", "abstained", "fallback", "unavailable"})
+
+
+def summarize_mixed(
+    grading: list[tuple[int, str, float]], helps: list[tuple[int, str, float]]
+) -> tuple[str, int]:
+    """Grading and help reported separately; returns the number of failures.
+
+    A failure is any grading reply other than a verdict (``verifier_busy`` included: the
+    grading pool must not be starved by help traffic) or any help reply other than 200 with
+    a finished status (a 429 or 202 under this load means the run did not measure help).
+    """
+    lines = ["grading:"]
+    counts = Counter(f"{s} {lab}" for s, lab, _ in grading)
+    lines += [f"  {k}: {n}" for k, n in sorted(counts.items())]
+    g_ms = [m for _, _, m in grading]
+    lines.append(
+        f"  grading latency p50 {percentile(g_ms, 50):.0f} ms, p95 {percentile(g_ms, 95):.0f} ms"
+    )
+    lines.append("help:")
+    counts = Counter(f"{s} {lab}" for s, lab, _ in helps)
+    lines += [f"  {k}: {n}" for k, n in sorted(counts.items())]
+    h_ms = [m for _, _, m in helps]
+    lines.append(
+        f"  help latency p50 {percentile(h_ms, 50):.0f} ms, p95 {percentile(h_ms, 95):.0f} ms"
+    )
+    bad_grading = sum(1 for s, lab, _ in grading if not (s == 200 and lab in VERDICTS))
+    bad_help = sum(1 for s, lab, _ in helps if not (s == 200 and lab in HELP_OK))
+    return "\n".join(lines), bad_grading + bad_help
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     parser.add_argument("--base-url", required=True)
     parser.add_argument("--users", type=int, default=16)
     parser.add_argument("--case", default=DEFAULT_CASE)
+    parser.add_argument(
+        "--mode",
+        choices=("grading", "help"),
+        default="grading",
+        help="help: also fire --help-users hint requests at the same moment and report "
+        "grading and help latency separately (any grading verifier_busy fails the run)",
+    )
+    parser.add_argument("--help-users", type=int, default=20)
     args = parser.parse_args(argv)
 
     target = find_target(ROOT, args.case)
@@ -216,6 +299,8 @@ def main(argv: list[str] | None = None) -> int:
         client = Client(args.base_url)
         register(client, f"load_{run}_{i:02d}")
         clients.append((client, open_at_target(client, target)))
+    if args.mode == "help":
+        return _main_help(args, target, run, clients)
     print(f"all {args.users} at {target.problem_id}; submitting at once", flush=True)
     t0 = time.perf_counter()
     results = burst(clients, target)
@@ -228,6 +313,30 @@ def main(argv: list[str] | None = None) -> int:
     if ok == 0:
         print("FAIL: no answer was graded; not usable for sizing", file=sys.stderr)
     return 1 if unexpected or ok == 0 else 0
+
+
+def _main_help(
+    args: argparse.Namespace,
+    target: Target,
+    run: str,
+    clients: list[tuple[Client, dict[str, Any]]],
+) -> int:
+    helpers = []
+    for i in range(args.help_users):
+        client = Client(args.base_url)
+        register(client, f"loadh_{run}_{i:02d}")
+        helpers.append((client, open_at_target(client, target)))
+    print(f"{len(clients)} grading + {len(helpers)} help users ready; firing at once", flush=True)
+    t0 = time.perf_counter()
+    grading, helps = burst_mixed(clients, helpers, target)
+    print(f"mixed burst finished in {(time.perf_counter() - t0) * 1000:.0f} ms")
+    text, failures = summarize_mixed(grading, helps)
+    print(text)
+    if failures:
+        print(f"FAIL: {failures} grading or help replies were not as expected", file=sys.stderr)
+    if graded(grading) == 0:
+        print("FAIL: no answer was graded; not usable for sizing", file=sys.stderr)
+    return 1 if failures or graded(grading) == 0 else 0
 
 
 if __name__ == "__main__":

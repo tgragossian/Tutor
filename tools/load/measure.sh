@@ -5,8 +5,12 @@
 # into docs/ops/host.md. The burst leaves 16 accounts named load_<run>_NN in the database.
 set -euo pipefail
 
-BASE_URL=${1:?usage: bash tools/load/measure.sh <base-url> [users]}
+BASE_URL=${1:?usage: bash tools/load/measure.sh <base-url> [users] [grading|help] [help-users]}
 USERS=${2:-16}
+# Optional: "help" also fires HELP_USERS hint requests at the same moment and reports grading
+# and help latency separately (milestone C1 task 15).
+MODE=${3:-grading}
+HELP_USERS=${4:-20}
 APP=deploy-app-1
 OUT=$(mktemp -d)
 
@@ -29,7 +33,8 @@ sleep 2  # a baseline sample before the burst
 # Keep the burst's exit status (review B-R4): memory is still printed for a failed run, but
 # the script then exits non-zero so the numbers are not mistaken for a usable sizing run.
 rc=0
-python3 tools/load/submit_burst.py --base-url "$BASE_URL" --users "$USERS" || rc=$?
+python3 tools/load/submit_burst.py --base-url "$BASE_URL" --users "$USERS" \
+  --mode "$MODE" --help-users "$HELP_USERS" || rc=$?
 sleep 3  # catch the tail of the burst
 kill "$SAMPLER" 2>/dev/null || true
 wait "$SAMPLER" 2>/dev/null || true

@@ -134,3 +134,39 @@ def test_internal_error_label_is_unexpected_and_not_graded() -> None:
     results = [(200, "unable_to_verify:internal_error", 5.0), (200, "incorrect", 5.0)]
     _, unexpected = summarize(results)
     assert unexpected == 1 and graded(results) == 1
+
+
+def test_burst_help_mode_reports_grading_latency() -> None:
+    from load.submit_burst import summarize_mixed
+
+    grading = [(200, "incorrect", 300.0), (200, "incorrect", 500.0), (200, "correct", 400.0)]
+    helps = [(200, "delivered", 9000.0), (200, "abstained", 12000.0), (200, "fallback", 8000.0)]
+    text, failures = summarize_mixed(grading, helps)
+    assert "grading latency p50 400 ms, p95 500 ms" in text
+    assert "help latency p50 9000 ms, p95 12000 ms" in text
+    assert failures == 0
+
+    # A grading request refused as busy while help traffic saturates is a failure.
+    busy = [*grading, (503, "verifier_busy", 2000.0)]
+    _, failures = summarize_mixed(busy, helps)
+    assert failures == 1
+    # Unexpected help replies fail too; a 429 help_limited is not a pass.
+    _, failures = summarize_mixed(grading, [*helps, (500, "internal_error", 5.0)])
+    assert failures == 1
+
+
+def test_help_mode_main_fails_on_grading_busy(monkeypatch: pytest.MonkeyPatch) -> None:
+    import load.submit_burst as burst
+
+    monkeypatch.setattr(burst, "register", lambda client, name: None)
+    monkeypatch.setattr(burst, "open_at_target", lambda client, target: {})
+    args = ["--base-url", "http://x", "--mode", "help", "--users", "2", "--help-users", "2"]
+    helps = [(200, "delivered", 1.0)] * 2
+    monkeypatch.setattr(
+        burst, "burst_mixed", lambda g, h, t: ([(200, "incorrect", 1.0)] * 2, helps)
+    )
+    assert burst.main(args) == 0
+    monkeypatch.setattr(
+        burst, "burst_mixed", lambda g, h, t: ([(503, "verifier_busy", 1.0)] * 2, helps)
+    )
+    assert burst.main(args) == 1
