@@ -122,14 +122,29 @@ def _clean(piece: str, punct: str = _PROSE_PUNCT) -> str:
     return piece
 
 
-def _split_math(text: str) -> tuple[list[Candidate], str]:
-    """Math spans as candidates (split on ``=``), and the prose with each span as a sentinel."""
-    math: list[Candidate] = []
+SpanKind = Literal["prose", "inline", "display"]
+
+
+def split_spans(text: str) -> list[tuple[SpanKind, str]]:
+    """``text`` as prose pieces and math spans, in order, exactly as the guard reads it.
+
+    A math span's content excludes its delimiters; prose keeps its ``\\$``-style escapes.
+    Raises ``MalformedMath`` like ``extract_candidates``. The help renderer uses this so that
+    it never renders as math anything the guard did not check as math.
+    """
+    spans: list[tuple[SpanKind, str]] = []
     prose: list[str] = []
+
+    def flush() -> None:
+        if prose:
+            spans.append(("prose", "".join(prose)))
+            prose.clear()
+
     i = 0
     while i < len(text):
         c = text[i]
         nxt = text[i + 1 : i + 2]
+        origin: SpanKind
         if c == "\\" and nxt in ("(", "["):
             closer, origin = ("\\)", "inline") if nxt == "(" else ("\\]", "display")
             start = i + 2
@@ -153,12 +168,26 @@ def _split_math(text: str) -> tuple[list[Candidate], str]:
         end = _find(text, start, closer)
         if end < 0:
             raise MalformedMath("unbalanced math delimiter")
-        for side in text[start:end].split("="):
+        flush()
+        spans.append((origin, text[start:end]))
+        i = end + len(closer)
+    flush()
+    return spans
+
+
+def _split_math(text: str) -> tuple[list[Candidate], str]:
+    """Math spans as candidates (split on ``=``), and the prose with each span as a sentinel."""
+    math: list[Candidate] = []
+    prose: list[str] = []
+    for kind, content in split_spans(text):
+        if kind == "prose":
+            prose.append(content)
+            continue
+        for side in content.split("="):
             latex = _clean(side, _MATH_PUNCT)
             if latex:
-                math.append(Candidate(latex, origin))  # type: ignore[arg-type]
+                math.append(Candidate(latex, kind))
         prose.append(_SENTINEL)
-        i = end + len(closer)
     return math, "".join(prose)
 
 
