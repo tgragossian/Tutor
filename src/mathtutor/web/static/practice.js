@@ -207,6 +207,16 @@ const HELP_IDS = ['help-hint', 'help-feedback', 'help-explain', 'help-explain-go
 let helpBusy = false;
 let helpGen = 0; // bumped whenever the panel is cleared: older replies are dropped
 let helpShownSeq = 0; // the newest help_seq shown for this item
+// Requests sent without a definitive answer (lost response, unreadable body, a 5xx, still
+// pending), by item/revision/type/confusion: a retry resends the same body and request id, so
+// the server replays a result it may already have generated instead of paying for and
+// advancing the ladder with a second one (review C1-R8). Cleared on a definitive answer and
+// whenever the panel is cleared (item change, correct answer, reveal).
+const helpUnresolved = new Map();
+
+function helpKey(type, confusion) {
+  return `${item.session_item_id}:${item.revision}:${type}:${confusion ?? ''}`;
+}
 
 async function helpApi(body) {
   const response = await fetch('/api/help', {
@@ -258,6 +268,7 @@ function openExplain() {
 function clearHelp() {
   helpGen += 1; // an in-flight reply for the old view is now dropped
   helpShownSeq = 0;
+  helpUnresolved.clear();
   helpBusy = false;
   setHelpDisabled(false);
   $('help-body').innerHTML = '';
@@ -314,13 +325,15 @@ async function askHelp(type) {
   helpBusy = true;
   setHelpDisabled(true);
   const generation = helpGen;
-  const body = {
-    help_request_id: crypto.randomUUID(), // reused for the one poll
+  const key = helpKey(type, confusion);
+  const body = helpUnresolved.get(key) ?? {
+    help_request_id: crypto.randomUUID(), // reused for the poll and any retry until answered
     session_item_id: item.session_item_id,
     item_revision: item.revision,
     help_type: type,
     confusion,
   };
+  helpUnresolved.set(key, body); // until a definitive answer
   try {
     for (let attempt = 0; attempt < 2; attempt += 1) {
       let result;
@@ -328,15 +341,26 @@ async function askHelp(type) {
         result = await helpApi(body);
       } catch {
         if (generation === helpGen) showHelpMessage(HELP_FAILED);
-        return;
+        return; // the server may have the request: a retry resends the same id
       }
       if (generation !== helpGen) return; // the panel was cleared while waiting
       const { response, data } = result;
       if (response.ok && data?.status === 'pending') {
+        // Another request is in flight on this item (another tab): follow that one, never
+        // turn this poll into a new generation once it finishes. A different help type
+        // under that id is a 409, which reloads.
+        if (typeof data.request_id === 'string' && data.request_id !== body.help_request_id) {
+          body.help_request_id = data.request_id;
+        }
         if (attempt === 0) await sleep(2);
         else showHelpMessage(HELP_SLOW);
         continue;
       }
+      if (!data || response.status >= 500) {
+        showHelpMessage(HELP_FAILED); // no definitive answer: keep the id for a retry
+        return;
+      }
+      helpUnresolved.delete(key);
       if (response.ok && data?.status === 'stale') {
         await load();
       } else if (response.ok) {

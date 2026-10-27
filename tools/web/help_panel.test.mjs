@@ -237,10 +237,15 @@ test('panel kept when the item is exhausted: help is still offered there', async
   assert.equal(p.el('help-sources').children.length, 1);
 });
 
+const pending = (requestId) => ({
+  response: { status: 202, ok: true },
+  data: reply({ request_id: requestId, status: 'pending', html: null, sources: [] }).data,
+});
+
 test('same request id on poll', async () => {
   const p = page();
   p.reply(
-    { response: { status: 202, ok: true }, data: reply({ status: 'pending', html: null, sources: [] }).data },
+    pending('uuid-1'),
     reply(),
   );
   await p.run("askHelp('hint')");
@@ -296,4 +301,73 @@ test('provider disclosure is hidden when help is null and shown when enabled', (
   assert.equal(off.el('help-disclosure').hidden, true);
   const on = page();
   assert.equal(on.el('help-disclosure').hidden, false);
+});
+
+// Review C1-R8: a request without a definitive answer keeps its id for the retry, so a hint
+// the server already generated is replayed, not paid for and advanced past a second time.
+const LOST = 'LOST'; // helpApi throws for this reply
+for (const [name, outcome] of [
+  ['a lost response', LOST],
+  ['an unreadable body', { response: { status: 200, ok: true }, data: null }],
+  ['a 502', { response: { status: 502, ok: false }, data: null }],
+]) {
+  test(`retry after ${name} reuses the request id`, async () => {
+    const p = page();
+    p.run(`helpApi = async (body) => {
+      sent.push(JSON.parse(JSON.stringify(body)));
+      const next = replies.shift();
+      if (next === 'LOST') throw new Error('response lost');
+      return next;
+    }`);
+    p.reply(outcome, reply());
+    await p.run("askHelp('hint')");
+    assert.equal(p.el('help-message').textContent.length > 0, true);
+    await p.run("askHelp('hint')");
+    assert.equal(p.context.sent.length, 2);
+    assert.equal(p.context.sent[1].help_request_id, p.context.sent[0].help_request_id);
+    assert.equal(p.el('help-body').innerHTML.includes('outer'), true);
+    // answered: the next click is a new request
+    p.reply(reply({ help_seq: 2 }));
+    await p.run("askHelp('hint')");
+    assert.notEqual(p.context.sent[2].help_request_id, p.context.sent[0].help_request_id);
+  });
+}
+
+test('still pending after the poll: the next click polls the same id', async () => {
+  const p = page();
+  p.reply(pending('uuid-1'), pending('uuid-1'), reply());
+  await p.run("askHelp('hint')");
+  assert.equal(p.el('help-message').textContent.startsWith('Help is taking longer'), true);
+  await p.run("askHelp('hint')");
+  assert.equal(p.context.sent.map((b) => b.help_request_id).join(), 'uuid-1,uuid-1,uuid-1');
+});
+
+test('a pending reply naming another request is followed, never a new generation', async () => {
+  const p = page();
+  p.reply(pending('other-tab'), reply({ request_id: 'other-tab' }));
+  await p.run("askHelp('hint')");
+  assert.equal(p.context.sent.map((b) => b.help_request_id).join(), 'uuid-1,other-tab');
+});
+
+test('a different help type or an item change never reuses the id', async () => {
+  const p = page();
+  p.run("helpApi = async (body) => { sent.push(JSON.parse(JSON.stringify(body))); throw new Error('lost'); }");
+  await p.run("askHelp('hint')");
+  p.run("$('help-confusion').value = 'why_multiply_inside'");
+  await p.run("askHelp('explain')");
+  assert.notEqual(p.context.sent[1].help_request_id, p.context.sent[0].help_request_id);
+  p.run('clearHelp()'); // item change, correct answer or reveal
+  await p.run("askHelp('hint')");
+  assert.notEqual(p.context.sent[2].help_request_id, p.context.sent[0].help_request_id);
+});
+
+test('a definitive error is not retried with the same id', async () => {
+  const p = page();
+  p.reply(
+    { response: { status: 429, ok: false }, data: { error: 'help_limited', message: 'limit' } },
+    reply(),
+  );
+  await p.run("askHelp('hint')");
+  await p.run("askHelp('hint')");
+  assert.notEqual(p.context.sent[1].help_request_id, p.context.sent[0].help_request_id);
 });
