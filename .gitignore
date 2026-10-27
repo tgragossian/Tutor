@@ -6,6 +6,8 @@ __pycache__/
 .venv/
 *.db
 data/
+# OpenStax raw corpus pages (re-fetchable; manifest is content/corpus/snapshot.json)
+data/corpus-raw/
 .claude/worktrees/
 .pytest_cache/
 .mypy_cache/
