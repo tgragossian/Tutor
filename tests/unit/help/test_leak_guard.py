@@ -616,3 +616,155 @@ def test_prose_terms_on_expression(text: str, decision: str) -> None:
         Candidate("3x", "prose_term"),
         Candidate("4y", "prose_term"),
     ]
+
+
+# -- fix round 4 (ruling R14) ----------------------------------------------------------------
+
+
+class BusyAfter(FakePool):
+    """The first ``ok`` calls are COUNTER, every later one is ``then``."""
+
+    def __init__(self, ok: int, then: Verdict | type[Exception]) -> None:
+        super().__init__(*([COUNTER] * ok))
+        self.then = then
+
+    def submit(self, req: CheckRequest) -> CheckResult:
+        if not self.script:
+            self.script.append(self.then)
+        return super().submit(req)
+
+
+@pytest.mark.parametrize("text", ["So $2t$.", "So $2t + C$."])
+@pytest.mark.parametrize(
+    ("then", "reason"), [(VerifierBusy, "verifier_busy"), (TIMEOUT, "unverified")]
+)
+def test_unchecked_foreign_variant_blocks(
+    text: str, then: Verdict | type[Exception], reason: str
+) -> None:
+    for ok in (0, 1):
+        result, _ = _check(text, answer=TWO_X, pool=BusyAfter(ok, then))
+        assert (result.decision, result.reason) == ("block", reason), (text, ok)
+        assert result.counts[LeakStatus.UNCHECKED] == 1 and result.foreign == 0
+
+
+@pytest.mark.parametrize("text", ["So $2t$.", "So $2t + C$."])
+def test_all_timeout_foreign_variants_block(text: str) -> None:
+    pool = FakePool()
+    pool.default = TIMEOUT
+    result, _ = _check(text, answer=TWO_X, pool=pool)
+    assert (result.decision, result.reason) == ("block", "unverified")
+
+
+@pytest.mark.parametrize("text", ["So $2t$.", "So $2t + C$."])
+def test_deadline_crossed_mid_variants_blocks(text: str) -> None:
+    clock = Clock(now=0.0)
+
+    class Slow(FakePool):
+        def submit(self, req: CheckRequest) -> CheckResult:
+            clock.now += 2.0
+            return super().submit(req)
+
+    pool = Slow()
+    result = LeakGuard(pool, LIMITS, clock).check(text, TWO_X, deadline=1.0)
+    assert (result.decision, result.reason) == ("block", "deadline")
+    assert len(pool.requests) == 1
+
+
+class ExactPool(FakePool):
+    """CORRECT for exactly the given trees, else COUNTER."""
+
+    def __init__(self, *leaking: object) -> None:
+        super().__init__()
+        self.leaking = list(leaking)
+
+    def submit(self, req: CheckRequest) -> CheckResult:
+        self.requests.append(req)
+        return CheckResult(CORRECT if req.answer.mathjson in self.leaking else COUNTER, "test")
+
+
+@pytest.mark.parametrize(
+    ("text", "ones"),
+    [
+        ("x = 12cm", ["Multiply", 12, 1, 1]),
+        ("The total = 12 m.", ["Multiply", 12, 1]),
+        ("So $12 m$.", ["Multiply", 12, 1]),
+        ("So $12m$.", ["Multiply", 12, 1]),
+    ],
+)
+def test_numeric_foreign_letters_also_tried_as_one(text: str, ones: object) -> None:
+    result, pool = _check(text, answer=TWELVE, pool=ExactPool(ones))
+    assert (result.decision, result.reason) == ("block", "leak"), text
+    # Expression problems keep the variable and 0 variants only.
+    _, pool = _check("So $2t$.", answer=TWO_X, pool=ExactPool())
+    assert [r.answer.mathjson for r in pool.requests] == [
+        ["Multiply", 2, "x"],
+        ["Multiply", 2, 0],
+    ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "The correct choice: A because it fits",
+        "Option-A is right",
+        "the choice—A—is right",
+        "choice ## A",
+        "Options A and C",
+        "the choice – a – fits",
+    ],
+)
+def test_noun_separators_block(text: str) -> None:
+    result, _ = _check(text, answer=CHOICE)
+    assert (result.decision, result.reason) == ("block", "choice_reference"), text
+
+
+def test_make_a_choice_passes() -> None:
+    result, _ = _check("Make a choice and stick with it", answer=CHOICE, pool=TreePool())
+    assert result.decision != "block"
+
+
+@pytest.mark.parametrize("text", ["2 " * 5000, "(1 " * 6000], ids=["twos", "parens"])
+def test_extraction_is_fast_on_repeats(text: str) -> None:
+    import time
+
+    for numbers in (True, False):
+        started = time.perf_counter()
+        extract_candidates(text, LIMITS, numbers=numbers)
+        assert time.perf_counter() - started < 0.3, (text[:6], numbers)
+
+
+def test_prose_fraction_across_line_break() -> None:
+    found = extract_candidates("So 12 /\n121.", LIMITS, numbers=True)
+    assert found == [Candidate("12/121", "prose_number")]
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("It is 200/(343)", ["200/343"]),
+        ("It is -200 / ( 343 )", ["200/343"]),
+        ("About 1,200 here", ["1200"]),
+        ("About 12,345,678 here", ["12345678"]),
+        ("So 1/1,200 here", ["1/1200"]),
+        ("Count 1, 2, 3 then", ["1", "2", "3"]),
+        ("Count 1,2,3 then", ["1", "2", "3"]),
+    ],
+)
+def test_prose_number_forms(text: str, expected: list[str]) -> None:
+    found = extract_candidates(text, LIMITS, numbers=True)
+    assert found == [Candidate(e, "prose_number") for e in expected], text
+
+
+@pytest.mark.parametrize(
+    "text", ["Take the 2nd derivative.", "The 1st step", "the 3rd and 4th terms", "the 12th"]
+)
+def test_ordinals_are_not_numbers(text: str) -> None:
+    result, pool = _check(text, answer=TWELVE, pool=TreePool("12"))
+    assert result.decision == "no_detected_math", text
+    assert pool.requests == []
+
+
+@pytest.mark.parametrize("text", ["12/121ths", "the 2nds", "x2nd 5", "2nd12"])
+def test_ordinal_lookalikes_stay_malformed(text: str) -> None:
+    result, _ = _check(text, answer=TWELVE)
+    assert (result.decision, result.reason) == ("block", "malformed_math"), text

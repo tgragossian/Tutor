@@ -9,12 +9,14 @@ the guard's own verifier pool, against an ``ExpressionAnswer`` built from the re
 
 Anything the guard cannot check blocks the text: a rejected parse, a busy pool, a spent
 deadline, an abstaining checker, unbalanced delimiters, LaTeX left in the prose or too many
-candidates. Single-letter foreign symbols are also checked replaced by the variable and by 0.
+candidates. Single-letter foreign symbols are also checked replaced by the variable and by 0
+(and by 1 on numeric problems); any such variant left unchecked blocks too.
 ``GuardResult`` holds counts and a fixed reason code only, never text.
 """
 
 from __future__ import annotations
 
+import bisect
 import itertools
 import json
 import re
@@ -79,18 +81,24 @@ _PROSE_ESCAPES = frozenset("$%&#")
 _MATH_PUNCT = ".,;:?"  # never "!" inside math: $5!$ is a factorial, not 5
 _PROSE_DECIMAL = re.compile(r"(?<![\w.])-?\d*\.\d+(?![\w]|\.\d)")
 # Numeric problems: signed integers, decimals and simple a/b (``12 / 121``, ``200÷343``,
-# ``(-200)/343``, ``-(200/343)``), kept as an unsigned magnitude; the guard checks both signs.
-_NUM = r"(?:\d+(?:\.\d+)?|\.\d+)"
-_SIGN = r"[-\u2212]?"
+# ``(-200)/343``, ``-(200/343)``, ``200/(343)``), kept as an unsigned magnitude; the guard
+# checks both signs. ``1,200`` (thousands separators) is one number; ``1, 2, 3`` is three.
+_INT = r"(?:\d{1,3}(?:,\d{3})+|\d+)"
+_NUM = rf"(?:{_INT}(?:\.\d+)?|\.\d+)"
+_DEN = rf"(?:\(\s*{_INT}\s*\)|{_INT})"
+_SIGN = r"[-−]?"
 _OVER = r"\s*[/÷]\s*"
 _PROSE_NUMBER = re.compile(
     rf"(?<![\w./÷])(?:"
-    rf"{_SIGN}\(\s*{_SIGN}(?P<n1>{_NUM})\s*\){_OVER}(?P<d1>\d+)"
-    rf"|{_SIGN}\(\s*{_SIGN}(?P<n2>{_NUM}){_OVER}(?P<d2>\d+)\s*\)"
-    rf"|{_SIGN}(?P<n3>{_NUM})(?:{_OVER}(?P<d3>\d+))?"
-    rf")(?!\w|\.\d|{_OVER}\d)"
+    rf"{_SIGN}\(\s*{_SIGN}(?P<n1>{_NUM})\s*\){_OVER}(?P<d1>{_DEN})"
+    rf"|{_SIGN}\(\s*{_SIGN}(?P<n2>{_NUM}){_OVER}(?P<d2>{_DEN})\s*\)"
+    rf"|{_SIGN}(?P<n3>{_NUM})(?:{_OVER}(?P<d3>{_DEN}))?"
+    rf")(?!\w|\.\d|{_OVER}[\d(])"
 )
+# ``2nd``, ``1st``, ``3rd``, ``12th``: an ordinal, not a number (R14).
+_ORDINAL = re.compile(r"(?<![\w.])\d+(?:st|nd|rd|th)(?!\w)")
 _DIGITS = re.compile(r"\d+")
+_CHUNK_BREAK = "\x01"  # joins the prose pieces of one line; no number spans it
 # Expression problems: a coefficient glued to a letter (``2x``).
 _PROSE_TERM = re.compile(r"(?<![\w.])\d+[a-zA-Z](?!\w)")
 _PROSE_LATEX = re.compile(r"\\[A-Za-z]|[\^_]")
@@ -154,18 +162,27 @@ def _split_math(text: str) -> tuple[list[Candidate], str]:
     return math, "".join(prose)
 
 
+def _plain(number: str) -> str:
+    """A matched numerator or denominator without thousands separators or parentheses."""
+    return re.sub(r"[\s,()]", "", number)
+
+
 def _prose_numbers(chunk: str) -> list[Candidate]:
-    """Every number in a prose chunk as an unsigned magnitude. A digit no number covers (``12cm``,
-    ``1.2e1``, ``3/0.25``) is unreadable and raises ``MalformedMath``."""
+    """Every number in a prose chunk as an unsigned magnitude. A digit no number or ordinal
+    covers (``12cm``, ``1.2e1``, ``3/0.25``) is unreadable and raises ``MalformedMath``."""
     found: list[Candidate] = []
-    covered: list[tuple[int, int]] = []
+    covered = [m.span() for m in _ORDINAL.finditer(chunk)]
     for m in _PROSE_NUMBER.finditer(chunk):
         covered.append(m.span())
-        num = m["n1"] or m["n2"] or m["n3"]
+        num = _plain(m["n1"] or m["n2"] or m["n3"])
         den = m["d1"] or m["d2"] or m["d3"]
-        found.append(Candidate(f"{num}/{den}" if den else num, "prose_number"))
+        found.append(Candidate(f"{num}/{_plain(den)}" if den else num, "prose_number"))
+    # The spans never overlap: the digit run lies in the last one starting at or before it.
+    covered.sort()
+    starts = [lo for lo, _ in covered]
     for d in _DIGITS.finditer(chunk):
-        if not any(lo <= d.start() and d.end() <= hi for lo, hi in covered):
+        k = bisect.bisect_right(starts, d.start()) - 1
+        if k < 0 or covered[k][1] < d.end():
             raise MalformedMath("a number glued to other text")
     return found
 
@@ -173,42 +190,46 @@ def _prose_numbers(chunk: str) -> list[Candidate]:
 def _prose_candidates(prose: str, numbers: bool, terms: bool) -> list[Candidate]:
     """The right side of each prose ``=`` (to the next ``=``, math span or line end), then
     decimal literals in the remaining prose; with ``numbers`` every number instead, and with
-    ``terms`` also coefficient-letter terms such as ``2x``."""
+    ``terms`` also coefficient-letter terms such as ``2x``. The remaining prose keeps its line
+    breaks, so a number may continue on the next line (``12 /`` then ``121``)."""
     rhs: list[Candidate] = []
-    rest: list[str] = []
+    lines: list[str] = []
     for line in prose.split("\n"):
         head, *sides = line.split("=")
-        rest.append(head)
+        rest = [head]
         for side in sides:
             piece, _, after = side.partition(_SENTINEL)
             latex = _clean(piece)
             if latex:
                 rhs.append(Candidate(latex, "equation_rhs"))
             rest.append(after)
-    chunks = [chunk.replace(_SENTINEL, " ") for chunk in rest]
-    found: list[Candidate] = []
-    for chunk in chunks:
-        if numbers:
-            found += _prose_numbers(chunk)
-        else:
-            found += [Candidate(m.group(), "decimal") for m in _PROSE_DECIMAL.finditer(chunk)]
-        if terms:
-            found += [Candidate(m.group(), "prose_term") for m in _PROSE_TERM.finditer(chunk)]
+        lines.append(_CHUNK_BREAK.join(rest))
+    remaining = "\n".join(lines).replace(_SENTINEL, " ")
+    if numbers:
+        found = _prose_numbers(remaining)
+    else:
+        found = [Candidate(m.group(), "decimal") for m in _PROSE_DECIMAL.finditer(remaining)]
+    if terms:
+        found += [Candidate(m.group(), "prose_term") for m in _PROSE_TERM.finditer(remaining)]
     return rhs + found
 
 
 def _dedupe(candidates: list[Candidate], limit: int) -> list[Candidate]:
     """First occurrence of each parsed tree (or, unparsed, each LaTeX string); stops once
-    there are more than ``limit``."""
+    there are more than ``limit``. Each distinct LaTeX string is parsed once."""
+    keys: dict[str, str] = {}
     seen: set[str] = set()
     unique: list[Candidate] = []
     for candidate in candidates:
-        parsed = parse_latex(candidate.latex)
-        key = (
-            "latex:" + candidate.latex
-            if isinstance(parsed, ParseRejected)
-            else json.dumps(parsed.tree, sort_keys=True)
-        )
+        key = keys.get(candidate.latex)
+        if key is None:
+            parsed = parse_latex(candidate.latex)
+            key = (
+                "latex:" + candidate.latex
+                if isinstance(parsed, ParseRejected)
+                else json.dumps(parsed.tree, sort_keys=True)
+            )
+            keys[candidate.latex] = key
         if key not in seen:
             seen.add(key)
             unique.append(candidate)
@@ -289,6 +310,8 @@ _NOUN = r"(?:option|choice|answer)"
 # Between a keyword and the letter: spaces, "is", "would be", "=", ":", emphasis, quotes, dashes.
 _FILLER = r"(?:\s|\bis\b|\bwould\s+be\b|[=:*_'\"`‘’“”–—-])*"
 _MARKS = r"[*_'\"`‘’“”]"  # emphasis and quotes that can wrap a letter
+# Between "option"/"choice" and the letter: spaces, ":", "#" and dashes, repeated (R14).
+_NOUN_SEP = r"[\s:#–—-]*"
 
 
 def _letter_token(letter: str) -> str:
@@ -308,8 +331,8 @@ def _choice_patterns(answer: ChoiceAnswer) -> list[re.Pattern[str]]:
     flags = re.IGNORECASE | re.MULTILINE
     return [
         re.compile(rf"{_KEYWORD}{_FILLER}{_letter_token(letter)}", flags),
-        # After the nouns "option"/"choice" the letter is always the choice (R11).
-        re.compile(rf"\b(?:option|choice)\s*(?:#\s*)?{letter}\b", flags),
+        # After the nouns "option(s)"/"choice(s)" the letter is always the choice (R11, R14).
+        re.compile(rf"\b(?:option|choice)s?{_NOUN_SEP}{letter}\b", flags),
         re.compile(rf"\({letter}\)", flags),
         re.compile(rf"^[ \t]*\(?{letter}[).]", flags),
         re.compile(rf"\b{_ORDINALS[index]}\s+{_NOUN}", flags),
@@ -364,9 +387,12 @@ def _substitute(tree: JsonValue, values: dict[str, JsonValue]) -> JsonValue:
     return tree
 
 
-def _variants(tree: JsonValue, letters: frozenset[str], variable: str) -> list[JsonValue]:
+def _variants(
+    tree: JsonValue, letters: frozenset[str], variable: str, *, ones: bool = False
+) -> list[JsonValue]:
     """All letters -> variable, all -> 0, then each letter alone -> variable with the others
-    -> 0 (``2t + C``: t -> x, C -> 0). Distinct trees only."""
+    -> 0 (``2t + C``: t -> x, C -> 0); with ``ones`` (numeric problems) also all -> 1, so a
+    unit (``12 m``) reads as its number. Distinct trees only."""
     ordered = sorted(letters)
     assignments: list[dict[str, JsonValue]] = [
         dict.fromkeys(ordered, variable),
@@ -374,6 +400,8 @@ def _variants(tree: JsonValue, letters: frozenset[str], variable: str) -> list[J
     ]
     for letter in ordered:
         assignments.append({other: (variable if other == letter else 0) for other in ordered})
+    if ones:
+        assignments.append(dict.fromkeys(ordered, 1))
     variants: list[JsonValue] = []
     for values in assignments:
         variant = _substitute(tree, values)
@@ -401,11 +429,12 @@ class LeakGuard:
         rule = _rule_violation(text, answer)
         if rule is not None:
             return GuardResult("block", reason=rule)
+        numeric = isinstance(answer, NumericAnswer)
         try:
             candidates = extract_candidates(
                 text,
                 self._limits,
-                numbers=isinstance(answer, NumericAnswer),
+                numbers=numeric,
                 terms=isinstance(answer, ExpressionAnswer),
             )
         except MalformedMath:
@@ -431,7 +460,7 @@ class LeakGuard:
                     continue
                 seen.add(key)
                 if parsed.foreign:
-                    status, reason = self._check_foreign(parsed, reference, deadline, ids)
+                    status, reason = self._check_foreign(parsed, reference, deadline, ids, numeric)
                     if status is LeakStatus.NO_MATCH:
                         foreign += 1
                 else:
@@ -451,19 +480,22 @@ class LeakGuard:
         reference: ExpressionAnswer,
         deadline: float,
         ids: Iterator[int],
+        numeric: bool,
     ) -> tuple[LeakStatus, str]:
         """A tree with foreign names is never checked as written. When every foreign name is a
         single-letter symbol (at most three), its substitution variants are checked
-        (``_variants``); only a leak there counts, otherwise it stays a no match. More than
-        three letters is unchecked."""
+        (``_variants``); it is a no match only when every variant is one. The first leak or
+        unchecked variant (busy, error, timeout, deadline) decides. More than three letters is
+        unchecked."""
         letters = _substitutable(parsed)
         if letters is None:
             return LeakStatus.NO_MATCH, ""
         if len(letters) > MAX_FOREIGN_LETTERS:
             return LeakStatus.UNCHECKED, "too_many_foreign"
-        for tree in _variants(parsed.tree, letters, reference.variable):
+        variants = _variants(parsed.tree, letters, reference.variable, ones=numeric)
+        for tree in variants:
             status, reason = self._check_tree(tree, reference, deadline, ids)
-            if status is LeakStatus.LEAK:
+            if status is not LeakStatus.NO_MATCH:
                 return status, reason
         return LeakStatus.NO_MATCH, ""
 

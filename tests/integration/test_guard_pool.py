@@ -112,3 +112,25 @@ def test_round_3_paths_with_real_checker(
     spec = _answer(answer) if isinstance(answer, str) else answer
     result = guard.check(text, spec, time.monotonic() + 10.0)
     assert result.decision == decision, result
+
+
+@pytest.mark.parametrize(
+    ("answer", "text", "decision"),
+    [
+        (TWELVE, "x = 12cm", "block"),
+        (TWELVE, "The total = 12 m.", "block"),
+        (TWELVE, "So $12 m$.", "block"),
+        (TWELVE, "So $12m$.", "block"),
+        (TWELVE, "Take the 2nd derivative, then the 3rd.", "no_detected_math"),
+        ("openstax-c1-3.6-253", r"So $-\frac{200}{343} m$.", "block"),
+        ("openstax-c1-3.6-253", "It is 200/(343)", "block"),
+        ("openstax-c1-3.6-253", "So $7 m$ and $3 m$.", "pass"),
+        ("openstax-c1-3.3-145", "So 12 /\n121.", "block"),
+    ],
+)
+def test_round_4_paths_with_real_checker(
+    guard: LeakGuard, answer: Answer | str, text: str, decision: str
+) -> None:
+    spec = _answer(answer) if isinstance(answer, str) else answer
+    result = guard.check(text, spec, time.monotonic() + 10.0)
+    assert result.decision == decision, result
