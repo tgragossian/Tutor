@@ -87,6 +87,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("settled_at", sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("request_id", "call_no", name="uq_usage_entries_request_call"),
     )
     op.create_index(
         "ix_usage_entries_user_id_created_at", "usage_entries", ["user_id", "created_at"]
@@ -102,5 +103,6 @@ def downgrade() -> None:
     op.drop_index("ix_help_requests_user_id", table_name="help_requests")
     op.drop_table("help_requests")
     op.drop_table("item_help_state")
-    with op.batch_alter_table("users", schema=None) as batch_op:
-        batch_op.drop_column("privacy_epoch")
+    # Native DROP COLUMN, not a batch rebuild: rebuilding "users" would DROP TABLE a table that
+    # study_sessions and web_sessions reference, which fails with foreign keys enforced.
+    op.execute("ALTER TABLE users DROP COLUMN privacy_epoch")

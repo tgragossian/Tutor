@@ -237,6 +237,7 @@ class UsageEntry(Base):
 
     __tablename__ = "usage_entries"
     __table_args__ = (
+        UniqueConstraint("request_id", "call_no", name="uq_usage_entries_request_call"),
         Index("ix_usage_entries_user_id_created_at", "user_id", "created_at"),
         Index("ix_usage_entries_month_state", "month", "state"),
     )

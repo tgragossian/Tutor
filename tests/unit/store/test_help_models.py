@@ -95,6 +95,19 @@ def test_request_id_unique(db: Session) -> None:
         db.commit()
 
 
+def test_usage_request_call_unique(db: Session) -> None:
+    db.add(_usage(1, "d" * 36))
+    db.commit()
+    db.add(_usage(1, "d" * 36))
+    with pytest.raises(IntegrityError):
+        db.commit()
+    db.rollback()
+    other = _usage(1, "d" * 36)
+    other.call_no = 2
+    db.add(other)
+    db.commit()
+
+
 def test_usage_has_no_user_fk(db: Session) -> None:
     user, item = _item(db)
     db.add(_help(user, item, "b" * 36))
