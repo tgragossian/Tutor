@@ -9,8 +9,9 @@ the guard's own verifier pool, against an ``ExpressionAnswer`` built from the re
 
 Anything the guard cannot check blocks the text: a rejected parse, a busy pool, a spent
 deadline, an abstaining checker, unbalanced delimiters, LaTeX left in the prose or too many
-candidates. Single-letter foreign symbols are also checked replaced by the variable and by 0
-(and by 1 on numeric problems); any such variant left unchecked blocks too.
+candidates. Foreign atoms (any foreign symbol, and each function application ``f(x)`` as a
+whole) are checked replaced by the variable and by 0 (and by 1 on numeric problems); any such
+variant left unchecked blocks too, and more than three atoms block (review C1-R2).
 ``GuardResult`` holds counts and a fixed reason code only, never text.
 """
 
@@ -59,8 +60,8 @@ def _zero_counts() -> dict[LeakStatus, int]:
 class GuardResult:
     """Counts and a reason code only: no LaTeX, student or model text.
 
-    ``counts[NO_MATCH]`` includes candidates with foreign symbols (never sent to the checker);
-    ``foreign`` counts those separately.
+    ``counts[NO_MATCH]`` includes candidates with foreign symbols whose every substitution
+    variant was checked as a no match; ``foreign`` counts those separately.
     """
 
     decision: GuardDecision
@@ -384,27 +385,38 @@ def _rule_violation(text: str, answer: Answer) -> str | None:
     return None
 
 
-def _substitutable(parsed: ParsedMath) -> frozenset[str] | None:
-    """The foreign names when every one is a single-letter symbol, else None. A letter used
-    as a function name (``f(x)``) or any other foreign item (``y'``, ``du/dx``, Greek) keeps
-    the candidate unchecked as a no match."""
-    functions: set[str] = set()
-    stack: list[JsonValue] = [parsed.tree]
+_APPLY_ATOM = "\x00apply"  # stands for one lifted ``Apply`` subtree; never a parser name
+
+
+def _foreign_atoms(parsed: ParsedMath) -> tuple[JsonValue, frozenset[str]]:
+    """The tree with every function application (``f(x)``, ``h'(2x)``) lifted to one atom,
+    and the set of foreign atoms left in it: foreign symbols of any shape (letters, Greek,
+    ``y'``, ``x_1``, ``d/dx``) and the lifted applications. Identical applications share an
+    atom, so ``f(x) - f(x)`` cancels like ``a - a`` (review C1-R2)."""
+    applies: dict[str, str] = {}
+
+    def lift(node: JsonValue) -> JsonValue:
+        if isinstance(node, list) and node:
+            if node[0] == "Apply":
+                key = json.dumps(node, sort_keys=True)
+                return applies.setdefault(key, f"{_APPLY_ATOM}{len(applies)}")
+            return [node[0], *(lift(operand) for operand in node[1:])]
+        return node
+
+    tree = lift(parsed.tree)
+    names = parsed.foreign | frozenset(applies.values())
+    atoms: set[str] = set()
+    stack: list[JsonValue] = [tree]
     while stack:
         node = stack.pop()
-        if isinstance(node, list):
-            if node and node[0] == "Apply" and len(node) > 1 and isinstance(node[1], str):
-                functions.add(node[1])
-            stack.extend(node[1:])
-    letters = parsed.foreign
-    if all(len(n) == 1 and n.isascii() and n.isalpha() for n in letters) and not (
-        letters & functions
-    ):
-        return letters
-    return None
+        if isinstance(node, str) and node in names:
+            atoms.add(node)
+        elif isinstance(node, list) and node:
+            stack.extend(node[1:])  # operands only; node[0] is the operator
+    return tree, frozenset(atoms)
 
 
-MAX_FOREIGN_LETTERS = 3
+MAX_FOREIGN_ATOMS = 3
 
 
 def _substitute(tree: JsonValue, values: dict[str, JsonValue]) -> JsonValue:
@@ -511,17 +523,17 @@ class LeakGuard:
         ids: Iterator[int],
         numeric: bool,
     ) -> tuple[LeakStatus, str]:
-        """A tree with foreign names is never checked as written. When every foreign name is a
-        single-letter symbol (at most three), its substitution variants are checked
+        """A tree with foreign names is never checked as written. Its foreign atoms (at most
+        three; see ``_foreign_atoms``) are substituted and each variant is checked
         (``_variants``); it is a no match only when every variant is one. The first leak or
-        unchecked variant (busy, error, timeout, deadline) decides. More than three letters is
-        unchecked."""
-        letters = _substitutable(parsed)
-        if letters is None:
-            return LeakStatus.NO_MATCH, ""
-        if len(letters) > MAX_FOREIGN_LETTERS:
+        unchecked variant (busy, error, timeout, deadline) decides. More than three atoms is
+        unchecked, so no foreign shape passes without a checker verdict (review C1-R2)."""
+        tree, atoms = _foreign_atoms(parsed)
+        if len(atoms) > MAX_FOREIGN_ATOMS:
             return LeakStatus.UNCHECKED, "too_many_foreign"
-        variants = _variants(parsed.tree, letters, reference.variable, ones=numeric)
+        if not atoms:  # cannot happen for a parser tree; fail closed if it ever does
+            return LeakStatus.UNCHECKED, "foreign_unresolved"
+        variants = _variants(tree, atoms, reference.variable, ones=numeric)
         for tree in variants:
             status, reason = self._check_tree(tree, reference, deadline, ids)
             if status is not LeakStatus.NO_MATCH:

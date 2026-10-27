@@ -134,3 +134,44 @@ def test_round_4_paths_with_real_checker(
     spec = _answer(answer) if isinstance(answer, str) else answer
     result = guard.check(text, spec, time.monotonic() + 10.0)
     assert result.decision == decision, result
+
+
+# Review C1-R2: the answer plus foreign terms that cancel (or vanish) must not pass. Each
+# foreign atom is substituted (variable, 0, each alone) and every variant is really checked.
+@pytest.mark.parametrize(
+    "suffix",
+    [
+        "f(x)-f(x)",
+        r"\theta-\theta",
+        "y'-y'",
+        "x_1-x_1",
+        r"0\cdot g(x)",
+        r"\alpha\cdot(x-x)",
+        r"f(x)-f(2x)",
+    ],
+)
+def test_answer_plus_canceling_foreign_terms_is_blocked(guard: LeakGuard, suffix: str) -> None:
+    answer = _answer("openstax-c1-3.6-221")
+    result = guard.check(f"${answer.latex}+{suffix}$", answer, time.monotonic() + 10.0)
+    assert result.decision == "block", result
+
+
+@pytest.mark.parametrize("text", [r"So $12+\theta-\theta$.", r"So $12 + 0\cdot f(x)$."])
+def test_numeric_answer_plus_canceling_foreign_terms_is_blocked(
+    guard: LeakGuard, text: str
+) -> None:
+    result = guard.check(text, TWELVE, time.monotonic() + 10.0)
+    assert result.decision == "block", result
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        r"Write $y = u^3$ where $u = 3x^2+1$; then $\frac{dy}{dx} = 3u^2 \cdot u'$.",
+        r"The chain rule gives $f'(g(x))\,g'(x)$.",
+        r"Differentiate the inside: $\frac{d}{dx}(3x^2+1)$.",
+    ],
+)
+def test_safe_derivative_notation_passes(guard: LeakGuard, text: str) -> None:
+    result = guard.check(text, _answer("openstax-c1-3.6-221"), time.monotonic() + 10.0)
+    assert result.decision == "pass", result

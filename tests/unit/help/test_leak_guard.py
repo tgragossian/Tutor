@@ -447,12 +447,34 @@ def test_foreign_substitution_without_match_keeps_no_match() -> None:
     assert sent == [["Multiply", 18, ["Power", "x", 2]], ["Multiply", 18, ["Power", 0, 2]]]
 
 
-def test_non_letter_foreign_is_not_substituted() -> None:
+def test_non_letter_foreign_is_checked() -> None:
+    """Review C1-R2: applications, Greek, primes and d/dx are substituted and checked like
+    single letters; none passes without a checker verdict."""
     result, pool = _check(r"Let $f(x)$ and $\frac{du}{dx}$.", answer=TWO_X, pool=TreePool("2x"))
     assert (result.decision, result.foreign) == ("pass", 2)
-    assert pool.requests == []
+    assert pool.requests
     mixed, pool = _check("So $u + f(x)$.", answer=TWO_X, pool=TreePool("2x"))
-    assert mixed.decision == "pass" and pool.requests == []
+    assert mixed.decision == "pass" and pool.requests
+
+
+@pytest.mark.parametrize(
+    "text", [r"So $2x + f(x)$.", r"So $2x + \theta$.", r"So $2x + y'$.", r"So $2x + x_1$."]
+)
+def test_answer_plus_foreign_atom_is_checked_with_atom_as_zero(text: str) -> None:
+    result, _ = _check(text, answer=TWO_X, pool=TreePool("2x + 0"))
+    assert (result.decision, result.reason) == ("block", "leak"), text
+
+
+def test_identical_applications_share_one_atom() -> None:
+    _, pool = _check(r"So $f(x) - f(x) + g(2x)$.", answer=TWO_X, pool=TreePool())
+    first = pool.requests[0].answer.mathjson
+    assert first == ["Add", ["Subtract", "x", "x"], "x"], first
+
+
+def test_more_than_three_foreign_atoms_block() -> None:
+    result, pool = _check(r"So $f(x) + \theta + y' + x_1$.", answer=TWO_X, pool=TreePool())
+    assert (result.decision, result.reason) == ("block", "too_many_foreign")
+    assert pool.requests == []
 
 
 @pytest.mark.parametrize(
