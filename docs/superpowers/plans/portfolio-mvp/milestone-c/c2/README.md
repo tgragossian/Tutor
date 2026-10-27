@@ -30,7 +30,7 @@ The question is never stored; only the routing label and a hash are.
   [6–7 evaluation](13-evaluation.md) · [8 release](14-release.md).
 
 Order: 1 → 2 → 3 → 4 → 5; 6 after 2; 7 after 6; 8 last. Branch `milestone-c2` is rebased on
-`milestone-c1` `fb0ccd5` (C1 review fixes); rebase onto `main` once C1 merges. Do not start
+`milestone-c1` `9802181` (review fixes and R35); rebase onto `main` once C1 merges. Do not start
 Task 1 until Codex has closed the C1 review. Owner steps: Q1–Q8, case review, paid runs.
 
 ## C1 fixes this plan builds on (review C1-R1..R9)
@@ -47,6 +47,8 @@ Task 1 until Codex has closed the C1 review. Owner steps: Q1–Q8, case review, 
 - Evaluation (R4, R9): `eval/spend.py` journals every call; `eval/holdout.py` claims a
   holdout's ids. Task 6 reuses both; claims gain a `suite` so C2 cases may use C1's holdout
   problems (R-C2-6).
+- Hint ladder (R35): level 0 before a wrong answer; a same/new judgment can reset to 1.
+  Questions read the ladder for Q1's level but never move it.
 
 ## Global constraints
 
@@ -62,7 +64,7 @@ Task 1 until Codex has closed the C1 review. Owner steps: Q1–Q8, case review, 
 - C1 prompts `system.md`, `hint.md`, `feedback.md`, `explain.md` stay byte-identical, so C1's
   evaluation evidence still applies to those types (Q3).
 - Questions share C1's per-user, per-item and monthly limits; no new budget.
-- Migrations add columns only (`0005`), like `0003`/`0004`.
+- Migrations add columns only (`0006`), like `0003`–`0005`.
 
 ## Review focus
 

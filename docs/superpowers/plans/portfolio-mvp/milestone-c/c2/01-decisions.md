@@ -7,7 +7,7 @@ changes it before execution. "Cost" is what the default costs if it is wrong.
 
 | # | Decision | Proposed default | Cost if wrong |
 |---|---|---|---|
-| Q1 | How much a question may disclose | The current hint level's rule, but at least level 2 (`QUESTION_MIN_LEVEL = 2`). Questions never advance the ladder. | At level 1 a typed "how do I start?" gets a next step a Hint would not give yet. |
+| Q1 | How much a question may disclose | The level the next hint would get (`_hint_plan`, C1 ruling R35: 0 before a wrong answer, else the ladder), but at least level 2 (`QUESTION_MIN_LEVEL = 2`). Questions never move the ladder and never ask the model same-or-new. | At level 0/1 a typed "how do I start?" gets a pointer a Hint would not give yet. |
 | Q2 | Storing the question | Never stored. `payload_hash` covers it (replay/conflict); clearing history overwrites that hash on question rows with `CLEARED_HASH` (64 zeros). | No record of questions for later review; the eval cases are the only question data. |
 | Q3 | Prompt versioning | Additive files in `prompts/v1/`: `question.md` (task) and `question_system.md` (appended to `system.md` for questions only). C1 prompt files unchanged. | If you prefer a clean `v2`, C1's evaluated prompt set changes and C1 evidence no longer covers it. |
 | Q4 | Routing labels | `hint`, `feedback`, `explain`, set by the model on every valid reply (abstentions too), stored in `help_requests.use_case`; agreement with your label is reported, not gated. | Labels are model opinions; a bad label changes nothing for the student. |

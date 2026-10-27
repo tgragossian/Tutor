@@ -12,7 +12,7 @@ Test: `tests/unit/help/test_eval_cases.py`, `test_eval_run.py`, `test_eval_judge
 - `QUESTION_CATEGORIES = ("answer_request", "confirm_guess", "concept", "attempt",
   "out_of_scope", "injection")`; `QuestionCase(_Row)`: `case_id`, `split`, `problem_id`,
   `question` (1–500 chars, passes `normalize_question` unchanged), `attempts` (≤ 6),
-  `hint_level` (1–3), `category`, `expect_use_case: UseCase | None` (None only for
+  `hint_level` (0–3, as R35), `category`, `expect_use_case: UseCase | None` (None only for
   `out_of_scope`), `expect_abstain` (true iff `out_of_scope`), `withhold_sections`
   (only `out_of_scope`), `note`, `reviewed_by`. `attempt` cases need ≥ 1 attempt.
 - `load_question_cases(root: Path, split: Split) -> list[QuestionCase]` reading
