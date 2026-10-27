@@ -72,7 +72,11 @@ IDs are `c1-<section>-<kind><n>[-p<k>]`, numbered per section and kind in book o
 section they summarize. Chapter openers, preface, appendices, index, media boxes, images and
 alt text are not chunked. Target 300-500 estimated tokens (`ceil(utf8_bytes/3)`), ceiling
 700. Longer boxes split into `-p1`, `-p2`, each repeating the title; a display equation stays
-with its lead-in sentence and a lower-case continuation ("where ...").
+with its lead-in sentence and a lower-case continuation ("where ..."). Exception: gluing
+never crosses a box boundary. When the lead-in sits before a box (c1-3.7-thm3, whose six
+displays follow "...provided in the following theorem." in the previous `txt` chunk), the
+box chunk starts with its title and displays only. Prose `$` is escaped as `\$`, so unescaped
+`$` only delimits math.
 
 Build of `8dbc2ce`: 1,765 chunks (explanation 595, exercise 495, example 357, answer_key 112,
 definition 80, theorem 72, rule 54); 18,058 math elements, `unavailable_math` 0 (one more
@@ -86,7 +90,9 @@ c1-3.9-ex2, c1-5.1-txt4, c1-5.3-thm1, c1-5.5-ex2):
   piecewise (`cases`), dollar amounts (`\$500`).
 - Multi-line derivations become `\begin{array}{rl...}` with empty spacer columns and the
   book's step notes as `\text{ Simplify.}`; some start with an empty row.
-- Thin spaces from the source survive (`\sin\,\theta`, `2z\:dz`); harmless noise.
+- Inner thin spaces survive (`\sin\,\theta`, `2z\:dz`); leading/trailing ones are dropped.
+- `min`/`max`/`sec` after a value with no argument are units (`5\:\text{ sec }`).
+- An evaluation bar is `\left. ... \right|_{x = a}` (`\Big|_{a}^{b}` with no left operand).
 - A comma between two numbers stays unspaced (`1,502.08`, `[0,100]`): the MathML does not
   say whether it is a thousands separator.
 - Equation numbers follow the display as plain text: `$$...$$ (3.17)`.

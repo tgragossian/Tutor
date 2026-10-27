@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from corpus import build
+from support.corpus_text import math_spans, prose_in_math
 
 from mathtutor.retrieval.corpus import (
     MAX_CHUNK_TOKENS,
@@ -76,3 +77,6 @@ def test_real_corpus_loads() -> None:
         assert id_re.match(chunk.chunk_id)
         assert chunk.est_tokens == estimate_tokens(chunk.text) <= MAX_CHUNK_TOKENS
         assert chunk.url.startswith("https://openstax.org/books/calculus-volume-1/pages/")
+        spans = math_spans(chunk.text)
+        assert spans is not None, f"unbalanced $ in {chunk.chunk_id}"
+        assert not [s for s in spans if prose_in_math(s)], chunk.chunk_id

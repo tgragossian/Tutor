@@ -112,6 +112,11 @@ def norm(text: str) -> str:
     return _WS.sub(" ", unicodedata.normalize("NFC", text).replace("\xa0", " ")).strip()
 
 
+def prose(text: str) -> str:
+    """Text outside math: escape ``$`` (as mathml.py does) so ``$...$`` only delimits math."""
+    return text.replace("$", r"\$")
+
+
 def section_key(section: str) -> tuple[int, int]:
     major, minor = section.split(".")
     return int(major), int(minor)
@@ -291,11 +296,11 @@ class Renderer:
 
     def inline(self, el: ET.Element, out: list[str]) -> None:
         if el.text:
-            out.append(el.text)
+            out.append(prose(el.text))
         for c in el:
             self.inline_child(c, out)
             if c.tail:
-                out.append(c.tail)
+                out.append(prose(c.tail))
 
     def inline_child(self, c: ET.Element, out: list[str]) -> None:
         tag = local(c.tag)
@@ -306,7 +311,7 @@ class Renderer:
         elif tag == "br":
             out.append(" ")
         elif tag in ("sup", "sub"):
-            out.append(("^" if tag == "sup" else "_") + "".join(c.itertext()))
+            out.append(("^" if tag == "sup" else "_") + prose("".join(c.itertext())))
         else:
             self.inline(c, out)
 
@@ -316,7 +321,7 @@ class Renderer:
     def units(self, el: ET.Element, anchor: str) -> list[Unit]:
         anchor = el.get("id") or anchor
         out: list[Unit] = []
-        buf: list[str] = [el.text or ""]
+        buf: list[str] = [prose(el.text or "")]
         carry = ""
 
         def flush() -> None:
@@ -329,7 +334,7 @@ class Renderer:
 
         for c in el:
             if id(c) in self.skip or local(c.tag) in SKIP_TAGS:
-                buf.append(c.tail or "")
+                buf.append(prose(c.tail or ""))
                 continue
             if self.is_block(c):
                 pending = norm("".join(buf))
@@ -346,7 +351,7 @@ class Renderer:
                 out.extend(block)
             else:
                 self.inline_child(c, buf)
-            buf.append(c.tail or "")
+            buf.append(prose(c.tail or ""))
         flush()
         if carry:  # a bare item number whose content was only an image
             self.label_only += 1

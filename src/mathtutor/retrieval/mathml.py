@@ -20,6 +20,9 @@ FUNCTIONS = frozenset(
     "max min sup inf det gcd".split()
 )
 OPERATOR_NAMES = frozenset("sech csch".split())
+AMBIGUOUS = frozenset("min max sec".split())
+# A word followed by one of these (or by nothing) is a unit, not an applied function.
+NOT_AN_ARGUMENT = frozenset(list(",.;:)]}/=<>") + ["−", "-", "+", "·", "×", "≤", "≥"])
 BIG_OPERATORS = frozenset([r"\lim", r"\sum", r"\int", r"\prod", r"\max", r"\min", r"\sup", r"\inf"])
 
 GREEK = {
@@ -194,9 +197,15 @@ def text_mode(text: str) -> str:
     return r"\text{" + "".join(TEXT_ESCAPES.get(ch, ch) for ch in text) + "}"
 
 
-def word(text: str) -> str:
-    """mi/mtext content: function names become commands, prose becomes \\text{...}."""
+def word(text: str, *, applied: bool = True) -> str:
+    """mi/mtext content: function names become commands, prose becomes \\text{...}.
+
+    ``min``/``max``/``sec`` are also units (minutes, seconds); they become commands only when
+    ``applied`` to an argument.
+    """
     bare = text.replace("\xa0", " ").strip()
+    if bare in AMBIGUOUS and not applied:
+        return text_mode(" " + bare + " ")
     if bare in FUNCTIONS:
         return "\\" + bare
     if bare in OPERATOR_NAMES:
@@ -214,9 +223,14 @@ def word(text: str) -> str:
     return convert_chars(text.replace("\xa0", " ").strip() if text.strip() else text)
 
 
+def _is_mo(el: ET.Element, text: str) -> bool:
+    return local(el.tag) == "mo" and (el.text or "").strip() == text
+
+
 class _Converter:
     def __init__(self) -> None:
         self.unavailable = 0
+        self.units: set[int] = set()  # ids of min/max/sec words used as units
 
     def kids(self, el: ET.Element) -> list[ET.Element]:
         return [c for c in el if local(c.tag) != "annotation-xml"]
@@ -289,9 +303,69 @@ class _Converter:
                 parts.append(",")
                 i += 1
                 continue
+            bar, used = self.evaluation_bar(k, nxt)
+            if bar is not None:
+                # "f(x) |_{x=a}" is a one-row table under a bar: \left. f(x) \right|_{x=a}.
+                before = join(parts).strip()
+                parts = [r"\left." + before + r"\right|" + bar] if before else [r"\Big|" + bar]
+                i += used
+                continue
+            if local(k.tag) in ("mi", "mtext") and (k.text or "").strip() in AMBIGUOUS:
+                arg = next((c for c in kids[i + 1 :] if local(c.tag) != "mspace"), None)
+                has_before = any(local(c.tag) != "mspace" for c in kids[:i])
+                # A lone word in a wrapper row (an msup base) takes its context from outside.
+                if has_before and (
+                    arg is None
+                    or (local(arg.tag) == "mo" and (arg.text or "").strip() in NOT_AN_ARGUMENT)
+                ):
+                    self.units.add(id(k))
             parts.append(self.conv(k))
             i += 1
         return join(parts)
+
+    def evaluation_bar(self, k: ET.Element, nxt: ET.Element | None) -> tuple[str | None, int]:
+        """Scripts of an evaluation bar ``|`` + table of empty-based scripts, and kids used."""
+        if _is_mo(k, "|") and nxt is not None:
+            scripts = self.bar_scripts(self.unwrap(nxt))
+            return (scripts, 2) if scripts is not None else (None, 0)
+        inner = self.unwrap(k)
+        inner_kids = self.kids(inner)
+        if local(inner.tag) == "mrow" and len(inner_kids) == 2 and _is_mo(inner_kids[0], "|"):
+            scripts = self.bar_scripts(self.unwrap(inner_kids[1]))
+            return (scripts, 1) if scripts is not None else (None, 0)
+        return None, 0
+
+    def bar_scripts(self, table: ET.Element) -> str | None:
+        if local(table.tag) != "mtable":
+            return None
+        sub = sup = ""
+        for tr in self.kids(table):
+            cells = self.kids(tr)
+            if local(tr.tag) != "mtr" or len(cells) != 1:
+                return None
+            content = self.kids(cells[0])
+            if len(content) > 1:
+                return None
+            cell = self.unwrap(content[0]) if content else cells[0]
+            tag = local(cell.tag)
+            if not content or (tag in TRANSPARENT and not self.kids(cell)):
+                continue
+            scripts = self.kids(cell)
+            arity = {"msub": 2, "msup": 2, "msubsup": 3}.get(tag)
+            if arity is None or len(scripts) != arity:
+                return None
+            base = self.unwrap(scripts[0])
+            if local(base.tag) not in TRANSPARENT or self.kids(base) or (base.text or "").strip():
+                return None
+            if tag in ("msub", "msubsup"):
+                sub = self.conv(scripts[1])
+            if tag == "msup":
+                sup = self.conv(scripts[1])
+            if tag == "msubsup":
+                sup = self.conv(scripts[2])
+        if not (sub or sup):
+            return None
+        return ("_{" + sub + "}" if sub else "") + ("^{" + sup + "}" if sup else "")
 
     def table(self, el: ET.Element, env: str = "array") -> str:
         rows: list[list[str]] = []
@@ -330,16 +404,21 @@ class _Converter:
         text = el.text or ""
         if tag in TRANSPARENT or tag == "mtd":
             return self.row(el)
+        applied = id(el) not in self.units
         if tag == "mi":
-            if len(text.strip()) <= 1:
-                return convert_chars(text.strip())
-            return word(text)
+            bare = text.strip()
+            if len(bare) <= 1:
+                return convert_chars(bare)
+            # One identifier: a function name, a word ("and", "units"), or letters ("dx").
+            if bare in FUNCTIONS or bare in OPERATOR_NAMES or len(bare) >= 3:
+                return word(text, applied=applied)
+            return convert_chars(bare)
         if tag == "mn":
             return convert_chars(text.strip())
         if tag == "mo":
             return convert_chars(text if text.strip() == "" else text.strip())
         if tag == "mtext":
-            return word(text)
+            return word(text, applied=applied)
         if tag == "mspace":
             return self.space(el)
         if tag == "mfrac" and len(kids) == 2:
@@ -425,8 +504,17 @@ class _Converter:
         return r"\overset{" + self.conv(over_el) + "}{" + self.conv(base_el) + "}"
 
 
+_SPACING = r"(?:\s|(?<!\\)\\[,:;! ]|(?<!\\)\\q?quad(?![A-Za-z]))"
+_EDGE_SPACING = re.compile(rf"^{_SPACING}+|{_SPACING}+$")
+
+
 def _tidy(latex: str) -> str:
+    """Collapse whitespace and drop spacing commands at either end (never a lone ``\\``)."""
     latex = re.sub(r"[ \t\r\n]+", " ", latex)
+    latex = _EDGE_SPACING.sub("", latex)
+    trailing = len(latex) - len(latex.rstrip("\\"))
+    if trailing % 2:
+        latex = latex[:-1]
     return latex.strip()
 
 

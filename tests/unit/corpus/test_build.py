@@ -2,16 +2,21 @@
 
 import hashlib
 import json
+import os
 import re
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 from corpus import build
+from support.corpus_text import math_spans, prose_in_math
 
 from mathtutor.retrieval.corpus import MAX_CHUNK_TOKENS, ChunkRole, estimate_tokens
 
-FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "corpus" / "build"
+REPO = Path(__file__).resolve().parents[3]
+FIXTURE = REPO / "tests" / "fixtures" / "corpus" / "build"
 EDITION = "calculus-volume-1@8dbc2ce"
 ID_RE = re.compile(r"^c1-\d+\.\d+-(def|thm|rule|ex|txt|exr|key)\d+(-p\d+)?$")
 URL_RE = re.compile(r"^https://openstax\.org/books/calculus-volume-1/pages/[a-z0-9-]+#[\w-]+$")
@@ -44,6 +49,43 @@ def test_rebuild_identical(built: build.Built, tmp_path: Path) -> None:
         assert (tmp_path / "a" / name).read_bytes() == (tmp_path / "b" / name).read_bytes()
     raw = (tmp_path / "a" / "chunks.jsonl").read_bytes()
     assert built.manifest["corpus_hash"] == hashlib.sha256(raw).hexdigest()
+    # A fresh interpreter with another hash seed must give the same bytes.
+    out = tmp_path / "c"
+    subprocess.run(
+        [
+            sys.executable,
+            str(REPO / "tools" / "corpus" / "build.py"),
+            "--snapshot",
+            str(FIXTURE / "snapshot.json"),
+            "--raw",
+            str(FIXTURE / "raw"),
+            "--out",
+            str(out),
+        ],
+        check=True,
+        env={**os.environ, "PYTHONHASHSEED": "12345"},
+        cwd=REPO,
+        capture_output=True,
+    )
+    for name in ("chunks.jsonl", "manifest.json"):
+        assert (out / name).read_bytes() == (tmp_path / "a" / name).read_bytes()
+
+
+def test_prose_dollar_is_escaped(built: build.Built) -> None:
+    texts = "\n".join(c.text for c in built.chunks)
+    assert r"approximately \$3." in texts
+    assert r"\$83 per drill" in texts
+    for c in built.chunks:
+        spans = math_spans(c.text)
+        assert spans is not None, c.chunk_id
+        assert not [s for s in spans if prose_in_math(s)], c.chunk_id
+
+
+def test_math_mask_honors_escaped_dollar() -> None:
+    text = r"costs \$3 and $x$"
+    mask = build._math_mask(text)
+    assert not any(mask[: text.index("and")])
+    assert all(mask[text.index("$x$") : text.index("$x$") + 3])
 
 
 def test_manifest_fields(built: build.Built) -> None:
@@ -115,7 +157,7 @@ def test_exercises_labeled(built: build.Built) -> None:
     assert review and all(c.role is ChunkRole.EXERCISE and c.section == "3.0" for c in review)
     answers = [c for c in built.chunks if "/pages/chapter-3#" in c.url]
     assert answers and all(c.role is ChunkRole.ANSWER_KEY for c in answers)
-    assert {c.section for c in answers} == {"3.0", "3.3"}
+    assert {c.section for c in answers} == {"3.0", "3.3", "3.4"}
     checkpoint = [c for c in built.chunks if c.text.startswith("Checkpoint 3.")]
     assert checkpoint and all(c.role is ChunkRole.EXERCISE for c in checkpoint)
 

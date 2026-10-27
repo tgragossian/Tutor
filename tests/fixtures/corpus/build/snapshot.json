@@ -32,6 +32,15 @@
       "bytes": 11860
     },
     {
+      "slug": "3-4-derivatives-as-rates-of-change",
+      "section": "3.4",
+      "title": "Derivatives as Rates of Change",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:610ace30-270f-4dfc-8fad-5e44c4723919.json",
+      "sha256": "14a41d4ffe68165fc7338f972e6a8001c0053d5e66a0a3d3b0cd9a708b1ef7a0",
+      "bytes": 1547
+    },
+    {
       "slug": "3-key-terms",
       "section": "3.key-terms",
       "title": "Key Terms",
@@ -64,8 +73,8 @@
       "title": "Chapter 3",
       "kind": "answer-key",
       "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:a329ca25-ddf9-5b35-8d21-8a816d63bb2d.json",
-      "sha256": "673178a265226964c94c76b4c812d9b683fa392e1313ced338efd6101c17f29e",
-      "bytes": 5245
+      "sha256": "bb27339bd4a3ed63c04a3b3ff8e797285ad1dec4a14a84f93aaaf5a24215c7de",
+      "bytes": 7695
     }
   ],
   "fetch_tool_version": "1"

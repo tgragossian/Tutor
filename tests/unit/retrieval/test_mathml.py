@@ -14,7 +14,7 @@ SNIPPETS = json.loads(
 )
 
 EXPECTED = {
-    "abs_table": r"\frac{dy}{dx}|\begin{array}{l} \\ {}_{x = a}\end{array}",
+    "abs_table": r"\left.\frac{dy}{dx}\right|_{x = a}",
     "aligned": r"\begin{array}{l}\sin\,\theta = \frac{y}{r} \\ y = r\,\sin\,\theta.\end{array}",
     "bar": r"\overline{x}",
     "cdot": r"f\cdot g",
@@ -26,7 +26,7 @@ EXPECTED = {
     "mfenced": r"\tan(x)",
     "mfenced_abs": r"2\ln|x|+C\text{ or }\ln(x^{2})+C",
     "mpadded": r"y = e^{2x}",
-    "mspace": r"\:\times\:",
+    "mspace": r"\times",
     "msub": r"v_{0}",
     "neq_inf": r"x \ne 0",
     "paren_table": (
@@ -88,3 +88,47 @@ def test_comma_between_numbers_stays_unspaced() -> None:
 def test_prose_mtext_is_escaped() -> None:
     src = "<math><semantics><mrow><mtext>cost in $ &amp; 50%</mtext></mrow></semantics></math>"
     assert mathml_string_to_latex(src).latex == r"\text{ cost in \$ \& 50\%}"
+
+
+def m(body: str) -> str:
+    src = f"<math><semantics><mrow>{body}</mrow></semantics></math>"
+    return mathml_string_to_latex(src).latex
+
+
+def test_compound_base_is_braced() -> None:
+    assert m("<msup><mrow><mi>x</mi><mo>+</mo><mn>1</mn></mrow><mn>2</mn></msup>") == "{x+1}^{2}"
+
+
+def test_one_sided_limit_and_starred_subscript() -> None:
+    assert m("<mi>x</mi><mo>→</mo><msup><mi>a</mi><mo>−</mo></msup>") == r"x \to a^{-}"
+    assert m("<msubsup><mi>x</mi><mi>i</mi><mo>*</mo></msubsup>") == "x_{i}^{*}"
+
+
+def test_units_are_not_functions() -> None:
+    assert m("<mn>0.5</mn><mi>Ω</mi><mo>/</mo><mtext>min</mtext>") == r"0.5\Omega/\text{ min }"
+    assert m("<mn>5</mn><mspace width='0.2em'/><mtext>sec</mtext>") == r"5\:\text{ sec }"
+    assert m("<mn>5</mn><mtext>sec</mtext><mo>,</mo>") == r"5\text{ sec },"
+    assert m("<mtext>sec</mtext><mspace width='0.1em'/><mi>x</mi>") == r"\sec\,x"
+    assert m("<msup><mtext>sec</mtext><mn>2</mn></msup><mi>x</mi>") == r"\sec^{2}x"
+    assert m("<mtext>min</mtext><mo>(</mo><mi>a</mi><mo>)</mo>") == r"\min(a)"
+    inverse = "<msup><mrow><mtext>sec</mtext></mrow><mn>−1</mn></msup><mi>x</mi>"
+    assert m(f"<mi>d</mi><mspace width='0.1em'/>{inverse}") == r"d\,\sec^{-1}x"
+
+
+def test_multi_letter_identifier_is_plain() -> None:
+    assert m("<mi>dx</mi>") == "dx"
+    assert m("<mi>units</mi>") == r"\text{ units }"
+
+
+def test_no_dangling_backslash() -> None:
+    assert m("<mi>x</mi><mtext> </mtext>") == "x"
+    assert m("<mspace width='1em'/><mi>x</mi>") == "x"
+    assert m("<mi>x</mi><mspace width='0.1em'/>") == "x"
+
+
+def test_evaluation_bar_without_left_operand() -> None:
+    bar = (
+        "<mo>|</mo><mtable><mtr><mtd><msup><mrow/><mn>2</mn></msup></mtd></mtr>"
+        "<mtr><mtd><msub><mrow/><mn>0</mn></msub></mtd></mtr></mtable>"
+    )
+    assert m(bar) == r"\Big|_{0}^{2}"
