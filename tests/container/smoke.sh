@@ -31,6 +31,11 @@ uid=$(docker run --rm "$IMAGE" id -u)
 node=$(docker run --rm "$IMAGE" sh -c 'command -v node || echo none')
 [ "$node" = none ] || fail "node found in image at $node"
 
+# Help data the app loads at start; without it help silently stays off (C1-R1).
+for f in content/corpus/chunks.jsonl content/corpus/manifest.json content/help/confusions.json; do
+  docker run --rm "$IMAGE" test -s "/app/$f" || fail "image lacks /app/$f"
+done
+
 secret=$(head -c 48 /dev/urandom | base64 | tr -d '\n')
 
 # Migrations: a one-shot run against a fresh volume, as compose's `migrate` service does.
