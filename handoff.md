@@ -13,7 +13,9 @@ are in [C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulin
 
 ## Resume here
 
-1. Codex: review the C1 branch (harness, guard, service, UI, ops docs), then Thomas proceeds.
+1. Codex: deep-dive review of branch `milestone-c1` per the
+   [C1 review brief](docs/reviews/2026-10-27-milestone-c1/README.md) (scope, files, known limits,
+   output format). No paid calls, no holdout. C2 planning runs in parallel on `milestone-c2`.
 2. Owner steps pending, in order: review 60 cases + 40 queries (`reviewed_by: tg`); approve the
    12 confusion labels, 4 rewritten misconception notes, the help panel copy and the provider
    disclosure wording; paid dev run
