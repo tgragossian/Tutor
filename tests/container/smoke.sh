@@ -106,6 +106,9 @@ docker logs "$NAME" 2>&1 | grep -q '"route": "/api/sessions/{session_id}/submit"
 # Browser test on the production image. localhost, not 127.0.0.1: Chromium keeps the Secure
 # session cookie over plain http only for localhost.
 if [ "${E2E:-0}" = 1 ]; then
+  # Base browser test on the production-configuration container (help is off there).
+  BASE_URL=http://localhost:18000 npm run e2e --prefix tools \
+    || { docker logs "$NAME" >&2; fail "browser e2e failed against the container"; }
   # Same image, test configuration (offline fixed help generator), own volume: never the
   # deployed settings (see deploy/compose.e2e.yaml).
   E2E_NAME=$NAME-e2e
@@ -116,12 +119,14 @@ if [ "${E2E:-0}" = 1 ]; then
   docker run -d --name "$E2E_NAME" -e MATHTUTOR_SECRET_KEY="$secret" \
     -e MATHTUTOR_ENV=test -e MATHTUTOR_HELP_GENERATOR=scripted \
     -v "$E2E_VOLUME:/data" -p 127.0.0.1:18001:8000 "$IMAGE" >/dev/null
+  ready=0
   for _ in $(seq 1 30); do
-    curl -fsS http://127.0.0.1:18001/readyz >/dev/null 2>&1 && break
+    if curl -fsS http://127.0.0.1:18001/readyz >/dev/null 2>&1; then ready=1; break; fi
     sleep 1
   done
+  [ "$ready" = 1 ] || { docker logs "$E2E_NAME" >&2; fail "e2e container /readyz not 200 within 30 s"; }
   HELP_E2E=1 BASE_URL=http://localhost:18001 npm run e2e --prefix tools \
-    || { docker logs "$E2E_NAME" >&2; fail "browser e2e failed against the container"; }
+    || { docker logs "$E2E_NAME" >&2; fail "help browser e2e failed against the container"; }
   docker rm -f "$E2E_NAME" >/dev/null 2>&1 || true
   docker volume rm -f "$E2E_VOLUME" >/dev/null 2>&1 || true
 fi

@@ -1,7 +1,12 @@
 # Browser-test override: NEVER used for the deployed stack. Layer it over compose.yaml
 # (docker compose -f compose.yaml -f compose.e2e.yaml) to run the app offline with the fixed
 # scripted help generator. MATHTUTOR_HELP_GENERATOR=scripted is refused unless env is test.
-# tests/container/smoke.sh starts the same configuration with `docker run`.
+# The project name differs from the deployed one, so compose names its volumes
+# mathtutor-e2e_app_data etc. and can never touch the real data volume.
+# compose.yaml's app has no ports, so this adds the only one (loopback); if that ever changes,
+# use `ports: !override` here. tests/container/smoke.sh starts the same configuration with
+# `docker run`.
+name: mathtutor-e2e
 services:
   app:
     environment:

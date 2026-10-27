@@ -148,6 +148,32 @@ test('server html inserted, source link uses server url only', async () => {
   assert.equal(p.el('help-hint').disabled, false, 'enabled again after a terminal status');
 });
 
+test('source line does not repeat the book name', async () => {
+  const p = page();
+  const label = 'Calculus Volume 1, 3.6 The Chain Rule';
+  p.reply(reply({ sources: [{ ...SOURCE, label }] }));
+  await p.run("askHelp('hint')");
+  assert.equal(p.el('help-sources').text, `${label} ↗ · CC BY-NC-SA 4.0`);
+});
+
+test('item change resets busy and re-enables the buttons; the old reply is dropped', async () => {
+  const p = page();
+  let release;
+  p.context.hold = new Promise((resolve) => { release = resolve; });
+  p.run('helpApi = async () => { await hold; return replies.shift(); }');
+  p.reply(reply());
+  const first = p.run("askHelp('hint')");
+  assert.equal(p.el('help-hint').disabled, true);
+  p.run('renderAnswer = () => {}; renderSource = () => {}');
+  p.run("render({ done: false, item: { ...item, session_item_id: 9 } }, null)");
+  assert.equal(p.run('helpBusy'), false);
+  assert.equal(p.el('help-hint').disabled, false);
+  release();
+  await first;
+  assert.equal(p.el('help-body').innerHTML, '');
+  assert.equal(p.run('helpBusy'), false);
+});
+
 test('a non-openstax source url is not linked', async () => {
   const p = page();
   p.reply(reply({ sources: [{ ...SOURCE, url: 'javascript:alert(1)' }] }));

@@ -255,8 +255,10 @@ function openExplain() {
 }
 
 function clearHelp() {
-  helpGen += 1;
+  helpGen += 1; // an in-flight reply for the old view is now dropped
   helpShownSeq = 0;
+  helpBusy = false;
+  setHelpDisabled(false);
   $('help-body').innerHTML = '';
   $('help-sources').textContent = '';
   $('help-message').textContent = '';
@@ -282,7 +284,8 @@ function renderHelpSources(sources) {
     link.href = source.url;
     link.rel = 'noopener';
     link.target = '_blank';
-    link.textContent = `OpenStax Calculus Vol. 1, ${source.label} ↗`;
+    const named = source.label.includes('Calculus Volume 1');
+    link.textContent = `${named ? '' : 'OpenStax Calculus Vol. 1, '}${source.label} ↗`;
     row.append(link, ` · ${source.license}`);
     out.append(row);
   }
@@ -347,8 +350,10 @@ async function askHelp(type) {
       return;
     }
   } finally {
-    helpBusy = false;
-    setHelpDisabled(false);
+    if (generation === helpGen) { // else clearHelp already reset it, maybe for a newer request
+      helpBusy = false;
+      setHelpDisabled(false);
+    }
   }
 }
 

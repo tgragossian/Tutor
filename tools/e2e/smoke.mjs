@@ -114,7 +114,7 @@ try {
   if (process.env.HELP_E2E === '1') {
     check(await page.isVisible('#help-hint'), 'the Hint button is shown');
     check(await page.isVisible('#help-feedback'), 'What did I do wrong? is shown after a wrong answer');
-    check((await page.textContent('#help-note')).includes('use Reveal for that'), 'the AI note is shown');
+    check((await page.textContent('#help-note')).includes('use Show answer for that'), 'the AI note is shown');
     await page.click('#help-hint');
     await page.waitForSelector('#help-panel:not([hidden])');
     await page.waitForFunction(() => document.getElementById('help-body').textContent.trim() !== '');
