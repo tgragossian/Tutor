@@ -1,28 +1,32 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-26, Codex milestone C concept review.
+Owner: Thomas Gragossian. Updated: 2026-10-27, C1 pre-release (for Codex review).
 Host deployment remains Thomas's reported `main` 8057590, migration 0003. No new host probe.
-Review baseline: `8126fc3`; this review changes documentation only.
+Branch `milestone-c1` holds C1 tasks 1-15; nothing is deployed and `main` is untouched.
 
 **Milestone B is closed.** Thomas removed actual hours as a gate on 2026-10-26.
-Host sizing remains C-O3; Thomas allows 2 GB if measurement needs it.
 
-**Milestone C design reviewed; implementation tasks still needed.** The
-[C spec](docs/superpowers/specs/2026-10-26-milestone-c/README.md) contains review amendments.
-The [concept review](docs/reviews/2026-10-26-milestone-c/README.md) owns prioritized findings,
-code evidence and dispositions. No C modules, model evaluation or upload pipeline exist yet.
+**C1 (Claude-written, textbook-grounded help) is implemented but not released.**
+[C1 status](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/20-status.md) owns the owner
+checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands. Rulings R1-R29
+are in the local ledger `.superpowers/sdd/README/progress.md` (untracked).
 
 ## Resume here
 
-1. Read the [C review index](docs/reviews/2026-10-26-milestone-c/README.md), then the amended spec.
-2. [C1 implementation plan](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/README.md) written
-   2026-10-26 (15 tasks); it proposes C-P1 values and C-P2 gates. Thomas reviews, then execution.
-3. Implement C1 buttons → C2 item-scoped questions → C3 own problems. Resolve C-P3 before C3.
-4. Accepted sequence remains **C → LoRA experiment → D/E → expansion**. Automated Calc 1
-   graded sets need a broader checker/review; Thomas placed them after the LoRA (C-O4,
-   2026-10-26). Thomas supplies Anthropic access via secrets config (C-O5).
-5. Measure corpus/index and mixed help/grading memory for C-O3; include decoder load in C3.
-   Qwen serving is on RunPod, training on AWS, separate from the web host; no compute launched.
+1. Codex: review the C1 branch (harness, guard, service, UI, ops docs), then Thomas proceeds.
+2. Owner steps pending, in order: review 60 cases + 40 queries (`reviewed_by: tg`); approve the
+   12 confusion labels, 4 rewritten misconception notes and the help panel copy; paid dev run
+   (`--max-usd 4`) and audit; **decide on the retrieval gate before the holdout** (dev
+   Recall@6 0.79 < 0.80); one-shot holdout; `E2E=1 bash tests/container/smoke.sh`; container
+   mixed-load measurement; deploy; live check (one cited hint on a wrong derivative, one
+   abstention). Then commit `docs: C1 released`.
+3. Key: `MATHTUTOR_ANTHROPIC_API_KEY` only in the host's `deploy/.env`; console spend limit,
+   auto-reload off; $5 credit. Turn help off with `MATHTUTOR_HELP_GENERATOR=off`.
+4. Then C2 item-scoped questions and C3 own problems (resolve C-P3 first). Sequence remains
+   **C -> LoRA experiment -> D/E -> expansion** (C-O4). Qwen serving: RunPod; training: AWS.
+5. Memory: the only mixed-load numbers so far are
+   [preliminary, Windows, not the gate](docs/ops/host-sizing-c1.md); 1 GB vs 2 GB is decided by
+   the container run (Thomas approved 2 GB on 2026-10-26).
 
 ## C concepts to preserve
 

@@ -11,7 +11,7 @@ USERS=${2:-16}
 # and help latency separately (milestone C1 task 15).
 MODE=${3:-grading}
 HELP_USERS=${4:-20}
-APP=deploy-app-1
+APP=${APP:-deploy-app-1}  # the e2e overlay's container is mathtutor-e2e-app-1
 OUT=$(mktemp -d)
 
 echo "== before"

@@ -9,3 +9,5 @@
 - [Production host](host.md): instance, domain, costs and verification evidence.
 - [Runbook](runbook.md): update, logs, restart, rollback, secret rotation.
 - [Security](security.md): CSP, SRI for vendored scripts, cookies and CSRF.
+- [Runbook: C1 help](runbook-c1.md): Anthropic key, turn help off, guard memory, owner release checklist.
+- [Host sizing C1](host-sizing-c1.md): preliminary local mixed-load numbers (not the release gate).

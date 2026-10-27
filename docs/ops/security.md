@@ -34,3 +34,20 @@ each with its reason below. Scripts stay self-only: no inline scripts, no `unsaf
 ## Other headers
 
 - `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`.
+
+## C1 help: provider processing, logs and the key
+
+- **Provider processing:** when a student asks for help, their attempt text (LaTeX), the
+  problem, the chosen confusion label and retrieved textbook passages are sent to Anthropic
+  to write the reply. Nothing is sent unless a student presses a help
+  button; grading stays local. Whether the page should say so is a copy decision for Thomas.
+- **Logs:** request logs and errors never contain student text, model output, chunk text or
+  the API key (counts, ids, status and error type only). Usage rows store tokens and cost.
+- **Key:** `MATHTUTOR_ANTHROPIC_API_KEY` lives only in the host's `deploy/.env` (mode 600,
+  git-ignored), never in git, chat or logs; a console spend limit applies, auto-reload is off.
+  See [runbook C1](runbook-c1.md#set-the-anthropic-key). `MATHTUTOR_HELP_GENERATOR=off` disables help.
+- **Output:** model text passes the fail-closed leak guard (SymPy, own pool), then is HTML-escaped
+  by a local renderer; source links point only to `https://openstax.org/` (checked again in the browser).
+  The guard checks extracted math, so prose leakage is reduced, not proven absent.
+- **Attribution:** passages are from OpenStax Calculus Volume 1, CC BY-NC-SA 4.0; each cited
+  source links to the book and shows the license.
