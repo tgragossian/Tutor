@@ -6,6 +6,7 @@ import json
 import logging
 import uuid
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from support.helpkit import (
@@ -22,7 +23,7 @@ from support.helpkit import (
 from mathtutor.application.errors import Conflict, Forbidden, InvalidAction, InvalidInput, StaleItem
 from mathtutor.domain import ItemState
 from mathtutor.help import messages
-from mathtutor.help.generator import GenerationResult, GeneratorError
+from mathtutor.help.generator import ClaudeGenerator, GenerationResult, GeneratorError
 from mathtutor.help.render import render_help_html
 from mathtutor.help.service import HelpIn, HelpOutcome, HelpService, HelpStatus, SourceRef
 from mathtutor.retrieval.corpus import ChunkRole
@@ -200,6 +201,61 @@ def test_gateway_timeout_is_uncertain(kit: Kit) -> None:
 def test_rate_limited_error_settles_at_zero(kit: Kit) -> None:
     kit.generator.script = [GeneratorError("rate_limited", status_code=429)]
     assert kit.help().status is HelpStatus.UNAVAILABLE
+    (entry,) = kit.usage()
+    assert entry.state == "settled" and entry.settled_micros == 0
+
+
+def _crash(_req: object) -> None:
+    raise RuntimeError("unexpected")
+
+
+def test_unexpected_generator_crash_keeps_reservation_uncertain(kit: Kit) -> None:
+    """Review C1-R3: once dispatched, an unknown failure never releases the reservation."""
+    kit.generator.before = _crash
+    assert kit.help().status is HelpStatus.UNAVAILABLE
+    (entry,) = kit.usage()
+    assert entry.state == "uncertain"
+
+
+def test_reply_decode_error_retains_spend_reservation(kit: Kit) -> None:
+    sent: list[dict[str, object]] = []
+
+    def create(**kwargs: object) -> SimpleNamespace:
+        sent.append(kwargs)
+        return SimpleNamespace(stop_reason="end_turn", content=None)  # served, unreadable
+
+    client = SimpleNamespace(messages=SimpleNamespace(create=create))
+    kit.svc._pipeline._generator = ClaudeGenerator(  # noqa: SLF001
+        "offline-test-key", client_factory=lambda **_: client, clock=kit.clock
+    )
+    assert kit.help().status is HelpStatus.UNAVAILABLE
+    assert len(sent) == 1
+    (entry,) = kit.usage()
+    assert entry.state == "uncertain", (entry.state, entry.settled_micros)
+
+
+def test_repair_call_crash_keeps_only_that_call_uncertain(kit: Kit) -> None:
+    kit.generator.script = [output(ids=("nope",)), output()]
+    calls = 0
+
+    def crash_second(_req: object) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise RuntimeError("unexpected")
+
+    kit.generator.before = crash_second
+    assert kit.help().status is HelpStatus.UNAVAILABLE
+    first, second = kit.usage()
+    assert first.state == "settled" and first.settled_micros > 0
+    assert second.state == "uncertain"
+
+
+def test_prompt_budget_failure_before_dispatch_settles_zero(tmp_path: Path) -> None:
+    kit = make_kit(tmp_path, cfg=CFG.model_copy(update={"max_input_tokens": 10}))
+    out = kit.help()
+    assert out.status is HelpStatus.UNAVAILABLE
+    assert kit.generator.requests == []
     (entry,) = kit.usage()
     assert entry.state == "settled" and entry.settled_micros == 0
 

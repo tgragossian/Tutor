@@ -22,7 +22,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 MAX_TEXT_CHARS = 2000
 MAX_SOURCE_IDS = 6
 
-GeneratorErrorKind = Literal["timeout", "connection", "rate_limited", "api_error"]
+GeneratorErrorKind = Literal["timeout", "connection", "rate_limited", "api_error", "bad_response"]
 
 
 @dataclass(frozen=True)
@@ -176,9 +176,19 @@ class ClaudeGenerator:
         except anthropic.APIStatusError as exc:
             error = GeneratorError("api_error", status_code=exc.status_code)
         except anthropic.AnthropicError:
-            error = GeneratorError("api_error")
+            # Unclassified (e.g. a response that fails the SDK's own validation): the request
+            # may have been served and billed (review C1-R3).
+            error = GeneratorError("api_error", billed_unknown=True)
         if error is not None:  # raised outside the handler: no __context__ to the SDK error
             raise error
+        try:
+            return self._result(message, started)
+        except Exception:  # noqa: BLE001, S110 - a reply we cannot read was still sent and billed
+            pass
+        # Raised outside the handler: no __context__ carrying provider content.
+        raise GeneratorError("bad_response", billed_unknown=True)
+
+    def _result(self, message: Any, started: float) -> GenerationResult:
         latency_ms = round((self._clock() - started) * 1000)
         stop_reason = str(message.stop_reason)
         texts = [b.text for b in message.content if getattr(b, "type", None) == "text"]

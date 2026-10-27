@@ -228,3 +228,28 @@ def test_scripted_generator_replays() -> None:
     assert [r.user for r in gen.requests] == ["USER", "second"]
     with pytest.raises(RuntimeError, match="exhausted"):
         gen.generate(_req())
+
+
+def test_unclassified_sdk_error_counts_as_maybe_billed() -> None:
+    # Review C1-R3: e.g. a response that fails the SDK's validation after it was served.
+    gen, _ = _gen(anthropic.AnthropicError(f"echoed {KEY}"))
+    with pytest.raises(GeneratorError) as info:
+        gen.generate(_req())
+    assert (info.value.kind, info.value.billed_unknown) == ("api_error", True)
+    assert info.value.__context__ is None
+
+
+class _Unreadable:
+    def __getattr__(self, name: str) -> object:
+        raise TypeError("unreadable")
+
+
+@pytest.mark.parametrize("field", ["content", "usage"])
+def test_unreadable_reply_is_bad_response_and_maybe_billed(field: str) -> None:
+    message = _message()
+    object.__setattr__(message, field, None if field == "content" else _Unreadable())
+    gen, _ = _gen(message)
+    with pytest.raises(GeneratorError) as info:
+        gen.generate(_req())
+    assert (info.value.kind, info.value.billed_unknown) == ("bad_response", True)
+    assert info.value.__context__ is None and info.value.__cause__ is None

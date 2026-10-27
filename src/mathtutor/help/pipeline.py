@@ -270,17 +270,21 @@ class HelpPipeline:
                 max_output_tokens=self._cfg.max_output_tokens,
                 timeout_s=remaining,
             )
+            # Recorded as sent with unknown usage before the provider is contacted (review
+            # C1-R3): if anything unexpected happens from here on, the caller keeps the
+            # reservation as uncertain instead of releasing it. Replaced below once known.
+            calls.append(CallRecord(call_no, req.model, None, None, True, "dispatched", None))
             try:
                 reply = self._generator.generate(req)
             except GeneratorError as err:
                 unknown = err.billed_unknown or err.status_code == 504
-                calls.append(
-                    CallRecord(call_no, req.model, None, None, unknown, f"error_{err.kind}", None)
+                calls[-1] = CallRecord(
+                    call_no, req.model, None, None, unknown, f"error_{err.kind}", None
                 )
                 return result(HelpStatus.UNAVAILABLE, f"generator_{err.kind}")
-            # Recorded with its usage before any check, so an unexpected error later in this
-            # call still reports what the provider billed.
-            calls.append(self._record(call_no, reply, "received"))
+            # Usage recorded before any check, so an unexpected error later in this call
+            # still reports what the provider billed.
+            calls[-1] = self._record(call_no, reply, "received")
             try:
                 out = self._parse(reply, allowed)
                 if not out.abstain:
