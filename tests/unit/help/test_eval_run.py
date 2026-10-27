@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 from support.evalkit import make_case, make_env
-from support.helpkit import CFG, output
+from support.helpkit import CFG, CORRECT, FakePool, output
 
 from mathtutor.help.config import worst_case_micros
 from mathtutor.help.eval.judge import Judgment
@@ -17,7 +17,6 @@ from mathtutor.help.eval.run import (
     SpendCounter,
     check_freeze,
     main,
-    mark_started,
     parse_usd,
     run_case,
     run_eval,
@@ -51,11 +50,37 @@ def test_run_case_records_generator_error_without_raw_text() -> None:
     assert record.calls[0]["billed_unknown"] is True
 
 
-def test_no_retrieval_passes_no_passages_and_abstains() -> None:
-    gen = ScriptedGenerator([])
+def _uncited(text: str = "Find the outer function first.") -> GenerationResult:
+    body = json.dumps({"text": text, "source_ids": [], "abstain": False})
+    return GenerationResult(body, "end_turn", 1_000, 100, HAIKU, None, 1)
+
+
+def test_no_retrieval_baseline_calls_the_same_generator_without_passages() -> None:
+    """Review C1-R7: the ablation samples the model; it is not an always-abstaining control."""
+    gen = ScriptedGenerator([_uncited()])
     record = run_case(make_case(), gen, HAIKU, make_env(retrieval=False))
-    assert record.status == HelpStatus.ABSTAINED.value and record.retrieved_ids == []
-    assert gen.requests == []
+    assert record.status == HelpStatus.DELIVERED.value
+    assert record.retrieved_ids == [] and record.cited_ids == []
+    (req,) = gen.requests
+    assert req.model == HAIKU and "none are provided" in req.user and "<passage" not in req.user
+    assert "no passages" in req.system.lower()
+
+
+def test_no_retrieval_baseline_rejects_invented_citations_and_still_guards() -> None:
+    cited = output(ids=("c1-3.6-rule1",))  # no passage exists to cite
+    leaking = _uncited("It is $18x(3x^2+1)^2$.")
+    gen = ScriptedGenerator([cited, leaking])
+    env = make_env(retrieval=False, guard=FakePool(CORRECT))
+    record = run_case(make_case(), gen, HAIKU, env)
+    assert [c["outcome"] for c in record.calls][0] == "invalid_schema"
+    assert record.status == HelpStatus.UNAVAILABLE.value  # no section to nudge toward
+    assert record.text is None
+
+
+def test_production_prompt_has_no_baseline_addendum() -> None:
+    gen = ScriptedGenerator([output()])
+    run_case(make_case(), gen, HAIKU, make_env())
+    assert "no passages" not in gen.requests[0].system.lower()
 
 
 def test_withheld_sections_leave_no_evidence() -> None:
@@ -157,29 +182,19 @@ def test_default_git_targets_the_root(tmp_path: Path, monkeypatch: pytest.Monkey
     assert seen and all(cmd[:3] == ["git", "-C", str(tmp_path)] for cmd in seen)
 
 
-def test_holdout_runs_once_per_commit(tmp_path: Path) -> None:
-    check_freeze("holdout", "abc", tmp_path, git=_git())
-    done = tmp_path / "evals" / "help" / "results" / "20261101-holdout"
-    done.mkdir(parents=True)
-    meta = {"split": "holdout", "head": "abc123"}
-    (done / "run.json").write_text(json.dumps(meta), encoding="utf-8")
-    with pytest.raises(RunnerError, match="already ran"):
+@pytest.mark.parametrize("marker", ["run.json", "started.json"])
+def test_unclaimed_holdout_marker_blocks_every_commit(tmp_path: Path, marker: str) -> None:
+    """Review C1-R4: a holdout marker from before claims means that holdout was used; a new
+    commit does not make it fresh."""
+    prior = tmp_path / "evals" / "help" / "results" / "prior"
+    prior.mkdir(parents=True)
+    (prior / marker).write_text(json.dumps({"split": "holdout", "head": "old"}), "utf-8")
+    with pytest.raises(RunnerError, match="without a claim"):
         check_freeze("holdout", "abc", tmp_path, git=_git())
+    check_freeze("dev", None, tmp_path, git=_git())  # development runs are unaffected
 
 
-def test_holdout_started_marker_blocks_a_rerun(tmp_path: Path) -> None:
-    """A holdout that started but never wrote run.json (crash, Ctrl-C) still counts as run."""
-    out = tmp_path / "evals" / "help" / "results" / "20261101-holdout"
-    mark_started(out, "abc", "abc123")
-    marker = json.loads((out / "started.json").read_text(encoding="utf-8"))
-    assert marker == {"split": "holdout", "freeze": "abc", "head": "abc123"}
-    assert not (out / "run.json").exists()
-    with pytest.raises(RunnerError, match="already started"):
-        check_freeze("holdout", "abc", tmp_path, git=_git())
-    check_freeze("holdout", "def", tmp_path, git=_git(head="other"))  # another commit may run
-
-
-def test_holdout_marker_written_before_the_first_provider_call(
+def test_holdout_claim_written_before_the_first_provider_call(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     import shutil
@@ -190,6 +205,8 @@ def test_holdout_marker_written_before_the_first_provider_call(
     root = Path(__file__).resolve().parents[3]
     for part in ("content/compiled", "content/help", "content/corpus", "evals/help"):
         shutil.copytree(root / part, tmp_path / part)
+    shutil.rmtree(tmp_path / "evals/help/results", ignore_errors=True)
+    shutil.rmtree(tmp_path / "evals/help/holdout-claims", ignore_errors=True)
     monkeypatch.setattr(eval_cases, "unreviewed", lambda _rows: [])
     monkeypatch.setattr(eval_run, "_try_git", lambda _root, _args: "abc123")
     monkeypatch.setenv("MATHTUTOR_ANTHROPIC_API_KEY", "sk-test")
@@ -206,7 +223,7 @@ def test_holdout_marker_written_before_the_first_provider_call(
     seen: list[bool] = []
 
     def first_call(*_args: object, **_kw: object) -> None:
-        seen.append(any((tmp_path / "evals/help/results").glob("*/started.json")))
+        seen.append(any((tmp_path / "evals/help/holdout-claims").glob("*.json")))
         raise RunnerError("stop before any provider call")
 
     monkeypatch.setattr(eval_run, "run_eval", first_call)
@@ -217,8 +234,15 @@ def test_holdout_marker_written_before_the_first_provider_call(
     with pytest.raises(RunnerError, match="stop"):
         eval_run._execute(args, tmp_path)
     assert seen == [True]
-    marker = tmp_path / "evals/help/results/r1-holdout/started.json"
-    assert json.loads(marker.read_text(encoding="utf-8"))["head"] == "abc123"
+    claim = tmp_path / "evals/help/holdout-claims/r1-holdout.json"
+    data = json.loads(claim.read_text(encoding="utf-8"))
+    assert data["head"] == "abc123" and data["partition"]["problem_ids"]
+    # The same holdout again, under a new run id and a new commit: refused before any call.
+    monkeypatch.setattr(eval_run, "_try_git", lambda _root, _args: "def456")
+    args.run_id = "r2-holdout"
+    with pytest.raises(RunnerError, match="overlaps"):
+        eval_run._execute(args, tmp_path)
+    assert seen == [True]
 
 
 def _git(dirty: str = "", head: str = "abc123") -> object:

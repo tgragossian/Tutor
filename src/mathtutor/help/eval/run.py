@@ -4,17 +4,18 @@
 --max-usd 4`` (Thomas runs it with his key; never CI). Each case builds its context with the
 pure ``assemble_context``/``match_misconception`` (ruling R3) and calls ``HelpPipeline.run``
 directly (ruling R4) with a real one-worker guard pool, so retrieval, prompt, repair and
-guard are the production path. Spend is counted here in integer micro-USD with the ledger's
+guard are the production path. Spend is counted in integer micro-USD with the ledger's
 tariff and worst-case formula: a call (help or judge) is made only if the spend so far plus
-its worst case stays within ``--max-usd``. The holdout needs ``--freeze <commit>`` on a
-clean tree at that commit, and writes ``started.json`` before its first provider call, so a
-crashed holdout still counts as run. Unreviewed cases or queries are refused.
+its worst case stays within ``--max-usd``, and it is reserved in the run's ``spend.jsonl``
+before it can be sent (``spend.py``), so an interrupted run keeps its spend; ``--spent`` totals
+every run. The holdout needs ``--freeze <commit>`` on a clean tree at that commit and claims
+its cases and queries before its first provider call (``holdout.py``): a partition runs once
+on any commit. Unreviewed cases or queries are refused; a run id is never reused.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import subprocess
 import sys
@@ -28,30 +29,23 @@ from typing import Any
 from mathtutor.application.practice import Pool
 from mathtutor.content.schema import ChoiceAnswer, Problem
 from mathtutor.domain import VerdictStatus
-from mathtutor.help.config import DEFAULT_CONFIG_PATH, HelpConfig, worst_case_micros
+from mathtutor.help.config import DEFAULT_CONFIG_PATH, HelpConfig
 from mathtutor.help.context import AttemptLine, Confusion, assemble_context, match_misconception
 from mathtutor.help.eval.cases import HelpCase, confusion_label
-from mathtutor.help.eval.judge import (
-    JUDGE_MAX_INPUT_TOKENS,
-    JUDGE_MAX_OUTPUT_TOKENS,
-    JUDGE_MODEL,
-    Judgment,
-)
+from mathtutor.help.eval.errors import RunnerError
+from mathtutor.help.eval.holdout import claim, legacy_markers, partition_of
+from mathtutor.help.eval.judge import JUDGE_MODEL, Judgment
+from mathtutor.help.eval.spend import JOURNAL, SpendJournal, call_micros, total_spend
+from mathtutor.help.eval.spend import SpendCounter as SpendCounter  # re-exported for callers
 from mathtutor.help.generator import GenerationRequest, GenerationResult, Generator
 from mathtutor.help.leak_guard import LeakGuard
-from mathtutor.help.ledger import micros_for
 from mathtutor.help.pipeline import HelpPipeline, answer_latex
 from mathtutor.retrieval.bm25 import Bm25Index
 from mathtutor.retrieval.corpus import Corpus
 
 API_KEY_ENV = "MATHTUTOR_ANTHROPIC_API_KEY"
 MICROS = 1_000_000
-STARTED_MARKER = "started.json"  # holdout only; see ``mark_started``
 GUARD_MEMORY_MB = 384  # 01-pinned-values: the guard pool's memory limit
-
-
-class RunnerError(Exception):
-    """A precondition of the run does not hold; the message says which."""
 
 
 @dataclass
@@ -144,30 +138,6 @@ class RecordingGenerator:
         return reply
 
 
-def call_micros(
-    cfg: HelpConfig,
-    model: str,
-    input_tokens: int | None,
-    output_tokens: int | None,
-    billed_unknown: bool = False,
-) -> int:
-    """What one call cost, as the ledger settles it; unknown usage that may have been billed
-    counts at the worst case, a definite failure at 0."""
-    if input_tokens is not None and output_tokens is not None:
-        return micros_for(cfg, model, input_tokens, output_tokens)
-    return worst_case_micros(cfg, model) if billed_unknown else 0
-
-
-def judge_cfg(cfg: HelpConfig) -> HelpConfig:
-    """The help config with the judge's token limits, for the same worst-case formula."""
-    return cfg.model_copy(
-        update={
-            "max_input_tokens": JUDGE_MAX_INPUT_TOKENS,
-            "max_output_tokens": JUDGE_MAX_OUTPUT_TOKENS,
-        }
-    )
-
-
 def _attempts(case: HelpCase, problem: Problem) -> tuple[list[AttemptLine], str | None]:
     """Case attempts as consumed wrong attempts; a choice attempt shows its option's LaTeX,
     as ``build_context`` does."""
@@ -200,7 +170,9 @@ def run_case(
     corpus, index = env.index_for(case.withhold_sections)
     recorder = RecordingGenerator(generator)
     guard = LeakGuard(env.guard_pool, cfg.guard, env.clock)
-    pipeline = HelpPipeline(cfg, corpus, index, recorder, guard, env.clock)
+    pipeline = HelpPipeline(
+        cfg, corpus, index, recorder, guard, env.clock, no_passages=not env.retrieval
+    )
     refused: list[int] = []
 
     def ask(n: int) -> bool:
@@ -217,8 +189,8 @@ def run_case(
     replies = iter(recorder.replies)
     raws: list[RawOutput] = []
     for call in result.calls:
-        if call.outcome.startswith("error_"):
-            continue
+        if call.outcome.startswith("error_") or call.outcome == "dispatched":
+            continue  # no reply came back (a dispatched call that then failed unexpectedly)
         reply = next(replies)
         raws.append(RawOutput(call.call_no, reply.text, reply.stop_reason, call.outcome))
     # Charged at the requested model's tariff, as the ledger reserves and settles it.
@@ -253,38 +225,6 @@ def run_case(
         cost_micros=cost,
         budget_stopped=bool(refused),
     )
-
-
-class SpendCounter:
-    """The run's own spend, in integer micro-USD, against ``cap_micros``."""
-
-    def __init__(self, cfg: HelpConfig, cap_micros: int) -> None:
-        self.help_cfg = cfg
-        self.judge_cfg = judge_cfg(cfg)
-        self.cap_micros = cap_micros
-        self.spent_micros = 0
-
-    def worst_call(self, model: str) -> int:
-        return worst_case_micros(self.help_cfg, model)
-
-    def worst_judge(self) -> int:
-        return worst_case_micros(self.judge_cfg, JUDGE_MODEL)
-
-    def allows(self, worst: int) -> bool:
-        return self.spent_micros + worst <= self.cap_micros
-
-    def charge(
-        self,
-        cfg: HelpConfig,
-        model: str,
-        input_tokens: int | None,
-        output_tokens: int | None,
-        billed_unknown: bool = False,
-    ) -> int:
-        """``cfg`` (``help_cfg`` or ``judge_cfg``) gives the token limits of the worst case."""
-        micros = call_micros(cfg, model, input_tokens, output_tokens, billed_unknown)
-        self.spent_micros += micros
-        return micros
 
 
 def usd(micros: int) -> str:
@@ -326,7 +266,9 @@ def run_eval(
     log: Callable[[str], None] = print,
 ) -> EvalResult:
     """Every case on every model, then its judgment; stops before any call whose worst case
-    would take the spend past the cap."""
+    would take the spend past the cap. Each call is reserved at its worst case before it can
+    be sent and settled after (review C1-R9): if the run is interrupted, the open reservations
+    stay in the spend journal at their worst case."""
     records: list[CaseRecord] = []
     judgments: dict[str, Judgment] = {}
     stopped: str | None = None
@@ -337,16 +279,31 @@ def run_eval(
             if not spend.allows(worst):
                 stopped = f"spend cap reached before {case.case_id} on {model}"
                 break
+            reserved = {1: spend.reserve("help", model, worst)}
 
-            # Before call n, this case's n - 1 earlier calls are still unsettled: they count at
-            # their worst case, like the ledger's reservations, plus the new call's worst case.
-            def may_call(n: int, w: int = worst) -> bool:
-                return spend.allows(n * w)
+            # Call n > 1 is reserved before it is sent; earlier calls of this case are still
+            # open reservations, so they count at their worst case, as in the ledger.
+            def may_call(
+                n: int, w: int = worst, m: str = model, held: dict[int, int] = reserved
+            ) -> bool:
+                if not spend.allows(w):
+                    return False
+                held[n] = spend.reserve("help", m, w)
+                return True
 
             rec = run_case(case, generator, model, env, may_call=may_call)
-            for call in rec.calls:
-                tokens = (call["input_tokens"], call["output_tokens"])
-                spend.charge(spend.help_cfg, model, *tokens, _unknown_usage(call))
+            costs = {
+                call["call_no"]: call_micros(
+                    spend.help_cfg,
+                    model,
+                    call["input_tokens"],
+                    call["output_tokens"],
+                    _unknown_usage(call),
+                )
+                for call in rec.calls
+            }
+            for n, rid in reserved.items():
+                spend.settle(rid, costs.get(n, 0))  # reserved but never sent: 0
             done.append(rec)
             if rec.budget_stopped:
                 stopped = f"spend cap reached during {case.case_id} on {model}"
@@ -356,13 +313,15 @@ def run_eval(
             if not spend.allows(spend.worst_judge()):
                 stopped = f"spend cap reached before judging {case.case_id}"
             else:
+                rid = spend.reserve("judge", JUDGE_MODEL, spend.worst_judge())
                 j = judge(case, done)
                 judgments[case.case_id] = j
                 if j.usage is not None:  # a reply came back: missing usage counts at worst
                     unknown = None in j.usage or j.billed_unknown
-                    spend.charge(spend.judge_cfg, JUDGE_MODEL, *j.usage, unknown)
-                elif j.billed_unknown:
-                    spend.charge(spend.judge_cfg, JUDGE_MODEL, None, None, True)
+                    micros = call_micros(spend.judge_cfg, JUDGE_MODEL, *j.usage, unknown)
+                else:
+                    micros = call_micros(spend.judge_cfg, JUDGE_MODEL, None, None, j.billed_unknown)
+                spend.settle(rid, micros)
         statuses = " ".join(f"{r.model.split('-')[1]}={r.status}" for r in done)
         log(
             f"{case.case_id}: {statuses} | spent {usd(spend.spent_micros)} of "
@@ -395,8 +354,9 @@ def check_freeze(
     root: Path = Path("."),
     git: Callable[[list[str]], str] | None = None,
 ) -> None:
-    """The holdout runs once, frozen: ``--freeze <commit>``, a clean tree at ``root``, HEAD at
-    the commit, and no earlier holdout results for that commit."""
+    """The holdout runs frozen: ``--freeze <commit>``, a clean tree at ``root`` and HEAD at the
+    commit. Whether its cases and queries were already used is the claim's check
+    (``holdout.claim``), which ignores commits; unclaimed holdout markers are refused here."""
     if split != "holdout":
         return
     if not freeze:
@@ -411,28 +371,12 @@ def check_freeze(
     head = git(["rev-parse", "HEAD"])
     if head != git(["rev-parse", freeze]):
         raise RunnerError(f"HEAD is not the frozen commit {freeze}")
-    results = root / "evals" / "help" / "results"
-    for path in sorted(results.glob("*/run.json")):
-        meta = json.loads(path.read_text(encoding="utf-8"))
-        if meta.get("split") == "holdout" and meta.get("head") == head:
-            raise RunnerError(
-                f"the holdout already ran at {head[:12]} ({path.parent.name}); it runs once"
-            )
-    for path in sorted(results.glob(f"*/{STARTED_MARKER}")):
-        meta = json.loads(path.read_text(encoding="utf-8"))
-        if meta.get("split") == "holdout" and meta.get("head") == head:
-            raise RunnerError(
-                f"the holdout already started at {head[:12]} ({path.parent.name}); it runs once,"
-                " even if it never finished"
-            )
-
-
-def mark_started(out: Path, freeze: str, head: str) -> None:
-    """Record that the holdout started at ``head`` (written before the first provider call):
-    a run that crashes before ``run.json`` still counts as the one run for that commit."""
-    out.mkdir(parents=True, exist_ok=True)
-    marker = {"split": "holdout", "freeze": freeze, "head": head}
-    (out / STARTED_MARKER).write_text(json.dumps(marker) + "\n", encoding="utf-8")
+    legacy = legacy_markers(root)
+    if legacy:  # review C1-R4: an unclaimed holdout marker means that holdout is used
+        raise RunnerError(
+            f"holdout results without a claim ({', '.join(legacy[:3])}): that holdout counts "
+            "as used on every commit; reconcile by hand before another holdout run"
+        )
 
 
 def _execute(args: argparse.Namespace, root: Path) -> int:
@@ -508,10 +452,14 @@ def _execute(args: argparse.Namespace, root: Path) -> int:
     out = root / "evals" / "help" / "results" / run_id
     started = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     try:
-        if args.split == "holdout":  # before any provider call: the holdout runs once
-            mark_started(out, args.freeze, _try_git(root, ["rev-parse", "HEAD"]))
+        if out.exists():  # its spend journal and results are records: never overwrite them
+            raise RunnerError(f"run id {run_id} was already used ({out}); pick another")
+        if args.split == "holdout":  # before any provider call: the partition runs once
+            head = _try_git(root, ["rev-parse", "HEAD"])
+            claim(root, partition_of(cases, queries), run_id, head, args.freeze)
+        out.mkdir(parents=True)
         env = EvalEnv(cfg, problems, corpus, confusions, grading, guard, not args.no_retrieval)
-        spend = SpendCounter(cfg, cap)
+        spend = SpendCounter(cfg, cap, SpendJournal(out / JOURNAL))
 
         def judge(case: HelpCase, recs: list[CaseRecord]) -> Judgment:
             return judge_case(case, recs, env, generator, rubric, seed=seed)
@@ -546,7 +494,8 @@ def _execute(args: argparse.Namespace, root: Path) -> int:
         "dirty": bool(_try_git(root, ["status", "--porcelain"])),
         "freeze": args.freeze,
         "cap_micros": cap,
-        "spent_micros": spend.spent_micros,
+        "spent_micros": spend.spent_micros,  # settled plus any open reservation's worst case
+        "spend_journal": JOURNAL,
         "stopped": result.stopped,
         "cases": len(cases),
         "mix_warnings": warnings,
@@ -559,6 +508,16 @@ def _execute(args: argparse.Namespace, root: Path) -> int:
     failed = [f"{m}:{r.name}" for m, results in gates.items() for r in results if not r.passed]
     print("gates: all passed" if not failed else "gates failed: " + ", ".join(failed))
     return 1 if failed and args.split == "holdout" else 0
+
+
+def print_spent(root: Path) -> None:
+    """Every run's settled spend and open reservations (counted at their worst case): the
+    number to subtract from the credit before the next paid run (review C1-R9)."""
+    total = total_spend(root / "evals" / "help" / "results")
+    for run in total.runs:
+        flag = f" (open reservations {usd(run.open_micros)})" if run.open_micros else ""
+        print(f"{run.run_id}: {usd(run.total_micros)} USD{flag}")
+    print(f"total: {usd(total.total_micros)} USD over {len(total.runs)} runs")
 
 
 def _try_git(root: Path, args: list[str]) -> str:
@@ -586,9 +545,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--draft", action="store_true", help="with --retrieval-only: allow unreviewed"
     )
     parser.add_argument("--recompute", default=None, help="results dir: re-score with audit.csv")
+    parser.add_argument(
+        "--spent", action="store_true", help="total spend of every run, from the spend journals"
+    )
     args = parser.parse_args(argv)
     root = Path(args.root)
     try:
+        if args.spent:
+            print_spent(root)
+            return 0
         if args.recompute:
             report.recompute(Path(args.recompute))
             print(f"recomputed {args.recompute}/summary.md")

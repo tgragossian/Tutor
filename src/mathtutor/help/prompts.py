@@ -105,6 +105,8 @@ def _context_block(ctx: HelpContext, caps: dict[str, int]) -> str:
 
 
 def _passages_block(chunks: list[Chunk], texts: list[str]) -> str:
+    if not chunks:
+        return "Textbook passages: none are provided for this request."
     parts = ["Textbook passages:"]
     for c, text in zip(chunks, texts, strict=True):
         title = _data(f"{c.section} {c.section_title}", 200).replace('"', "'")
@@ -133,10 +135,17 @@ def build_prompt(
     strict: bool,
     *,
     cfg: HelpConfig | None = None,
+    no_passages: bool = False,
 ) -> tuple[str, str]:
-    """``(system, user)`` for one generator call; ``ValueError`` if no trim fits the budget."""
+    """``(system, user)`` for one generator call; ``ValueError`` if no trim fits the budget.
+    ``no_passages`` is the evaluation-only baseline (review C1-R7): ``chunks`` must be empty
+    and ``no_passages.md`` is appended to the system prompt; production never sets it."""
     cfg = cfg or _default_config()
     system = _template(cfg.prompt_version, "system")
+    if no_passages:
+        if chunks:
+            raise ValueError("the no-passage baseline takes no passages")
+        system += "\n\n" + _template(cfg.prompt_version, "no_passages")
     head = _context_block(ctx, cfg.field_caps)
     tail = f"<task>\n{_task(ctx, help_type, confusion_label, cfg)}\n</task>"
     if strict:

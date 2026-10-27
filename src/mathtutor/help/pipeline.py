@@ -32,6 +32,7 @@ from mathtutor.help.generator import (
     Generator,
     GeneratorError,
     HelpOutput,
+    UncitedHelpOutput,
 )
 from mathtutor.help.leak_guard import GuardResult, LeakGuard, MalformedMath, split_spans
 from mathtutor.help.prompts import build_prompt
@@ -137,7 +138,13 @@ class HelpPipeline:
         generator: Generator,
         guard: LeakGuard,
         clock: Callable[[], float],
+        *,
+        no_passages: bool = False,
     ) -> None:
+        """``no_passages`` is the evaluation-only generator baseline (review C1-R7): no
+        retrieval, the ``no_passages`` prompt addendum and uncited replies, with the same model,
+        limits, repair and leak guard. Production never sets it."""
+        self._no_passages = no_passages
         self._cfg = cfg
         self._corpus = corpus
         self._index = index
@@ -237,14 +244,17 @@ class HelpPipeline:
             )
 
         def fallback(reason: str) -> PipelineResult:
+            if not chunks:  # no relevant section to point to (the no-passage baseline)
+                return result(HelpStatus.UNAVAILABLE, reason)
             section = f"Section {chunks[0].section}"
             return result(HelpStatus.FALLBACK, reason, messages.NUDGE.format(section=section))
 
         if self._clock() >= deadline:
             return result(HelpStatus.UNAVAILABLE, "deadline")
-        chunks.extend(self.retrieve(ctx, help_type, confusion_label, answer))
-        if not chunks:
-            return result(HelpStatus.ABSTAINED, "no_hits")
+        if not self._no_passages:
+            chunks.extend(self.retrieve(ctx, help_type, confusion_label, answer))
+            if not chunks:
+                return result(HelpStatus.ABSTAINED, "no_hits")
         allowed = {c.chunk_id for c in chunks}
 
         reason = ""
@@ -257,7 +267,13 @@ class HelpPipeline:
                 return fallback("deadline") if calls else result(HelpStatus.UNAVAILABLE, "deadline")
             try:
                 system, user = build_prompt(
-                    ctx, help_type, chunks, confusion_label, call_no > 1, cfg=self._cfg
+                    ctx,
+                    help_type,
+                    chunks,
+                    confusion_label,
+                    call_no > 1,
+                    cfg=self._cfg,
+                    no_passages=self._no_passages,
                 )
             except ValueError:
                 return result(HelpStatus.UNAVAILABLE, "prompt_budget")
@@ -314,11 +330,12 @@ class HelpPipeline:
             reply.latency_ms,
         )
 
-    def _parse(self, reply: GenerationResult, allowed: set[str]) -> HelpOutput:
+    def _parse(self, reply: GenerationResult, allowed: set[str]) -> HelpOutput | UncitedHelpOutput:
         if reply.text is None:
             raise _Invalid(f"invalid_{reply.stop_reason}"[:32])
+        shape = UncitedHelpOutput if self._no_passages else HelpOutput
         try:
-            out = HelpOutput.model_validate_json(reply.text)
+            out = shape.model_validate_json(reply.text)
         except ValidationError:
             raise _Invalid("invalid_schema") from None
         if out.abstain:

@@ -19,7 +19,8 @@ output; `gates.py` applies 02-gates mechanically to the delivered results.
 | `cases/{dev,holdout}.jsonl` | 36 / 24 help cases, grouped by problem (holdout: 7 problems, 3 topics) |
 | `retrieval/{dev,holdout}.jsonl` | 28 / 12 book queries with relevant chunk ids, grouped by home section |
 | `rubric/v1.md` | the judge's instructions (also yours for the audit) |
-| `results/<run_id>/` | `summary.md`, `run.json`, `audit.csv`, `audit_key.csv`, holdout `started.json` (commit); `results.jsonl` (ignored) |
+| `results/<run_id>/` | `summary.md`, `run.json`, `audit.csv`, `audit_key.csv`, `spend.jsonl` (commit); `results.jsonl` (ignored) |
+| `holdout-claims/<run_id>.json` | ids a holdout run used (cases, problems, queries, chunks); commit it |
 
 A case has one category tag (02-gates mix), `known_error` when it counts toward the primary
 measure, `attempts` (LaTeX, oldest first; option ids for choice problems) and a `note` for you
@@ -57,11 +58,10 @@ uv run python -m mathtutor.help.eval.run --split dev --models claude-haiku-5-5,c
 uv run python -m mathtutor.help.eval.run --split dev --models claude-haiku-5-5 --no-retrieval --no-judge --max-usd 4
 ```
 
-Open [review blockers](../../docs/reviews/2026-10-27-milestone-c1/README.md): fix C1-R3/R4/R9 before paid runs.
-The runner caps calls at Haiku 1,300 µ$, Sonnet 26,000 µ$, judge 64,000 µ$; spend prints per case. Expect
-$1.5–2.5 for the first command. The second (missing-source control) abstains on every case
-before any call, at $0; it is not the generator ablation required by spec 08 (C1-R7). Iterate on
-dev only. The summary applies the selection rule; write the chosen model into `help_config.json`.
+Worst case per call: Haiku 1,300 µ$, Sonnet 26,000 µ$, judge 64,000 µ$; spend prints per case.
+Expect $1.5–2.5 for the first command. The second is the no-passage baseline (spec 08, C1-R7):
+same model and guard, `no_passages.md` added, no citations; about $0.05. Iterate on dev only.
+The summary applies the selection rule; write the chosen model into `help_config.json`.
 
 ## Step 8: audit (Thomas)
 
@@ -75,11 +75,12 @@ Your labels win everywhere, including the paired table.
 
 ## Step 9: holdout, once
 
-Credit first: sum `spent_micros` over every earlier `results/*/run.json`, subtract it from
-the credit, and pass the rest minus a margin (≥ $0.30) as `--max-usd`. A holdout that stops
-on the cap or on "credit too low" is spoiled (it ran once, incompletely): do not rerun it on
-any commit (C1-R4: the runner currently refuses only the same commit, from `run.json` or the
-`started.json` it writes before the first call); it needs fresh cases.
+Credit first: `uv run python -m mathtutor.help.eval.run --spent` totals every run's
+`spend.jsonl`, interrupted runs included (an unsettled call counts at its worst case). Pass
+the credit minus that total minus a margin (≥ $0.30) as `--max-usd`. A holdout claims its
+cases, problems, queries and relevant chunks before its first call; any later holdout that
+shares one of them is refused on every commit. A holdout that stops early is spoiled: it
+needs fresh problems and queries, not reworded cases. Run ids are never reused.
 Commit everything, then on a clean tree at that commit:
 
 ```
@@ -91,8 +92,7 @@ release is blocked (Task 15) and those cases become regression evidence.
 
 ## Watch items
 
-- `max_output_tokens` 1,000 with adaptive thinking can stop at `max_tokens` (invalid); the
-  operational table reports the count per model. If not rare, raise it before the holdout.
+- `max_output_tokens` 1,000 can stop at `max_tokens` (counted per model); if not rare, raise it.
 - The judge (`effort: medium`, 4,000 output tokens) can stop early: such cases are `unjudged`,
   fail `all_delivered_judged` and are flagged in `audit.csv`.
 - Dev Recall@6 with the policy, tok-2 and the boost: 0.79 (MRR@6 0.66).

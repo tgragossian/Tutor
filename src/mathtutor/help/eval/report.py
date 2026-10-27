@@ -37,6 +37,8 @@ K = 6
 BASELINE = "claude-haiku-5-5"
 CHALLENGER = "claude-sonnet-5-5"
 AUDIT_SHARE = 0.2
+# --no-retrieval (review C1-R7): the same generator without passages; nothing can be cited.
+NO_PASSAGE_NOTE = "off: no-passage generator baseline, citation measures do not apply"
 SCORE_FIELDS = (
     "leak",
     "addresses_error",
@@ -514,7 +516,7 @@ def render_summary(
         f"versions {m.get('versions')}, tariff {m.get('tariff_version')}",
         f"- Corpus `{m.get('corpus_hash')}`, index `{m.get('index_fingerprint')}`",
         f"- HEAD `{m.get('head')}` dirty={m.get('dirty')} freeze={m.get('freeze')}; "
-        f"retrieval {'off' if m.get('no_retrieval') else 'BM25'}",
+        f"retrieval {NO_PASSAGE_NOTE if m.get('no_retrieval') else 'BM25'}",
         f"- Spend {usd(int(m.get('spent_micros', 0)))} of {usd(int(m.get('cap_micros', 0)))} "
         f"USD; stopped: {m.get('stopped')}; cases {m.get('cases')}",
         f"- Mix warnings: {m.get('mix_warnings') or 'none'}",

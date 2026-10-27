@@ -94,6 +94,23 @@ class HelpOutput(BaseModel):
         return self
 
 
+class UncitedHelpOutput(BaseModel):
+    """Evaluation-only no-passage baseline (review C1-R7): the same reply shape and text bounds,
+    but no passages exist to cite, so ``source_ids`` must be empty. Never used in production."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+
+    text: str = Field(max_length=MAX_TEXT_CHARS)
+    source_ids: list[str] = Field(max_length=0)
+    abstain: bool
+
+    @model_validator(mode="after")
+    def _text(self) -> UncitedHelpOutput:
+        if not self.abstain and not self.text.strip():
+            raise ValueError("non-abstaining help needs text")
+        return self
+
+
 # Structured outputs accept a subset of JSON Schema: no length or item-count limits, so those
 # live in the descriptions (for the model) and in ``HelpOutput`` (enforced).
 HELP_OUTPUT_SCHEMA: dict[str, Any] = {
