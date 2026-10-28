@@ -1,6 +1,6 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-27, C1 review fixes ready for Codex verification.
+Owner: Thomas Gragossian. Updated: 2026-10-27 end of day: C1 fixes + R35/R36; C2 decisions settled.
 Host deployment remains Thomas's reported `main` 8057590, migration 0003. No new host probe.
 Branch `milestone-c1` holds C1 tasks 1-15 plus review fixes; reviewed `3be5808`. Nothing merged or deployed.
 
@@ -8,19 +8,20 @@ Branch `milestone-c1` holds C1 tasks 1-15 plus review fixes; reviewed `3be5808`.
 
 **C1 (Claude-written, textbook-grounded help) is implemented but not released.**
 [C1 status](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/20-status.md) owns the owner
-checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands. Rulings R1-R30
-are in [C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulings.md).
+checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands. Rulings R1-R36
+(R35 hint ladder per mistake type with a two-step level 0; R36 prompt fingerprint) are in [C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulings.md).
 
 ## Resume here
 
 1. Codex: follow the [close-out checklist](docs/reviews/2026-10-27-milestone-c1/06-codex-closeout.md):
    verify Claude's fixes for the [nine C1 findings](docs/reviews/2026-10-27-milestone-c1/README.md)
    ([dispositions](docs/reviews/2026-10-27-milestone-c1/05-dispositions.md), D1–D4 = R31–R34),
-   close or reopen each, update the listed Markdown files and probes, then review the C2 plan
-   on `milestone-c2`. No paid calls or holdout yet.
-2. After review fixes, owner steps pending: review 60 cases + 40 queries (`reviewed_by: tg`); approve the
-   12 confusion labels, 4 rewritten misconception notes, the help panel copy and the provider
-   disclosure wording; paid dev run
+   close or reopen each, update the listed Markdown files and probes, review R35/R36, then
+   the C2 plan on `milestone-c2`. No paid calls or holdout yet. Codex's untracked
+   `test_recheck_probes.py` is its unfinished work.
+2. After review fixes, owner steps pending: review 60 cases + 40 queries (`reviewed_by: tg`; incl.
+   `expect_mistake_type`/`prior_hints`/`start_step`); approve the 12 confusion labels, 4 rewritten
+   misconception notes, level/mistake-type wording, help panel copy and provider disclosure; paid dev run
    (`--max-usd 4`) and audit; **decide on the retrieval gate before the holdout** (dev
    Recall@6 0.79 < 0.80); one-shot holdout; `E2E=1 bash tests/container/smoke.sh`; container
    mixed-load measurement; deploy; live check (one cited hint on a wrong derivative, one
@@ -28,7 +29,9 @@ are in [C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulin
    Holdout cap formula and the 0.576 draft-holdout disclosure: C1 status page and runbook C1.
 3. Key: `MATHTUTOR_ANTHROPIC_API_KEY` only in the host's `deploy/.env`; console spend limit,
    auto-reload off; $5 credit. Turn help off with `MATHTUTOR_HELP_GENERATOR=off`.
-4. Then C2 item-scoped questions and C3 own problems (resolve C-P3 first). Sequence remains
+4. Then C2 (plan on `milestone-c2`, Q1–Q9 all decided by Thomas; adds ratings and a
+   completion-only Clear history) and C3 own problems (resolve C-P3 first). The C2 worktree
+   cannot build its venv yet (Windows Application Control blocks uv). Sequence remains
    **C -> LoRA experiment -> D/E -> expansion** (C-O4). Qwen serving: RunPod; training: AWS.
 5. Memory: the only mixed-load numbers so far are
    [preliminary, Windows, not the gate](docs/ops/host-sizing-c1.md); 1 GB vs 2 GB is decided by
