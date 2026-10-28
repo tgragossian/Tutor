@@ -2,6 +2,7 @@
 
 [Planning index](../README.md)
 
+- [Step-by-step work](2026-10-28-step-by-step-work-design.md): parked 2026-10-28 (C-O7), after C and the LoRA; agreed in conversation, not yet a reviewed spec.
 - [Milestone C design](2026-10-26-milestone-c/README.md): C1–C3, design agreed 2026-10-26; Codex concept review incorporated, implementation tasks next.
 - [Portfolio core contracts](2026-10-13-portfolio-core/README.md): approved spec for milestones A–B (option B).
 - [Function input and domain rewrites](2026-10-19-function-input-and-domain-rewrite-design.md): R22/R23, approved by Thomas 2026-10-19 and implemented.

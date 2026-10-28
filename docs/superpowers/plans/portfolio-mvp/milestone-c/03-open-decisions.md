@@ -16,6 +16,7 @@ The [C1 plan](c1/README.md) proposes C-P1 ([pinned values](c1/01-pinned-values.m
 | C-O4 | Automated problem sets | All of Calc 1 only if automated (Thomas, 2026-10-26); **placed after the LoRA** (Thomas, 2026-10-26); position relative to D/E set when the LoRA ends |
 | C-O5 | Hosted access | Thomas supplies an Anthropic API key through secrets configuration (no OpenAI, 2026-10-26) |
 | C-O6 | C design session | Complete 2026-10-26; Codex review incorporated; implementation plan still needed |
+| C-O7 | Step-by-step work | **Parked after the planned work** (Thomas, 2026-10-28): C, then the LoRA; position relative to D/E set when the LoRA ends. [Parked design](../../../specs/2026-10-28-step-by-step-work-design.md) |
 
 ## Implementation prerequisites from review (not new owner decisions)
 
