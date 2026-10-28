@@ -31,7 +31,7 @@ The question is never stored; only the routing label and a hash are.
   [9 ratings](15-ratings.md) · [10 clear history](16-clear-history.md).
 
 Order: 1 → 2 → 3 → 4 → 5 → 9 → 10; 6 after 2; 7 after 6; 8 last. Branch `milestone-c2` is rebased on
-`milestone-c1` `671edea` (review fixes, R35, R36); rebase onto `main` once C1 merges. Do not start
+`milestone-c1` `33c26d5` (review fixes, R35, R36); rebase onto `main` once C1 merges. Do not start
 Task 1 until Codex has closed the C1 review. Owner steps: Q1–Q8, case review, paid runs.
 
 ## C1 fixes this plan builds on (review C1-R1..R9)
