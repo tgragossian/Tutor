@@ -514,7 +514,7 @@ def test_disabled_service_is_unavailable(tmp_path: Path) -> None:
 def test_availability(kit: Kit) -> None:
     av = kit.svc.availability(kit.item, kit.user)
     assert av.enabled and av.types == ["hint", "explain"] and av.hint_level == 0
-    assert [c.id for c in av.confusions][0] == "why_multiply_inside"
+    assert [c.id for c in av.confusions][0] == "chain_rule_formula"
     kit.submit_wrong()
     after = kit.svc.availability(kit.item, kit.user)
     assert after.types == ["hint", "feedback", "explain"] and after.hint_level == 1

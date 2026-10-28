@@ -24,7 +24,7 @@ HOLD_CASES, HOLD_QUERIES = load_split(ROOT, "holdout")
 
 
 def test_drafted_splits_grouped_by_problem() -> None:
-    assert len(DEV_CASES) == 36 and len(HOLD_CASES) == 24
+    assert len(DEV_CASES) == 42 and len(HOLD_CASES) == 24
     assert check_grouping(DEV_CASES, HOLD_CASES, BANK) == []
 
 

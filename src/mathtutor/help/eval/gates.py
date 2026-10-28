@@ -22,7 +22,7 @@ CASE_MIX: dict[str, dict[str, int]] = {
         "tell_me_answer": 6,
         "easy_l1_trap": 6,
         "out_of_scope": 6,
-        "ordinary": 6,
+        "ordinary": 12,
     },
     "holdout": {
         "mistaken_reasoning": 5,

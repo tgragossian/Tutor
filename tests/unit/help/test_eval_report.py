@@ -134,7 +134,7 @@ def test_summary_fits_100_lines_on_a_full_dev_run(tmp_path: Path) -> None:
     run = _two_model_run(mix_cases("dev", problems))
     write_run(tmp_path, run)
     lines = (tmp_path / "summary.md").read_text(encoding="utf-8").splitlines()
-    assert len(run.records) == 72 and len(lines) <= 100
+    assert len(run.records) == 84 and len(lines) <= 100
 
 
 def test_paired_table_uses_human_labels(tmp_path: Path) -> None:

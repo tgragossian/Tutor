@@ -89,12 +89,12 @@ def test_check_bank_flags_unknown_problem_and_confusion() -> None:
         make_case(
             case_id="b",
             help_type="explain",
-            confusion_id="sign_of_cos_derivative",
+            confusion_id="trig_ladder",
             tags=["ordinary"],
         ),
     ]
     errors = check_bank(bad, PROBLEMS, CONFUSIONS)
-    assert any("nope" in e for e in errors) and any("sign_of_cos_derivative" in e for e in errors)
+    assert any("nope" in e for e in errors) and any("trig_ladder" in e for e in errors)
     assert check_bank([make_case()], PROBLEMS, CONFUSIONS) == []
 
 

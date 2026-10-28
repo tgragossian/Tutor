@@ -44,7 +44,7 @@ Admission, replay and stale completion follow [state/accounting](06-state-and-ac
 | Explain this | active/exhausted item | Student picks from a short per-topic confusion list; explains that idea |
 | Ask a question (C2) | active/exhausted item | Free text; model labels hint/feedback/explain for measurement, never to bypass checks |
 
-Confusion lists live in versioned content files per topic, about 3–5 entries each.
+Confusion lists live in versioned content files per topic, 3–6 entries each (6 since 2026-10-28, Thomas).
 
 ## Retrieval
 

@@ -67,7 +67,7 @@ _TYPES = {
     "tell_me_answer": ["hint", "explain"],
     "easy_l1_trap": ["hint"],
     "out_of_scope": ["hint", "feedback", "explain"],
-    "ordinary": ["explain", "hint"],
+    "ordinary": ["explain", "hint", "feedback"],
 }
 
 

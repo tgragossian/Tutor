@@ -193,13 +193,13 @@ def test_confusions_valid() -> None:
     topics = {t.topic_id for t in BUNDLE.bundle.topics}
     assert set(data) == topics
     for topic, entries in data.items():
-        assert 3 <= len(entries) <= 5, topic
+        assert 3 <= len(entries) <= 6, topic
         ids = [e.id for e in entries]
         assert len(set(ids)) == len(ids)
         for e in entries:
             assert re.fullmatch(r"[a-z_]{3,40}", e.id)
             assert 0 < len(e.label) <= 80
-            assert not re.search(r"\b(color|behavior|center|analyze)\b", e.label)
+            assert not re.search(r"\b(colour|behaviour|centre|analyse)\b", e.label)
 
 
 def test_confusions_rejects_bad_file(tmp_path: Path) -> None:
