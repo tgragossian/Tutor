@@ -17,6 +17,7 @@ The [C1 plan](c1/README.md) proposes C-P1 ([pinned values](c1/01-pinned-values.m
 | C-O5 | Hosted access | Thomas supplies an Anthropic API key through secrets configuration (no OpenAI, 2026-10-26) |
 | C-O6 | C design session | Complete 2026-10-26; Codex review incorporated; implementation plan still needed |
 | C-O7 | Step-by-step work | **Parked after the planned work** (Thomas, 2026-10-28): C, then the LoRA; position relative to D/E set when the LoRA ends. [Parked design](../../../specs/2026-10-28-step-by-step-work-design.md) |
+| C-O8 | Visual explanations | **Deferred to the todo list** (Thomas, 2026-10-28): graphs in help and of the student's input, for limits/continuity, domain, tangent lines and possibly integration. Compute Engine (shipped with MathLive) can evaluate input in the browser; decide whether a live graph may act as a free self-check, and guard plots that would show the answer (e.g. a plot of f′) |
 
 ## Implementation prerequisites from review (not new owner decisions)
 
