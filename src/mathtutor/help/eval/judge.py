@@ -174,6 +174,8 @@ def _level_note(case: HelpCase) -> str:
         return ""
     if case.expect_mistake_type is not None:
         return f" (hint level {case.hint_level}; mistake type {case.expect_mistake_type})"
+    if case.hint_level == 0 and case.start_step == 2:
+        return " (hint level 0, start step 2: a second request before any answer)"
     return f" (hint level {case.hint_level})"
 
 

@@ -33,7 +33,7 @@ import threading
 import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timedelta
 from typing import get_args
 from uuid import UUID
@@ -156,6 +156,7 @@ class HintPlan:
     level: int
     levels: dict[str, int] | None = None
     hint_type: str | None = None
+    start_step: int | None = None  # level 0 only: 1, then 2 (repeats)
 
 
 def _type_level(counts: dict[str, int], mistake_type: str) -> int:
@@ -163,12 +164,14 @@ def _type_level(counts: dict[str, int], mistake_type: str) -> int:
 
 
 def _hint_plan(state: ItemHelpState | None, latest_wrong: int | None) -> HintPlan:
-    """Level 0 (how to start) while the item has no wrong answer; it never moves the ladder.
+    """Level 0 (how to start) while the item has no wrong answer, in two steps (rule and
+    first move, then a concrete setup, which repeats); it never moves the type ladders.
     Once there is one, each mistake type climbs 1 -> 2 -> 3 with the hints it has had on this
     presentation. Further hints on the attempt the last hint addressed reuse its type; a newer
     wrong attempt is classified by the model, which can only pick among the offered levels."""
     if latest_wrong is None:
-        return HintPlan(0)
+        done = state.start_hints if state is not None else 0
+        return HintPlan(0, start_step=min(done + 1, 2))
     counts = dict(state.hint_counts or {}) if state is not None else {}
     if state is not None and state.hint_attempt_pk == latest_wrong and state.hint_type:
         return HintPlan(_type_level(counts, state.hint_type), None, state.hint_type)
@@ -325,7 +328,9 @@ class HelpService:
             item = db.get(SessionItem, admitted.session_item_id)
             if item is None:
                 raise NotFound(messages.PROBLEM_NOT_FOUND)
-            return build_context(db, item, admitted.problem, level, self._pool)
+            ctx = build_context(db, item, admitted.problem, level, self._pool)
+        step = admitted.plan.start_step if admitted.plan is not None else None
+        return replace(ctx, start_step=step) if step is not None else ctx
 
     def _reserve(self, admitted: _Admitted, call_no: int, entries: dict[int, int]) -> bool:
         """Reserve a later call in the ledger's own transaction; refusal ends the run."""
@@ -603,6 +608,10 @@ class HelpService:
             kind, written = plan.hint_type, plan.level
         row.hint_level = written
         row.mistake_type = kind
+        if plan.start_step is not None:  # a level-0 hint: counts toward step 2
+            row.start_step = plan.start_step
+            state.start_hints = (state.start_hints or 0) + 1
+            return
         if kind is None:
             return
         counts = dict(state.hint_counts or {})

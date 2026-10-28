@@ -24,7 +24,7 @@ Admission, replay and stale completion follow [state/accounting](06-state-and-ac
 - Problem statement, topic and version; answer kind (expression, numeric or choice).
 - The student's last 3 attempts on this item with their verdicts; tries used.
 - Hint level (amended 2026-10-27, Thomas, ruling R35): 0 "how to start" before any wrong
-  answer; then per mistake type (algebra, wrong rule, rule misapplied, incomplete), 1 → 2
+  answer (step 1 rule and first move, step 2 concrete setup, repeating); then per mistake type (algebra, wrong rule, rule misapplied, incomplete), 1 → 2
   → 3 with that type's hints on the item. The model labels a new attempt's type; the server
   sets each type's level, so the label can only pick among offered levels.
 - A recorded misconception matched by the latest wrong answer, checked through the existing

@@ -21,7 +21,7 @@ import subprocess
 import sys
 import time
 from collections.abc import Callable, Sequence
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
@@ -181,6 +181,7 @@ def run_case(
         env._notes[case.case_id] = match_misconception(problem, latest, chosen, env.grading_pool)
     note = env._notes[case.case_id]
     ctx = assemble_context(problem, attempts, case.hint_level, note)
+    ctx = replace(ctx, start_step=case.start_step)
     label = confusion_label(case, problem, env.confusions)
     cfg = env.cfg.model_copy(update={"model": model})
     corpus, index = env.index_for(case.withhold_sections)

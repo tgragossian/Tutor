@@ -210,9 +210,9 @@ def test_0005_adds_hint_ladder_columns_and_downgrades(db_url: str) -> None:
     engine = make_engine(db_url)
     try:
         cols = {c["name"] for c in inspect(engine).get_columns("item_help_state")}
-        assert {"hint_attempt_pk", "hint_type", "hint_counts"} <= cols
+        assert {"hint_attempt_pk", "hint_type", "hint_counts", "start_hints"} <= cols
         cols = {c["name"] for c in inspect(engine).get_columns("help_requests")}
-        assert "mistake_type" in cols
+        assert {"mistake_type", "start_step"} <= cols
         with engine.connect() as conn:
             row = conn.execute(
                 text(
@@ -227,7 +227,7 @@ def test_0005_adds_hint_ladder_columns_and_downgrades(db_url: str) -> None:
     engine = make_engine(db_url)
     try:
         cols = {c["name"] for c in inspect(engine).get_columns("item_help_state")}
-        assert not {"hint_attempt_pk", "hint_type", "hint_counts"} & cols
+        assert not {"hint_attempt_pk", "hint_type", "hint_counts", "start_hints"} & cols
         with engine.connect() as conn:
             assert conn.execute(text("SELECT request_id FROM help_requests")).all() == [("r1",)]
     finally:

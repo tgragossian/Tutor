@@ -30,6 +30,7 @@ from mathtutor.help.generator import (
     GenerationResult,
     GeneratorError,
 )
+from mathtutor.help.prompts import START_RULES
 from mathtutor.help.render import render_help_html
 from mathtutor.help.service import HelpIn, HelpOutcome, HelpService, HelpStatus, SourceRef
 from mathtutor.retrieval.corpus import ChunkRole
@@ -75,25 +76,22 @@ def test_delivered_hint_with_citation(kit: Kit) -> None:
 def test_level_0_before_a_wrong_answer_then_ladder_1_2_3(kit: Kit) -> None:
     """R35: level 0 (how to start) never moves the ladder; after a wrong answer the first hint
     classifies the mistake (all types at level 1), then the same attempt climbs 2 -> 3 -> 3."""
-    kit.generator.script = [output() for _ in range(6)]
-    assert [kit.help().hint_level for _ in range(2)] == [0, 0]
+    kit.generator.script = [output() for _ in range(7)]
+    assert [kit.help().hint_level for _ in range(3)] == [0, 0, 0]
+    starts = [r.user for r in kit.generator.requests]
+    assert START_RULES[1] in starts[0] and START_RULES[2] in starts[1]  # two steps,
+    assert START_RULES[2] in starts[2]  # then the concrete setup repeats
+    assert [r.start_step for r in kit.rows()] == [1, 2, 2]
     state = kit.state()
     assert state is not None and (state.hint_counts, state.hint_attempt_pk) == ({}, None)
+    assert state.start_hints == 3
     kit.submit_wrong()
     assert [kit.help().hint_level for _ in range(4)] == [1, 2, 3, 3]
-    reqs = kit.generator.requests
-    assert all("Level 0" in r.user for r in reqs[:2])
-    assert [r.schema == HINT_CHOICE_SCHEMA for r in reqs] == [
-        False,
-        False,
-        True,
-        False,
-        False,
-        False,
-    ]
-    assert "Level 2" in reqs[3].user and "Level 3" in reqs[4].user
+    reqs = kit.generator.requests[3:]
+    assert [r.schema == HINT_CHOICE_SCHEMA for r in reqs] == [True, False, False, False]
+    assert "Level 2" in reqs[1].user and "Level 3" in reqs[2].user
     state = kit.state()
-    assert state is not None and state.help_seq == 6
+    assert state is not None and state.help_seq == 7
     assert (state.hint_type, state.hint_counts, state.hint_level) == (
         "rule_misapplied",
         {"rule_misapplied": 4},

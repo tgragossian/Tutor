@@ -4,6 +4,7 @@ evaluation cases and the runner. Service behavior is in ``test_service.py``."""
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 
 import pytest
 from pydantic import ValidationError
@@ -22,7 +23,7 @@ from mathtutor.help.generator import (
     GenerationResult,
     ScriptedGenerator,
 )
-from mathtutor.help.prompts import LEVEL_RULES, build_prompt
+from mathtutor.help.prompts import LEVEL_RULES, START_RULES, build_prompt
 
 PROBLEM = CONTENT.bundle.problems[0]
 HAIKU = "claude-haiku-5-5"
@@ -38,6 +39,14 @@ def test_four_levels_and_level_0_prompt() -> None:
     system, user = build_prompt(_ctx(0), "hint", [], None, False)
     assert "Level 0 hint: how to start" in user
     assert "Level 0" in system and "Level 3" in system and "mistake_type" in system
+
+
+def test_level_0_has_two_steps() -> None:
+    first = build_prompt(_ctx(0), "hint", [], None, False)[1]
+    second = build_prompt(replace(_ctx(0), start_step=2), "hint", [], None, False)[1]
+    assert START_RULES[1] in first and START_RULES[2] not in first
+    assert START_RULES[2] in second and "Level 0" in second
+    assert START_RULES[1] == LEVEL_RULES[0]
 
 
 def test_classifying_prompt_lists_every_type_and_used_rules() -> None:
@@ -87,6 +96,9 @@ def test_case_rules() -> None:
     with pytest.raises(ValidationError, match="expect_mistake_type"):
         make_case(help_type="feedback", expect_mistake_type="algebra")
     make_case(hint_level=3, expect_mistake_type="algebra", prior_hints={"algebra": 2})
+    make_case(attempts=[], tags=["ordinary"], start_step=2)
+    with pytest.raises(ValidationError, match="start_step"):
+        make_case(start_step=2)  # has an attempt: not level 0
 
 
 def _reply(kind: str) -> GenerationResult:

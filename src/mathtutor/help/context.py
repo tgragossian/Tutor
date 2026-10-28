@@ -61,6 +61,7 @@ class HelpContext:
     hint_level: int
     misconception_note: str | None
     variable: str
+    start_step: int = 1  # R35: which level-0 hint (1 rule and first move, 2 concrete setup)
 
 
 @dataclass(frozen=True)

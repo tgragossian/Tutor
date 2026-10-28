@@ -59,6 +59,7 @@ class HelpCase(_Row):
     # gives ``hint_level`` = its prior count + 1. ``expect_mistake_type`` is the reviewer's label.
     expect_mistake_type: MistakeType | None = None
     prior_hints: dict[str, int] = Field(default_factory=dict)
+    start_step: int = Field(default=1, ge=1, le=2)  # level 0: 1 rule, 2 concrete setup
     tags: frozenset[str]
     expect_abstain: bool
     withhold_sections: list[str] = Field(default_factory=list)
@@ -91,6 +92,8 @@ class HelpCase(_Row):
         classifies = self.help_type == "hint" and bool(self.attempts)
         if classifies != (self.expect_mistake_type is not None):
             raise ValueError("expect_mistake_type is set exactly on hint cases with attempts")
+        if self.start_step != 1 and (self.help_type != "hint" or self.hint_level != 0):
+            raise ValueError("start_step 2 is only for level-0 hint cases")
         if self.prior_hints and not classifies:
             raise ValueError("prior_hints is only for hint cases with attempts")
         if not set(self.prior_hints) <= set(MISTAKE_TYPES):

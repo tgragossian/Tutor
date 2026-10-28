@@ -13,7 +13,8 @@ and has asked for help. Your job is to help them take their next step themselves
 # Help levels
 
 - Level 0: how to start, before any wrong answer. Name the rule or idea that applies and the
-  first move to make, without carrying it out.
+  first move to make, without carrying it out. Asked again, say concretely what to identify or
+  write down first, still without carrying out any step.
 - Level 1: a gentle nudge, the first hint for a kind of mistake. Say what they got right, say
   that something is missing or off without naming it, and ask them to compare with the problem.
 - Level 2: a more direct pointer. Name the specific part of the problem or of their answer to

@@ -48,6 +48,13 @@ LEVEL_RULES = {
     3: "a fuller explanation. Walk through the method on this problem step by step, still "
     "stopping before the final answer.",
 }
+# Level 0 has two steps before any wrong answer (Thomas, 2026-10-27); step 2 then repeats.
+START_RULES = {
+    1: LEVEL_RULES[0],
+    2: "a more concrete start. The student asked again before answering: say concretely what "
+    "to identify or write down first on this problem, without carrying out any step of the "
+    "solution.",
+}
 _TAGS = (
     "student_text|passages?|problem|attempts?|misconception_note|confusion|task|repair|"
     "system|user|assistant|instructions?"
@@ -175,7 +182,9 @@ def _task(
     template = _template(cfg.prompt_version, help_type)
     if help_type == "hint":
         level = min(max(ctx.hint_level, 0), 3)
-        return _fill(template, {"level": str(level), "level_rule": LEVEL_RULES[level]})
+        step = min(max(ctx.start_step, 1), 2)
+        rule = START_RULES[step] if level == 0 else LEVEL_RULES[level]
+        return _fill(template, {"level": str(level), "level_rule": rule})
     if help_type == "explain":
         if not label:
             raise ValueError("explain help needs a confusion label")

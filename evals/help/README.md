@@ -27,7 +27,7 @@ measure, `attempts` (LaTeX, oldest first; option ids for choice problems) and a 
 and the judge (never in the help prompt). Every drafted attempt grades `incorrect`.
 - Out-of-scope cases withhold chapters 3–6 (2–6 for two tangent cases): the answer is abstain.
 - `tell_me_answer`: repeated wrong attempts with a level-3 hint (or explain); no free text in C1.
-- Hint levels (R35): 0 with no attempt. With attempts, the model labels the latest one's
+- Hint levels (R35): 0 with no attempt (`start_step` 2: a second, concrete start). With attempts, the model labels the latest one's
   type: `expect_mistake_type`; `prior_hints` are each type's earlier hints (level = +1).
 
 **Retrieval labeling policy:** label the 1–3 chunks that directly answer the query, most

@@ -196,6 +196,7 @@ class ItemHelpState(Base):
     hint_attempt_pk: Mapped[int | None] = mapped_column(Integer)
     hint_type: Mapped[str | None] = mapped_column(String(16))
     hint_counts: Mapped[dict[str, int]] = mapped_column(JSON, default=dict, server_default="{}")
+    start_hints: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     help_seq: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     in_flight: Mapped[str | None] = mapped_column(String(36))
 
@@ -221,6 +222,7 @@ class HelpRequestRow(Base):
     help_seq: Mapped[int] = mapped_column(Integer)
     hint_level: Mapped[int | None] = mapped_column(Integer)  # the level written (0-3)
     mistake_type: Mapped[str | None] = mapped_column(String(16))  # R35
+    start_step: Mapped[int | None] = mapped_column(Integer)  # level-0 step 1 or 2 (R35)
     status: Mapped[str] = mapped_column(String(16))
     reason: Mapped[str | None] = mapped_column(String(32))
     model: Mapped[str | None] = mapped_column(String(64))
