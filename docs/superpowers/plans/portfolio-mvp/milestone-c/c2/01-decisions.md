@@ -5,13 +5,13 @@
 Proposed by Claude on 2026-10-27. Each has a default the tasks implement; Thomas approves or
 changes it before execution. "Cost" is what the default costs if it is wrong.
 
-**Status 2026-10-27 (Thomas):** Q1, Q2, Q4, Q5, Q6, Q7, Q8, Q9 decided (notes below). Q3 open.
+**Status 2026-10-27 (Thomas):** All of Q1–Q9 decided (notes below).
 
 | # | Decision | Proposed default | Cost if wrong |
 |---|---|---|---|
 | Q1 | How much a question may disclose — **decided** | The hint ladder's current level, like a hint (R35: 0 before a wrong answer; the latest attempt's type level once labeled; 1 if not labeled yet). Questions never move the ladder; only a submitted answer does. If the student explicitly asks for more ("show me the whole method"), the model may go up to level 3 (never the answer) and sets `asked_for_more`; the server then puts this fixed line first: "This may reduce how much you learn from this problem. I'd recommend trying smaller steps first." | A student who asks for more gets it, with the warning. |
 | Q2 | Storing the question — **decided**: never stored; and Clear history keeps only complete/incomplete per problem, removing everything typed, incl. C3 own problems ([Task 10](16-clear-history.md)) | Never stored. `payload_hash` covers it (replay/conflict); clearing history overwrites that hash on question rows with `CLEARED_HASH` (64 zeros). | No record of questions for later review; the eval cases are the only question data. |
-| Q3 | Prompt versioning | Additive files in `prompts/v1/`: `question.md` (task) and `question_system.md` (appended to `system.md` for questions only). C1 prompt files unchanged. | If you prefer a clean `v2`, C1's evaluated prompt set changes and C1 evidence no longer covers it. |
+| Q3 | Prompt versioning — **decided**: option A plus the C1 prompt fingerprint (R36, `v1+<hash>` on rows and runs) | Additive files in `prompts/v1/`: `question.md` (task) and `question_system.md` (appended to `system.md` for questions only). C1 prompt files unchanged. | If you prefer a clean `v2`, C1's evaluated prompt set changes and C1 evidence no longer covers it. |
 | Q4 | Routing labels — **decided** | `hint`, `feedback`, `explain`, set by the model on every valid reply (abstentions too), stored in `help_requests.use_case`; agreement with your label is reported, not gated. | Labels are model opinions; a bad label changes nothing for the student. |
 | Q5 | Out-of-scope rule — **decided** | Questions not about this problem abstain, including other calculus topics (spec 06: item-scoped). | Students asking "what is a limit?" mid-problem get an abstention. |
 | Q6 | Availability (an operator switch, not a student setting) — **decided** | Same as Hint: active or exhausted items; behind `question.enabled` in `help_config.json` (default `true`). | None; one switch. |
