@@ -28,6 +28,9 @@ Rules:
 - `_finalize_once`: wherever it fills the pending row's metadata, also set
   `row.use_case = result.use_case` (content-free; kept when stale). Never store the question.
 - The `help finished` log line gains `use_case=%s` (the label or `-`), nothing else.
+- Q1: a delivered question with `asked_for_more` gets `messages.MORE_DETAIL_WARNING` ("This may reduce how much you learn from this problem. I'd recommend trying smaller steps first.")
+  as its first paragraph, added by the server before storing and rendering; the row
+  records `asked_for_more`. Test: `test_asked_for_more_prepends_the_warning`.
 - `clear_history`: in the same update, rows with `help_type == "question"` also get
   `payload_hash = CLEARED_HASH`. A later reuse of such an id is a `Conflict` (409).
 - Ladder: unchanged code already advances only for `help_type == "hint"`; pin it with a test.
