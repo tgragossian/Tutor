@@ -524,7 +524,8 @@ def render_summary(
         "",
         f"- Models: {', '.join(models)}; judge {m.get('judge')} rubric "
         f"{m.get('rubric_version')}, seed `{m.get('seed')}`",
-        f"- Config {m.get('config_version')}, prompt {m.get('prompt_version')}, "
+        f"- Config {m.get('config_version')}, prompt {m.get('prompt_version')}"
+        f"+{m.get('prompt_fingerprint')}, "
         f"versions {m.get('versions')}, tariff {m.get('tariff_version')}",
         f"- Corpus `{m.get('corpus_hash')}`, index `{m.get('index_fingerprint')}`",
         f"- HEAD `{m.get('head')}` dirty={m.get('dirty')} freeze={m.get('freeze')}; "

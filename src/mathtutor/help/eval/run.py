@@ -45,6 +45,7 @@ from mathtutor.help.generator import (
 )
 from mathtutor.help.leak_guard import LeakGuard
 from mathtutor.help.pipeline import HelpPipeline, answer_latex
+from mathtutor.help.prompts import prompt_fingerprint
 from mathtutor.retrieval.bm25 import Bm25Index
 from mathtutor.retrieval.corpus import Corpus
 
@@ -505,6 +506,7 @@ def _execute(args: argparse.Namespace, root: Path) -> int:
         "rubric_version": RUBRIC_VERSION,
         "config_version": cfg.version,
         "prompt_version": cfg.prompt_version,
+        "prompt_fingerprint": prompt_fingerprint(cfg.prompt_version),
         "versions": {
             "schema": cfg.schema_version,
             "parser": cfg.parser_version,

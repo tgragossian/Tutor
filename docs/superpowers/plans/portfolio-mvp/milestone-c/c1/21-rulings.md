@@ -42,6 +42,7 @@ where they differ; the spec stays binding. "Cost" is what it costs if the ruling
 | R33 | C1-R7: `--no-retrieval` adds the eval-only `no_passages.md`; uncited replies; same guard. | Baseline prompt differs by one paragraph. |
 | R34 | C1-R9: per-run `spend.jsonl` (reserve before, settle after) and `--spent`, not an early `run.json`. | None. |
 | R35 | Hint ladder per mistake type (Thomas, 2026-10-27): level 0 before a wrong answer; the first hint on each new wrong attempt has the model label it `algebra`, `wrong_rule`, `rule_misapplied` or `incomplete` and write at that type's level (its hint count + 1, cap 3, offered by the server); later hints on the same attempt reuse the type. Migration 0005. Feedback unchanged. | A mislabel gives one hint too gentle or one step too direct (guard still applies). |
+| R36 | Prompt fingerprint (Thomas, 2026-10-27, C2 Q3): help rows store `prompt_version` as `v1+<12 hex>` and runs record `prompt_fingerprint`, a hash of every `prompts/v1/*.md`, `prompts.py`, the output schemas and the mistake-type descriptions. New prompt files may join `v1`; the fingerprint shows the change. | None: a wording change shows up as a new fingerprint. |
 
 Final whole-branch review added: per-user help limits (10 per 60 s, 2 in flight), guard pool
 and query caps read from config, runtime note filtering, finalize retry, ledger reconcile in

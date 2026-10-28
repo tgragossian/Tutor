@@ -11,6 +11,8 @@ set of ids the model may cite is always exactly the ids of ``chunks``.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from collections.abc import Mapping
 from functools import cache
@@ -19,7 +21,12 @@ from pathlib import Path
 from mathtutor.domain import AnswerKind
 from mathtutor.help.config import DEFAULT_CONFIG_PATH, HelpConfig, load_help_config
 from mathtutor.help.context import HelpContext, HelpType
-from mathtutor.help.generator import MISTAKE_DESCRIPTIONS, MISTAKE_TYPES
+from mathtutor.help.generator import (
+    HELP_OUTPUT_SCHEMA,
+    HINT_CHOICE_SCHEMA,
+    MISTAKE_DESCRIPTIONS,
+    MISTAKE_TYPES,
+)
 from mathtutor.retrieval.corpus import Chunk, estimate_tokens
 
 PROMPTS_DIR = Path(__file__).with_name("prompts")
@@ -52,6 +59,28 @@ _PLACEHOLDER = re.compile(r"\{\{(\w+)\}\}")
 @cache
 def _default_config() -> HelpConfig:
     return load_help_config(DEFAULT_CONFIG_PATH)
+
+
+@cache
+def prompt_fingerprint(version: str) -> str:
+    """12 hex characters identifying the exact instruction text of a prompt set (Q3, Thomas
+    2026-10-27): every ``prompts/<version>/*.md`` file, this module's source (the level rules
+    and other instruction text kept in code), the output schemas and the mistake-type
+    descriptions (``generator.py``). Any wording change gives
+    a new fingerprint, so results and help rows prove which text produced them."""
+    digest = hashlib.sha256()
+    files = sorted((PROMPTS_DIR / version).glob("*.md")) + [Path(__file__)]
+    for path in files:
+        digest.update(path.name.encode("utf-8") + b"\0")
+        digest.update(path.read_bytes().replace(b"\r\n", b"\n") + b"\0")
+    for data in (HELP_OUTPUT_SCHEMA, HINT_CHOICE_SCHEMA, MISTAKE_DESCRIPTIONS):
+        digest.update(json.dumps(data, sort_keys=True).encode("utf-8"))
+    return digest.hexdigest()[:12]
+
+
+def prompt_id(version: str) -> str:
+    """The prompt set as recorded on help rows and runs: ``v1+<fingerprint>``."""
+    return f"{version}+{prompt_fingerprint(version)}"
 
 
 @cache

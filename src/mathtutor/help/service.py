@@ -62,6 +62,7 @@ from mathtutor.help.generator import MISTAKE_TYPES
 from mathtutor.help.leak_guard import LeakStatus
 from mathtutor.help.ledger import Ledger
 from mathtutor.help.pipeline import HelpPipeline, HelpStatus, PipelineResult, SourceRef
+from mathtutor.help.prompts import prompt_id
 from mathtutor.help.render import render_help_html
 from mathtutor.jsonio import loads_exact
 from mathtutor.store.db import is_lock_error, write_transaction
@@ -405,7 +406,7 @@ class HelpService:
                 status=HelpStatus.PENDING.value,
                 reason=None,
                 model=self._cfg.model,
-                prompt_version=self._cfg.prompt_version,
+                prompt_version=prompt_id(self._cfg.prompt_version),  # v1+<fingerprint>
                 corpus_hash=self._pipeline.corpus_hash,
                 index_fingerprint=self._pipeline.index_fingerprint,
                 retrieved_ids=[],
