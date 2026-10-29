@@ -10,13 +10,13 @@ prompt, repair, leak guard in a real one-worker verifier pool). A blind judge sc
 non-abstaining outputs (including uncited baseline: R7); `gates.py` checks delivered results.
 
 **Status 2026-10-28:** [C1-R4/R7 fixed locally](../../docs/reviews/2026-10-27-milestone-c1/11-debugging-fixes.md); owner release gates remain.
-60 cases and 40 queries are drafts (`reviewed_by: needs_review`); Thomas reviews them (step 6).
+Reviewed 2026-10-29: cases 42/42 dev, 23/24 holdout; queries 12/12 holdout, 0/28 dev (run refuses).
 
 ## Files
 
 | Path | Content |
 |---|---|
-| `cases/{dev,holdout}.jsonl` | 36 / 24 help cases, grouped by problem (holdout: 7 problems, 3 topics) |
+| `cases/{dev,holdout}.jsonl` | 42 / 24 help cases, grouped by problem (holdout: 7 problems, 3 topics) |
 | `retrieval/{dev,holdout}.jsonl` | 28 / 12 book queries with relevant chunk ids, grouped by home section |
 | `rubric/v1.md` | the judge's instructions (also yours for the audit) |
 | `results/<run_id>/` | `summary.md`, `run.json`, `audit.csv`, `audit_key.csv`, `spend.jsonl` (commit); `results.jsonl` (ignored) |
@@ -43,7 +43,7 @@ searches like production: configured roles plus the home-section boost (`section
    a replacement in the same split and category, or `test_eval_drafted_sets.py` fails.
 2. Queries: read the cited chunks and apply the policy above. Show a chunk:
    `uv run python -c "import json; [print(r['text']) for r in map(json.loads, open('content/corpus/chunks.jsonl', encoding='utf-8')) if r['chunk_id']=='c1-3.6-rule1']"`.
-3. Approve or edit `rubric/v1.md` and the 12 confusion labels (`content/help/confusions.json`).
+3. Approve or edit `rubric/v1.md` and the 18 confusion labels (`content/help/confusions.json`).
 4. Free dev check: `uv run python -m mathtutor.help.eval.run --split dev --retrieval-only`
    (`--draft` allows unreviewed rows). Retrieval-only holdout runs are refused; scoring belongs to its locked campaign.
 5. Run `uv run pytest -q tests/unit/help/test_eval_drafted_sets.py`; commit the reviewed sets.

@@ -76,9 +76,9 @@ the [runbook](runbook.md). Check `/readyz`, update [host](host.md) with the new 
 
 ## Owner release checklist
 
-1. Review the 60 help cases and 40 retrieval queries, set `reviewed_by: tg`
+1. Review the 66 help cases (42 dev / 24 holdout) and 40 retrieval queries, set `reviewed_by: tg`
    ([evals/help/README.md](../../evals/help/README.md), step 6).
-2. Approve the 12 confusion labels, the 4 rewritten misconception notes, the help panel copy
+2. Approve the 18 confusion labels, the 4 rewritten misconception notes, the help panel copy
    and the provider disclosure wording.
 3. Paid dev run (`--max-usd 4`), blind audit, then **decide on the retrieval gate before the
    holdout**: dev Recall@6 is 0.79 against the 0.80 holdout gate.

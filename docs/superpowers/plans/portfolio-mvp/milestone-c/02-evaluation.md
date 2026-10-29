@@ -7,7 +7,7 @@ and [decision 0005 §§1–4](../../../../decisions/0005-tutoring-datasets-and-f
 
 ## Retrieval and hosted-model selection in C
 
-1. Prepare 60 help cases (36 development/24 C release holdout) and 40 reviewed retrieval queries.
+1. Prepare 66 help cases (42 development/24 C release holdout; dev 36 → 42 on 2026-10-28) and 40 reviewed retrieval queries.
    Split by source problem/family before tuning; reserve a separate untouched LoRA/E final set.
 2. Establish BM25; compare no retrieval/BM25 with one fixed generator; dense/hybrid is optional in C1.
    Promote dense/hybrid only if it improves measured Recall@k/MRR; report prose/equation failures.

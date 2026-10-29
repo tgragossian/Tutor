@@ -24,8 +24,9 @@ these local changes into C2 and review its plan before implementation.
 
 ## Owner checklist (in order)
 
-1. Review 60 cases and 40 queries; set `reviewed_by: tg` ([step 6](../../../../../../evals/help/README.md)).
-2. Approve the 12 confusion labels, the 4 rewritten misconception notes (error-only wording:
+1. Review 66 cases and 40 queries; set `reviewed_by: tg` ([step 6](../../../../../../evals/help/README.md)).
+   Done 2026-10-29: 42 dev cases, 23/24 holdout (hold-05 left), 12 holdout queries; 28 dev queries left.
+2. Approve the 18 confusion labels (6 per topic, 2026-10-28), the 4 rewritten misconception notes (error-only wording:
    3.6-221, 3.6-229, 3.6-253 and the `sinx2` choice), the help panel copy, the **provider
    disclosure wording** (practice page, `#help-disclosure`; spec 09 requires it) and the hint
    level and mistake-type wording (R35: `LEVEL_RULES` in `help/prompts.py`,
