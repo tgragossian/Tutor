@@ -3,7 +3,7 @@
 [Operations](README.md) · [Runbook](runbook.md) · [Host sizing](host-sizing.md) ·
 [C1 status](../superpowers/plans/portfolio-mvp/milestone-c/c1/20-status.md)
 
-Paid evaluation/release waits for Codex to verify the [C1 review](../reviews/2026-10-27-milestone-c1/README.md) fixes.
+[C1-R4/R7 are fixed locally](../reviews/2026-10-27-milestone-c1/11-debugging-fixes.md); owner release gates remain.
 
 Same conventions as the [runbook](runbook.md): host commands run from `/srv/mathtutor`, with
 `C="sudo docker compose -f deploy/compose.yaml"`. Never put a key in git, chat or a command line.
@@ -82,7 +82,7 @@ the [runbook](runbook.md). Check `/readyz`, update [host](host.md) with the new 
    and the provider disclosure wording.
 3. Paid dev run (`--max-usd 4`), blind audit, then **decide on the retrieval gate before the
    holdout**: dev Recall@6 is 0.79 against the 0.80 holdout gate.
-4. One-shot holdout (cap = credit minus the sum of earlier `spent_micros` minus $0.30; the
+4. One-shot holdout (cap = credit minus the `--spent` total minus $0.30; the
    draft holdout once scored 0.576 on BM25, no label edited, see status page); write the chosen model
    into `help_config.json`.
 5. Container smoke `E2E=1 bash tests/container/smoke.sh`, then the mixed-load measurement above.

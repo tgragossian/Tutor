@@ -23,7 +23,11 @@ Classification of a candidate checked against an `ExpressionAnswer` built from t
 | `incorrect` + `student_undefined` / `undefined_on_domain` / `pole_on_domain` | `LEAK` (formula equality before domain) |
 | `unable_to_verify`, any `FormatIssue`, `VerifierBusy`, deadline spent | `UNCHECKED` |
 | parse rejected | `UNCHECKED` |
-| parsed with non-empty `foreign` | `NO_MATCH` (reason `foreign_symbols`, counted separately) |
+| parsed with non-empty `foreign` | R31: substitute bounded atoms and check every variant; no automatic pass |
+
+R31 supersedes the original foreign-symbol exception: more than three atoms block; any
+leaking or unchecked variant blocks. Passing substitutions provide bounded heuristic coverage,
+not proof of inequality for every original foreign expression. See [rulings](21-rulings.md).
 
 Extra deterministic rules (no worker call): choice problems block `\b(option|choice|answer)\s*\(?{correct}\)?\b`
 and `\({correct}\)` case-insensitively; numeric problems with `precision.decimals` block any

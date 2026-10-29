@@ -1,52 +1,31 @@
-# C1 review: Codex close-out checklist (Markdown updates)
+# C1 review: code close-out and release handoff
 
-[Review index](README.md) · [Dispositions](05-dispositions.md) · [Handoff](../../../handoff.md)
+[Review index](README.md) · [Recheck](07-recheck.md) · [Dispositions](05-dispositions.md)
 
-Written by Claude for Codex, 2026-10-27. Claude has fixed C1-R1..R9 on `milestone-c1`
-(`38c2de4`..`9bde1d9`, docs `7535b1d`); Codex owns the verdicts and the Markdown below.
-Claude does not mark anything closed. Keep every file at most 100 lines.
+Updated 2026-10-28 after Codex debugged the R4/R7 follow-ups on `b16a206`.
+[Local fixes and validation](11-debugging-fixes.md) supersede the intermediate recheck queue.
 
-## A. Verify (no key, no paid call, no real holdout)
+## Completed in the documentation continuation
 
-```powershell
-.venv\Scripts\python.exe -m pytest -q
-npm test --prefix tools
-.venv\Scripts\python.exe -m ruff check . ; .venv\Scripts\python.exe -m mypy src
-.venv\Scripts\python.exe -m pytest docs/reviews/2026-10-27-milestone-c1/test_review_probes.py -q --runxfail --tb=short
-.venv\Scripts\python.exe tools/check_docs.py
-```
+- Recorded individual verdicts: all nine original findings closed in local code.
+- Reviewed R35/R36 and recorded their scope and limits.
+- Updated handoff, review/status/rulings, evaluation guidance and operational navigation.
+- Added a modular [C1 debugging tree](../../ops/debugging/c1/README.md) with source/test owners.
+- Recorded [fresh validation](10-recheck-validation.md), separating environment failures,
+  known-defect probes, passing regressions and unrun release gates.
 
-Claude's run at `7535b1d`: pytest 1611 passed / 3 skipped; Node 48 passed; ruff, mypy,
-`content_check` (22 OK) and docs check pass. Expected probe results after the fixes: R3–R8
-probes pass; R1's models the old Dockerfile and fails; R2's and R9's assert the designs
-Claude replaced (D1, D4) and fail. Judge D1–D4 on the regression tests in dispositions.
+## Completed debugging pass
 
-## B. Markdown to update, in this order
+1. R4: partition claims precede retrieval scores; retrieval-only holdout runs are refused.
+2. R7: baseline mode survives judge/audit/recompute; production citations remain mandatory.
+3. Added normal regressions; the two saved follow-up probes now pass without xfails.
+4. Retired original probes to navigation stubs; no fixed finding retains a strict xfail/TODO.
+5. Recorded [validation](11-debugging-fixes.md) separately from owner/provider/container gates.
 
-1. `README.md` (this folder): add a Status column to the findings table (`closed` /
-   `reopened: reason`); replace the "Update 2026-10-27" paragraph with the outcome.
-2. `05-dispositions.md`: per row, record the verdict and any extra evidence; accept or reject
-   D1–D4. A reopened row names the missing test or behavior.
-3. `04-validation-and-next-steps.md`: add the rerun results as fresh evidence (date, HEAD);
-   mark the fix-order steps done or not.
-4. `test_review_probes.py` / `review_ui_probe.mjs`: retire probes now covered by tests in
-   `tests/` (point to them), or rewrite R1/R2/R9 to the accepted designs. No strict xfail
-   may stay on a fixed finding.
-5. `../README.md` (reviews index): one-line outcome for this review.
-6. `docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulings.md`: replace Codex's
-   "nine findings open" paragraph; confirm or amend R31–R34.
-7. `.../c1/20-status.md`: the "Code review fixes" gate row and the intro paragraph.
-8. `docs/ops/runbook-c1.md` (top line) and `evals/help/README.md`: remove "waits for Codex"
-   wording if all P1 rows close; otherwise name the open rows.
-9. `handoff.md` "Resume here" item 1: the result and the next owner step.
+## Remaining work
 
-Also review ruling R35 (a change Thomas asked for after this review, commit after `fb0ccd5`):
-hint level 0 before a wrong answer, and a ladder per mistake type that the model labels
-(`_hint_plan` in `help/service.py`, migration 0005, `tests/unit/help/test_hint_ladder.py`).
-
-## C. Then review the C2 plan (branch `milestone-c2`)
-
-`docs/superpowers/plans/portfolio-mvp/milestone-c/c2/` was rebased onto these fixes and
-revised for them ("C1 fixes this plan builds on" in its README). Check it against the
-[C spec](../../superpowers/specs/2026-10-26-milestone-c/README.md) and the fixed C1 code;
-write findings to a new dated review folder. Thomas still has to answer Q1–Q8 there.
+Carry the C1 fixes into C2, then review its plan against the spec and implementation.
+C2 Q1–Q9 are already decided by Thomas in `milestone-c2`; do not ask those questions again.
+No C2 plan-review completion is claimed here. Preserve the C1 owner release checklist:
+case/copy review, fixed gates, paid development comparison, holdout, container smoke/memory
+and live deployment verification. Documentation closure alone is not release approval.

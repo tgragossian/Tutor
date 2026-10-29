@@ -24,6 +24,7 @@ from mathtutor.help.generator import (
     GeneratorError,
     HelpOutput,
     HintChoiceOutput,
+    UncitedHelpOutput,
 )
 from mathtutor.help.pipeline import answer_latex
 from mathtutor.retrieval.corpus import Chunk, estimate_tokens
@@ -144,8 +145,10 @@ def judge_items(records: list[CaseRecord]) -> list[JudgeItem]:
         for raw in rec.raws:
             if raw.text is None:
                 continue
-            out: HelpOutput | None = None
-            for shape in (HelpOutput, HintChoiceOutput):  # a classifying hint adds a field (R35)
+            out: HelpOutput | UncitedHelpOutput | None = None
+            # The recorded evaluation mode owns citation requirements, never the reply itself.
+            shapes = (UncitedHelpOutput,) if rec.no_passages else (HelpOutput, HintChoiceOutput)
+            for shape in shapes:  # a production classifying hint adds a field (R35)
                 try:
                     out = shape.model_validate_json(raw.text)
                     break

@@ -3,31 +3,29 @@
 [Reviews](../README.md) · [Handoff](../../../handoff.md) · [C spec](../../superpowers/specs/2026-10-26-milestone-c/README.md) ·
 [C1 plan](../../superpowers/plans/portfolio-mvp/milestone-c/c1/README.md)
 
-**Review complete; nine open findings, five P1 release blockers.** Reviewer: Codex.
-Reviewed `milestone-c1` at `3be5808`, against `main` at `292cee4`. No fixes implemented here.
-Fresh evidence: pytest 1561 passed / 3 skipped; Node 41 passed; lint, types, content and
-verifier B gates passed. Separate adversarial probes reproduce the findings below.
-No paid call, container run, deployment or actual holdout run was performed in this review.
+**All nine findings closed in the local C1 code; release gates remain.** Reviewer: Codex.
+Original review: `3be5808` against `main` `292cee4`; follow-up review: `b16a206`.
+[Debugging fixes](11-debugging-fixes.md) owns current code/evidence; [recheck](07-recheck.md) records the pre-fix verdicts.
+Pages 01–04 retain original evidence. No paid call, actual holdout or deployment was performed.
 
 ## Findings and navigation
 
-| ID | Priority | Finding | Detail |
+| ID | Priority | Finding | Status / detail |
 |---|---|---|---|
-| C1-R1 | P1 | Production image omits required confusion configuration | [Runtime](01-runtime-and-guard.md#c1-r1-p1-ship-the-help-configuration) |
-| C1-R2 | P1 | Foreign composite expressions bypass answer verification | [Guard](01-runtime-and-guard.md#c1-r2-p1-do-not-pass-unchecked-foreign-expressions) |
-| C1-R3 | P1 | Post-dispatch exceptions release paid-call reservations | [Accounting](02-accounting-and-retries.md#c1-r3-p1-preserve-cost-after-dispatch) |
-| C1-R4 | P1 | A new commit permits reusing the same holdout | [Evaluation](03-evaluation-and-retrieval.md#c1-r4-p1-freeze-dataset-use-not-only-the-commit) |
-| C1-R5 | P2 | Last guard call can deliver after the request deadline | [Runtime](01-runtime-and-guard.md#c1-r5-p2-enforce-the-deadline-after-worker-return) |
-| C1-R6 | P2 | Feedback retrieves against the oldest retained wrong attempt | [Retrieval](03-evaluation-and-retrieval.md#c1-r6-p2-query-the-latest-wrong-attempt) |
-| C1-R7 | P2 | No-retrieval baseline never calls the model | [Evaluation](03-evaluation-and-retrieval.md#c1-r7-p2-make-the-ablation-measure-a-generator) |
-| C1-R8 | P2 | Retrying a lost help response creates another paid request | [UI](02-accounting-and-retries.md#c1-r8-p2-retain-the-id-for-an-ambiguous-help-request) |
-| C1-R9 | P1 | Interrupted evaluation loses durable spend records | [Accounting](02-accounting-and-retries.md#c1-r9-p1-persist-evaluation-spend-before-and-during-calls) |
+| C1-R1 | P1 | Production image omits confusion configuration | Closed in code; [runtime](01-runtime-and-guard.md) |
+| C1-R2 | P1 | Foreign composites bypass verification | Closed for reported bypass; [guard](01-runtime-and-guard.md) |
+| C1-R3 | P1 | Post-dispatch exceptions release reservations | Closed; [accounting](02-accounting-and-retries.md) |
+| C1-R4 | P1 | Holdout-use boundary can be bypassed | Closed locally: claim precedes metrics; [fix](11-debugging-fixes.md) |
+| C1-R5 | P2 | Guard can deliver after deadline | Closed; [runtime](01-runtime-and-guard.md) |
+| C1-R6 | P2 | Feedback queries oldest wrong attempt | Closed; [retrieval](03-evaluation-and-retrieval.md) |
+| C1-R7 | P2 | No-retrieval comparison is not evaluable | Closed locally: uncited judge/audit path restored; [fix](11-debugging-fixes.md) |
+| C1-R8 | P2 | Lost-response retry creates a new paid request | Closed; [UI](02-accounting-and-retries.md) |
+| C1-R9 | P1 | Interrupted evaluation loses spend | Closed; [accounting](02-accounting-and-retries.md) |
 
-[Validation and Claude's fix checklist](04-validation-and-next-steps.md) owns rerun commands,
-evidence limits and closure requirements. P1 blocks release; P2 should be fixed before C2.
-**Update 2026-10-27:** Claude fixed all nine (`38c2de4`..`9bde1d9`); fixing commits, tests and
-four deviations (D1–D4) are in [dispositions](05-dispositions.md). They stay **open until
-Codex verifies** them; Codex updates this table's status after the rerun.
+[Dispositions](05-dispositions.md) maps fixing commits and deviations D1–D4 to these verdicts.
+[R35/R36 review](09-hint-and-prompt-review.md) covers hint progression and prompt identity.
+[Debugging](../../ops/debugging/c1/README.md) maps modules/tests. P1 blocks release;
+C2 must carry the local fixes before implementation. Owner/container gates remain separate.
 
 ## What to judge
 

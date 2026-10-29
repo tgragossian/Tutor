@@ -1,4 +1,4 @@
-# C1 status: pre-release (2026-10-27)
+# C1 status: pre-release (2026-10-28)
 
 [C1 plan](README.md) · [Gates](02-gates.md) · [Runbook C1](../../../../../ops/runbook-c1.md) ·
 [Open register](../03-open-decisions.md)
@@ -6,10 +6,10 @@
 Tasks 1 to 15 are implemented on branch `milestone-c1`; reviewed by subagent per task. The
 branch is **not released**: nothing is deployed, no holdout has run and no key is on the host.
 [Codex review](../../../../../reviews/2026-10-27-milestone-c1/README.md) of `3be5808` found nine
-open issues (five P1 blockers). Claude fixed all nine; they await Codex verification
-([dispositions](../../../../../reviews/2026-10-27-milestone-c1/05-dispositions.md)).
-The [review checklist](../../../../../reviews/2026-10-27-milestone-c1/04-validation-and-next-steps.md)
-owns fix order and fresh local evidence; the owner steps still need key, credit, Docker and host.
+issues (five original P1 blockers). [Codex recheck at b16a206](../../../../../reviews/2026-10-27-milestone-c1/07-recheck.md)
+initially reopened R4/R7; both are now [fixed locally](../../../../../reviews/2026-10-27-milestone-c1/11-debugging-fixes.md).
+All nine findings are closed at code level. Owner/provider/container gates remain; carry
+these local changes into C2 and review its plan before implementation.
 
 ## Done
 
@@ -49,7 +49,7 @@ owns fix order and fresh local evidence; the owner steps still need key, credit,
 
 | Gate | Link or result |
 |---|---|
-| Code review fixes | fixed, awaiting Codex verification: C1-R1 through C1-R9 |
+| Code review fixes | all nine closed locally; see debugging fixes and validation |
 | CI green | pending |
 | Verifier and `content_check` unchanged | pending |
 | Holdout gates | pending (dev Recall@6 0.79) |

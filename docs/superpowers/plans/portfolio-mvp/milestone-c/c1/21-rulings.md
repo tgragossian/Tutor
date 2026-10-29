@@ -32,15 +32,15 @@ where they differ; the spec stays binding. "Cost" is what it costs if the ruling
 | R23 | The answer filter uses substring match only for answers ≥ 5 characters; shorter ones match whole math spans. | A short-answer passage reaches the prompt. |
 | R24 | Disclaimer says "use Show answer for that"; the source line doesn't repeat the book name. | Copy edit. |
 | R25 | Container smoke and compose checks are owner/CI steps (no Docker here). | None. |
-| R26 | Paid eval runs use `--max-usd 4` ($5 credit); the runner keeps its own integer spend counter. | None. |
+| R26 | Paid eval runs use `--max-usd 4` ($5 credit); R34 adds durable per-call reservations. | Interrupted/unknown calls retain worst-case spend; provider reconciliation is manual. |
 | R27 | Task 15 in-session = burst tool, docs, a labeled preliminary Windows run; container measurement, gate, deploy are Thomas's. | None. |
 | R28 | Model selection: Haiku if it passes, else Sonnet if it passes, else none (spec 08). | One line. |
 | R29 | Retrieval fixes tuned on dev only: labeling policy, tokenizer `tok-2`, production section boost. A reviewer computed draft holdout BM25 Recall@6 (0.576); no holdout label was edited in response. | Gate may still fail. |
 | R30 | Provider/retention disclosure shown with the help UI (spec 09); wording pending Thomas. | Copy edit. |
 | R31 | C1-R2: foreign shapes and `f(x)` applications are substituted atoms, every variant checked; > 3 atoms block. | Some over-blocking; a variant set can miss a contrived form. |
-| R32 | C1-R4: a holdout claims case, problem, query and chunk ids; any overlap is refused on every commit. | A new holdout needs new problems. |
-| R33 | C1-R7: `--no-retrieval` adds the eval-only `no_passages.md`; uncited replies; same guard. | Baseline prompt differs by one paragraph. |
-| R34 | C1-R9: per-run `spend.jsonl` (reserve before, settle after) and `--spent`, not an early `run.json`. | None. |
+| R32 | C1-R4: holdout claims case/problem/query/chunk ids before retrieval scoring; retrieval-only is dev-only. | A claim remains consumed after interruption; fresh holdout needs disjoint problems/queries. |
+| R33 | C1-R7: `--no-retrieval` adds eval-only `no_passages.md`; uncited replies; same guard. | Recorded mode now preserves uncited judge/audit/recompute; citation support is N/A. |
+| R34 | C1-R9: per-run `spend.jsonl` (reserve before, settle after) and `--spent`, not an early `run.json`. | Provider reconciliation remains manual; open reservations count at worst case. |
 | R35 | Hint ladder per mistake type (Thomas, 2026-10-27): level 0 before a wrong answer, in two steps (rule and first move, then a concrete setup that repeats); the first hint on each new wrong attempt has the model label it `algebra`, `wrong_rule`, `rule_misapplied` or `incomplete` and write at that type's level (its hint count + 1, cap 3, offered by the server); later hints on the same attempt reuse the type. Migration 0005. Feedback unchanged. | A mislabel gives one hint too gentle or one step too direct (guard still applies). |
 | R36 | Prompt fingerprint (Thomas, 2026-10-27, C2 Q3): help rows store `prompt_version` as `v1+<12 hex>` and runs record `prompt_fingerprint`, a hash of every `prompts/v1/*.md`, `prompts.py`, the output schemas and the mistake-type descriptions. New prompt files may join `v1`; the fingerprint shows the change. | None: a wording change shows up as a new fingerprint. |
 
@@ -48,7 +48,9 @@ Final whole-branch review added: per-user help limits (10 per 60 s, 2 in flight)
 and query caps read from config, runtime note filtering, finalize retry, ledger reconcile in
 `settle-uncertain`, a holdout "started" marker.
 
-Codex's subsequent [implementation review](../../../../../reviews/2026-10-27-milestone-c1/README.md)
-leaves nine findings open. In particular, R8/R14 do not contain foreign composites (C1-R2),
-R26 needs durable interrupted-run accounting (C1-R9), and a per-commit started marker does
-not enforce one-shot dataset use (C1-R4). These are required corrections, not completed fixes.
+Codex's [2026-10-28 recheck](../../../../../reviews/2026-10-27-milestone-c1/07-recheck.md)
+initially closed seven and reopened R4/R7; both are now [fixed locally](../../../../../reviews/2026-10-27-milestone-c1/11-debugging-fixes.md). R31 closes the reported unchecked-composite bypass
+with bounded substitution coverage; it is not a proof for every foreign expression. R34's
+durable journal is accepted. R32/R33's local fixes need carrying into C2; owner release gates remain.
+[R35/R36 review](../../../../../reviews/2026-10-27-milestone-c1/09-hint-and-prompt-review.md)
+accepts the implemented scope; the fingerprint identifies instructions, not full dynamic requests.

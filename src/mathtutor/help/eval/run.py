@@ -9,8 +9,9 @@ tariff and worst-case formula: a call (help or judge) is made only if the spend 
 its worst case stays within ``--max-usd``, and it is reserved in the run's ``spend.jsonl``
 before it can be sent (``spend.py``), so an interrupted run keeps its spend; ``--spent`` totals
 every run. The holdout needs ``--freeze <commit>`` on a clean tree at that commit and claims
-its cases and queries before its first provider call (``holdout.py``): a partition runs once
-on any commit. Unreviewed cases or queries are refused; a run id is never reused.
+its cases and queries before scoring retrieval or calling a provider (``holdout.py``).
+Retrieval-only holdout runs are refused: a partition runs once on any commit. Unreviewed
+cases or queries are refused; a run id is never reused.
 """
 
 from __future__ import annotations
@@ -123,6 +124,7 @@ class CaseRecord:
     budget_stopped: bool = False
     expect_mistake_type: str | None = None
     mistake_type: str | None = None  # the model's mistake type when delivered (R35)
+    no_passages: bool = False  # selects the evaluation-only uncited schema during judging
 
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
@@ -250,6 +252,7 @@ def run_case(
         budget_stopped=bool(refused),
         expect_mistake_type=case.expect_mistake_type,
         mistake_type=result.mistake_type,
+        no_passages=not env.retrieval,
     )
 
 
@@ -419,6 +422,10 @@ def _execute(args: argparse.Namespace, root: Path) -> int:
 
     if args.draft and not args.retrieval_only:
         raise RunnerError("--draft only works with --retrieval-only")
+    if args.split == "holdout" and args.retrieval_only:
+        raise RunnerError(
+            "--retrieval-only is dev-only; holdout retrieval belongs to its one-shot run"
+        )
     cases, queries = load_split(root, args.split)
     pending = unreviewed(cases) + unreviewed(queries)
     if pending and not args.draft:
@@ -444,13 +451,18 @@ def _execute(args: argparse.Namespace, root: Path) -> int:
     for w in warnings:
         print(f"warning: {w}")
     index = Bm25Index.build(corpus, cfg.retrieval)
-    metrics = report.retrieval_metrics(index, queries, cfg)
-    print(
-        f"retrieval {args.split}{' (DRAFT labels)' if pending else ''}: "
-        f"Recall@6 {metrics.recall_at_6} MRR@6 {metrics.mrr_at_6} Hit@6 {metrics.hit_at_6} "
-        f"over {metrics.queries} queries"
-    )
+
+    def score_retrieval() -> report.RetrievalMetrics:
+        metrics = report.retrieval_metrics(index, queries, cfg)
+        print(
+            f"retrieval {args.split}{' (DRAFT labels)' if pending else ''}: "
+            f"Recall@6 {metrics.recall_at_6} MRR@6 {metrics.mrr_at_6} Hit@6 {metrics.hit_at_6} "
+            f"over {metrics.queries} queries"
+        )
+        return metrics
+
     if args.retrieval_only:
+        score_retrieval()
         return 0
     if args.max_usd is None:
         raise RunnerError("--max-usd is required")
@@ -480,10 +492,11 @@ def _execute(args: argparse.Namespace, root: Path) -> int:
     try:
         if out.exists():  # its spend journal and results are records: never overwrite them
             raise RunnerError(f"run id {run_id} was already used ({out}); pick another")
-        if args.split == "holdout":  # before any provider call: the partition runs once
+        if args.split == "holdout":  # before any result exposure, even unpaid retrieval
             head = _try_git(root, ["rev-parse", "HEAD"])
             claim(root, partition_of(cases, queries), run_id, head, args.freeze)
         out.mkdir(parents=True)
+        metrics = score_retrieval()
         env = EvalEnv(cfg, problems, corpus, confusions, grading, guard, not args.no_retrieval)
         spend = SpendCounter(cfg, cap, SpendJournal(out / JOURNAL))
 
@@ -567,7 +580,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--seed", default=None, help="judge order seed (default: run id)")
     parser.add_argument("--run-id", default=None)
     parser.add_argument("--root", default=".", help="repository root")
-    parser.add_argument("--retrieval-only", action="store_true", help="Recall/MRR only; free")
+    parser.add_argument("--retrieval-only", action="store_true", help="dev Recall/MRR only; free")
     parser.add_argument(
         "--draft", action="store_true", help="with --retrieval-only: allow unreviewed"
     )

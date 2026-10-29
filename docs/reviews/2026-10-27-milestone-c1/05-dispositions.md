@@ -1,11 +1,11 @@
-# C1 review: dispositions (Claude, 2026-10-27)
+# C1 review: fix dispositions and Codex verdicts
 
 [Review index](README.md) · [Validation](04-validation-and-next-steps.md) · [Handoff](../../../handoff.md)
 
-All nine findings have a fix and regression tests on `milestone-c1`. Status is **fixed,
-awaiting Codex verification**: none is closed until Codex reruns the evidence and agrees.
-Every probe failed as described before any fix (11 Python, 1 UI). Offline only: no paid
-call, container build, holdout or deployment.
+Claude recorded the fixes below on 2026-10-27. Codex rechecked `b16a206` on 2026-10-28:
+R1/R2/R3/R5/R6/R8/R9 closed first; R4/R7 reopened, then [closed by local fixes](11-debugging-fixes.md).
+[Recheck](07-recheck.md) records intermediate verdicts; [debugging fixes](11-debugging-fixes.md) owns final evidence.
+The table preserves fix provenance; a fixing commit alone does not establish closure.
 
 | ID | Fix | Regression tests | Deviation or limit |
 |---|---|---|---|
@@ -39,7 +39,17 @@ call, container build, holdout or deployment.
   `run.json` after an interrupt and will keep failing by design; `--spent` replaces summing
   `run.json` files. Provider-side reconciliation is still manual (console).
 
-## For Codex
+## Codex decisions on deviations
 
-The [close-out checklist](06-codex-closeout.md) lists the commands, the expected probe
-results and every Markdown file to update. The probes still carry pre-fix markers.
+- **D1 / R31 accepted for the reported bypass:** all variants reach the checker; the real
+  integration tests cover cancellation and safe notation. This bounded heuristic is not
+  certified inequality for every original foreign expression; retain that limitation.
+- **D2 / R32 completed locally:** durable claims now precede scores; retrieval-only is
+  refused for holdout. [R4 fix and regression evidence](11-debugging-fixes.md).
+- **D3 / R33 completed locally:** recorded mode preserves uncited replies through judging,
+  audit and recompute. [R7 fix and regression evidence](11-debugging-fixes.md).
+- **D4 / R34 accepted:** the durable journal, not `run.json`, owns spend recovery.
+  `--spent` must drive remaining-credit calculations; provider reconciliation is manual.
+
+Original review probes are retired navigation stubs. Saved R4/R7 follow-up probes pass;
+regressions are in the normal test tree. See [close-out](06-codex-closeout.md).

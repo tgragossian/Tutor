@@ -6,11 +6,11 @@
 
 Offline evaluation of Claude-written help: a manual script that needs the real key, never CI.
 Each case goes through the production path (`assemble_context` → `HelpPipeline.run`: BM25,
-prompt, repair, leak guard in a real one-worker verifier pool). A blind judge scores every raw
-output; `gates.py` applies 02-gates mechanically to the delivered results.
+prompt, repair, leak guard in a real one-worker verifier pool). A blind judge scores parsed
+non-abstaining outputs (including uncited baseline: R7); `gates.py` checks delivered results.
 
-**Status 2026-10-27:** 60 help cases and 40 retrieval queries are drafts
-(`reviewed_by: needs_review`). The runner refuses them until Thomas reviews them (step 6).
+**Status 2026-10-28:** [C1-R4/R7 fixed locally](../../docs/reviews/2026-10-27-milestone-c1/11-debugging-fixes.md); owner release gates remain.
+60 cases and 40 queries are drafts (`reviewed_by: needs_review`); Thomas reviews them (step 6).
 
 ## Files
 
@@ -45,22 +45,22 @@ searches like production: configured roles plus the home-section boost (`section
    `uv run python -c "import json; [print(r['text']) for r in map(json.loads, open('content/corpus/chunks.jsonl', encoding='utf-8')) if r['chunk_id']=='c1-3.6-rule1']"`.
 3. Approve or edit `rubric/v1.md` and the 12 confusion labels (`content/help/confusions.json`).
 4. Free dev check: `uv run python -m mathtutor.help.eval.run --split dev --retrieval-only`
-   (`--draft` allows unreviewed rows). The holdout refuses every run without `--freeze`.
+   (`--draft` allows unreviewed rows). Retrieval-only holdout runs are refused; scoring belongs to its locked campaign.
 5. Run `uv run pytest -q tests/unit/help/test_eval_drafted_sets.py`; commit the reviewed sets.
 
 ## Step 7: paid development runs ($5 credit)
 
-Set `MATHTUTOR_ANTHROPIC_API_KEY` (tests never read it), recheck list prices against
+After owner review, set `MATHTUTOR_ANTHROPIC_API_KEY`, recheck list prices against
 `tariffs` in `help_config.json` (C-O5), set the console spend limit with auto-reload off, then:
 
 ```
 uv run python -m mathtutor.help.eval.run --split dev --models claude-haiku-5-5,claude-sonnet-5-5 --max-usd 4
-uv run python -m mathtutor.help.eval.run --split dev --models claude-haiku-5-5 --no-retrieval --no-judge --max-usd 4
 ```
 
 Worst case per call: Haiku 1,300 µ$, Sonnet 26,000 µ$, judge 64,000 µ$; spend prints per case.
-Expect $1.5–2.5 for the first command. The second is the no-passage baseline (spec 08, C1-R7):
-same model and guard, `no_passages.md` added, no citations; about $0.05. Iterate on dev only.
+Recorded estimate: $1.5–2.5 for that command; confirm tariffs before execution. The no-passage
+baseline now reaches judge/audit/recompute with citation support N/A. Use `--no-retrieval`
+with judging enabled; `--no-judge` is generation/cost diagnosis only. Iterate on dev only.
 The summary applies the selection rule; write the chosen model into `help_config.json`.
 
 ## Step 8: audit (Thomas)
@@ -78,8 +78,8 @@ Your labels win everywhere, including the paired table.
 Credit first: `uv run python -m mathtutor.help.eval.run --spent` totals every run's
 `spend.jsonl`, interrupted runs included (an unsettled call counts at its worst case). Pass
 the credit minus that total minus a margin (≥ $0.30) as `--max-usd`. A holdout claims its
-cases, problems, queries and relevant chunks before its first call; any later holdout that
-shares one of them is refused on every commit. A holdout that stops early is spoiled: it
+cases, problems, queries and relevant chunks before retrieval scoring or provider calls.
+Retrieval-only is dev-only; overlapping holdouts are refused before scores. A stopped run
 needs fresh problems and queries, not reworded cases. Run ids are never reused.
 Commit everything, then on a clean tree at that commit:
 

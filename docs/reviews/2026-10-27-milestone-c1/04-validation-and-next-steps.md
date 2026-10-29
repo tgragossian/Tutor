@@ -1,6 +1,9 @@
-# C1 review: validation and Claude's next steps
+# C1 review: original validation and fix checklist
 
-[Review index](README.md) · [Handoff](../../../handoff.md)
+[Review index](README.md) · [Current recheck](07-recheck.md) · [Fresh validation](10-recheck-validation.md)
+
+Historical evidence at `3be5808`; the recheck links above supersede the open status and
+fix-order checklist below. Preserve these results separately from later verification.
 
 Reviewed 2026-10-27, `milestone-c1` HEAD `3be5808`, base `main` `292cee4`.
 Scope: parser/guard, corpus ingestion/retrieval, state/privacy/accounting, provider/pipeline,

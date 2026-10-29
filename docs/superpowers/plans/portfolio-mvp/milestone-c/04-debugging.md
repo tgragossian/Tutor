@@ -2,8 +2,9 @@
 
 [Parent milestone C plan](../03-rag.md) · [Operations debugging tree](../../../../ops/debugging/README.md)
 
-Design checklist, not a description of implemented modules. Add real file/test paths when
-C's implementation plan exists; do not invent commands or report these checks as passing.
+The implemented C1 path has a [module/test debugging tree](../../../../ops/debugging/c1/README.md).
+This page remains the broader C/LoRA design checklist, including future intake and serving.
+Use the C1 tree for runtime diagnosis; this checklist does not establish passing evidence.
 
 | Symptom | Inspect first | Evidence to retain |
 |---|---|---|

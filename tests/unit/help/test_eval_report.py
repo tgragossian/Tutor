@@ -6,6 +6,7 @@ import csv
 import json
 from pathlib import Path
 
+import pytest
 from support.evalkit import PROBLEMS, make_case, make_env, make_query, mix_cases
 from support.helpkit import CFG, chunk, output
 
@@ -15,6 +16,7 @@ from mathtutor.help.eval.report import (
     RetrievalMetrics,
     RunData,
     load_run,
+    raw_measures,
     recompute,
     retrieval_metrics,
     summarize,
@@ -113,11 +115,12 @@ def test_write_run_and_recompute_with_human_labels(tmp_path: Path) -> None:
     assert "human labels: 1" in (tmp_path / "summary.md").read_text(encoding="utf-8")
 
 
-def _two_model_run(cases: list) -> RunData:  # noqa: ANN001
-    env = make_env()
+def _two_model_run(cases: list, *, retrieval: bool = True) -> RunData:  # noqa: ANN001
+    env = make_env(retrieval=retrieval)
     records, judgments = [], {}
     for case in cases:
-        recs = [run_case(case, ScriptedGenerator([output()]), m, env) for m in (HAIKU, SONNET)]
+        reply = output() if retrieval else output(ids=())
+        recs = [run_case(case, ScriptedGenerator([reply]), m, env) for m in (HAIKU, SONNET)]
         records += recs
         items = judge_items(recs)
         if items:
@@ -125,7 +128,13 @@ def _two_model_run(cases: list) -> RunData:  # noqa: ANN001
             judgments[case.case_id] = Judgment(
                 case.case_id, "s", [i.key for i in items], scores, "ok", (100, 10)
             )
-    meta = {"run_id": "t2", "split": "dev", "models": [HAIKU, SONNET], "seed": "s"}
+    meta = {
+        "run_id": "t2",
+        "split": "dev",
+        "models": [HAIKU, SONNET],
+        "seed": "s",
+        "no_retrieval": not retrieval,
+    }
     return RunData(meta, records, judgments, RETRIEVAL)
 
 
@@ -137,8 +146,9 @@ def test_summary_fits_100_lines_on_a_full_dev_run(tmp_path: Path) -> None:
     assert len(run.records) == 84 and len(lines) <= 100
 
 
-def test_paired_table_uses_human_labels(tmp_path: Path) -> None:
-    run = _two_model_run([make_case()])
+@pytest.mark.parametrize("retrieval", [True, False])
+def test_paired_table_uses_human_labels(tmp_path: Path, retrieval: bool) -> None:
+    run = _two_model_run([make_case()], retrieval=retrieval)
     write_run(tmp_path, run)
     assert "both 1, Haiku only 0" in (tmp_path / "summary.md").read_text(encoding="utf-8")
     with (tmp_path / "audit_key.csv").open(encoding="utf-8", newline="") as fh:
@@ -155,6 +165,30 @@ def test_paired_table_uses_human_labels(tmp_path: Path) -> None:
     recompute(tmp_path)
     text = (tmp_path / "summary.md").read_text(encoding="utf-8")
     assert "both 0, Haiku only 0, Sonnet only 1" in text
+
+
+def test_baseline_mode_and_scores_survive_artifacts_and_legacy_load(tmp_path: Path) -> None:
+    run = _two_model_run([make_case()], retrieval=False)
+    write_run(tmp_path, run)
+    for model in (HAIKU, SONNET):
+        s = summarize(model, run)
+        assert s.unjudged == 0 and s.useful_coverage == Measure(1, 1)
+        assert s.citation_support == Measure(0, 0)
+        assert raw_measures(model, run, {})["citation_support"] == Measure(0, 0)
+    summary = (tmp_path / "summary.md").read_text("utf-8")
+    assert "N/A (no-passage baseline)" in summary and "not release selection" in summary
+    loaded = load_run(tmp_path)
+    assert all(r.no_passages for r in loaded.records)
+    assert all(len(judge_items([r])) == 1 for r in loaded.records)
+    assert len((tmp_path / "audit.csv").read_text("utf-8").splitlines()) == 3
+    # Previously saved baseline runs have only the run-level no_retrieval flag.
+    path = tmp_path / "results.jsonl"
+    rows = [json.loads(line) for line in path.read_text("utf-8").splitlines()]
+    for row in rows:
+        row.pop("no_passages", None)
+    path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+    assert all(r.no_passages for r in load_run(tmp_path).records)
+    assert recompute(tmp_path)[HAIKU].unjudged == 0
 
 
 def test_judge_model_is_sonnet() -> None:

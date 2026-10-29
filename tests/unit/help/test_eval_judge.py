@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 
+import pytest
 from support.evalkit import PROBLEMS, make_case, make_env
-from support.helpkit import DEFAULT_CHUNKS, ROOT, output
+from support.helpkit import CORRECT, DEFAULT_CHUNKS, ROOT, FakePool, output
 
 from mathtutor.help.eval.judge import (
     JUDGE_MODEL,
@@ -15,7 +17,7 @@ from mathtutor.help.eval.judge import (
     judge_items,
     load_rubric,
 )
-from mathtutor.help.eval.run import run_case
+from mathtutor.help.eval.run import CaseRecord, RawOutput, run_case
 from mathtutor.help.generator import GenerationResult, ScriptedGenerator
 
 RUBRIC = load_rubric(ROOT / "evals" / "help" / "rubric" / "v1.md")
@@ -101,3 +103,51 @@ def test_nothing_to_judge_makes_no_call() -> None:
     gen = ScriptedGenerator([])
     judgment = judge_case(case, records, env, gen, RUBRIC, seed="s")
     assert judgment.status == "no_items" and gen.requests == []
+
+
+@pytest.mark.parametrize("help_type", ["hint", "feedback"])
+def test_uncited_baseline_reaches_blind_judge(help_type: str) -> None:
+    env, case = make_env(retrieval=False), make_case(help_type=help_type)
+    rec = run_case(case, ScriptedGenerator([output(ids=())]), MODELS[0], env)
+    rec = CaseRecord.from_json(rec.to_json())
+    assert rec.status == "delivered" and rec.no_passages
+    items = judge_items([rec])
+    assert len(items) == 1 and items[0].cited_ids == []
+    gen = ScriptedGenerator([_judge_reply([items[0].key])])
+    result = judge_case(case, [rec], env, gen, RUBRIC, seed="baseline")
+    assert result.status == "ok" and result.scores[items[0].key].useful
+    assert "Cited passages: (none)" in gen.requests[0].user
+    assert all(model not in gen.requests[0].user for model in MODELS)
+
+
+def test_production_classifying_hint_still_reaches_judge() -> None:
+    payload = json.loads(output().text)
+    payload["mistake_type"] = "rule_misapplied"
+    rec = run_case(
+        make_case(),
+        ScriptedGenerator([replace(output(), text=json.dumps(payload))]),
+        MODELS[0],
+        make_env(),
+    )
+    assert rec.status == "delivered" and rec.mistake_type == "rule_misapplied"
+    assert len(judge_items([rec])) == 1 and not rec.no_passages
+
+
+def test_mode_does_not_relax_production_citations_or_baseline_schema() -> None:
+    rec = run_case(
+        make_case(), ScriptedGenerator([output(ids=())]), MODELS[0], make_env(retrieval=False)
+    )
+    assert judge_items([rec])
+    assert judge_items([replace(rec, no_passages=False)]) == []
+    for text in ("not JSON", output().text, '{"text":"x","source_ids":[],"abstain":true}'):
+        assert judge_items([replace(rec, raws=[RawOutput(1, text, "end_turn", "ok")])]) == []
+
+
+def test_blocked_baseline_raw_output_is_still_judged() -> None:
+    env = make_env(retrieval=False, guard=FakePool(CORRECT))
+    rec = run_case(
+        make_case(), ScriptedGenerator([output(text="$2x$", ids=())] * 2), MODELS[0], env
+    )
+    assert rec.status != "delivered"
+    assert all(raw.outcome.startswith("invalid_guard_") for raw in rec.raws)
+    assert len(judge_items([rec])) == 2

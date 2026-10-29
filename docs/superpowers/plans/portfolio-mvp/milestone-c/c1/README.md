@@ -28,7 +28,8 @@ amendments; [Codex review](../../../../../reviews/2026-10-26-milestone-c/README.
   [4–5 corpus](12-corpus.md) · [6 retrieval](13-retrieval.md) · [7–8 state, ledger](14-state.md) ·
   [9–10 context, generator](15-context-generator.md) · [11–12 service, API](16-service-api.md) ·
   [13 UI](17-ui.md) · [14 evaluation](18-evaluation.md) · [15 release](19-release.md) ·
-  [status and owner checklist](20-status.md) · [execution rulings](21-rulings.md).
+  [status and owner checklist](20-status.md) · [execution rulings](21-rulings.md) ·
+  [runtime debugging tree](../../../../../ops/debugging/c1/README.md).
 
 Order: 1 → 2 → 3; 4 → 5 → 6; 7 → 8; 9, 10; then 11 → 12 → 13; 14 after 11; 15 last.
 Tasks 4 and 14 have owner steps (Thomas reviews cases and labels); the rest is code.
@@ -50,7 +51,8 @@ Tasks 4 and 14 have owner steps (Thomas reviews cases and labels); the rest is c
 ## Review focus
 
 1. **Model notation the parser rejects** (`\left( \right)`, `\cdot`, `2x\cos x`, `\dfrac`,
-   `f'(x)=`): expect parse or a foreign-symbol pass, not a block. Test: Task 2 notation table.
+   `f'(x)=`): parse supported notation; foreign atoms require bounded checked substitutions
+   (R31). Unsupported/unchecked forms block. Tests: notation table and real guard pool.
 2. **Double-click / two tabs** on Hint: same ID replays, different IDs serialize on the item,
    the ladder advances once. Test: Task 11 `test_concurrent_hints_advance_once`.
 3. **Answer submitted while a hint is in flight:** the hint is discarded as `stale`, no ladder

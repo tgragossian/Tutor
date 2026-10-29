@@ -1,8 +1,8 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-27 end of day: C1 fixes + R35/R36; C2 decisions settled.
+Owner: Thomas Gragossian. Updated: 2026-10-28: C1 debugging fixes and modular docs.
 Host deployment remains Thomas's reported `main` 8057590, migration 0003. No new host probe.
-Branch `milestone-c1` holds C1 tasks 1-15 plus review fixes; reviewed `3be5808`. Nothing merged or deployed.
+Branch `milestone-c1` holds C1 tasks 1-15 plus fixes; rechecked `b16a206`. Nothing merged or deployed.
 
 **Milestone B is closed.** Thomas removed actual hours as a gate on 2026-10-26.
 
@@ -13,12 +13,11 @@ checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands.
 
 ## Resume here
 
-1. Codex: follow the [close-out checklist](docs/reviews/2026-10-27-milestone-c1/06-codex-closeout.md):
-   verify Claude's fixes for the [nine C1 findings](docs/reviews/2026-10-27-milestone-c1/README.md)
-   ([dispositions](docs/reviews/2026-10-27-milestone-c1/05-dispositions.md), D1–D4 = R31–R34),
-   close or reopen each, update the listed Markdown files and probes, review R35/R36, then
-   the C2 plan on `milestone-c2`. No paid calls or holdout yet. Codex's untracked
-   `test_recheck_probes.py` is its unfinished work.
+1. [C1 debugging fixes](docs/reviews/2026-10-27-milestone-c1/11-debugging-fixes.md): all nine
+   findings closed in local code. R4 claims holdout use before scoring; R7 preserves uncited
+   baseline judging/audit/recompute. Saved probes and normal regressions
+   pass. R35/R36 reviewed. Follow the owner gates below and carry these fixes into C2 before
+   its plan review/implementation. No paid comparison, actual holdout or release ran.
 2. After review fixes, owner steps pending: review 60 cases + 40 queries (`reviewed_by: tg`; incl.
    `expect_mistake_type`/`prior_hints`/`start_step`); approve the 12 confusion labels, 4 rewritten
    misconception notes, level/mistake-type wording, help panel copy and provider disclosure; paid dev run
@@ -29,7 +28,7 @@ checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands.
    Holdout cap formula and the 0.576 draft-holdout disclosure: C1 status page and runbook C1.
 3. Key: `MATHTUTOR_ANTHROPIC_API_KEY` only in the host's `deploy/.env`; console spend limit,
    auto-reload off; $5 credit. Turn help off with `MATHTUTOR_HELP_GENERATOR=off`.
-4. Then C2 (plan on `milestone-c2`, Q1–Q9 all decided by Thomas; adds ratings and a
+4. Then review/rebase C2 (plan on `milestone-c2`, Q1–Q9 decided by Thomas; adds ratings and a
    completion-only Clear history) and C3 own problems (resolve C-P3 first). The C2 worktree
    cannot build its venv yet (Windows Application Control blocks uv). Sequence remains
    **C -> LoRA experiment -> D/E -> expansion** (C-O4). Qwen serving: RunPod; training: AWS.
@@ -45,10 +44,9 @@ checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands.
   This is explanation retrieval, not an automated graded bank or a corpus for LoRA training.
 - Reveal is the only intentional answer path. The guard checks supported extracted math;
   it cannot guarantee no prose/cumulative leakage. Hints-only C3 has no reference guard.
-- The existing verifier accepts bounded MathJSON. Runtime model-LaTeX parsing, leak-specific
-  results and typed derivative solving are new work, not already provided by the current pool.
-- C needs request IDs/revision checks, deletion epochs and independent durable usage records.
-  B's Clear history hides sessions; C's private-text deletion requires additional implementation.
+- C1 implements bounded model-LaTeX parsing, tri-state guard decisions, request/revision checks,
+  deletion epochs and durable usage. Typed own-problem solving remains C3 work.
+- C1 clears help text while retaining usage; C2's completion-only history behavior is planned.
 - Local upload cleanup does not delete provider copies. HEIC conversion and decoded-size bounds
   are required; confirm task/variable/domain before admitting a supported derivative for grading.
 - Evaluate raw and delivered help, including useful coverage. C's release holdout becomes
@@ -56,6 +54,7 @@ checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands.
 
 ## Documentation tree
 
+- [C1 debugging](docs/ops/debugging/c1/README.md): generation/guard → state/cost → evaluation.
 - [C plan](docs/superpowers/plans/portfolio-mvp/03-rag.md): sequence and links to exact contracts.
 - [C spec](docs/superpowers/specs/2026-10-26-milestone-c/README.md): components → help → guard → intake
   → acceptance; children own state/accounting, corpus, evaluation protocol and provider evidence.
@@ -76,7 +75,7 @@ checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands.
 - [B status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md) owns completed tasks.
   [B review dispositions](docs/reviews/2026-10-22-milestone-b/06-dispositions.md) owns fix chronology.
 - [Verification evidence](docs/superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md)
-  separates historical CI/browser/host evidence from local checks. C review reruns docs checks only.
+  separates historical CI/browser/host evidence from local checks; C1 has its own validation page.
 - [Reviewed verifier result](evals/verifier/results/README.md): dev FA 0/50 (95% upper bound 7.1%),
   FR 0/49, coverage 49/49, agreement 136/136; not a frozen final benchmark.
 - [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): slow nested-trig

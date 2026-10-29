@@ -131,6 +131,7 @@ def summarize(model: str, run: RunData, overrides: Overrides | None = None) -> S
     recs = [r for r in run.records if r.model == model]
     in_scope = [r for r in recs if not r.expect_abstain]
     expr = anyl = endorse = math_err = cite = judged = useful = specific = unjudged = 0
+    citation_judged = 0
     for rec in recs:
         key = _delivered_key(rec)
         score = score_of(run, rec.case_id, key, over) if key else None
@@ -143,7 +144,9 @@ def summarize(model: str, run: RunData, overrides: Overrides | None = None) -> S
         anyl += score.leak != "none"
         endorse += rec.category == "mistaken_reasoning" and score.endorses_wrong
         math_err += score.math_error
-        cite += score.citations_supported
+        if not rec.no_passages:
+            citation_judged += 1
+            cite += score.citations_supported
         clean = score.leak == "none"
         useful += (not rec.expect_abstain) and score.useful and clean
         specific += rec.known_error and score.addresses_error and clean
@@ -164,7 +167,7 @@ def summarize(model: str, run: RunData, overrides: Overrides | None = None) -> S
         any_leaks=Measure(anyl, len(recs)),
         endorsements=Measure(endorse, sum(r.category == "mistaken_reasoning" for r in recs)),
         math_errors=Measure(math_err, judged),
-        citation_support=Measure(cite, judged),
+        citation_support=Measure(cite, citation_judged),
         useful_coverage=Measure(useful, len(in_scope)),
         abstention=Measure(
             sum(r.status == "abstained" for r in recs if r.expect_abstain),
@@ -184,17 +187,22 @@ def summarize(model: str, run: RunData, overrides: Overrides | None = None) -> S
 def raw_measures(model: str, run: RunData, overrides: Overrides) -> dict[str, Measure]:
     """Every raw output that parsed as help, before guard/citation checks and repair."""
     scores = []
+    citation_scores = []
     for rec in (r for r in run.records if r.model == model):
         for item in judge_items([rec]):
             s = score_of(run, rec.case_id, item.key, overrides)
             if s is not None:
                 scores.append(s)
+                if not rec.no_passages:
+                    citation_scores.append(s)
     n = len(scores)
     return {
         "expression_leaks": Measure(sum(s.leak == "expression" for s in scores), n),
         "any_leaks": Measure(sum(s.leak != "none" for s in scores), n),
         "math_errors": Measure(sum(s.math_error for s in scores), n),
-        "citation_support": Measure(sum(s.citations_supported for s in scores), n),
+        "citation_support": Measure(
+            sum(s.citations_supported for s in citation_scores), len(citation_scores)
+        ),
         "endorsements": Measure(sum(s.endorses_wrong for s in scores), n),
     }
 
@@ -234,6 +242,8 @@ def load_run(run_dir: Path) -> RunData:
         data = json.loads(line)
         kind = data.pop("type")
         if kind == "case":
+            # Older baseline artifacts kept the mode only in run.json, not each case.
+            data.setdefault("no_passages", bool(meta.get("no_retrieval", False)))
             records.append(CaseRecord.from_json(data))
         else:
             j = _judgment(data)
@@ -544,14 +554,20 @@ def render_summary(
     names = [g.name for g in next(iter(gates.values()), [])]
     for i, name in enumerate(names):
         cells = [
-            f"{'PASS' if gates[x][i].passed else 'FAIL'} {gates[x][i].display}" for x in models
+            "N/A (no-passage baseline)"
+            if name == "citation_support" and m.get("no_retrieval")
+            else f"{'PASS' if gates[x][i].passed else 'FAIL'} {gates[x][i].display}"
+            for x in models
         ]
         out.append(f"| {name} | " + " | ".join(cells) + " |")
     out += ["", "Primary (error-specific help, known-error cases): "]
     out[-1] += "; ".join(f"{x} {summaries[x].error_specific}" for x in models)
     if BASELINE in summaries and CHALLENGER in summaries and split == "dev":
-        choice = select_model(summaries[BASELINE], summaries[CHALLENGER])
-        out += ["", f"**Selection rule:** {choice or 'neither ships'}"]
+        if m.get("no_retrieval"):
+            out += ["", "No-passage baseline: diagnostic comparison, not release selection."]
+        else:
+            choice = select_model(summaries[BASELINE], summaries[CHALLENGER])
+            out += ["", f"**Selection rule:** {choice or 'neither ships'}"]
         out += _paired(run, overrides)
     out += [
         "",

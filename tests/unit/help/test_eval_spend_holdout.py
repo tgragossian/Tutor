@@ -212,3 +212,87 @@ def test_simultaneous_claims_admit_exactly_one(tmp_path: Path) -> None:
         t.join()
     assert len(won) == 1 and len(lost) == 7
     assert len(list((tmp_path / CLAIMS_DIR).glob("*.json"))) == 1
+
+
+@pytest.mark.parametrize("used", [False, True])
+def test_holdout_retrieval_only_never_exposes_scores(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], used: bool
+) -> None:
+    cases = [make_case(split="holdout")]
+    if used:
+        claim(tmp_path, partition_of(cases, [make_query()]), "prior", "old", "old")
+
+    def forbidden(*_args: object, **_kw: object) -> None:
+        pytest.fail("retrieval-only holdout must be refused before loading or scoring data")
+
+    monkeypatch.setattr("mathtutor.help.eval.cases.load_split", forbidden)
+    monkeypatch.setattr("mathtutor.help.eval.report.retrieval_metrics", forbidden)
+    args = _args("new", "holdout", "new")
+    args.retrieval_only = True
+    with pytest.raises(RunnerError, match="dev-only"):
+        runner._execute(args, tmp_path)
+    assert capsys.readouterr().out == ""
+    assert len(list((tmp_path / CLAIMS_DIR).glob("*.json"))) == int(used)
+
+
+def test_claim_precedes_retrieval_and_provider_and_refuses_rescoring(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from mathtutor.help.eval import report
+
+    generator = ScriptedGenerator([output()])
+    cases = [make_case(split="holdout")]
+    _offline(monkeypatch, generator, cases)
+    monkeypatch.setattr(runner, "_try_git", lambda *_: "first")
+    original = report.retrieval_metrics
+    scored = []
+
+    def score(*args, **kwargs):
+        path = tmp_path / CLAIMS_DIR / "r1.json"
+        assert json.loads(path.read_text("utf-8"))["head"] == "first"
+        assert generator.requests == []
+        scored.append(True)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(report, "retrieval_metrics", score)
+    args = _args("r1", "holdout", "first")
+    runner._execute(args, tmp_path)
+    assert scored == [True] and len(generator.requests) == 1
+    assert "Recall@6" in capsys.readouterr().out
+    args.run_id, args.freeze = "r2", "second"
+    monkeypatch.setattr(runner, "_try_git", lambda *_: "second")
+    with pytest.raises(RunnerError, match="overlaps"):
+        runner._execute(args, tmp_path)
+    assert scored == [True] and len(generator.requests) == 1
+    assert "Recall@6" not in capsys.readouterr().out
+
+
+def test_retrieval_failure_still_consumes_the_claim(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _offline(monkeypatch, ScriptedGenerator([]), [make_case(split="holdout")])
+
+    def interrupt(*_args, **_kwargs):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr("mathtutor.help.eval.report.retrieval_metrics", interrupt)
+    args = _args("interrupted", "holdout", "first")
+    with pytest.raises(KeyboardInterrupt):
+        runner._execute(args, tmp_path)
+    assert (tmp_path / CLAIMS_DIR / "interrupted.json").is_file()
+    args.run_id = "retry"
+    with pytest.raises(RunnerError, match="overlaps"):
+        runner._execute(args, tmp_path)
+
+
+def test_dev_retrieval_only_still_scores_without_a_claim_or_provider(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    generator = ScriptedGenerator([])
+    _offline(monkeypatch, generator, [make_case()])
+    args = _args("free")
+    args.retrieval_only = True
+    monkeypatch.delenv("C1_TEST_DUMMY_KEY")
+    assert runner._execute(args, tmp_path) == 0
+    assert "retrieval dev" in capsys.readouterr().out
+    assert generator.requests == [] and not (tmp_path / CLAIMS_DIR).exists()
