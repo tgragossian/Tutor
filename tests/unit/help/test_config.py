@@ -13,12 +13,12 @@ CONFIG_PATH = Path(__file__).parents[3] / "src" / "mathtutor" / "help" / "help_c
 
 def test_config_values() -> None:
     cfg = load_help_config(CONFIG_PATH)
-    assert cfg.version == "c1-1"
+    assert cfg.version == "c1-2"
     assert cfg.model == "claude-haiku-5-5"
     assert cfg.effort == "low"
     assert cfg.deadline_s == 15.0
     assert cfg.max_calls == 2
-    assert cfg.max_output_tokens == 1000
+    assert cfg.max_output_tokens == 3000
     assert cfg.max_input_tokens == 8000
     assert cfg.passages == 6
     assert cfg.max_output_chars == 2000
@@ -51,8 +51,8 @@ def test_config_values() -> None:
 
 def test_worst_case_haiku() -> None:
     cfg = load_help_config(CONFIG_PATH)
-    assert worst_case_micros(cfg, "claude-haiku-5-5") == 1_300
-    assert worst_case_micros(cfg, "claude-sonnet-5-5") == 26_000
+    assert worst_case_micros(cfg, "claude-haiku-5-5") == 2_300
+    assert worst_case_micros(cfg, "claude-sonnet-5-5") == 46_000
 
 
 def test_worst_case_unknown_model() -> None:
@@ -86,7 +86,7 @@ def test_settings_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
     assert s.help_generator == "claude"
     assert s.guard_pool_memory_mb == 384
     assert s.help_config_path.is_file()
-    assert load_help_config(s.help_config_path).version == "c1-1"
+    assert load_help_config(s.help_config_path).version == "c1-2"
 
 
 def test_messages_us_spelling() -> None:

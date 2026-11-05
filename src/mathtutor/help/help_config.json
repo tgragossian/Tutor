@@ -1,10 +1,10 @@
 {
-  "version": "c1-1",
+  "version": "c1-2",
   "model": "claude-haiku-5-5",
   "effort": "low",
   "deadline_s": 15.0,
   "max_calls": 2,
-  "max_output_tokens": 1000,
+  "max_output_tokens": 3000,
   "max_input_tokens": 8000,
   "passages": 6,
   "max_output_chars": 2000,

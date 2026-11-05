@@ -23,6 +23,8 @@ from mathtutor.help.eval.run import (
 from mathtutor.help.generator import GenerationResult, GeneratorError, ScriptedGenerator
 from mathtutor.help.pipeline import HelpStatus
 
+HAIKU_WORST = worst_case_micros(CFG, "claude-haiku-5-5")  # one call's worst case
+
 HAIKU = "claude-haiku-5-5"
 SONNET = "claude-sonnet-5-5"
 
@@ -132,10 +134,10 @@ def test_spend_cap_refuses_a_repair_call() -> None:
 
 def test_unknown_usage_is_charged_at_worst_case() -> None:
     spend = SpendCounter(CFG, parse_usd("4"))
-    assert spend.charge(spend.help_cfg, HAIKU, None, None, billed_unknown=True) == 1_300
+    assert spend.charge(spend.help_cfg, HAIKU, None, None, billed_unknown=True) == HAIKU_WORST
     assert spend.charge(spend.help_cfg, HAIKU, None, None, billed_unknown=False) == 0
     assert spend.charge(spend.help_cfg, HAIKU, 2_000, 300) == 350
-    assert spend.spent_micros == 1_650
+    assert spend.spent_micros == 350 + HAIKU_WORST
 
 
 def test_parse_usd_is_exact_integer_micros() -> None:
@@ -162,7 +164,7 @@ def test_help_reply_without_usage_is_charged_at_worst_case() -> None:
     result = run_eval(
         [make_case()], [HAIKU], ScriptedGenerator([reply]), make_env(), spend, judge=None
     )
-    assert spend.spent_micros == 1_300 and result.records[0].cost_micros == 1_300
+    assert spend.spent_micros == HAIKU_WORST and result.records[0].cost_micros == HAIKU_WORST
 
 
 def test_default_git_targets_the_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

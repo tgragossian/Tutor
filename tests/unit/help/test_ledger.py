@@ -22,7 +22,7 @@ from mathtutor.store.models import HelpRequestRow, SessionItem, StudySession, Us
 
 CFG = load_help_config(DEFAULT_CONFIG_PATH)
 HAIKU = "claude-haiku-5-5"
-WORST = 1_300  # 8,000 × 0.1 + 1,000 × 0.5 µ$ (01-pinned-values)
+WORST = 2_300  # 8,000 × 0.1 + 3,000 × 0.5 µ$ (config c1-2)
 START = datetime(2026, 10, 26, 9, 0, tzinfo=UTC)
 
 

@@ -15,12 +15,15 @@ import pytest
 from support.evalkit import CONFUSIONS, make_case, make_env, make_query
 from support.helpkit import CFG, CONTENT, FakePool, output
 
+from mathtutor.help.config import worst_case_micros
 from mathtutor.help.eval import run as runner
 from mathtutor.help.eval.errors import RunnerError
 from mathtutor.help.eval.holdout import CLAIMS_DIR, LOCK, check_unused, claim, partition_of
 from mathtutor.help.eval.run import main, parse_usd, run_eval
 from mathtutor.help.eval.spend import JOURNAL, SpendCounter, SpendJournal, total_spend
 from mathtutor.help.generator import GenerationRequest, ScriptedGenerator
+
+HAIKU_WORST = worst_case_micros(CFG, "claude-haiku-5-5")  # one call's worst case
 
 HAIKU = "claude-haiku-5-5"
 
@@ -32,20 +35,22 @@ def test_journal_keeps_open_reservation_at_worst_case(tmp_path: Path) -> None:
     run = tmp_path / "evals/help/results/r1"
     run.mkdir(parents=True)
     spend = SpendCounter(CFG, parse_usd("4"), SpendJournal(run / JOURNAL))
-    spend.settle(spend.reserve("help", HAIKU, 1_300), 350)
-    spend.reserve("help", HAIKU, 1_300)  # sent, then the process died
+    spend.settle(spend.reserve("help", HAIKU, HAIKU_WORST), 350)
+    spend.reserve("help", HAIKU, HAIKU_WORST)  # sent, then the process died
     (total,) = total_spend(tmp_path / "evals/help/results").runs
-    assert (total.settled_micros, total.open_micros, total.total_micros) == (350, 1_300, 1_650)
+    expected = (350, HAIKU_WORST, 350 + HAIKU_WORST)
+    assert (total.settled_micros, total.open_micros, total.total_micros) == expected
 
 
 def test_torn_last_line_keeps_the_reservation_open(tmp_path: Path) -> None:
     run = tmp_path / "r1"
     run.mkdir()
     journal = SpendJournal(run / JOURNAL)
-    journal.append({"event": "reserve", "id": 1, "kind": "help", "model": HAIKU, "worst": 1_300})
+    reserve = {"event": "reserve", "id": 1, "kind": "help", "model": HAIKU, "worst": HAIKU_WORST}
+    journal.append(reserve)
     with (run / JOURNAL).open("a", encoding="utf-8") as fh:
         fh.write('{"event": "settle", "id": 1, "mic')  # crash mid-write
-    assert total_spend(tmp_path).total_micros == 1_300
+    assert total_spend(tmp_path).total_micros == HAIKU_WORST
 
 
 class _Interrupting(ScriptedGenerator):
@@ -62,7 +67,7 @@ def test_interrupt_during_a_call_leaves_its_reservation(tmp_path: Path) -> None:
     spend = SpendCounter(CFG, parse_usd("4"), SpendJournal(run / JOURNAL))
     with pytest.raises(KeyboardInterrupt):
         run_eval([make_case()], [HAIKU], _Interrupting([]), make_env(), spend, judge=None)
-    assert total_spend(tmp_path).total_micros == 1_300  # Haiku's worst case
+    assert total_spend(tmp_path).total_micros == HAIKU_WORST  # Haiku's worst case
 
 
 def test_interrupt_during_judging_leaves_the_judge_reservation(tmp_path: Path) -> None:

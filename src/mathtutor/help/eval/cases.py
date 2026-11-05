@@ -59,7 +59,7 @@ class HelpCase(_Row):
     # gives ``hint_level`` = its prior count + 1. ``expect_mistake_type`` is the reviewer's label.
     expect_mistake_type: MistakeType | None = None
     prior_hints: dict[str, int] = Field(default_factory=dict)
-    start_step: int = Field(default=1, ge=1, le=2)  # level 0 (R37): 1 a question about the form, 2 the rule
+    start_step: int = Field(default=1, ge=1, le=2)  # level 0 (R37): 1 ask the form, 2 name the rule
     tags: frozenset[str]
     expect_abstain: bool
     withhold_sections: list[str] = Field(default_factory=list)

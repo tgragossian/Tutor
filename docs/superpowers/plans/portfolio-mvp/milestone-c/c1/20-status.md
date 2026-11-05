@@ -37,6 +37,8 @@ these local changes into C2 and review its plan before implementation.
 3. Paid dev run with `--max-usd 4`; blind audit; recompute. Tariffs rechecked by Thomas on the
    Anthropic pricing page 2026-11-05 (C-O5): Haiku 5.5 $0.10/$0.50 (prompts ≤100k), Sonnet 5.5
    $2/$10 per MTok, matching `help_config.json`; judge is Sonnet 5.5. Credit $15.
+   Run 1 `20261105-222204-dev` (config c1-1): $1.06, 0 leaks, neither model passes; R38 raises
+   the output cap (c1-2) and run 2 follows. Audit run 2, not run 1.
 4. **Retrieval gate decision (2026-11-05, before the holdout):** keep the holdout Recall@6
    gate at 0.80. Disclose the development Recall@6 of 0.7738 after relabeling as near the gate; it does not
    justify lowering a predeclared threshold. Report the one-shot holdout result and any

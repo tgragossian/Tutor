@@ -1,0 +1,209 @@
+{
+  "run_id": "20261105-222204-dev",
+  "split": "dev",
+  "models": [
+    "claude-haiku-5-5",
+    "claude-sonnet-5-5"
+  ],
+  "seed": "20261105-222204-dev",
+  "started": "2026-11-05T22:22:17Z",
+  "no_retrieval": false,
+  "judge": "claude-sonnet-5-5",
+  "rubric_version": "v1",
+  "config_version": "c1-1",
+  "prompt_version": "v1",
+  "prompt_fingerprint": "1ba6dc7937da",
+  "versions": {
+    "schema": "1",
+    "parser": "1",
+    "guard": "1"
+  },
+  "tariff_version": "2026-10-26",
+  "tariffs": {
+    "claude-haiku-5-5": {
+      "model_id": "claude-haiku-5-5",
+      "input_micros_per_mtok": 100000,
+      "output_micros_per_mtok": 500000
+    },
+    "claude-sonnet-5-5": {
+      "model_id": "claude-sonnet-5-5",
+      "input_micros_per_mtok": 2000000,
+      "output_micros_per_mtok": 10000000
+    }
+  },
+  "corpus_hash": "3656bd882038bfc26f2cd507770317b61190b85b8b839a1fdf7cdadd3033748b",
+  "index_fingerprint": "30e9092b2783be7315f564e3d94fe521b6cc62c1d1339e53897360771b98e678",
+  "head": "0448f7b55f7809f0fd8b0f23018ebbd45b04e532",
+  "dirty": true,
+  "freeze": null,
+  "cap_micros": 4000000,
+  "spent_micros": 1062194,
+  "spend_journal": "spend.jsonl",
+  "stopped": null,
+  "cases": 42,
+  "mix_warnings": [],
+  "answers": {
+    "openstax-c1-3.3-107": "15x^2-1",
+    "openstax-c1-3.3-111": "270x^4+\\frac{39}{(x+1)^2}",
+    "openstax-c1-3.3-113": "-\\frac{5}{x^2}",
+    "openstax-c1-3.3-115": "4+\\frac{2}{x^2}-\\frac{2}{x^3}",
+    "adapted-c1-3.5-x2cosx": "2x\\cos(x)-x^2\\sin(x)",
+    "openstax-c1-3.5-181": "(1-\\sin(x))^2-(x+\\cos(x))\\cos(x)",
+    "openstax-c1-3.5-185": "-x",
+    "openstax-c1-3.5-191": "3\\cos(x)-x\\sin(x)",
+    "openstax-c1-3.5-209": "3\\sin(x)",
+    "adapted-c1-3.6-sinx2": "2x\\cos(x^2)",
+    "openstax-c1-3.6-215": "126(7x-4)^2",
+    "openstax-c1-3.6-221": "18x(3x^2+1)^2",
+    "openstax-c1-3.6-223": "7\\left(\\frac{x}{7}+\\frac{7}{x}\\right)^6\\left(\\frac{1}{7}-\\frac{7}{x^2}\\right)",
+    "openstax-c1-3.6-231": "6(2x^3-x^2+6x+1)^2(3x^2-x+3)",
+    "openstax-c1-3.6-253": "-\\frac{200}{343}"
+  },
+  "retrieval": {
+    "recall_at_6": 0.7738,
+    "mrr_at_6": 0.6732,
+    "queries": 28,
+    "per_query": [
+      [
+        "rq-dev-01",
+        0.3333333333333333,
+        0.3333333333333333
+      ],
+      [
+        "rq-dev-02",
+        1.0,
+        1.0
+      ],
+      [
+        "rq-dev-03",
+        1.0,
+        1.0
+      ],
+      [
+        "rq-dev-04",
+        0.6666666666666666,
+        0.5
+      ],
+      [
+        "rq-dev-05",
+        1.0,
+        1.0
+      ],
+      [
+        "rq-dev-06",
+        0.5,
+        1.0
+      ],
+      [
+        "rq-dev-07",
+        1.0,
+        0.25
+      ],
+      [
+        "rq-dev-08",
+        0.5,
+        0.5
+      ],
+      [
+        "rq-dev-09",
+        0.6666666666666666,
+        1.0
+      ],
+      [
+        "rq-dev-10",
+        1.0,
+        0.16666666666666666
+      ],
+      [
+        "rq-dev-11",
+        1.0,
+        1.0
+      ],
+      [
+        "rq-dev-12",
+        1.0,
+        1.0
+      ],
+      [
+        "rq-dev-13",
+        1.0,
+        1.0
+      ],
+      [
+        "rq-dev-14",
+        0.5,
+        1.0
+      ],
+      [
+        "rq-dev-15",
+        0.6666666666666666,
+        1.0
+      ],
+      [
+        "rq-dev-16",
+        1.0,
+        1.0
+      ],
+      [
+        "rq-dev-17",
+        0.6666666666666666,
+        0.5
+      ],
+      [
+        "rq-dev-18",
+        0.0,
+        0.0
+      ],
+      [
+        "rq-dev-19",
+        1.0,
+        0.2
+      ],
+      [
+        "rq-dev-20",
+        1.0,
+        1.0
+      ],
+      [
+        "rq-dev-21",
+        0.3333333333333333,
+        0.3333333333333333
+      ],
+      [
+        "rq-dev-22",
+        1.0,
+        1.0
+      ],
+      [
+        "rq-dev-23",
+        1.0,
+        0.3333333333333333
+      ],
+      [
+        "rq-dev-24",
+        0.5,
+        0.2
+      ],
+      [
+        "rq-dev-25",
+        1.0,
+        0.2
+      ],
+      [
+        "rq-dev-26",
+        1.0,
+        0.3333333333333333
+      ],
+      [
+        "rq-dev-27",
+        1.0,
+        1.0
+      ],
+      [
+        "rq-dev-28",
+        0.3333333333333333,
+        1.0
+      ]
+    ]
+  }
+}

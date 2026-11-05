@@ -57,7 +57,7 @@ After owner review, set `MATHTUTOR_ANTHROPIC_API_KEY`, recheck list prices again
 uv run python -m mathtutor.help.eval.run --split dev --models claude-haiku-5-5,claude-sonnet-5-5 --max-usd 4
 ```
 
-Worst case per call: Haiku 1,300 µ$, Sonnet 26,000 µ$, judge 64,000 µ$; spend prints per case.
+Worst case per call (c1-2): Haiku 2,300 µ$, Sonnet 46,000 µ$, judge 64,000 µ$; spend prints per case.
 Recorded estimate: $1.5–2.5 for that command; confirm tariffs before execution. The no-passage
 baseline now reaches judge/audit/recompute with citation support N/A. Use `--no-retrieval`
 with judging enabled; `--no-judge` is generation/cost diagnosis only. Iterate on dev only.
