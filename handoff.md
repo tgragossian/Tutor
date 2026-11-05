@@ -1,6 +1,6 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-28: C1 debugging fixes and modular docs.
+Owner: Thomas Gragossian. Updated: 2026-11-05: owner label review done; Codex review requested.
 Host deployment remains Thomas's reported `main` 8057590, migration 0003. No new host probe.
 Branch `milestone-c1` holds C1 tasks 1-15 plus fixes; rechecked `b16a206`. Nothing merged or deployed.
 
@@ -18,14 +18,15 @@ checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands.
    baseline judging/audit/recompute. Saved probes and normal regressions
    pass. R35/R36 reviewed. Follow the owner gates below and carry these fixes into C2 before
    its plan review/implementation. No paid comparison, actual holdout or release ran.
-2. After review fixes, owner steps pending: review 60 cases + 40 queries (`reviewed_by: tg`; incl.
-   `expect_mistake_type`/`prior_hints`/`start_step`); approve the 12 confusion labels, 4 rewritten
-   misconception notes, level/mistake-type wording, help panel copy and provider disclosure; paid dev run
-   (`--max-usd 4`) and audit; **decide on the retrieval gate before the holdout** (dev
-   Recall@6 0.79 < 0.80); one-shot holdout; `E2E=1 bash tests/container/smoke.sh`; container
-   mixed-load measurement; deploy; live check (one cited hint on a wrong derivative, one
-   abstention). Then commit `docs: C1 released`.
+2. [2026-11-05 label review](docs/reviews/2026-11-05-c1-label-review/README.md): Codex reviewed;
+   R2/R5 resolved, ready to commit. Done 2026-11-05: all cases and queries `reviewed_by: tg`;
+   how-to labeling rule; gate kept at 0.80 (dev Recall@6 now 0.7738). Owner steps left: approve
+   the 18 confusion labels, 4 misconception notes, level/mistake-type wording, help panel copy and
+   provider disclosure; paid dev run (`--max-usd 4`) and audit; one-shot holdout; container smoke
+   and mixed-load; deploy; live check. Then commit `docs: C1 released`. Target: within a day.
    Holdout cap formula and the 0.576 draft-holdout disclosure: C1 status page and runbook C1.
+   [Codex findings](docs/reviews/2026-11-05-c1-label-review/01-findings.md) R2 (exact how-to rule;
+   rq-dev-24 → 4.1-ex1, rq-hold-08 + 4.8-ex1) and R5 (settings test clears the key) are applied.
 3. Key: `MATHTUTOR_ANTHROPIC_API_KEY` only in the host's `deploy/.env`; console spend limit,
    auto-reload off; $5 credit. Turn help off with `MATHTUTOR_HELP_GENERATOR=off`.
 4. Then review/rebase C2 (plan on `milestone-c2`, Q1–Q9 decided by Thomas; adds ratings and a

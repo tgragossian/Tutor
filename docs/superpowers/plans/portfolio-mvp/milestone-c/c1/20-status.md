@@ -17,7 +17,7 @@ these local changes into C2 and review its plan before implementation.
 |---|---|
 | Parser, leak guard, corpus (1,765 chunks), BM25 retrieval, ledger, context, generator | in, with tests |
 | Service, `/api/help`, practice UI help panel, scripted e2e | in; container smoke not yet run |
-| Evaluation harness and gates (`evals/help/`) | in; sets are drafts awaiting review |
+| Evaluation harness and gates (`evals/help/`) | in; owner-reviewed sets await Codex disposition |
 | Burst tool help mode (`submit_burst.py --mode help`) | in, with tests |
 | Preliminary local mixed-load run | recorded, [not the gate](../../../../../ops/host-sizing-c1.md) |
 | Ops docs: key, help off, guard memory, security page | [runbook C1](../../../../../ops/runbook-c1.md), [security](../../../../../ops/security.md) |
@@ -25,16 +25,20 @@ these local changes into C2 and review its plan before implementation.
 ## Owner checklist (in order)
 
 1. Review 66 cases and 40 queries; set `reviewed_by: tg` ([step 6](../../../../../../evals/help/README.md)).
-   Done 2026-10-29: 42 dev cases, 23/24 holdout (hold-05 left), 12 holdout queries; 28 dev queries left.
+   **Done 2026-11-05** (all 66 cases, 40 queries); label changes and the how-to rule are in the
+   [label review](../../../../../reviews/2026-11-05-c1-label-review/README.md), pending Codex review.
 2. Approve the 18 confusion labels (6 per topic, 2026-10-28), the 4 rewritten misconception notes (error-only wording:
    3.6-221, 3.6-229, 3.6-253 and the `sinx2` choice), the help panel copy, the **provider
    disclosure wording** (practice page, `#help-disclosure`; spec 09 requires it) and the hint
    level and mistake-type wording (R35: `LEVEL_RULES` in `help/prompts.py`,
    `MISTAKE_DESCRIPTIONS` in `help/generator.py`, `prompts/v1/hint_choice.md`).
 3. Paid dev run with `--max-usd 4`; blind audit; recompute.
-4. **Decide on the retrieval gate before the holdout:** dev Recall@6 0.79 is below the 0.80
-   gate (disclosure: a reviewer scored the draft holdout labels at 0.576 on BM25 before the
-   labeling policy; no holdout label was edited in response; ledger ruling on retrieval fixes).
+4. **Retrieval gate decision (2026-11-05, before the holdout):** keep the holdout Recall@6
+   gate at 0.80. Disclose the development Recall@6 of 0.7738 after relabeling as near the gate; it does not
+   justify lowering a predeclared threshold. Report the one-shot holdout result and any
+   missed gate plainly. A reviewer scored the draft holdout labels at 0.576 on BM25 before
+   the labeling policy; no holdout label was edited in response (ledger ruling on retrieval
+   fixes).
 5. One-shot holdout; write the chosen model into `help_config.json`. Holdout cap: credit
    minus the `--spent` total minus at least $0.30 ([eval README](../../../../../../evals/help/README.md), step 9).
 6. `E2E=1 bash tests/container/smoke.sh`, then the container mixed-load measurement; apply
@@ -53,7 +57,7 @@ these local changes into C2 and review its plan before implementation.
 | Code review fixes | all nine closed locally; see debugging fixes and validation |
 | CI green | pending |
 | Verifier and `content_check` unchanged | pending |
-| Holdout gates | pending (dev Recall@6 0.79) |
+| Holdout gates | pending (dev Recall@6 0.7738 after relabeling) |
 | Container mixed-load and memory | pending (preliminary only) |
 | Demo | pending |
 | Provider disclosure wording approved | pending (implemented, wording awaits Thomas) |

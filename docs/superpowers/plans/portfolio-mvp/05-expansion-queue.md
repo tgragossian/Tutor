@@ -45,5 +45,6 @@ A computed answer does not validate a transcribed statement; audit both.
 The [fine-tuning experiment](04-release.md#fine-tuning-experiment-after-c-before-de)
 runs after C, before D/E and this queue; extraction is not its prerequisite.
 Automated problem sets (templates or LLM generation) come after the LoRA, covering all of Calc 1 only if automated ([C-O4](milestone-c/03-open-decisions.md), Thomas 2026-10-26).
+Retrieval after C1: pin the first worked example for procedure queries, then consider labeling an example for every concept query (Thomas 2026-11-05, [label review](../../../reviews/2026-11-05-c1-label-review/README.md)).
 Other recorded future ideas stay in the background roadmap; this queue orders the
 named features without bringing every future course into the first release.

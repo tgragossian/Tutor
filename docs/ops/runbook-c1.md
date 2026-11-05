@@ -80,8 +80,8 @@ the [runbook](runbook.md). Check `/readyz`, update [host](host.md) with the new 
    ([evals/help/README.md](../../evals/help/README.md), step 6).
 2. Approve the 18 confusion labels, the 4 rewritten misconception notes, the help panel copy
    and the provider disclosure wording.
-3. Paid dev run (`--max-usd 4`), blind audit, then **decide on the retrieval gate before the
-   holdout**: dev Recall@6 is 0.79 against the 0.80 holdout gate.
+3. Paid dev run (`--max-usd 4`), then blind audit. The retrieval gate was fixed before the
+   holdout at 0.80; relabeled dev Recall@6 is 0.7738 (see C1 status).
 4. One-shot holdout (cap = credit minus the `--spent` total minus $0.30; the
    draft holdout once scored 0.576 on BM25, no label edited, see status page); write the chosen model
    into `help_config.json`.

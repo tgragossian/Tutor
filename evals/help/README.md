@@ -31,10 +31,10 @@ and the judge (never in the help prompt). Every drafted attempt grades `incorrec
   type: `expect_mistake_type`; `prior_hints` are each type's earlier hints (level = +1).
 
 **Retrieval labeling policy:** label the 1–3 chunks that directly answer the query, most
-direct first. Chapter summaries (`N.0` key terms/equations) and per-section "Key Concepts"
-chunks are excluded unless the query asks for a summary. Applied identically to both splits;
-the holdout was relabeled by this rule alone, without running retrieval on it. Evaluation
-searches like production: configured roles plus the home-section boost (`section`).
+direct first. A query asking how to carry out a method ("how do I", "steps for", "by doing X")
+also gets the home section's first worked example applying that method (2026-11-05, R2).
+Summaries (`N.0`, "Key Concepts") are excluded unless asked for. Both splits; holdout relabeled
+by rule alone, never after a retrieval run. Search as production: roles + home-section boost.
 
 ## Step 6: review (Thomas)
 
@@ -95,6 +95,6 @@ release is blocked (Task 15) and those cases become regression evidence.
 - `max_output_tokens` 1,000 can stop at `max_tokens` (counted per model); if not rare, raise it.
 - The judge (`effort: medium`, 4,000 output tokens) can stop early: such cases are `unjudged`,
   fail `all_delivered_judged` and are flagged in `audit.csv`.
-- Dev Recall@6 with the policy, tok-2 and the boost: 0.79 (MRR@6 0.66).
+- Dev Recall@6 after the 2026-11-05 labels, with tok-2 and the boost: 0.7738 (MRR@6 0.6732; 28 queries).
 - Selection (R28): Sonnet if +10 points on the primary and every gate with nothing > 5
   points worse; otherwise Haiku if it passes; otherwise Sonnet if it passes; otherwise none.

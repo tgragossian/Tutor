@@ -78,7 +78,8 @@ def test_scripted_only_in_test_env() -> None:
     assert Settings(env="test", help_generator="scripted").help_generator == "scripted"
 
 
-def test_settings_defaults() -> None:
+def test_settings_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("MATHTUTOR_ANTHROPIC_API_KEY", raising=False)
     s = Settings()
     assert s.anthropic_api_key is None
     assert s.corpus_path == Path("content/corpus/chunks.jsonl")
