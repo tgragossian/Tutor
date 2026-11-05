@@ -164,8 +164,8 @@ def _type_level(counts: dict[str, int], mistake_type: str) -> int:
 
 
 def _hint_plan(state: ItemHelpState | None, latest_wrong: int | None) -> HintPlan:
-    """Level 0 (how to start) while the item has no wrong answer, in two steps (rule and
-    first move, then a concrete setup, which repeats); it never moves the type ladders.
+    """Level 0 (how to start) while the item has no wrong answer, in two steps (a question
+    about the form, then the rule, which repeats); it never moves the type ladders.
     Once there is one, each mistake type climbs 1 -> 2 -> 3 with the hints it has had on this
     presentation. Further hints on the attempt the last hint addressed reuse its type; a newer
     wrong attempt is classified by the model, which can only pick among the offered levels."""

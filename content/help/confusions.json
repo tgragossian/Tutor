@@ -8,7 +8,7 @@
     {"id": "slope_meaning", "label": "What does the derivative I found actually tell me?"}
   ],
   "derivatives.trig": [
-    {"id": "trig_ladder", "label": "Explain the trig ladder (how the derivatives of sin and cos repeat)"},
+    {"id": "trig_ladder", "label": "How do the derivatives of sin and cos repeat?"},
     {"id": "other_trig_derivatives", "label": "What are the derivatives of tan, sec, csc and cot?"},
     {"id": "product_rule_with_trig", "label": "How do I use the product rule when a trig function is involved?"},
     {"id": "quotient_rule_trig", "label": "How do I handle a quotient of trig functions?"},

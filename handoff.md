@@ -1,6 +1,6 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-11-05: owner label review done; Codex review requested.
+Owner: Thomas Gragossian. Updated: 2026-11-05: steps 1-2 done and Codex-reviewed; next the paid dev run.
 Host deployment remains Thomas's reported `main` 8057590, migration 0003. No new host probe.
 Branch `milestone-c1` holds C1 tasks 1-15 plus fixes; rechecked `b16a206`. Nothing merged or deployed.
 
@@ -20,15 +20,17 @@ checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands.
    its plan review/implementation. No paid comparison, actual holdout or release ran.
 2. [2026-11-05 label review](docs/reviews/2026-11-05-c1-label-review/README.md): Codex reviewed;
    R2/R5 resolved, ready to commit. Done 2026-11-05: all cases and queries `reviewed_by: tg`;
-   how-to labeling rule; gate kept at 0.80 (dev Recall@6 now 0.7738). Owner steps left: approve
-   the 18 confusion labels, 4 misconception notes, level/mistake-type wording, help panel copy and
-   provider disclosure; paid dev run (`--max-usd 4`) and audit; one-shot holdout; container smoke
+   how-to labeling rule; gate kept at 0.80 (dev Recall@6 now 0.7738). Step 2 approved (R37).
+   [Step 2 brief](docs/reviews/2026-11-05-c1-label-review/02-step2-brief.md) reviewed by Codex.
+   Owner steps left: paid dev run (`--max-usd 4`) and audit; one-shot holdout; container smoke
    and mixed-load; deploy; live check. Then commit `docs: C1 released`. Target: within a day.
    Holdout cap formula and the 0.576 draft-holdout disclosure: C1 status page and runbook C1.
    [Codex findings](docs/reviews/2026-11-05-c1-label-review/01-findings.md) R2 (exact how-to rule;
    rq-dev-24 → 4.1-ex1, rq-hold-08 + 4.8-ex1) and R5 (settings test clears the key) are applied.
+   [Step 2 findings](docs/reviews/2026-11-05-c1-label-review/03-step2-findings.md) resolved: S2-1 old R35/spec wording updated; S2-4 reveal is a browser rule
+   (API unchanged); S2-5 help citations show the section number only (`pipeline.source_ref`).
 3. Key: `MATHTUTOR_ANTHROPIC_API_KEY` only in the host's `deploy/.env`; console spend limit,
-   auto-reload off; $5 credit. Turn help off with `MATHTUTOR_HELP_GENERATOR=off`.
+   auto-reload off; $15 credit (topped up 2026-11-05). Turn help off with `MATHTUTOR_HELP_GENERATOR=off`.
 4. Then review/rebase C2 (plan on `milestone-c2`, Q1–Q9 decided by Thomas; adds ratings and a
    completion-only Clear history) and C3 own problems (resolve C-P3 first). The C2 worktree
    cannot build its venv yet (Windows Application Control blocks uv). Sequence remains

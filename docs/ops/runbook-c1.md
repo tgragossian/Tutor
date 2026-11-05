@@ -11,7 +11,7 @@ Same conventions as the [runbook](runbook.md): host commands run from `/srv/math
 ## Set the Anthropic key
 
 1. In the Anthropic console, set the **monthly spend limit** and turn **auto-reload off**
-   (Thomas has $5 of credit; the ledger caps help spend separately).
+   (Thomas has $15 of credit since 2026-11-05; the ledger caps help spend separately).
 2. On the host, edit the env file that `deploy/compose.yaml` loads (`env_file: .env`, so
    `deploy/.env`, mode 600, git-ignored):
    ```bash

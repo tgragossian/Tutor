@@ -57,7 +57,7 @@ def test_delivered_hint_with_citation(kit: Kit) -> None:
     assert out.html is not None
     assert "<strong>chain rule</strong>" in out.html
     assert "<math-field read-only>u^3</math-field>" in out.html
-    assert out.sources == [SourceRef("Calculus Volume 1, 3.6 The Chain Rule", URL, LICENSE)]
+    assert out.sources == [SourceRef("Calculus Volume 1, §3.6", URL, LICENSE)]
     row = kit.row(rid)
     assert row.status == "delivered" and row.cited_ids == ["c1-3.6-rule1"]
     assert row.calls == 1 and row.hint_level == 1 and row.help_seq == 1
@@ -80,7 +80,7 @@ def test_level_0_before_a_wrong_answer_then_ladder_1_2_3(kit: Kit) -> None:
     assert [kit.help().hint_level for _ in range(3)] == [0, 0, 0]
     starts = [r.user for r in kit.generator.requests]
     assert START_RULES[1] in starts[0] and START_RULES[2] in starts[1]  # two steps,
-    assert START_RULES[2] in starts[2]  # then the concrete setup repeats
+    assert START_RULES[2] in starts[2]  # then naming the rule repeats (R37)
     assert [r.start_step for r in kit.rows()] == [1, 2, 2]
     state = kit.state()
     assert state is not None and (state.hint_counts, state.hint_attempt_pk) == ({}, None)
@@ -143,7 +143,7 @@ def test_unknown_citation_repairs_then_fallback(kit: Kit) -> None:
     out = kit.help(rid=rid)
     assert out.status is HelpStatus.FALLBACK
     assert out.html == render_help_html(messages.NUDGE.format(section="Section 3.6"))
-    assert out.sources == [SourceRef("Calculus Volume 1, 3.6 The Chain Rule", URL, LICENSE)]
+    assert out.sources == [SourceRef("Calculus Volume 1, §3.6", URL, LICENSE)]
     first, second = kit.generator.requests
     assert "<repair>" not in first.user and "<repair>" in second.user
     assert out.hint_level == 1

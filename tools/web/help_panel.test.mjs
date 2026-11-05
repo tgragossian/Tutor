@@ -150,7 +150,7 @@ test('server html inserted, source link uses server url only', async () => {
 
 test('source line does not repeat the book name', async () => {
   const p = page();
-  const label = 'Calculus Volume 1, 3.6 The Chain Rule';
+  const label = 'Calculus Volume 1, §3.6';
   p.reply(reply({ sources: [{ ...SOURCE, label }] }));
   await p.run("askHelp('hint')");
   assert.equal(p.el('help-sources').text, `${label} ↗ · CC BY-NC-SA 4.0`);

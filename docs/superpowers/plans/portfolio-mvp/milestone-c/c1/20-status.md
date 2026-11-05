@@ -32,7 +32,11 @@ these local changes into C2 and review its plan before implementation.
    disclosure wording** (practice page, `#help-disclosure`; spec 09 requires it) and the hint
    level and mistake-type wording (R35: `LEVEL_RULES` in `help/prompts.py`,
    `MISTAKE_DESCRIPTIONS` in `help/generator.py`, `prompts/v1/hint_choice.md`).
-3. Paid dev run with `--max-usd 4`; blind audit; recompute.
+   **Approved 2026-11-05** with R37 (level 0 asks, then names), label #7 reworded, two-click
+   Show answer: [step 2 brief](../../../../../reviews/2026-11-05-c1-label-review/02-step2-brief.md).
+3. Paid dev run with `--max-usd 4`; blind audit; recompute. Tariffs rechecked by Thomas on the
+   Anthropic pricing page 2026-11-05 (C-O5): Haiku 5.5 $0.10/$0.50 (prompts ≤100k), Sonnet 5.5
+   $2/$10 per MTok, matching `help_config.json`; judge is Sonnet 5.5. Credit $15.
 4. **Retrieval gate decision (2026-11-05, before the holdout):** keep the holdout Recall@6
    gate at 0.80. Disclose the development Recall@6 of 0.7738 after relabeling as near the gate; it does not
    justify lowering a predeclared threshold. Report the one-shot holdout result and any
@@ -60,4 +64,4 @@ these local changes into C2 and review its plan before implementation.
 | Holdout gates | pending (dev Recall@6 0.7738 after relabeling) |
 | Container mixed-load and memory | pending (preliminary only) |
 | Demo | pending |
-| Provider disclosure wording approved | pending (implemented, wording awaits Thomas) |
+| Provider disclosure wording approved | approved by Thomas 2026-11-05 |

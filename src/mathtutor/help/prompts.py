@@ -38,8 +38,10 @@ TRUNCATED = " [passage shortened]"
 # Ruling R35 (Thomas, 2026-10-27): level 0 before any wrong answer; after one, each mistake
 # type climbs 1 -> 2 -> 3 with the hints it has had on this problem.
 LEVEL_RULES = {
-    0: "how to start. The student has not submitted a wrong answer yet: name the rule or idea "
-    "that applies to this problem and the first move to make, without carrying it out.",
+    0: "how to start, without naming the rule. The student has not submitted a wrong answer yet: "
+    "ask one question about the problem's form or what it asks for (for example: is it a sum, a "
+    "product, a quotient, or one function inside another?) so they can choose the method "
+    "themselves. Do not name the rule or method, and do not start the work.",
     1: "a gentle nudge about their latest attempt. Say what they got right, say that "
     "something is missing or off without naming it, and ask them to compare their answer with "
     "the original problem.",
@@ -49,10 +51,11 @@ LEVEL_RULES = {
     "stopping before the final answer.",
 }
 # Level 0 has two steps before any wrong answer (Thomas, 2026-10-27); step 2 then repeats.
+# Step 1 asks about the form without naming the rule; step 2 names it (Thomas, 2026-11-05).
 START_RULES = {
     1: LEVEL_RULES[0],
-    2: "a more concrete start. The student asked again before answering: say concretely what "
-    "to identify or write down first on this problem, without carrying out any step of the "
+    2: "the method to use. The student asked again before answering: name the rule or method "
+    "that fits this problem's form and why it fits, without carrying out any step of the "
     "solution.",
 }
 _TAGS = (

@@ -48,7 +48,7 @@ by rule alone, never after a retrieval run. Search as production: roles + home-s
    (`--draft` allows unreviewed rows). Retrieval-only holdout runs are refused; scoring belongs to its locked campaign.
 5. Run `uv run pytest -q tests/unit/help/test_eval_drafted_sets.py`; commit the reviewed sets.
 
-## Step 7: paid development runs ($5 credit)
+## Step 7: paid development runs ($15 credit since 2026-11-05)
 
 After owner review, set `MATHTUTOR_ANTHROPIC_API_KEY`, recheck list prices against
 `tariffs` in `help_config.json` (C-O5), set the console spend limit with auto-reload off, then:

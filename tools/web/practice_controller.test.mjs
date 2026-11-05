@@ -143,3 +143,16 @@ test('choices: a lost reply disables the radios until it resolves', async () => 
   assert.equal(p.context.sent.at(-1).answer.choice_id, 'a');
   assert.ok(p.context.radios.every((r) => !r.disabled));
 });
+
+test('Show answer: the first click warns, only the second reveals', async () => {
+  const p = page();
+  p.run('onReveal()');
+  assert.equal(p.context.sent.length, 0, 'the first click sends nothing');
+  assert.equal(p.run("$('reveal-warning').hidden"), false, 'the warning is shown');
+  assert.equal(p.run("$('reveal').textContent"), 'Show answer anyway');
+  await p.run('onReveal()');
+  assert.equal(p.context.sent.length, 1, 'the second click reveals');
+  p.run('armReveal(false)'); // what render() does for a new or revealed item
+  assert.equal(p.run("$('reveal-warning').hidden"), true);
+  assert.equal(p.run("$('reveal').textContent"), 'Show answer');
+});

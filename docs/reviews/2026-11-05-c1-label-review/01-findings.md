@@ -55,3 +55,5 @@ R2: rule now reads "a query asking how to carry out a method also gets the home 
 worked example applying that method." `rq-dev-24` → `c1-4.1-rule1`, `c1-4.1-ex1` (Example 4.1);
 `rq-hold-08` adds `c1-4.8-ex1` (pre-run, by rule). `rq-dev-17` names a rule, so it is unchanged.
 R5: `test_settings_defaults` clears the key with `monkeypatch`; it passes with the key set.
+
+Step 2 (wording and reveal) findings: [03-step2-findings.md](03-step2-findings.md).

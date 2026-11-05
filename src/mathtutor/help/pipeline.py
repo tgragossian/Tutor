@@ -95,7 +95,9 @@ class PipelineResult:
 
 
 def source_ref(chunk: Chunk) -> SourceRef:
-    return SourceRef(f"{BOOK}, {chunk.section} {chunk.section_title}", chunk.url, LICENCE)
+    # Section number only: a title such as "The Chain Rule" would name the method that a
+    # level-0 hint withholds (R37, review S2-5). The link still opens the exact passage.
+    return SourceRef(f"{BOOK}, §{chunk.section}", chunk.url, LICENCE)
 
 
 def answer_latex(answer: Answer) -> str:

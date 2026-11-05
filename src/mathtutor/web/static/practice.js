@@ -248,6 +248,7 @@ function renderHelpButtons() {
   $('help-note').hidden = !enabled;
   $('help-disclosure').hidden = !enabled;
   $('help-hint').hidden = !types.includes('hint');
+  $('reveal-try-hint').hidden = !types.includes('hint'); // the warning names Hint only if it exists
   $('help-feedback').hidden = !(types.includes('feedback') && wrong);
   $('help-explain').hidden = !(types.includes('explain') && help.confusions.length > 0);
   if (!enabled) $('help-explain-row').hidden = true;
@@ -426,7 +427,25 @@ function render(current, revealedLatex) {
   $('tries').textContent = `Tries left: ${next.tries_left}`;
   $('tries').hidden = !canSubmit;
   renderButtons(next.allowed_actions);
+  if (isNew || revealedLatex || !actions.includes('reveal')) armReveal(false);
   renderHelpButtons();
+}
+
+// Show answer takes two clicks: the first shows a warning, the second reveals (Thomas, 2026-11-05).
+let revealArmed = false;
+
+function armReveal(on) {
+  revealArmed = on;
+  $('reveal-warning').hidden = !on;
+  $('reveal').textContent = on ? 'Show answer anyway' : 'Show answer';
+}
+
+function onReveal() {
+  if (!revealArmed) {
+    armReveal(true);
+    return;
+  }
+  act('reveal');
 }
 
 async function load() {
@@ -542,7 +561,7 @@ async function act(action) {
 $('check').addEventListener('click', check);
 $('next').addEventListener('click', () => act('advance'));
 $('skip').addEventListener('click', () => act('skip'));
-$('reveal').addEventListener('click', () => act('reveal'));
+$('reveal').addEventListener('click', onReveal);
 $('help-hint').addEventListener('click', () => askHelp('hint'));
 $('help-feedback').addEventListener('click', () => askHelp('feedback'));
 $('help-explain').addEventListener('click', openExplain);
