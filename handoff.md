@@ -19,12 +19,12 @@ checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands.
    pass. R35/R36 reviewed. Follow the owner gates below and carry these fixes into C2 before
    its plan review/implementation. No paid comparison, actual holdout or release ran.
 2. [2026-11-05 label review](docs/reviews/2026-11-05-c1-label-review/README.md): Codex reviewed;
-   R2/R5 resolved, ready to commit. Done 2026-11-05: all cases and queries `reviewed_by: tg`;
-   how-to labeling rule; gate kept at 0.80 (dev Recall@6 now 0.7738). Step 2 approved (R37).
+   R2/R5 resolved. All cases/queries `reviewed_by: tg`; how-to rule; gate 0.80; R37 approved.
    [Step 2 brief](docs/reviews/2026-11-05-c1-label-review/02-step2-brief.md) reviewed by Codex.
    R38 output cap (`3bb2b9c`); run 2 audited; R39 Sonnet beta and rubric v2 (C1 rulings).
-   Released 2026-11-06 (holdout, host checks, live check: C1 status). Next: outsider README with
-   the measured numbers, then the post-release tuning list and C2.
+   Released 2026-11-06 (holdout, host checks, live check: C1 status). **Codex: review the
+   [C1 release brief](docs/reviews/2026-11-06-c1-release/README.md)** (R38-R40, live fixes).
+   Next: outsider README with the measured numbers, then the tuning list and C2.
    Holdout cap formula and the 0.576 draft-holdout disclosure: C1 status page and runbook C1.
    [Codex findings](docs/reviews/2026-11-05-c1-label-review/01-findings.md) R2 (exact how-to rule;
    rq-dev-24 → 4.1-ex1, rq-hold-08 + 4.8-ex1) and R5 (settings test clears the key) are applied.

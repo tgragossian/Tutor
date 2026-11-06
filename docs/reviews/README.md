@@ -1,5 +1,7 @@
 # Design and code reviews
 
+- [2026-11-06 C1 release review](2026-11-06-c1-release/README.md): Codex brief for R38-R40, the holdout, merge, host checks and live fixes
+
 - [2026-11-05 C1 owner label review](2026-11-05-c1-label-review/README.md): Codex brief for the reviewed eval sets, how-to rule and gate decision
 
 - [2026-10-27 milestone C1 implementation review](2026-10-27-milestone-c1/README.md): debugged 2026-10-28; all nine closed locally, owner release gates remain
