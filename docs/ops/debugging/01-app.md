@@ -22,8 +22,8 @@
 - 409 `stale_item`: refresh current state; inspect the submitted revision and active state.
   The conditional update and `Answer.applied` distinguish a losing race.
 - 503 `verifier_busy`: retry the same UUID after `Retry-After: 2`.
-- Format issues and `unable_to_verify` do not consume tries. Three incorrect attempts exhaust
-  an item. Selection uses unseen, then incorrect, then other seen items (A11).
+- Format issues and `unable_to_verify` do not consume tries. Five incorrect attempts exhaust
+  an item (`MAX_TRIES` in `domain.py`). Selection uses unseen, then incorrect, then other seen items (A11).
 - Check: `uv run pytest tests/unit/application/test_practice.py tests/unit/application/test_selection.py -q`.
 - For concurrent writes: `uv run pytest tests/integration/test_submit_races.py -q`.
   Inspect WAL, `busy_timeout=5000`, `BEGIN IMMEDIATE`; keep pool work outside transactions.
