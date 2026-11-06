@@ -14,6 +14,8 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, sessionmaker
 
+from mathtutor.jsonio import loads_exact
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 MIGRATIONS = REPO_ROOT / "migrations"
 BUSY_TIMEOUT_MS = 5000
@@ -58,10 +60,16 @@ def is_lock_error(exc: BaseException) -> bool:
 
 def make_engine(url: str) -> Engine:
     """Build an engine. SQLite gets WAL, a 5 s busy timeout, enforced foreign keys, and
-    ``BEGIN IMMEDIATE`` for transactions opened with ``write_transaction``."""
+    ``BEGIN IMMEDIATE`` for transactions opened with ``write_transaction``. JSON columns
+    read back with exact decimals (``loads_exact``), so a stored MathJSON answer is graded
+    again exactly as it was first sent."""
     if make_url(url).get_backend_name() != "sqlite":
-        return create_engine(url)
-    engine = create_engine(url, connect_args={"check_same_thread": False, "timeout": 5})
+        return create_engine(url, json_deserializer=loads_exact)
+    engine = create_engine(
+        url,
+        connect_args={"check_same_thread": False, "timeout": 5},
+        json_deserializer=loads_exact,
+    )
     event.listen(engine, "connect", _set_sqlite_pragmas)
     event.listen(engine, "begin", _begin)
     return engine

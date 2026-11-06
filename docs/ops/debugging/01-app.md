@@ -17,17 +17,17 @@
 - Owners: `application/practice.py`, `application/selection.py`, `store/models.py`, `store/db.py`.
 - 409 `submission_pending`: retry the same submission UUID after `Retry-After: 1`.
   Reservations at least 10 seconds old may be regraded (R5/R13, A14).
-  Recovery claims `submissions.lease` and grades the stored `reserved_revision`; only the lease
+  Recovery claims `answers.lease` and grades the stored `reserved_revision`; only the lease
   holder deletes ([B-R5/B-R2 fix](../../reviews/2026-10-22-milestone-b/06-dispositions.md)). Check `lease`/`leased_at` on a stuck row.
 - 409 `stale_item`: refresh current state; inspect the submitted revision and active state.
-  The conditional update and `AttemptResult.applied` distinguish a losing race.
+  The conditional update and `Answer.applied` distinguish a losing race.
 - 503 `verifier_busy`: retry the same UUID after `Retry-After: 2`.
 - Format issues and `unable_to_verify` do not consume tries. Three incorrect attempts exhaust
   an item. Selection uses unseen, then incorrect, then other seen items (A11).
 - Check: `uv run pytest tests/unit/application/test_practice.py tests/unit/application/test_selection.py -q`.
 - For concurrent writes: `uv run pytest tests/integration/test_submit_races.py -q`.
   Inspect WAL, `busy_timeout=5000`, `BEGIN IMMEDIATE`; keep pool work outside transactions.
-- Answer timing: `seconds_on_item` = `Submission.created_at` − `served_at`, not completion
+- Answer timing: `seconds_on_item` = `Answer.created_at` − `served_at`, not completion
   time ([B-R3 fix](../../reviews/2026-10-22-milestone-b/06-dispositions.md)).
 
 ## API validation and logs

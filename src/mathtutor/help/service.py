@@ -65,14 +65,13 @@ from mathtutor.help.pipeline import HelpPipeline, HelpStatus, PipelineResult, So
 from mathtutor.help.prompts import prompt_id
 from mathtutor.help.render import render_help_html
 from mathtutor.jsonio import loads_exact
+from mathtutor.store.answers import latest_applied, latest_wrong
 from mathtutor.store.db import is_lock_error, write_transaction
 from mathtutor.store.models import (
-    AttemptResult,
     HelpRequestRow,
     ItemHelpState,
     SessionItem,
     StudySession,
-    Submission,
     User,
 )
 
@@ -657,28 +656,14 @@ class HelpService:
     @staticmethod
     def _latest_status(db: Session, item: SessionItem) -> VerdictStatus | None:
         """The latest applied (consumed) verdict on the item."""
-        return db.scalar(
-            select(AttemptResult.status)
-            .join(Submission, Submission.id == AttemptResult.submission_pk)
-            .where(Submission.session_item_id == item.id, AttemptResult.applied.is_(True))
-            .order_by(AttemptResult.id.desc())
-            .limit(1)
-        )
+        latest = latest_applied(db, item.id)
+        return None if latest is None else latest.status
 
     @staticmethod
     def _latest_wrong(db: Session, item: SessionItem) -> int | None:
-        """The pk of the item's latest applied (consumed) wrong submission, if any."""
-        return db.scalar(
-            select(Submission.id)
-            .join(AttemptResult, AttemptResult.submission_pk == Submission.id)
-            .where(
-                Submission.session_item_id == item.id,
-                AttemptResult.applied.is_(True),
-                AttemptResult.status == VerdictStatus.INCORRECT,
-            )
-            .order_by(Submission.id.desc())
-            .limit(1)
-        )
+        """The id of the item's latest applied (consumed) wrong answer, if any."""
+        wrong = latest_wrong(db, item.id)
+        return None if wrong is None else wrong.id
 
     @staticmethod
     def _owned_item(db: Session, user_id: int, session_item_id: int) -> SessionItem:

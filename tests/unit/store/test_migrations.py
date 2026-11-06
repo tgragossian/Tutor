@@ -18,8 +18,7 @@ TABLES = {
     "web_sessions",
     "study_sessions",
     "session_items",
-    "submissions",
-    "attempt_results",
+    "answers",
     "item_events",
     "alembic_version",
 }
@@ -232,3 +231,112 @@ def test_0005_adds_hint_ladder_columns_and_downgrades(db_url: str) -> None:
             assert conn.execute(text("SELECT request_id FROM help_requests")).all() == [("r1",)]
     finally:
         engine.dispose()
+
+
+def _populate_0005(path: str) -> None:
+    """Old rows on two items: applied incorrect (1, labeled by the last hint), applied correct
+    (2), an unapplied result (3), an orphan with no result (4) and a pre-0003 orphan with a
+    NULL reserved_revision (5). Item 2's hint state points at the correct answer."""
+    _populate_0004(path)
+    raw = sqlite3.connect(path)
+    raw.executescript(
+        """
+        INSERT INTO session_items (id, session_id, item_id, content_version, problem_json,
+            sequence, state, revision, served_at, tries_used)
+            VALUES (2, 1, 'j', 'v', '{}', 2, 'active', 0, '2026-10-01 00:00:00', 0);
+        INSERT INTO submissions (id, submission_id, session_item_id, answer_kind, answer_json,
+            answer_latex, created_at, reserved_revision, lease, leased_at) VALUES
+            (1, 's1', 1, 'expression', '{"mathjson": ["Multiply", 2, "x"], "choice_id": null}',
+                '2x', '2026-10-01 00:01:00.000000', 0, 0, NULL),
+            (2, 's2', 1, 'expression', '{"mathjson": ["Power", "x", 2], "choice_id": null}',
+                'x^2', '2026-10-01 00:02:00.000000', 1, 1, '2026-10-01 00:02:30.000000'),
+            (3, 's3', 1, 'choice', '{"mathjson": null, "choice_id": "b"}',
+                NULL, '2026-10-01 00:03:00.000000', 1, 0, NULL),
+            (4, 's4', 2, 'expression', '{"mathjson": 3, "choice_id": null}',
+                '3', '2026-10-01 00:04:00.000000', 0, 0, NULL),
+            (5, 's5', 2, 'expression', '{"mathjson": 4, "choice_id": null}',
+                '4', '2026-10-01 00:05:00.000000', NULL, 0, NULL);
+        INSERT INTO attempt_results (id, submission_pk, status, reason, method,
+            verifier_version, worker_ms, queue_ms, seconds_on_item, counts_as_try, applied)
+            VALUES
+            (7, 1, 'incorrect', 'counterexample', 'refutation', 'v1', 11, 1, 60, 1, 1),
+            (8, 3, 'correct', 'proven', 'symbolic', 'v1', 13, 3, 180, 0, 0),
+            (9, 2, 'correct', 'proven', 'symbolic', 'v1', 12, 2, 120, 0, 1);
+        INSERT INTO item_help_state (session_item_id, hint_attempt_pk, hint_type)
+            VALUES (1, 1, 'algebra'), (2, 2, 'wrong_rule');
+        """
+    )
+    raw.commit()
+    raw.close()
+
+
+def _rows(path: str, sql: str) -> list[tuple[object, ...]]:
+    raw = sqlite3.connect(path)
+    try:
+        return raw.execute(sql).fetchall()
+    finally:
+        raw.close()
+
+
+_OLD_SUBMISSIONS = "SELECT * FROM submissions ORDER BY id"
+_OLD_RESULTS = (
+    "SELECT submission_pk, status, reason, method, verifier_version, worker_ms, queue_ms,"
+    " seconds_on_item, counts_as_try, applied FROM attempt_results ORDER BY submission_pk"
+)
+
+
+def test_0006_copies_answers_with_attempt_numbers(db_url: str) -> None:
+    upgrade(db_url, "0005")
+    path = db_url.removeprefix("sqlite:///")
+    _populate_0005(path)
+    upgrade(db_url)
+    assert not {"submissions", "attempt_results"} & _tables(db_url)
+    rows = _rows(
+        path,
+        "SELECT id, submission_id, user_id, session_item_id, attempt_no, answer_kind,"
+        " mathjson, choice_id, latex, created_at, reserved_revision, lease, leased_at,"
+        " status, reason, method, verifier_version, worker_ms, queue_ms, seconds_on_item,"
+        " counts_as_try, applied, mistake_type FROM answers ORDER BY id",
+    )
+    t = "2026-10-01 00:0{}:00.000000".format
+    graded = ("v1",)
+    assert rows == [
+        (1, "s1", 1, 1, 1, "expression", '["Multiply", 2, "x"]', None, "2x", t(1), 0, 0, None)
+        + ("incorrect", "counterexample", "refutation", *graded, 11, 1, 60, 1, 1, "algebra"),
+        (2, "s2", 1, 1, 2, "expression", '["Power", "x", 2]', None, "x^2", t(2), 1, 1)
+        + ("2026-10-01 00:02:30.000000", "correct", "proven", "symbolic", *graded)
+        + (12, 2, 120, 0, 1, None),
+        (3, "s3", 1, 1, None, "choice", None, "b", None, t(3), 1, 0, None)
+        + ("correct", "proven", "symbolic", *graded, 13, 3, 180, 0, 0, None),
+        (4, "s4", 1, 2, None, "expression", 3, None, "3", t(4), 0, 0, None) + (None,) * 9 + (None,),
+        (5, "s5", 1, 2, None, "expression", 4, None, "4", t(5), None, 0, None)
+        + (None,) * 9
+        + (None,),
+    ]
+    engine = make_engine(db_url)
+    try:
+        with engine.connect() as conn:
+            assert conn.execute(text("PRAGMA foreign_key_check")).all() == []
+    finally:
+        engine.dispose()
+
+
+def test_0006_downgrade_round_trip(db_url: str) -> None:
+    """Old rows come back unchanged; only ``attempt_results.id`` is renumbered."""
+    upgrade(db_url, "0005")
+    path = db_url.removeprefix("sqlite:///")
+    _populate_0005(path)
+    before = _rows(path, _OLD_SUBMISSIONS), _rows(path, _OLD_RESULTS)
+    upgrade(db_url)
+    downgrade(db_url, "0005")
+    assert "answers" not in _tables(db_url)
+    assert (_rows(path, _OLD_SUBMISSIONS), _rows(path, _OLD_RESULTS)) == before
+    assert _rows(path, "SELECT id FROM attempt_results ORDER BY id") == [(1,), (2,), (3,)]
+    upgrade(db_url)
+    assert _rows(path, "SELECT attempt_no FROM answers ORDER BY id") == [
+        (1,),
+        (2,),
+        (None,),
+        (None,),
+        (None,),
+    ]

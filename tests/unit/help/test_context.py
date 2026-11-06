@@ -25,10 +25,9 @@ from mathtutor.help.context import (
 )
 from mathtutor.store.db import make_engine, make_sessionmaker, upgrade, write_transaction
 from mathtutor.store.models import (
-    AttemptResult,
+    Answer,
     SessionItem,
     StudySession,
-    Submission,
     User,
 )
 from mathtutor.verify.types import CheckRequest, CheckResult, Verdict, VerifierBusy
@@ -226,7 +225,7 @@ def test_matching_is_capped_at_three_and_stops_on_match() -> None:
     assert len(pool.requests) == 1
 
 
-def test_build_context_reads_submissions(tmp_path: Path) -> None:
+def test_build_context_reads_answers(tmp_path: Path) -> None:
     url = f"sqlite:///{(tmp_path / 'c.db').as_posix()}"
     upgrade(url)
     engine = make_engine(url)
@@ -256,19 +255,15 @@ def test_build_context_reads_submissions(tmp_path: Path) -> None:
                 ("9x", VerdictStatus.INCORRECT),  # stored but not applied
             ]
         ):
-            sub = Submission(
-                submission_id=f"s{n}",
-                session_item_id=item.id,
-                answer_kind=AnswerKind.EXPRESSION,
-                answer_json=json.dumps({"mathjson": None, "choice_id": None}),
-                answer_latex=latex,
-                created_at=now,
-            )
-            db.add(sub)
-            db.flush()
             db.add(
-                AttemptResult(
-                    submission_pk=sub.id,
+                Answer(
+                    submission_id=f"s{n}",
+                    user_id=user.id,
+                    session_item_id=item.id,
+                    attempt_no=n + 1 if n < 2 else None,
+                    answer_kind=AnswerKind.EXPRESSION,
+                    latex=latex,
+                    created_at=now,
                     status=status,
                     reason=VerdictReason.COUNTEREXAMPLE,
                     method=Method.REFUTATION,
@@ -276,7 +271,7 @@ def test_build_context_reads_submissions(tmp_path: Path) -> None:
                     worker_ms=0,
                     queue_ms=0,
                     seconds_on_item=1,
-                    counts_as_try=True,
+                    counts_as_try=n < 2,
                     applied=n < 2,
                 )
             )

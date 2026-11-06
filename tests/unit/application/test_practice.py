@@ -32,7 +32,7 @@ from mathtutor.domain import (
     VerdictStatus,
 )
 from mathtutor.store.db import make_engine, make_sessionmaker, upgrade
-from mathtutor.store.models import AttemptResult, ItemEvent, SessionItem, StudySession, Submission
+from mathtutor.store.models import Answer, ItemEvent, SessionItem, StudySession
 from mathtutor.verify.types import (
     CheckRequest,
     CheckResult,
@@ -120,6 +120,18 @@ class World:
     def count(self, model: type) -> int:
         with self.sessions() as db:
             return int(db.scalar(select(func.count()).select_from(model)) or 0)
+
+    def graded(self) -> int:
+        """Answers with a stored verdict (applied or not)."""
+        with self.sessions() as db:
+            n = db.scalar(select(func.count()).where(Answer.status.is_not(None)))
+            return int(n or 0)
+
+    def graded_row(self) -> Answer:
+        with self.sessions() as db:
+            row = db.scalar(select(Answer).where(Answer.status.is_not(None)))
+            assert row is not None
+            return row
 
 
 def _at(view: ItemView) -> tuple[int, int]:
@@ -260,7 +272,7 @@ def test_duplicate_submission_id_returns_stored_result(w: World) -> None:
     again = w.svc.submit_answer(w.alice, sid, key, v.session_item_id, v.revision, ANSWER)
     assert again.replayed and again.outcome == INCORRECT
     assert again.item.tries_left == first.item.tries_left == 2
-    assert w.count(AttemptResult) == 1
+    assert w.graded() == 1
     assert len(w.pool.requests) == 1
 
 
@@ -281,10 +293,8 @@ def test_revision_changed_while_grading_stores_unapplied_result(w: World) -> Non
     key = uuid.uuid4()
     with pytest.raises(StaleItem):
         w.submit(sid, CORRECT, sid=key)
-    with w.sessions() as db:
-        result = db.scalar(select(AttemptResult))
-        assert result is not None
-        assert (result.applied, result.counts_as_try) == (False, False)
+    result = w.graded_row()
+    assert (result.applied, result.counts_as_try, result.attempt_no) == (False, False, None)
     # The replay reports the same conflict.
     with pytest.raises(StaleItem):
         w.svc.submit_answer(w.alice, sid, key, v.session_item_id, v.revision, ANSWER)
@@ -310,7 +320,7 @@ def test_other_users_session_forbidden(w: World) -> None:
     bv = w.view(bob_sid, user=bob)
     with pytest.raises(Forbidden):
         w.svc.submit_answer(bob, bob_sid, key, bv.session_item_id, bv.revision, ANSWER)
-    assert w.count(Submission) == 1
+    assert w.count(Answer) == 1
 
 
 def test_item_from_another_session_is_not_found(w: World) -> None:
@@ -327,7 +337,7 @@ def test_answer_kind_must_match(w: World) -> None:
     choice = SubmittedAnswer(AnswerKind.CHOICE, None, "", "a")
     with pytest.raises(InvalidInput):
         w.submit(sid, CORRECT, answer=choice)
-    assert w.count(Submission) == 0
+    assert w.count(Answer) == 0
 
 
 def test_busy_releases_reservation(w: World) -> None:
@@ -335,7 +345,7 @@ def test_busy_releases_reservation(w: World) -> None:
     before = w.view(sid)
     with pytest.raises(Busy):
         w.submit(sid, VerifierBusy)
-    assert w.count(Submission) == 0
+    assert w.count(Answer) == 0
     after = w.view(sid)
     assert (after.revision, after.tries_left) == (before.revision, before.tries_left)
 
@@ -346,7 +356,7 @@ def test_format_issue_changes_nothing(w: World) -> None:
     issue = FormatIssue(FormatIssueCode.INCOMPLETE, "")
     r = w.submit(sid, issue)
     assert r.outcome == issue
-    assert w.count(Submission) == 0 and w.count(AttemptResult) == 0
+    assert w.count(Answer) == 0 and w.graded() == 0
     after = w.view(sid)
     assert (after.revision, after.tries_left, after.state) == (
         before.revision,
@@ -371,13 +381,12 @@ def test_seconds_on_item_from_served_at(w: World) -> None:
     w.clock.now += timedelta(seconds=42, milliseconds=600)
     w.view(sid)  # refresh: no effect
     w.submit(sid, INCORRECT)
-    with w.sessions() as db:
-        result = db.scalar(select(AttemptResult))
-        assert result is not None
-        assert result.seconds_on_item == 42
-        assert (result.worker_ms, result.queue_ms) == (7, 1)
-        assert result.verifier_version == "0.1.0+test"
-        assert result.counts_as_try and result.applied
+    result = w.graded_row()
+    assert result.seconds_on_item == 42
+    assert (result.worker_ms, result.queue_ms) == (7, 1)
+    assert result.verifier_version == "0.1.0+test"
+    assert result.counts_as_try and result.applied and result.attempt_no == 1
+    assert result.user_id == w.alice
 
 
 def test_pending_reservation_then_replay_regrades_orphaned_reservation(w: World) -> None:
@@ -387,12 +396,13 @@ def test_pending_reservation_then_replay_regrades_orphaned_reservation(w: World)
     # Simulate a crash between transactions A and B: a reservation with no result.
     with w.sessions.begin() as db:
         db.add(
-            Submission(
+            Answer(
                 submission_id=str(key),
+                user_id=w.alice,
                 session_item_id=v.session_item_id,
                 answer_kind=AnswerKind.EXPRESSION,
-                answer_json='{"mathjson": ["Multiply", 2, "x"], "choice_id": null}',
-                answer_latex="2x",
+                mathjson=["Multiply", 2, "x"],
+                latex="2x",
                 created_at=w.clock.now,
                 reserved_revision=v.revision,
             )
@@ -405,7 +415,7 @@ def test_pending_reservation_then_replay_regrades_orphaned_reservation(w: World)
     r = w.svc.submit_answer(w.alice, sid, key, v.session_item_id, v.revision, ANSWER)
     assert r.outcome == CORRECT and r.item.state is ItemState.ANSWERED
     assert w.pool.requests[-1].answer == ANSWER
-    assert w.count(Submission) == 1 and w.count(AttemptResult) == 1
+    assert w.count(Answer) == 1 and w.graded() == 1
 
 
 def test_decimal_answer_round_trips_exactly(w: World) -> None:
@@ -415,12 +425,13 @@ def test_decimal_answer_round_trips_exactly(w: World) -> None:
     exact = SubmittedAnswer(AnswerKind.EXPRESSION, ["Multiply", {"num": "0.1"}, "x"], "0.1x", None)
     with w.sessions.begin() as db:
         db.add(
-            Submission(
+            Answer(
                 submission_id=str(key),
+                user_id=w.alice,
                 session_item_id=v.session_item_id,
                 answer_kind=AnswerKind.EXPRESSION,
-                answer_json='{"mathjson": ["Multiply", 0.1, "x"], "choice_id": null}',
-                answer_latex="0.1x",
+                mathjson=["Multiply", 0.1, "x"],  # stored as the literal 0.1
+                latex="0.1x",
                 created_at=w.clock.now - timedelta(seconds=30),
                 reserved_revision=v.revision,
             )

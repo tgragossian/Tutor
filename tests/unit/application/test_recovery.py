@@ -18,7 +18,7 @@ from unit.application.test_practice import ANSWER, BASIC, CORRECT, INCORRECT, Wo
 
 from mathtutor.application.errors import Busy, StaleItem, SubmissionPending
 from mathtutor.domain import AnswerKind, FormatIssueCode, ItemState
-from mathtutor.store.models import AttemptResult, Submission
+from mathtutor.store.models import Answer
 from mathtutor.verify.types import FormatIssue, VerifierBusy
 
 
@@ -37,12 +37,13 @@ def _orphan(w: World, sid: int, revision: int | None) -> uuid.UUID:
     key = uuid.uuid4()
     with w.sessions.begin() as db:
         db.add(
-            Submission(
+            Answer(
                 submission_id=str(key),
+                user_id=w.alice,
                 session_item_id=v.session_item_id,
                 answer_kind=AnswerKind.EXPRESSION,
-                answer_json='{"mathjson": ["Multiply", 2, "x"], "choice_id": null}',
-                answer_latex="2x",
+                mathjson=["Multiply", 2, "x"],
+                latex="2x",
                 created_at=w.clock.now,
                 reserved_revision=revision,
             )
@@ -70,14 +71,10 @@ def test_busy_duplicate_does_not_delete_a_live_reservation(w: World) -> None:
     r = w.submit(alice_sid, CORRECT, sid=key)
     assert r.outcome == CORRECT
     with w.sessions() as db:
-        rows = db.execute(
-            select(Submission.submission_id, AttemptResult.status).join(
-                AttemptResult, AttemptResult.submission_pk == Submission.id
-            )
-        ).all()
-        assert [row[0] for row in rows] == [str(key)]
-        bob = db.scalar(select(Submission).where(Submission.submission_id == str(bob_key)))
-        assert bob is not None and bob.result is None
+        rows = db.scalars(select(Answer.submission_id).where(Answer.status.is_not(None))).all()
+        assert rows == [str(key)]
+        bob = db.scalar(select(Answer).where(Answer.submission_id == str(bob_key)))
+        assert bob is not None and bob.status is None
 
 
 def test_recovery_holds_a_lease_so_a_second_recovery_waits(w: World) -> None:
@@ -94,7 +91,7 @@ def test_recovery_holds_a_lease_so_a_second_recovery_waits(w: World) -> None:
     w.pool.script.append(CORRECT)
     r = w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER)
     assert r.outcome == CORRECT
-    assert w.count(AttemptResult) == 1 and len(w.pool.requests) == 1
+    assert w.graded() == 1 and len(w.pool.requests) == 1
 
 
 def test_busy_recovery_keeps_the_reservation_for_a_later_retry(w: World) -> None:
@@ -105,13 +102,13 @@ def test_busy_recovery_keeps_the_reservation_for_a_later_retry(w: World) -> None
     w.pool.script.append(VerifierBusy)
     with pytest.raises(Busy):
         w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER)
-    assert w.count(Submission) == 1
+    assert w.count(Answer) == 1
     with pytest.raises(SubmissionPending):  # the lease is fresh again
         w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER)
     w.clock.now += timedelta(seconds=11)
     w.pool.script.append(INCORRECT)
     assert w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER).outcome == INCORRECT
-    assert w.count(AttemptResult) == 1
+    assert w.graded() == 1
 
 
 def test_format_issue_on_recovery_removes_the_reservation(w: World) -> None:
@@ -122,7 +119,7 @@ def test_format_issue_on_recovery_removes_the_reservation(w: World) -> None:
     issue = FormatIssue(FormatIssueCode.INCOMPLETE, "")
     w.pool.script.append(issue)
     assert w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER).outcome == issue
-    assert w.count(Submission) == 0 and w.view(sid).tries_left == 3
+    assert w.count(Answer) == 0 and w.view(sid).tries_left == 3
 
 
 def test_original_owner_busy_after_recovery_claimed_does_not_delete(w: World) -> None:
@@ -140,7 +137,7 @@ def test_original_owner_busy_after_recovery_claimed_does_not_delete(w: World) ->
     w.pool.during = recovery_claims_and_finishes
     with pytest.raises(Busy):
         w.svc.submit_answer(w.alice, sid, key, v.session_item_id, 0, ANSWER)
-    assert w.count(Submission) == 1 and w.count(AttemptResult) == 1
+    assert w.count(Answer) == 1 and w.graded() == 1
 
 
 def test_orphan_keeps_its_original_revision(w: World) -> None:
@@ -177,7 +174,7 @@ def test_pre_migration_orphan_without_a_revision_is_dropped_as_stale(w: World) -
     item = w.view(sid).session_item_id
     with pytest.raises(StaleItem):
         w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER)
-    assert w.count(Submission) == 0 and w.pool.requests == []
+    assert w.count(Answer) == 0 and w.pool.requests == []
     assert w.view(sid).tries_left == 3
 
 
@@ -191,9 +188,7 @@ def test_seconds_on_item_ends_at_submission(w: World) -> None:
 
     w.pool.during = grading_delay
     w.submit(sid, INCORRECT)
-    with w.sessions() as db:
-        result = db.scalar(select(AttemptResult))
-        assert result is not None and result.seconds_on_item == 42
+    assert w.graded_row().seconds_on_item == 42
 
 
 def test_recovered_answer_keeps_its_original_answer_time(w: World) -> None:
@@ -203,6 +198,4 @@ def test_recovered_answer_keeps_its_original_answer_time(w: World) -> None:
     w.clock.now += timedelta(minutes=5)
     w.pool.script.append(INCORRECT)
     w.svc.submit_answer(w.alice, sid, key, w.view(sid).session_item_id, 0, ANSWER)
-    with w.sessions() as db:
-        result = db.scalar(select(AttemptResult))
-        assert result is not None and result.seconds_on_item == 30
+    assert w.graded_row().seconds_on_item == 30

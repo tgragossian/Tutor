@@ -21,7 +21,7 @@ from support.webapp import INCORRECT, ROOT, SpyPool, login, make_settings, start
 from mathtutor.domain import FormatIssueCode
 from mathtutor.help import messages
 from mathtutor.help.generator import GenerationRequest, GenerationResult, ScriptedGenerator
-from mathtutor.store.models import HelpRequestRow, ItemHelpState, Submission, UsageEntry, User
+from mathtutor.store.models import Answer, HelpRequestRow, ItemHelpState, UsageEntry, User
 from mathtutor.verify.types import FormatIssue
 from mathtutor.web.app import create_app
 
@@ -314,7 +314,7 @@ def test_next_attempt_linked_once(client: TestClient, app_pool: tuple[FastAPI, S
     (row,) = _rows(app)
     assert row.next_submission_id == first
     with app.state.sessions() as db:
-        assert db.scalar(select(Submission).where(Submission.submission_id == first)) is not None
+        assert db.scalar(select(Answer).where(Answer.submission_id == first)) is not None
 
 
 def test_in_flight_cleared_after_help(client: TestClient, app_pool: Any) -> None:

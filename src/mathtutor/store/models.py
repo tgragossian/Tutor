@@ -131,24 +131,36 @@ class SessionItem(Base):
     tries_used: Mapped[int] = mapped_column(Integer)
 
     session: Mapped[StudySession] = relationship(back_populates="items")
-    submissions: Mapped[list[Submission]] = relationship(
-        back_populates="session_item", order_by="Submission.id"
+    answers: Mapped[list[Answer]] = relationship(
+        back_populates="session_item", order_by="Answer.id"
     )
     events: Mapped[list[ItemEvent]] = relationship(
         back_populates="session_item", order_by="ItemEvent.id"
     )
 
 
-class Submission(Base):
-    __tablename__ = "submissions"
-    __table_args__ = (Index("ix_submissions_session_item_id", "session_item_id"),)
+class Answer(Base):
+    """One answer to a presentation: what was typed, then its verdict once graded (spec D1).
+
+    ``id`` is the old ``submissions.id``. The verdict columns stay NULL until graded.
+    ``attempt_no`` (1-based per presentation) is set only when the result is applied."""
+
+    __tablename__ = "answers"
+    __table_args__ = (
+        UniqueConstraint("session_item_id", "attempt_no", name="uq_answers_item_attempt"),
+        Index("ix_answers_session_item_id", "session_item_id"),
+        Index("ix_answers_user_id_mistake_type", "user_id", "mistake_type"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     submission_id: Mapped[str] = mapped_column(String(36), unique=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     session_item_id: Mapped[int] = mapped_column(ForeignKey("session_items.id"))
+    attempt_no: Mapped[int | None] = mapped_column(Integer)
     answer_kind: Mapped[AnswerKind] = mapped_column(_enum(AnswerKind))
-    answer_json: Mapped[str] = mapped_column(Text)
-    answer_latex: Mapped[str | None] = mapped_column(Text)
+    mathjson: Mapped[Any] = mapped_column(JSON(none_as_null=True), nullable=True)
+    choice_id: Mapped[str | None] = mapped_column(String(64))
+    latex: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime]
     # The presentation revision this answer was reserved against (review B-R2). NULL only on
     # rows reserved before migration 0003; recovery never guesses it.
@@ -157,28 +169,21 @@ class Submission(Base):
     # orphan recovery claims it by incrementing it. Only the holder may delete the row.
     lease: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     leased_at: Mapped[datetime | None]
-
-    session_item: Mapped[SessionItem] = relationship(back_populates="submissions")
-    result: Mapped[AttemptResult | None] = relationship(back_populates="submission")
-
-
-class AttemptResult(Base):
-    __tablename__ = "attempt_results"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    submission_pk: Mapped[int] = mapped_column(ForeignKey("submissions.id"), unique=True)
-    status: Mapped[VerdictStatus] = mapped_column(_enum(VerdictStatus))
-    reason: Mapped[VerdictReason] = mapped_column(_enum(VerdictReason))
-    method: Mapped[Method] = mapped_column(_enum(Method))
-    verifier_version: Mapped[str] = mapped_column(String(64))
-    worker_ms: Mapped[int] = mapped_column(Integer)
-    queue_ms: Mapped[int] = mapped_column(Integer)
-    seconds_on_item: Mapped[int] = mapped_column(Integer)
-    counts_as_try: Mapped[bool] = mapped_column(Boolean)
+    # The verdict: NULL until graded.
+    status: Mapped[VerdictStatus | None] = mapped_column(_enum(VerdictStatus))
+    reason: Mapped[VerdictReason | None] = mapped_column(_enum(VerdictReason))
+    method: Mapped[Method | None] = mapped_column(_enum(Method))
+    verifier_version: Mapped[str | None] = mapped_column(String(64))
+    worker_ms: Mapped[int | None] = mapped_column(Integer)
+    queue_ms: Mapped[int | None] = mapped_column(Integer)
+    seconds_on_item: Mapped[int | None] = mapped_column(Integer)
+    counts_as_try: Mapped[bool | None] = mapped_column(Boolean)
     # False when the presentation changed while grading (spec 06 step 4): stored, not applied.
-    applied: Mapped[bool] = mapped_column(Boolean)
+    applied: Mapped[bool | None] = mapped_column(Boolean)
+    # Write-once; only on an applied incorrect answer (spec D4).
+    mistake_type: Mapped[str | None] = mapped_column(String(16))
 
-    submission: Mapped[Submission] = relationship(back_populates="result")
+    session_item: Mapped[SessionItem] = relationship(back_populates="answers")
 
 
 class ItemHelpState(Base):

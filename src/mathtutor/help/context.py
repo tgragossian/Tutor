@@ -16,7 +16,6 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Literal
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from mathtutor.application.practice import Pool
@@ -29,8 +28,8 @@ from mathtutor.content.schema import (
 )
 from mathtutor.domain import AnswerKind, VerdictStatus
 from mathtutor.help.latex_parse import ParsedMath, parse_latex
-from mathtutor.jsonio import loads_exact
-from mathtutor.store.models import AttemptResult, SessionItem, Submission
+from mathtutor.store.answers import applied_answers
+from mathtutor.store.models import SessionItem
 from mathtutor.verify.types import CheckRequest, SubmittedAnswer, Verdict
 
 HelpType = Literal["hint", "feedback", "explain"]
@@ -175,12 +174,7 @@ def build_context(
     """Read the item's applied results (a stored-but-not-applied result changed nothing for the
     student), then assemble. The pool is called here, so the caller holds no write
     transaction. ``tries_used`` is the item's own counter."""
-    rows = db.execute(
-        select(Submission, AttemptResult)
-        .join(AttemptResult, AttemptResult.submission_pk == Submission.id)
-        .where(Submission.session_item_id == item.id, AttemptResult.applied.is_(True))
-        .order_by(Submission.id)
-    ).all()
+    rows = applied_answers(db, item.id)
     choices = (
         {c.id: c.latex for c in problem.answer.choices}
         if isinstance(problem.answer, ChoiceAnswer)
@@ -188,11 +182,11 @@ def build_context(
     )
     attempts: list[AttemptLine] = []
     last_choice: str | None = None
-    for sub, result in rows:
-        picked = loads_exact(sub.answer_json).get("choice_id")
-        last_choice = picked if isinstance(picked, str) else None
-        latex = choices.get(last_choice or "", "") if choices else (sub.answer_latex or "")
-        attempts.append(AttemptLine(latex, result.status))
+    for row in rows:
+        last_choice = row.choice_id
+        latex = choices.get(last_choice or "", "") if choices else (row.latex or "")
+        assert row.status is not None  # applied answers are graded
+        attempts.append(AttemptLine(latex, row.status))
     latest = attempts[-1] if attempts else None
     note = match_misconception(problem, latest, last_choice, pool)
     context = assemble_context(problem, attempts, hint_level, note)
