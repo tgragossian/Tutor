@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-MAX_TRIES = 3
+MAX_TRIES = 5  # spec D7: enough tries to reach hint level 3
 
 
 class AnswerKind(StrEnum):

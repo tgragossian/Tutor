@@ -172,10 +172,10 @@ def test_server_defaults_apply_to_raw_inserts(db_url: str) -> None:
         " '[]', '[]', '{}', 1, '2026-10-01 00:00:00')"
     )
     raw.commit()
-    state = raw.execute("SELECT hint_level, help_seq FROM item_help_state").fetchone()
+    state = raw.execute("SELECT start_hints, help_seq FROM item_help_state").fetchone()
     arm = raw.execute("SELECT arm FROM help_requests WHERE request_id='r2'").fetchone()
     raw.close()
-    assert state == (1, 0)
+    assert state == (0, 0)
     assert arm == ("none",)
 
 
@@ -199,7 +199,7 @@ def test_write_transactions_begin_immediate_reads_do_not(db_url: str) -> None:
 
 def test_0005_adds_hint_ladder_columns_and_downgrades(db_url: str) -> None:
     """R35: nullable columns only; 0004 rows survive the upgrade and the downgrade."""
-    upgrade(db_url)
+    upgrade(db_url, "0005")
     path = db_url.removeprefix("sqlite:///")
     _populate_0004(path)
     raw = sqlite3.connect(path)
@@ -350,3 +350,61 @@ def test_0006_downgrade_round_trip(db_url: str) -> None:
         (None,),
         (None,),
     ]
+
+
+def _columns(url: str, table: str) -> set[str]:
+    engine = make_engine(url)
+    try:
+        return {c["name"] for c in inspect(engine).get_columns(table)}
+    finally:
+        engine.dispose()
+
+
+_COUNTERS = {"hint_attempt_pk", "hint_type", "hint_counts", "hint_level"}
+
+
+def test_0007_round_trip(db_url: str) -> None:
+    """Spec D9/D10: ``help_requests.answer_id`` (old rows NULL) and the R35 counters dropped;
+    the downgrade re-adds the counters with their old defaults and keeps every row."""
+    upgrade(db_url, "0005")
+    path = db_url.removeprefix("sqlite:///")
+    _populate_0005(path)
+    upgrade(db_url, "0006")
+    labels = _rows(path, "SELECT id, mistake_type FROM answers ORDER BY id")
+    upgrade(db_url)
+    assert not _COUNTERS & _columns(db_url, "item_help_state")
+    assert _columns(db_url, "item_help_state") == {
+        "session_item_id",
+        "start_hints",
+        "help_seq",
+        "in_flight",
+    }
+    kept = "SELECT session_item_id, start_hints, help_seq, in_flight FROM item_help_state"
+    assert _rows(path, kept + " ORDER BY session_item_id") == [
+        (1, 0, 0, None),
+        (2, 0, 0, None),
+    ]
+    assert _rows(path, "SELECT request_id, answer_id FROM help_requests") == [("r1", None)]
+    assert _rows(path, "SELECT id, mistake_type FROM answers ORDER BY id") == labels
+    raw = sqlite3.connect(path)
+    raw.execute("PRAGMA foreign_keys=ON")
+    raw.execute("UPDATE help_requests SET answer_id = 1")
+    raw.commit()
+    try:
+        raw.execute("UPDATE help_requests SET answer_id = 99")  # no such answer
+        raw.commit()
+        raise AssertionError("answer_id must reference answers.id")
+    except sqlite3.IntegrityError:
+        raw.rollback()
+    finally:
+        raw.close()
+    downgrade(db_url, "0006")
+    assert "answer_id" not in _columns(db_url, "help_requests")
+    assert _rows(
+        path,
+        "SELECT session_item_id, hint_level, hint_attempt_pk, hint_type, hint_counts,"
+        " start_hints, help_seq FROM item_help_state ORDER BY session_item_id",
+    ) == [(1, 1, None, None, "{}", 0, 0), (2, 1, None, None, "{}", 0, 0)]
+    assert _rows(path, "SELECT request_id FROM help_requests") == [("r1",)]
+    upgrade(db_url)
+    assert "answer_id" in _columns(db_url, "help_requests")

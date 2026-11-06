@@ -123,7 +123,11 @@ def test_late_finish_without_newer_request_is_stale(kit: Kit) -> None:
     row = kit.row(rid)
     assert (row.status, row.reason, row.output_json) == ("unavailable", "abandoned", None)
     state = kit.state()
-    assert state is not None and (state.hint_level, state.help_seq, state.in_flight) == (1, 0, None)
+    assert state is not None and (state.start_hints, state.help_seq, state.in_flight) == (
+        0,
+        0,
+        None,
+    )
     assert kit.usage()[0].state == "settled"
     kit.generator.before = None
     kit.generator.script = [output()]
@@ -148,15 +152,16 @@ def _flaky_tx(kit: Kit, busy: set[int]) -> dict[str, int]:
 
 
 def test_finalize_retried_once_on_busy_db(kit: Kit) -> None:
-    kit.submit_wrong()  # so the delivered hint moves the ladder (R35)
+    kit.submit_wrong()  # so the delivered hint labels the answer (D4)
     calls = _flaky_tx(kit, {2})  # admission is 1, finalization is 2, its retry is 3
     kit.generator.script = [output()]
     rid = uuid.uuid4()
     out = kit.help(rid=rid)
     assert out.status is HelpStatus.DELIVERED and calls["n"] == 3
     state = kit.state()
-    assert state is not None and state.in_flight is None and state.hint_level == 2
+    assert state is not None and state.in_flight is None and state.help_seq == 1
     assert kit.row(rid).status == "delivered"
+    assert kit.answers()[0].mistake_type is not None  # written by the retried finalization
 
 
 def test_finalize_db_failure_is_unavailable(kit: Kit) -> None:
@@ -169,5 +174,5 @@ def test_finalize_db_failure_is_unavailable(kit: Kit) -> None:
     assert out.html == render_help_html(messages.UNAVAILABLE)
     assert kit.usage()[0].state == "settled"  # settled before finalization
     state = kit.state()
-    assert state is not None and state.in_flight == str(rid) and state.hint_level == 1
+    assert state is not None and state.in_flight == str(rid) and state.start_hints == 0
     assert kit.row(rid).output_json is None

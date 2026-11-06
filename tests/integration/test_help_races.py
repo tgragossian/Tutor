@@ -31,7 +31,7 @@ def test_concurrent_hints_advance_once(tmp_path: Path) -> None:
     """Both threads start together; whichever admits first blocks inside the provider call
     until the other has returned, so the second must see the item's help in flight."""
     kit = make_kit(tmp_path, [output(), output()])
-    kit.submit_wrong()  # so the delivered hint moves the ladder (R35)
+    kit.submit_wrong()  # so the delivered hint labels the answer (D4)
     release = threading.Event()
     kit.generator.before = lambda _req: release.wait(10)
     results: queue.Queue[object] = queue.Queue()
@@ -58,8 +58,9 @@ def test_concurrent_hints_advance_once(tmp_path: Path) -> None:
     assert first.request_id == second.request_id  # pending names the in-flight request
     assert len(kit.generator.requests) == 1
     state = kit.state()
-    assert state is not None and (state.hint_level, state.help_seq, state.in_flight) == (2, 1, None)
+    assert state is not None and (state.help_seq, state.in_flight) == (1, None)
     assert len(kit.rows()) == 1 and len(kit.usage()) == 1
+    assert kit.answers()[0].mistake_type is not None
 
 
 def test_submit_during_help_is_stale(tmp_path: Path) -> None:
@@ -84,7 +85,11 @@ def test_submit_during_help_is_stale(tmp_path: Path) -> None:
     (entry,) = kit.usage()
     assert entry.state == "settled" and (entry.input_tokens, entry.output_tokens) == (2000, 300)
     state = kit.state()
-    assert state is not None and (state.hint_level, state.help_seq, state.in_flight) == (1, 0, None)
+    assert state is not None and (state.start_hints, state.help_seq, state.in_flight) == (
+        0,
+        0,
+        None,
+    )
     item = kit.db_item()
     assert item.revision == 1 and item.tries_used == 1  # only the submission changed them
 
@@ -106,14 +111,14 @@ def test_clear_history_during_help_stores_nothing(tmp_path: Path) -> None:
     assert row.output_json is None and row.status == "stale"
     assert kit.usage()[0].state == "settled"
     state = kit.state()
-    assert state is not None and (state.hint_level, state.in_flight) == (1, None)
+    assert state is not None and (state.start_hints, state.in_flight) == (0, None)
     # A retry of the same id never resurrects the text either.
     assert kit.help(rid=rid).status is HelpStatus.STALE
 
 
 def test_many_concurrent_requests_one_in_flight(tmp_path: Path) -> None:
     kit = make_kit(tmp_path, [output() for _ in range(6)])
-    kit.submit_wrong()  # so the delivered hint moves the ladder (R35)
+    kit.submit_wrong()  # so the delivered hint labels the answer (D4)
     release = threading.Event()
     kit.generator.before = lambda _req: release.wait(10)
     results: queue.Queue[object] = queue.Queue()
@@ -128,4 +133,4 @@ def test_many_concurrent_requests_one_in_flight(tmp_path: Path) -> None:
     assert statuses.count(HelpStatus.DELIVERED) == 1
     assert set(statuses) <= {HelpStatus.DELIVERED, HelpStatus.PENDING, HelpStatus.UNAVAILABLE}
     assert len(kit.generator.requests) == 1
-    assert kit.state().hint_level == 2  # type: ignore[union-attr]
+    assert kit.answers()[0].mistake_type is not None  # labeled once

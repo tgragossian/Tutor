@@ -284,6 +284,17 @@ test('fixed messages show; a failure never shows raw error text', async () => {
   assert.equal(broken.el('help-hint').disabled, false);
 });
 
+test('a repeat hint shows the fixed try-again message without sources', async () => {
+  const p = page();
+  const text = "<p>You&#x27;ve already had a hint for this answer. Try again with it in mind.</p>";
+  p.reply(reply({ status: 'try_again', hint_level: null, html: text, sources: [SOURCE] }));
+  await p.run("askHelp('hint')");
+  assert.equal(p.el('help-body').innerHTML, text);
+  assert.equal(p.el('help-sources').textContent, '');
+  assert.equal(p.el('help-panel').hidden, false);
+  assert.equal(p.el('help-hint').disabled, false);
+});
+
 test('explain sends the chosen confusion; hint sends none', async () => {
   const p = page();
   p.reply(reply(), reply());

@@ -23,6 +23,7 @@ from mathtutor.application.errors import (
 )
 from mathtutor.application.practice import Done, ItemView, PracticeService, SubmitView
 from mathtutor.domain import (
+    MAX_TRIES,
     Action,
     AnswerKind,
     FormatIssueCode,
@@ -151,7 +152,7 @@ def test_start_creates_first_presentation(w: World) -> None:
     v = w.view(sid)
     assert v.item_id == FIRST
     assert v.state is ItemState.ACTIVE
-    assert v.tries_left == 3
+    assert v.tries_left == MAX_TRIES == 5  # spec D7
     assert v.allowed_actions == [Action.SUBMIT, Action.SKIP]
     assert v.precision_hint is None  # only numeric problems get a hint
     assert v.last_outcome is None and v.revealed_latex is None
@@ -167,7 +168,7 @@ def test_unknown_topic_is_invalid(w: World) -> None:
 
 def test_precision_hint_and_choices(w: World) -> None:
     sid = w.svc.start_session(w.alice, ["derivatives.chain_rule"])
-    for _ in range(3):
+    for _ in range(MAX_TRIES):
         w.submit(sid, INCORRECT)
     w.svc.advance(w.alice, sid, *_at(w.view(sid)))
     v = w.view(sid)
@@ -180,16 +181,16 @@ def test_precision_hint_and_choices(w: World) -> None:
     assert choice.choices is not None and [c[0] for c in choice.choices][:2] == ["a", "b"]
 
 
-def test_three_incorrect_exhausts(w: World) -> None:
+def test_five_incorrect_exhausts(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     lefts, states = [], []
-    for _ in range(3):
+    for _ in range(MAX_TRIES):
         r = w.submit(sid, INCORRECT)
         assert r.outcome == INCORRECT and not r.replayed
         lefts.append(r.item.tries_left)
         states.append(r.item.state)
-    assert lefts == [2, 1, 0]
-    assert states == [ItemState.ACTIVE, ItemState.ACTIVE, ItemState.EXHAUSTED]
+    assert lefts == [4, 3, 2, 1, 0]
+    assert states == [ItemState.ACTIVE] * 4 + [ItemState.EXHAUSTED]
     assert w.view(sid).allowed_actions == [Action.REVEAL, Action.ADVANCE]
     assert w.view(sid).last_outcome == INCORRECT
 
@@ -197,7 +198,7 @@ def test_three_incorrect_exhausts(w: World) -> None:
 def test_unable_to_verify_keeps_try_and_allows_skip(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     r = w.submit(sid, UNABLE)
-    assert r.item.tries_left == 3
+    assert r.item.tries_left == MAX_TRIES
     assert r.item.state is ItemState.ACTIVE
     assert Action.SKIP in r.item.allowed_actions
     nxt = w.svc.skip(w.alice, sid, *_at(r.item))
@@ -228,7 +229,7 @@ def test_reveal_only_when_exhausted(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     with pytest.raises(InvalidAction):
         w.svc.reveal(w.alice, sid, *_at(w.view(sid)))
-    for _ in range(3):
+    for _ in range(MAX_TRIES):
         w.submit(sid, INCORRECT)
     v = w.svc.reveal(w.alice, sid, *_at(w.view(sid)))
     assert isinstance(v, ItemView)
@@ -250,7 +251,7 @@ def test_revisit_gets_fresh_presentation(w: World) -> None:
     again = w.view(later)
     assert again.item_id == FIRST
     assert again.session_item_id != first.session_item_id
-    assert again.tries_left == 3 and again.last_outcome is None
+    assert again.tries_left == MAX_TRIES and again.last_outcome is None
 
 
 def test_session_ends_after_last_unsolved_problem(w: World) -> None:
@@ -258,7 +259,7 @@ def test_session_ends_after_last_unsolved_problem(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     w.submit(sid, CORRECT)  # FIRST
     w.svc.advance(w.alice, sid, *_at(w.view(sid)))
-    for _ in range(3):
+    for _ in range(MAX_TRIES):
         w.submit(sid, INCORRECT)  # SECOND, exhausted
     assert w.svc.advance(w.alice, sid, *_at(w.view(sid))) == Done("session_complete")
     assert w.svc.current_item(w.alice, sid) == Done("session_complete")
@@ -271,7 +272,7 @@ def test_duplicate_submission_id_returns_stored_result(w: World) -> None:
     first = w.submit(sid, INCORRECT, sid=key)
     again = w.svc.submit_answer(w.alice, sid, key, v.session_item_id, v.revision, ANSWER)
     assert again.replayed and again.outcome == INCORRECT
-    assert again.item.tries_left == first.item.tries_left == 2
+    assert again.item.tries_left == first.item.tries_left == MAX_TRIES - 1
     assert w.graded() == 1
     assert len(w.pool.requests) == 1
 

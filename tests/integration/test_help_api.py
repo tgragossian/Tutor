@@ -20,7 +20,12 @@ from support.webapp import INCORRECT, ROOT, SpyPool, login, make_settings, start
 
 from mathtutor.domain import FormatIssueCode
 from mathtutor.help import messages
-from mathtutor.help.generator import GenerationRequest, GenerationResult, ScriptedGenerator
+from mathtutor.help.generator import (
+    HINT_CHOICE_SCHEMA,
+    GenerationRequest,
+    GenerationResult,
+    ScriptedGenerator,
+)
 from mathtutor.store.models import Answer, HelpRequestRow, ItemHelpState, UsageEntry, User
 from mathtutor.verify.types import FormatIssue
 from mathtutor.web.app import create_app
@@ -45,8 +50,10 @@ class CitingGenerator(ScriptedGenerator):
         if self.gate is not None:
             self.gate.wait(10)
         ids = re.findall(r'<passage id="([^"]+)"', req.user)[:1]
-        body = json.dumps({"text": self.text, "source_ids": ids, "abstain": False})
-        return GenerationResult(body, "end_turn", 2000, 300, req.model, "req_t", 5)
+        reply: dict[str, Any] = {"text": self.text, "source_ids": ids, "abstain": False}
+        if req.schema == HINT_CHOICE_SCHEMA:  # a hint that classifies the wrong answer (D6)
+            reply["mistake_type"] = "algebra"
+        return GenerationResult(json.dumps(reply), "end_turn", 2000, 300, req.model, "req_t", 5)
 
 
 def _app(
@@ -140,6 +147,24 @@ def test_hint_delivered(client: TestClient, gen: CitingGenerator) -> None:
     assert len(gen.requests) == 1
 
 
+def test_repeat_hint_is_try_again(client: TestClient, gen: CitingGenerator) -> None:
+    """Spec D6a: one hint per state; a repeat Hint is a fixed message with no model call."""
+    sid = start(client)
+    item = _item(client, sid)
+    assert client.post("/api/help", json=_help(client, item)).json()["status"] == "delivered"
+    again = client.post("/api/help", json=_help(client, item))
+    assert again.status_code == 200, again.text
+    body = again.json()
+    assert (body["status"], body["help_seq"], body["hint_level"]) == ("try_again", 2, None)
+    assert "already had a hint for getting started" in body["html"] and body["sources"] == []
+    _submit(client, sid, item)
+    item = _item(client, sid)
+    assert client.post("/api/help", json=_help(client, item)).json()["status"] == "delivered"
+    body = client.post("/api/help", json=_help(client, item)).json()
+    assert body["status"] == "try_again" and "already had a hint for this answer" in body["html"]
+    assert len(gen.requests) == 2
+
+
 def test_help_requires_csrf_and_owner(app_pool: tuple[FastAPI, SpyPool]) -> None:
     app = app_pool[0]
     with TestClient(app, base_url="https://testserver") as alice:
@@ -211,8 +236,10 @@ def test_help_limited_is_429(tmp_path: Path, gen: CitingGenerator) -> None:
     with TestClient(app, base_url="https://testserver") as c:
         login(c)
         sid = start(c)
-        assert c.post("/api/help", json=_help(c, _item(c, sid))).status_code == 200
-        r = c.post("/api/help", json=_help(c, _item(c, sid)))
+        item = _item(c, sid)
+        assert c.post("/api/help", json=_help(c, item)).status_code == 200
+        confusion = item["help"]["confusions"][0]["id"]
+        r = c.post("/api/help", json=_help(c, item, "explain", confusion=confusion))
     assert r.status_code == 429
     assert r.json() == {"error": "help_limited", "message": messages.LIMITED}
 

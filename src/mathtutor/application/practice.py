@@ -30,7 +30,7 @@ from mathtutor.application.errors import (
 from mathtutor.application.selection import History, next_item_id
 from mathtutor.content.loader import LoadedContent
 from mathtutor.content.schema import Answer, ChoiceAnswer, Decimals, NumericAnswer, Problem, Source
-from mathtutor.domain import Action, AnswerKind, ItemState, VerdictStatus
+from mathtutor.domain import MAX_TRIES, Action, AnswerKind, ItemState, VerdictStatus
 from mathtutor.jsonio import loads_exact
 from mathtutor.store.answers import latest_applied, next_attempt_no
 from mathtutor.store.db import is_lock_error, write_transaction
@@ -51,7 +51,6 @@ from mathtutor.verify.types import (
     VerifierBusy,
 )
 
-MAX_TRIES = 3
 ORPHAN_AFTER = timedelta(seconds=10)  # ruling R5 / R13
 ALL_CORRECT = "all_correct"  # every problem in the topics has been answered correctly
 SESSION_COMPLETE = "session_complete"  # every unsolved problem was shown in this session

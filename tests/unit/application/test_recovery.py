@@ -17,7 +17,7 @@ from sqlalchemy import select
 from unit.application.test_practice import ANSWER, BASIC, CORRECT, INCORRECT, World
 
 from mathtutor.application.errors import Busy, StaleItem, SubmissionPending
-from mathtutor.domain import AnswerKind, FormatIssueCode, ItemState, VerdictStatus
+from mathtutor.domain import MAX_TRIES, AnswerKind, FormatIssueCode, ItemState, VerdictStatus
 from mathtutor.store.models import Answer
 from mathtutor.verify.types import FormatIssue, VerifierBusy
 
@@ -119,7 +119,7 @@ def test_format_issue_on_recovery_removes_the_reservation(w: World) -> None:
     issue = FormatIssue(FormatIssueCode.INCOMPLETE, "")
     w.pool.script.append(issue)
     assert w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER).outcome == issue
-    assert w.count(Answer) == 0 and w.view(sid).tries_left == 3
+    assert w.count(Answer) == 0 and w.view(sid).tries_left == MAX_TRIES
 
 
 def test_original_owner_busy_after_recovery_claimed_does_not_delete(w: World) -> None:
@@ -148,12 +148,12 @@ def test_orphan_keeps_its_original_revision(w: World) -> None:
     w.svc._reserve(w.alice, sid, str(key), initial.session_item_id, 0, ANSWER)
     w.submit(sid, INCORRECT)  # another request wins revision 0
     current = w.view(sid)
-    assert (current.revision, current.tries_left) == (1, 2)
+    assert (current.revision, current.tries_left) == (1, MAX_TRIES - 1)
     w.clock.now += timedelta(seconds=11)
     w.pool.script.append(INCORRECT)
     with pytest.raises(StaleItem):
         w.svc.submit_answer(w.alice, sid, key, initial.session_item_id, current.revision, ANSWER)
-    assert w.view(sid).tries_left == 2
+    assert w.view(sid).tries_left == MAX_TRIES - 1
 
 
 def test_orphan_with_its_original_revision_still_recovers(w: World) -> None:
@@ -175,7 +175,7 @@ def test_pre_migration_orphan_without_a_revision_is_dropped_as_stale(w: World) -
     with pytest.raises(StaleItem):
         w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER)
     assert w.count(Answer) == 0 and w.pool.requests == []
-    assert w.view(sid).tries_left == 3
+    assert w.view(sid).tries_left == MAX_TRIES
 
 
 def test_seconds_on_item_ends_at_submission(w: World) -> None:
@@ -217,7 +217,7 @@ def test_recovery_grades_first_so_the_original_replays_its_verdict(w: World) -> 
     w.pool.during = recovery_grades_first
     r = w.submit(sid, INCORRECT, sid=key)
     assert r.replayed and r.outcome == CORRECT
-    assert r.item.state is ItemState.ANSWERED and r.item.tries_left == 3
+    assert r.item.state is ItemState.ANSWERED and r.item.tries_left == MAX_TRIES
     assert w.graded() == 1 and len(w.pool.requests) == 2
     row = w.graded_row()
     assert (row.status, row.applied, row.attempt_no) == (VerdictStatus.CORRECT, True, 1)

@@ -58,6 +58,7 @@ class HelpStatus(StrEnum):
     LIMITED = "limited"
     STALE = "stale"
     PENDING = "pending"
+    TRY_AGAIN = "try_again"  # spec D6a: a repeat hint, answered with a fixed message
 
 
 @dataclass(frozen=True)

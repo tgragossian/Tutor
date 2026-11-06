@@ -13,12 +13,17 @@
    usage; never resent), still outside any transaction.
 4. A second short write transaction rechecks ownership, revision, open state, the user's
    privacy epoch, the help sequence and ``in_flight``. Stale: no text is stored and the
-   ladder does not move. Otherwise the result is stored, ``help_seq`` advances, and
-   the hint ladder moves only for a delivered hint (``_hint_plan``, ruling R35).
-   ``in_flight`` is cleared.
+   ladder does not move. Otherwise the result is stored, ``help_seq`` advances, and a
+   delivered hint records its level and type (a classifying hint labels the answer it
+   addressed, write-once). ``in_flight`` is cleared.
    A busy database gets one retry. If that fails too, the answer is ``UNAVAILABLE`` and the
    item stays in flight (replies ``PENDING``) until the row is ``uncertain_after_s`` (120 s)
    old; then the next request frees it (``_abandon``) and replays report it unavailable.
+
+The hint ladder (``_hint_plan``, spec D6/D6a) climbs by mistakes made: a type's level is the
+number of applied wrong answers of that type on the presentation, capped at 3, and each
+attempt (or the start, before any) gets one hint. A repeat Hint click is answered in step 1,
+before the ledger, with a fixed ``TRY_AGAIN`` message and no model call.
 
 Help never changes tries, verdicts or ``SessionItem.revision``. Logs carry status and reason
 codes only: never student text, model output, chunk text or the API key.
@@ -65,9 +70,15 @@ from mathtutor.help.pipeline import HelpPipeline, HelpStatus, PipelineResult, So
 from mathtutor.help.prompts import prompt_id
 from mathtutor.help.render import render_help_html
 from mathtutor.jsonio import loads_exact
-from mathtutor.store.answers import latest_applied, latest_wrong
+from mathtutor.store.answers import (
+    latest_applied,
+    latest_wrong,
+    mistake_counts,
+    set_mistake_type,
+)
 from mathtutor.store.db import is_lock_error, write_transaction
 from mathtutor.store.models import (
+    Answer,
     HelpRequestRow,
     ItemHelpState,
     SessionItem,
@@ -137,45 +148,44 @@ class _Admitted:
     confusion_label: str | None
     problem: Problem
     hint_level: int | None  # the hint's level (highest offered when classifying); None: no hint
-    plan: HintPlan | None  # the hint ladder's plan for this request (R35); None if not a hint
-    latest_wrong: int | None  # the latest applied wrong submission's pk
-    ladder: int  # the item's hint level at admission (the context's level)
+    plan: HintPlan | None  # the hint ladder's plan for this request (D6); None if not a hint
+    answer_id: int | None  # the latest applied wrong answer at admission (D9)
     help_seq: int
     entry_id: int
 
 
 @dataclass(frozen=True)
 class HintPlan:
-    """How the next hint is written (ruling R35, Thomas 2026-10-27).
+    """How the next hint is written (spec D6, D6a).
 
-    ``levels`` is set when the latest wrong attempt has no mistake type yet: the model picks
-    the type and writes at that type's level. Otherwise ``hint_type`` is the attempt's known
-    type (None at level 0) and ``level`` the level to write."""
+    ``levels`` is set when the latest wrong answer has no mistake type yet: the model picks
+    the type and writes at that type's level. Otherwise ``hint_type`` is the answer's known
+    type (None at level 0) and ``level`` the level to write. ``try_again``: this state already
+    had its hint, so the request gets a fixed message and no model call."""
 
     level: int
     levels: dict[str, int] | None = None
     hint_type: str | None = None
-    start_step: int | None = None  # level 0 only: 1, then 2 (repeats)
+    start_step: int | None = None  # level 0 only: always 1 (step 2 is no longer served)
+    try_again: bool = False
 
 
-def _type_level(counts: dict[str, int], mistake_type: str) -> int:
-    return min(counts.get(mistake_type, 0) + 1, MAX_HINT_LEVEL)
-
-
-def _hint_plan(state: ItemHelpState | None, latest_wrong: int | None) -> HintPlan:
-    """Level 0 (how to start) while the item has no wrong answer, in two steps (a question
-    about the form, then the rule, which repeats); it never moves the type ladders.
-    Once there is one, each mistake type climbs 1 -> 2 -> 3 with the hints it has had on this
-    presentation. Further hints on the attempt the last hint addressed reuse its type; a newer
-    wrong attempt is classified by the model, which can only pick among the offered levels."""
-    if latest_wrong is None:
-        done = state.start_hints if state is not None else 0
-        return HintPlan(0, start_step=min(done + 1, 2))
-    counts = dict(state.hint_counts or {}) if state is not None else {}
-    if state is not None and state.hint_attempt_pk == latest_wrong and state.hint_type:
-        return HintPlan(_type_level(counts, state.hint_type), None, state.hint_type)
-    levels = {t: _type_level(counts, t) for t in MISTAKE_TYPES}
-    return HintPlan(max(levels.values()), levels)
+def _hint_plan(
+    start_hints: int, latest: Answer | None, counts: dict[str, int], hinted: bool = False
+) -> HintPlan:
+    """Level 0 (step 1, a question about the problem's form) while the item has no wrong
+    answer; once it has had that hint, ``try_again``. After a wrong answer, a type's level is
+    its applied wrong answers on this presentation (``counts``, which include the latest when
+    it is typed), capped at 3; an untyped latest answer is classified by the model, which picks
+    among ``{t: count_t + 1}``. ``hinted``: a delivered hint already addressed ``latest``."""
+    if latest is None:
+        return HintPlan(0, start_step=1, try_again=start_hints >= 1)
+    if latest.mistake_type is not None:
+        kind = latest.mistake_type
+        level = min(max(counts.get(kind, 0), 1), MAX_HINT_LEVEL)
+        return HintPlan(level, None, kind, try_again=hinted)
+    levels = {t: min(counts.get(t, 0) + 1, MAX_HINT_LEVEL) for t in MISTAKE_TYPES}
+    return HintPlan(max(levels.values()), levels, try_again=hinted)
 
 
 def _payload_hash(user_id: int, req: HelpIn) -> str:
@@ -269,7 +279,7 @@ class HelpService:
                 if confusions:
                     types.append("explain")
             # When the next hint classifies the mistake, this is the highest level it may use.
-            level = _hint_plan(state, self._latest_wrong(db, item)).level
+            level = self._plan(db, item, state, latest_wrong(db, item.id)).level
         return HelpAvailability(self._enabled, types, confusions, level)
 
     # -- the request -------------------------------------------------------------------------
@@ -321,8 +331,8 @@ class HelpService:
 
     def _build_context(self, admitted: _Admitted) -> HelpContext:
         """Reads the item and may call the grading pool: no write transaction is open. A hint's
-        context carries the level it is written at (0-3); other types carry the ladder."""
-        level = admitted.hint_level if admitted.hint_level is not None else admitted.ladder
+        context carries the level it is written at (0-3); only a hint's prompt reads it."""
+        level = admitted.hint_level if admitted.hint_level is not None else 0
         with self._sessions() as db:
             item = db.get(SessionItem, admitted.session_item_id)
             if item is None:
@@ -378,7 +388,7 @@ class HelpService:
             raise NotFound(messages.USER_NOT_FOUND)
         state = db.get(ItemHelpState, item.id)
         if state is None:
-            state = ItemHelpState(session_item_id=item.id, hint_level=1, help_seq=0)
+            state = ItemHelpState(session_item_id=item.id, help_seq=0)
             db.add(state)
             db.flush()
         if state.in_flight is not None and not self._abandon(db, state):
@@ -386,53 +396,97 @@ class HelpService:
                 state.in_flight, HelpStatus.PENDING, item.id, item.revision, state.help_seq,
                 None, None, [],
             )  # fmt: skip
+        wrong = latest_wrong(db, item.id)
+        answer_id = wrong.id if wrong is not None else None
+        plan = self._plan(db, item, state, wrong) if req.help_type == "hint" else None
+        if plan is not None and plan.try_again:  # D6a: no slot, ledger or model call needed
+            return self._try_again(db, rid, req, item, user, state, payload, answer_id)
         if self._user_in_flight(db, user_id) >= self._cfg.admission.user_in_flight:
             # Fairness: one user never holds every slot. No row and no reservation.
             logger.info("help unavailable reason=user_in_flight")
             return self._plain(rid, req, HelpStatus.UNAVAILABLE, state.help_seq)
         entry_id = self._ledger.admit(db, user_id, rid, self._cfg.model)
-        latest_wrong = self._latest_wrong(db, item)
-        plan = _hint_plan(state, latest_wrong) if req.help_type == "hint" else None
         level = plan.level if plan is not None else None
         db.add(
-            HelpRequestRow(
-                request_id=rid,
-                user_id=user_id,
-                session_item_id=item.id,
-                item_revision=item.revision,
-                help_type=req.help_type,
-                confusion_id=req.confusion,
-                payload_hash=payload,
-                privacy_epoch=user.privacy_epoch,
-                help_seq=state.help_seq,
-                hint_level=level,
-                mistake_type=None,
-                status=HelpStatus.PENDING.value,
-                reason=None,
-                model=self._cfg.model,
-                prompt_version=prompt_id(self._cfg.prompt_version),  # v1+<fingerprint>
-                corpus_hash=self._pipeline.corpus_hash,
-                index_fingerprint=self._pipeline.index_fingerprint,
-                retrieved_ids=[],
-                cited_ids=[],
-                guard_counts={},
-                calls=0,
-                latency_ms=None,
-                arm="none",
-                serving_model=None,
-                output_json=None,
-                created_at=self._now(),
-                finished_at=None,
-                cleared_at=None,
-                next_submission_id=None,
+            self._new_row(
+                rid, req, item, user, state, payload, answer_id, HelpStatus.PENDING, level
             )
         )
         state.in_flight = rid
         db.flush()
         return _Admitted(
             rid, user_id, item.id, item.revision, req.help_type, label, problem, level,
-            plan, latest_wrong, state.hint_level, state.help_seq, entry_id,
+            plan, answer_id, state.help_seq, entry_id,
         )  # fmt: skip
+
+    def _try_again(
+        self,
+        db: Session,
+        rid: str,
+        req: HelpIn,
+        item: SessionItem,
+        user: User,
+        state: ItemHelpState,
+        payload: str,
+        answer_id: int | None,
+    ) -> HelpOutcome:
+        """Spec D6a: this state already had its hint. A finished row with the fixed message;
+        no ledger entry, no model call, no reservation; ``help_seq`` advances."""
+        state.help_seq += 1
+        row = self._new_row(
+            rid, req, item, user, state, payload, answer_id, HelpStatus.TRY_AGAIN, None
+        )
+        row.finished_at = row.created_at
+        row.latency_ms = 0
+        db.add(row)
+        db.flush()
+        logger.info("help finished status=try_again reason=repeat_hint calls=0")
+        return self._outcome(row, HelpStatus.TRY_AGAIN, None, [])
+
+    def _new_row(
+        self,
+        rid: str,
+        req: HelpIn,
+        item: SessionItem,
+        user: User,
+        state: ItemHelpState,
+        payload: str,
+        answer_id: int | None,
+        status: HelpStatus,
+        level: int | None,
+    ) -> HelpRequestRow:
+        return HelpRequestRow(
+            request_id=rid,
+            user_id=user.id,
+            session_item_id=item.id,
+            item_revision=item.revision,
+            help_type=req.help_type,
+            confusion_id=req.confusion,
+            payload_hash=payload,
+            privacy_epoch=user.privacy_epoch,
+            help_seq=state.help_seq,
+            hint_level=level,
+            mistake_type=None,
+            status=status.value,
+            reason=None,
+            model=self._cfg.model,
+            prompt_version=prompt_id(self._cfg.prompt_version),  # v1+<fingerprint>
+            corpus_hash=self._pipeline.corpus_hash,
+            index_fingerprint=self._pipeline.index_fingerprint,
+            retrieved_ids=[],
+            cited_ids=[],
+            guard_counts={},
+            calls=0,
+            latency_ms=None,
+            arm="none",
+            serving_model=None,
+            output_json=None,
+            created_at=self._now(),
+            finished_at=None,
+            cleared_at=None,
+            next_submission_id=None,
+            answer_id=answer_id,
+        )
 
     def _abandon(self, db: Session, state: ItemHelpState) -> bool:
         """Free an item whose in-flight request is older than ``uncertain_after_s``: its worker
@@ -577,7 +631,7 @@ class HelpService:
                 return self._stale(admitted, seq)
             state.help_seq += 1
             if result.status is HelpStatus.DELIVERED and admitted.hint_level is not None:
-                self._advance_ladder(state, row, admitted, result.mistake_type)
+                self._advance_ladder(db, state, row, admitted, result.mistake_type)
             state.in_flight = None
             row.status = result.status.value
             row.reason = result.reason[:32]
@@ -591,11 +645,16 @@ class HelpService:
 
     @staticmethod
     def _advance_ladder(
-        state: ItemHelpState, row: HelpRequestRow, admitted: _Admitted, mistake_type: str | None
+        db: Session,
+        state: ItemHelpState,
+        row: HelpRequestRow,
+        admitted: _Admitted,
+        mistake_type: str | None,
     ) -> None:
-        """After a delivered hint (R35): the hint was written at its type's level (the type the
-        model chose when classifying, else the attempt's known type). Count it for that type and
-        remember the attempt and type; level 0 leaves the ladder alone."""
+        """After a delivered hint (D6): record the level and type it was written for (the type
+        the model chose when classifying, else the answer's known type). A classifying hint
+        labels its answer unless another writer labeled it first (D4); a level-0 hint counts in
+        ``start_hints``. The ladder itself is read from the answers, so nothing else moves."""
         plan = admitted.plan
         assert plan is not None
         if plan.levels is not None:
@@ -607,18 +666,12 @@ class HelpService:
             kind, written = plan.hint_type, plan.level
         row.hint_level = written
         row.mistake_type = kind
-        if plan.start_step is not None:  # a level-0 hint: counts toward step 2
+        if plan.start_step is not None:  # a level-0 hint: the start's one hint (D6a)
             row.start_step = plan.start_step
             state.start_hints = (state.start_hints or 0) + 1
             return
-        if kind is None:
-            return
-        counts = dict(state.hint_counts or {})
-        counts[kind] = counts.get(kind, 0) + 1
-        state.hint_counts = counts  # a new dict, so the JSON column is written
-        state.hint_attempt_pk = admitted.latest_wrong
-        state.hint_type = kind
-        state.hint_level = _type_level(counts, kind)
+        if plan.levels is not None and kind is not None and admitted.answer_id is not None:
+            set_mistake_type(db, admitted.answer_id, kind)
 
     # -- helpers -----------------------------------------------------------------------------
 
@@ -660,10 +713,28 @@ class HelpService:
         return None if latest is None else latest.status
 
     @staticmethod
-    def _latest_wrong(db: Session, item: SessionItem) -> int | None:
-        """The id of the item's latest applied (consumed) wrong answer, if any."""
-        wrong = latest_wrong(db, item.id)
-        return None if wrong is None else wrong.id
+    def _plan(
+        db: Session,
+        item: SessionItem,
+        state: ItemHelpState | None,
+        wrong: Answer | None,
+    ) -> HintPlan:
+        """The next hint's plan from the item's answers (D6); ``wrong`` is the latest applied
+        wrong answer. ``hinted``: a delivered hint row already names it (D6a)."""
+        start_hints = state.start_hints if state is not None else 0
+        if wrong is None:
+            return _hint_plan(start_hints, None, {})
+        hinted = db.scalar(
+            select(HelpRequestRow.id)
+            .where(
+                HelpRequestRow.session_item_id == item.id,
+                HelpRequestRow.help_type == "hint",
+                HelpRequestRow.status == HelpStatus.DELIVERED.value,
+                HelpRequestRow.answer_id == wrong.id,
+            )
+            .limit(1)
+        )
+        return _hint_plan(start_hints, wrong, mistake_counts(db, item.id), hinted is not None)
 
     @staticmethod
     def _owned_item(db: Session, user_id: int, session_item_id: int) -> SessionItem:
@@ -709,6 +780,10 @@ class HelpService:
     ) -> HelpOutcome:
         if status in _TEXT_STATUSES and text is not None:
             html: str | None = render_help_html(text)
+        elif status is HelpStatus.TRY_AGAIN:  # R2: no answer yet, or a hint on this answer
+            html = render_help_html(
+                messages.TRY_FIRST if row.answer_id is None else messages.TRY_AGAIN
+            )
         elif status in _FIXED:
             html = render_help_html(_FIXED[status])
         else:

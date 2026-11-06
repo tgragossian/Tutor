@@ -99,15 +99,15 @@ try {
   const typed = await page.evaluate(() => document.getElementById('answer-field').value);
   check(typed.length > 0, `the math-field accepted typed keys (${typed})`); // 7
   const wrong = await submitAndRead();
-  check(wrong === 'Not quite — try again (2 left)', `wrong answer feedback: "${wrong}"`);
-  check((await triesLeft()) === 'Tries left: 2', 'tries left shows 2');
+  check(wrong === 'Not quite — try again (4 left)', `wrong answer feedback: "${wrong}"`);
+  check((await triesLeft()) === 'Tries left: 4', 'tries left shows 4');
 
   // 5. Reload: same item, same tries (no reset).
   const statement = await page.innerHTML('#statement');
   await page.reload();
   await waitForItem();
   check((await page.innerHTML('#statement')) === statement, 'reload keeps the same item');
-  check((await triesLeft()) === 'Tries left: 2', 'reload keeps the tries count');
+  check((await triesLeft()) === 'Tries left: 4', 'reload keeps the tries count');
 
   // Milestone C1: help. Needs a server started with MATHTUTOR_ENV=test and
   // MATHTUTOR_HELP_GENERATOR=scripted (tests/container/smoke.sh does this; HELP_E2E=1).

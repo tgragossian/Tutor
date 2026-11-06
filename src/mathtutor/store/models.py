@@ -203,20 +203,15 @@ class Answer(Base):
 
 
 class ItemHelpState(Base):
-    """Per-presentation help counters and the single in-flight help request id.
+    """Per-presentation help sequence and the single in-flight help request id.
 
-    Ruling R35: ``hint_counts`` counts delivered hints per mistake type; a type's next level is
-    its count + 1, capped at 3 (level 0, "how to start", while the item has no wrong answer).
-    ``hint_attempt_pk``/``hint_type``: the latest wrong submission the last delivered hint
-    addressed and its type. ``hint_level`` mirrors the next level for that type."""
+    Spec D6: the hint ladder is read from ``answers.mistake_type`` (a type's level is the number
+    of applied wrong answers of that type, capped at 3), so no counters live here.
+    ``start_hints`` counts the level-0 hints delivered before any wrong answer (D6a: one)."""
 
     __tablename__ = "item_help_state"
 
     session_item_id: Mapped[int] = mapped_column(ForeignKey("session_items.id"), primary_key=True)
-    hint_level: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
-    hint_attempt_pk: Mapped[int | None] = mapped_column(Integer)
-    hint_type: Mapped[str | None] = mapped_column(String(16))
-    hint_counts: Mapped[dict[str, int]] = mapped_column(JSON, default=dict, server_default="{}")
     start_hints: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     help_seq: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     in_flight: Mapped[str | None] = mapped_column(String(36))
@@ -242,8 +237,10 @@ class HelpRequestRow(Base):
     privacy_epoch: Mapped[int] = mapped_column(Integer)
     help_seq: Mapped[int] = mapped_column(Integer)
     hint_level: Mapped[int | None] = mapped_column(Integer)  # the level written (0-3)
-    mistake_type: Mapped[str | None] = mapped_column(String(16))  # R35
-    start_step: Mapped[int | None] = mapped_column(Integer)  # level-0 step 1 or 2 (R35)
+    mistake_type: Mapped[str | None] = mapped_column(String(16))  # the type the hint used
+    start_step: Mapped[int | None] = mapped_column(Integer)  # level-0 step (1; 2 before D6a)
+    # Spec D9: the latest applied wrong answer at admission; NULL when none (and on old rows).
+    answer_id: Mapped[int | None] = mapped_column(ForeignKey("answers.id"))
     status: Mapped[str] = mapped_column(String(16))
     reason: Mapped[str | None] = mapped_column(String(32))
     model: Mapped[str | None] = mapped_column(String(64))

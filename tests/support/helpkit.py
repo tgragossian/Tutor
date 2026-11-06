@@ -35,8 +35,9 @@ from mathtutor.help.pipeline import HelpPipeline
 from mathtutor.help.service import HelpIn, HelpOutcome, HelpService
 from mathtutor.retrieval.bm25 import Bm25Index
 from mathtutor.retrieval.corpus import Chunk, ChunkRole, Corpus, text_hash
+from mathtutor.store.answers import applied_answers
 from mathtutor.store.db import make_engine, make_sessionmaker, upgrade
-from mathtutor.store.models import HelpRequestRow, ItemHelpState, SessionItem, UsageEntry
+from mathtutor.store.models import Answer, HelpRequestRow, ItemHelpState, SessionItem, UsageEntry
 from mathtutor.verify.types import CheckRequest, CheckResult, SubmittedAnswer, Verdict
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -226,6 +227,11 @@ class Kit:
     def state(self) -> ItemHelpState | None:
         with self.sessions() as db:
             return db.get(ItemHelpState, self.item.session_item_id)
+
+    def answers(self) -> list[Answer]:
+        """The item's applied answers, oldest attempt first."""
+        with self.sessions() as db:
+            return applied_answers(db, self.item.session_item_id)
 
     def db_item(self) -> SessionItem:
         with self.sessions() as db:

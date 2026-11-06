@@ -21,7 +21,7 @@ from support.helpkit import (
 )
 
 from mathtutor.application.errors import Conflict, Forbidden, InvalidAction, InvalidInput, StaleItem
-from mathtutor.domain import ItemState
+from mathtutor.domain import MAX_TRIES, ItemState
 from mathtutor.help import messages
 from mathtutor.help.generator import (
     HELP_OUTPUT_SCHEMA,
@@ -32,10 +32,18 @@ from mathtutor.help.generator import (
 )
 from mathtutor.help.prompts import START_RULES
 from mathtutor.help.render import render_help_html
-from mathtutor.help.service import HelpIn, HelpOutcome, HelpService, HelpStatus, SourceRef
+from mathtutor.help.service import (
+    HelpIn,
+    HelpOutcome,
+    HelpService,
+    HelpStatus,
+    SourceRef,
+    _hint_plan,
+)
 from mathtutor.retrieval.corpus import ChunkRole
+from mathtutor.store.answers import set_mistake_type
 from mathtutor.store.db import write_transaction
-from mathtutor.store.models import User
+from mathtutor.store.models import Answer, User
 
 LICENSE = "CC BY-NC-SA 4.0"
 
@@ -61,11 +69,12 @@ def test_delivered_hint_with_citation(kit: Kit) -> None:
     row = kit.row(rid)
     assert row.status == "delivered" and row.cited_ids == ["c1-3.6-rule1"]
     assert row.calls == 1 and row.hint_level == 1 and row.help_seq == 1
+    assert row.answer_id == kit.answers()[0].id
     assert json.loads(row.output_json or "")["text"] == GOOD_TEXT
     assert "c1-3.6-key1" not in row.retrieved_ids  # answer keys are never retrieved
     state = kit.state()
     assert state is not None
-    assert (state.hint_level, state.help_seq, state.in_flight) == (2, 1, None)
+    assert (state.help_seq, state.in_flight) == (1, None)
     (entry,) = kit.usage()
     assert entry.state == "settled" and (entry.input_tokens, entry.output_tokens) == (2000, 300)
     req = kit.generator.requests[0]
@@ -73,30 +82,28 @@ def test_delivered_hint_with_citation(kit: Kit) -> None:
     assert req.model == CFG.model and 0 < req.timeout_s <= CFG.deadline_s
 
 
-def test_level_0_before_a_wrong_answer_then_ladder_1_2_3(kit: Kit) -> None:
-    """R35: level 0 (how to start) never moves the ladder; after a wrong answer the first hint
-    classifies the mistake (all types at level 1), then the same attempt climbs 2 -> 3 -> 3."""
-    kit.generator.script = [output() for _ in range(7)]
-    assert [kit.help().hint_level for _ in range(3)] == [0, 0, 0]
-    starts = [r.user for r in kit.generator.requests]
-    assert START_RULES[1] in starts[0] and START_RULES[2] in starts[1]  # two steps,
-    assert START_RULES[2] in starts[2]  # then naming the rule repeats (R37)
-    assert [r.start_step for r in kit.rows()] == [1, 2, 2]
+def test_level_0_once_then_one_hint_per_wrong_answer_climbing_1_2_3(kit: Kit) -> None:
+    """D6/D6a: one level-0 hint (step 1) before any answer, then one hint per wrong answer. With
+    no background label each hint classifies its answer, and the type climbs 1 -> 2 -> 3 -> 3
+    with the wrong answers of that type."""
+    kit.generator.script = [output() for _ in range(5)]
+    assert [kit.help().status for _ in range(2)] == [HelpStatus.DELIVERED, HelpStatus.TRY_AGAIN]
+    assert START_RULES[1] in kit.generator.requests[0].user
+    assert [r.start_step for r in kit.rows()] == [1, None]
     state = kit.state()
-    assert state is not None and (state.hint_counts, state.hint_attempt_pk) == ({}, None)
-    assert state.start_hints == 3
-    kit.submit_wrong()
-    assert [kit.help().hint_level for _ in range(4)] == [1, 2, 3, 3]
-    reqs = kit.generator.requests[3:]
-    assert [r.schema == HINT_CHOICE_SCHEMA for r in reqs] == [True, False, False, False]
-    assert "Level 2" in reqs[1].user and "Level 3" in reqs[2].user
+    assert state is not None and state.start_hints == 1
+    levels = []
+    for _ in range(4):
+        kit.submit_wrong()
+        levels.append(kit.help().hint_level)
+        assert kit.help().status is HelpStatus.TRY_AGAIN
+    assert levels == [1, 2, 3, 3]
+    reqs = kit.generator.requests[1:]
+    assert all(r.schema == HINT_CHOICE_SCHEMA for r in reqs)
+    assert "- Level 2:" in reqs[1].user and "- Level 3:" in reqs[2].user
+    assert [a.mistake_type for a in kit.answers()] == ["rule_misapplied"] * 4
     state = kit.state()
-    assert state is not None and state.help_seq == 7
-    assert (state.hint_type, state.hint_counts, state.hint_level) == (
-        "rule_misapplied",
-        {"rule_misapplied": 4},
-        3,
-    )
+    assert state is not None and (state.help_seq, state.start_hints) == (10, 1)
 
 
 def test_feedback_and_explain_do_not_advance_ladder(kit: Kit) -> None:
@@ -106,7 +113,9 @@ def test_feedback_and_explain_do_not_advance_ladder(kit: Kit) -> None:
     out = kit.help("explain", "why_multiply_inside")
     assert out.status is HelpStatus.DELIVERED and out.hint_level is None
     state = kit.state()
-    assert state is not None and (state.hint_level, state.help_seq) == (1, 2)
+    assert state is not None and state.help_seq == 2
+    assert kit.answers()[0].mistake_type is None  # only a hint labels the answer
+    assert kit.svc.availability(kit.item, kit.user).hint_level == 1
 
 
 def test_feedback_requires_wrong_attempt(kit: Kit) -> None:
@@ -148,7 +157,8 @@ def test_unknown_citation_repairs_then_fallback(kit: Kit) -> None:
     assert "<repair>" not in first.user and "<repair>" in second.user
     assert out.hint_level == 1
     state = kit.state()
-    assert state is not None and state.hint_level == 1 and state.help_seq == 1
+    assert state is not None and state.help_seq == 1
+    assert kit.answers()[0].mistake_type is None  # a fallback is not a delivered hint
     assert [e.call_no for e in kit.usage()] == [1, 2]
     assert all(e.state == "settled" for e in kit.usage())
     assert kit.row(rid).calls == 2 and kit.row(rid).reason == "invalid_citation"
@@ -159,7 +169,7 @@ def test_unknown_citation_repaired_on_second_call(kit: Kit) -> None:
     kit.generator.script = [output(ids=("nope",)), output()]
     out = kit.help()
     assert out.status is HelpStatus.DELIVERED and out.hint_level == 1
-    assert kit.state().hint_level == 2  # type: ignore[union-attr]
+    assert kit.help().status is HelpStatus.TRY_AGAIN  # this answer has had its hint
 
 
 def test_leak_repairs_then_fallback(tmp_path: Path) -> None:
@@ -172,7 +182,7 @@ def test_leak_repairs_then_fallback(tmp_path: Path) -> None:
     row = kit.row(rid)
     assert row.reason == "invalid_guard_leak" and json.loads(row.output_json or "")["text"]
     assert row.guard_counts["leak"] == 2
-    assert kit.state().hint_level == 1  # type: ignore[union-attr]
+    assert kit.state().start_hints == 0  # type: ignore[union-attr]
 
 
 def test_refusal_counts_as_invalid(kit: Kit) -> None:
@@ -198,7 +208,7 @@ def test_abstain_ignores_text_and_ids(kit: Kit) -> None:
     out = kit.help()
     assert out.status is HelpStatus.ABSTAINED
     assert out.html == render_help_html(messages.ABSTAIN) and out.sources == []
-    assert kit.state().hint_level == 1  # type: ignore[union-attr]
+    assert kit.state().start_hints == 0  # type: ignore[union-attr]
     assert "18x" not in (kit.rows()[0].output_json or "")
 
 
@@ -214,7 +224,7 @@ def test_timeout_marks_uncertain_no_resend(kit: Kit, kind: str) -> None:
     assert entry.state == "uncertain"
     assert kit.row(rid).reason == f"generator_{kind}"
     state = kit.state()
-    assert state is not None and state.in_flight is None and state.hint_level == 1
+    assert state is not None and state.in_flight is None and state.start_hints == 0
 
 
 def test_gateway_timeout_is_uncertain(kit: Kit) -> None:
@@ -320,7 +330,7 @@ def test_same_id_replays(kit: Kit) -> None:
     again = kit.help(rid=rid)
     assert again == first
     assert len(kit.generator.requests) == 1 and len(kit.usage()) == 1 and len(kit.rows()) == 1
-    assert kit.state().hint_level == 2  # type: ignore[union-attr]
+    assert kit.state().help_seq == 1  # type: ignore[union-attr]
 
 
 def test_replay_after_presentation_changed_is_stale(kit: Kit) -> None:
@@ -354,7 +364,7 @@ def test_wrong_revision_is_stale_item(kit: Kit) -> None:
 
 
 def test_help_closed_after_reveal(kit: Kit) -> None:
-    for _ in range(3):
+    for _ in range(MAX_TRIES):
         kit.submit_wrong()
     assert kit.item.state is ItemState.EXHAUSTED
     kit.generator.script = [output()]
@@ -421,7 +431,7 @@ def test_abandoned_in_flight_is_recovered(kit: Kit) -> None:
     row = kit.row(old)
     assert row.status == "unavailable" and row.reason == "abandoned" and row.output_json is None
     state = kit.state()
-    assert state is not None and (state.hint_level, state.help_seq, state.in_flight) == (2, 1, None)
+    assert state is not None and (state.help_seq, state.in_flight) == (1, None)
 
 
 def test_semaphore_exhausted_is_unavailable(tmp_path: Path) -> None:
@@ -437,7 +447,7 @@ def test_semaphore_exhausted_is_unavailable(tmp_path: Path) -> None:
 def test_limited_by_ledger(kit: Kit) -> None:
     kit.generator.script = [output() for _ in range(CFG.admission.per_hour)]
     for _ in range(CFG.admission.per_hour):
-        assert kit.help().status is HelpStatus.DELIVERED
+        assert kit.help("explain", "why_multiply_inside").status is HelpStatus.DELIVERED
     out = kit.help()
     assert out.status is HelpStatus.LIMITED and out.html == render_help_html(messages.LIMITED)
     assert len(kit.rows()) == CFG.admission.per_hour
@@ -545,7 +555,7 @@ def test_epoch_recorded_at_admission(kit: Kit) -> None:
     assert kit.row(rid).privacy_epoch == 4
 
 
-# -- ruling R35: a hint ladder per mistake type -------------------------------------------------
+# -- spec D6: a hint ladder per mistake type ----------------------------------------------------
 
 
 def _typed(mistake_type: str | None) -> GenerationResult:
@@ -555,15 +565,15 @@ def _typed(mistake_type: str | None) -> GenerationResult:
     return GenerationResult(json.dumps(body), "end_turn", 2000, 300, CFG.model, "req_x", 12)
 
 
-def _two_hints_on(kit: Kit, mistake_type: str) -> None:
-    """A wrong answer classified as ``mistake_type``, then a second hint on it."""
+def _wrong_as(kit: Kit, mistake_type: str) -> int | None:
+    """A wrong answer, then its one hint, which classifies it as ``mistake_type``."""
     kit.submit_wrong()
-    kit.generator.script = [_typed(mistake_type), output()]
-    assert [kit.help().hint_level for _ in range(2)] == [1, 2]
+    kit.generator.script = [_typed(mistake_type)]
+    return kit.help().hint_level
 
 
 def test_classifying_prompt_offers_each_type_its_level(kit: Kit) -> None:
-    _two_hints_on(kit, "algebra")  # algebra has had 2 hints: next is level 3
+    assert [_wrong_as(kit, "algebra") for _ in range(2)] == [1, 2]  # algebra next: level 3
     kit.submit_wrong()
     kit.generator.script = [_typed("wrong_rule")]
     rid = uuid.uuid4()
@@ -576,26 +586,31 @@ def test_classifying_prompt_offers_each_type_its_level(kit: Kit) -> None:
     assert out.status is HelpStatus.DELIVERED and out.hint_level == 1  # wrong_rule's level
     row = kit.row(rid)
     assert (row.hint_level, row.mistake_type) == (1, "wrong_rule")
-    state = kit.state()
-    assert state is not None
-    assert state.hint_counts == {"algebra": 2, "wrong_rule": 1} and state.hint_type == "wrong_rule"
+    assert [a.mistake_type for a in kit.answers()] == ["algebra", "algebra", "wrong_rule"]
 
 
 def test_same_type_on_a_new_attempt_keeps_climbing(kit: Kit) -> None:
-    _two_hints_on(kit, "algebra")
-    kit.submit_wrong()
-    kit.generator.script = [_typed("algebra")]
-    assert kit.help().hint_level == 3
+    assert [_wrong_as(kit, "algebra") for _ in range(4)] == [1, 2, 3, 3]
 
 
 def test_returning_to_an_earlier_type_resumes_its_level(kit: Kit) -> None:
-    _two_hints_on(kit, "algebra")  # algebra: 2 hints
+    assert [_wrong_as(kit, "algebra") for _ in range(2)] == [1, 2]
+    assert _wrong_as(kit, "incomplete") == 1  # a new type starts at 1
+    assert _wrong_as(kit, "algebra") == 3  # back to algebra: its third wrong answer
+
+
+def test_labeled_answer_is_not_classified_again(kit: Kit) -> None:
+    """A label that is already set (the background classifier, Task 4) picks the level: the
+    hint is written at it with no classifying schema."""
     kit.submit_wrong()
-    kit.generator.script = [_typed("incomplete")]
-    assert kit.help().hint_level == 1  # a new type starts at 1
-    kit.submit_wrong()
-    kit.generator.script = [_typed("algebra")]
-    assert kit.help().hint_level == 3  # back to algebra: its third hint
+    with write_transaction(kit.sessions) as db:
+        assert set_mistake_type(db, kit.answers()[0].id, "wrong_rule")
+    kit.generator.script = [output()]
+    rid = uuid.uuid4()
+    assert kit.help(rid=rid).hint_level == 1
+    assert kit.generator.requests[-1].schema == HELP_OUTPUT_SCHEMA
+    assert "Level 1" in kit.generator.requests[-1].user
+    assert (kit.row(rid).mistake_type, kit.answers()[0].mistake_type) == ("wrong_rule",) * 2
 
 
 def test_classifying_reply_without_a_type_is_repaired(kit: Kit) -> None:
@@ -605,23 +620,18 @@ def test_classifying_reply_without_a_type_is_repaired(kit: Kit) -> None:
     out = kit.help()
     assert out.status is HelpStatus.DELIVERED and out.hint_level == 1
     assert len(kit.generator.requests) == 2  # invalid, then the repair call
-    state = kit.state()
-    assert state is not None and state.hint_counts == {"incomplete": 1}
+    assert kit.answers()[0].mistake_type == "incomplete"
 
 
 def test_undelivered_classifying_hint_leaves_the_ladder(kit: Kit) -> None:
-    _two_hints_on(kit, "algebra")
-    before = kit.state()
-    assert before is not None
+    _wrong_as(kit, "algebra")
     kit.submit_wrong()
     kit.generator.script = [GeneratorError("rate_limited", status_code=429)]
     assert kit.help().status is HelpStatus.UNAVAILABLE
-    after = kit.state()
-    assert after is not None
-    assert (after.hint_counts, after.hint_attempt_pk) == (
-        before.hint_counts,
-        before.hint_attempt_pk,
-    )
+    assert [a.mistake_type for a in kit.answers()] == ["algebra", None]
+    kit.generator.script = [_typed("algebra")]
+    out = kit.help()  # not a repeat: the failed request gave no hint
+    assert out.status is HelpStatus.DELIVERED and out.hint_level == 2
 
 
 def test_feedback_never_classifies_or_counts(kit: Kit) -> None:
@@ -629,5 +639,137 @@ def test_feedback_never_classifies_or_counts(kit: Kit) -> None:
     kit.generator.script = [output()]
     assert kit.help("feedback").status is HelpStatus.DELIVERED
     assert kit.generator.requests[-1].schema == HELP_OUTPUT_SCHEMA
+    assert kit.answers()[0].mistake_type is None
+    kit.generator.script = [output()]
+    assert kit.help().status is HelpStatus.DELIVERED  # feedback does not use up the hint
+
+
+# -- spec D6/D6a: the ladder climbs by mistakes made; one hint per attempt ----------------------
+
+
+def _answer(mistake_type: str | None, answer_id: int = 7) -> Answer:
+    return Answer(id=answer_id, mistake_type=mistake_type)
+
+
+def test_no_wrong_answer_first_hint_is_level_0_step_1() -> None:
+    plan = _hint_plan(0, None, {})
+    assert (plan.level, plan.start_step, plan.levels, plan.try_again) == (0, 1, None, False)
+
+
+@pytest.mark.parametrize("start_hints", [1, 5])
+def test_no_wrong_answer_later_hints_are_try_again(start_hints: int) -> None:
+    assert _hint_plan(start_hints, None, {}).try_again is True
+
+
+def test_second_hint_on_same_wrong_answer_is_try_again() -> None:
+    latest = _answer("wrong_rule")
+    assert _hint_plan(0, latest, {"wrong_rule": 1}).try_again is False
+    assert _hint_plan(0, latest, {"wrong_rule": 1}, hinted=True).try_again is True
+
+
+def test_first_wrong_rule_is_level_1() -> None:
+    plan = _hint_plan(1, _answer("wrong_rule"), {"wrong_rule": 1})
+    assert (plan.level, plan.hint_type, plan.levels, plan.start_step) == (
+        1,
+        "wrong_rule",
+        None,
+        None,
+    )
+
+
+def test_second_and_fourth_same_type_are_2_and_3() -> None:
+    assert _hint_plan(0, _answer("algebra"), {"algebra": 2}).level == 2
+    assert _hint_plan(0, _answer("algebra"), {"algebra": 4}).level == 3
+
+
+def test_other_type_starts_at_1() -> None:
+    plan = _hint_plan(0, _answer("algebra"), {"wrong_rule": 2, "algebra": 1})
+    assert (plan.level, plan.hint_type) == (1, "algebra")
+
+
+def test_unlabeled_offers_counts_plus_one() -> None:
+    plan = _hint_plan(0, _answer(None), {"wrong_rule": 2})
+    assert plan.levels == {"algebra": 1, "wrong_rule": 3, "rule_misapplied": 1, "incomplete": 1}
+    assert plan.level == 3 and plan.hint_type is None and not plan.try_again
+
+
+def test_repeat_hint_same_attempt_returns_fixed_message(kit: Kit) -> None:
+    kit.submit_wrong()
+    kit.generator.script = [output(), output()]
+    assert kit.help().status is HelpStatus.DELIVERED
+    rid = uuid.uuid4()
+    out = kit.help(rid=rid)
+    assert out.status is HelpStatus.TRY_AGAIN
+    assert messages.TRY_AGAIN == (
+        "You've already had a hint for this answer. Try again with it in mind, and I can help "
+        "with what you change. If the method is unclear, use Explain this."
+    )
+    assert out.html == render_help_html(messages.TRY_AGAIN) and out.sources == []
+    assert out.help_seq == 2 and out.hint_level is None
+    assert len(kit.usage()) == 1 and len(kit.generator.requests) == 1
+    row = kit.row(rid)
+    (answer,) = kit.answers()
+    assert (row.status, row.calls, row.answer_id, row.help_seq) == ("try_again", 0, answer.id, 2)
+    assert kit.help(rid=rid) == out  # a replay shows the same fixed message
     state = kit.state()
-    assert state is not None and state.hint_counts == {}
+    assert state is not None and (state.help_seq, state.in_flight) == (2, None)
+
+
+def test_classifying_hint_labels_answer(kit: Kit) -> None:
+    kit.submit_wrong()
+    kit.generator.script = [_typed("wrong_rule")]
+    rid = uuid.uuid4()
+    assert kit.help(rid=rid).hint_level == 1
+    (answer,) = kit.answers()
+    assert answer.mistake_type == "wrong_rule"
+    row = kit.row(rid)
+    assert (row.answer_id, row.mistake_type, row.hint_level) == (answer.id, "wrong_rule", 1)
+
+
+def test_classifying_hint_keeps_existing_label(kit: Kit) -> None:
+    kit.submit_wrong()
+    (answer,) = kit.answers()
+
+    def label_first(_req: object) -> None:
+        with write_transaction(kit.sessions) as db:
+            assert set_mistake_type(db, answer.id, "algebra")
+
+    kit.generator.before = label_first
+    kit.generator.script = [_typed("wrong_rule")]
+    rid = uuid.uuid4()
+    assert kit.help(rid=rid).status is HelpStatus.DELIVERED
+    assert kit.answers()[0].mistake_type == "algebra"  # the first writer wins
+    assert kit.row(rid).mistake_type == "wrong_rule"  # the type this hint was written for
+
+
+def test_help_without_wrong_answer_has_no_answer_id(kit: Kit) -> None:
+    kit.generator.script = [output()]
+    rid = uuid.uuid4()
+    assert kit.help(rid=rid).status is HelpStatus.DELIVERED
+    assert kit.row(rid).answer_id is None
+
+
+def test_second_hint_before_attempt_returns_fixed_message(kit: Kit) -> None:
+    kit.generator.script = [output(), output()]
+    assert kit.help().hint_level == 0
+    out = kit.help()
+    assert out.status is HelpStatus.TRY_AGAIN
+    assert messages.TRY_FIRST == (
+        "You've already had a hint for getting started. Try an answer, even a partial one, and "
+        "I can help with what you wrote. If a step is unclear, use Explain this."
+    )
+    assert out.html == render_help_html(messages.TRY_FIRST)
+    assert len(kit.usage()) == 1 and len(kit.generator.requests) == 1
+    state = kit.state()
+    assert state is not None and state.start_hints == 1
+    kit.submit_wrong()
+    after = kit.help()
+    assert after.status is HelpStatus.DELIVERED and after.hint_level == 1
+
+
+def test_explain_and_feedback_not_limited(kit: Kit) -> None:
+    kit.submit_wrong()
+    kit.generator.script = [output() for _ in range(4)]
+    for help_type, confusion in [("explain", "why_multiply_inside"), ("feedback", None)] * 2:
+        assert kit.help(help_type, confusion).status is HelpStatus.DELIVERED  # type: ignore[arg-type]
+    assert len(kit.generator.requests) == 4 and len(kit.usage()) == 4

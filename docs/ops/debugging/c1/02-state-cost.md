@@ -13,7 +13,7 @@ Usage settlement survives a discarded response; deleting private help must not r
 |---|---|
 | Retry costs twice or skips a hint | `web/static/practice.js`: retain unresolved UUID/payload; `help/service.py`: replay must not regenerate (R8) |
 | Stale hint appears after submit/clear | `help/service.py`, `application/practice.py`: item revision, pending request, privacy epoch and finalize checks |
-| Hint ladder looks wrong | `help/service.py::_hint_plan`: latest wrong attempt, `start_hints`, `hint_type`, `hint_attempt_pk`, per-type `hint_counts` |
+| Hint ladder looks wrong | `help/service.py::_hint_plan`: latest wrong answer, its `answers.mistake_type`, per-type counts of applied wrong answers, `start_hints`; a repeat Hint is `try_again` when a delivered hint row has the same `help_requests.answer_id` |
 | New wrong answer reuses old diagnosis | Latest wrong attempt ID must differ before model classification; a repeated hint on the same attempt reuses its type |
 | Crash releases possibly billed work | `help/pipeline.py`, `help/generator.py`, `help/service.py`: dispatch recorded before call; uncertain outcome remains reserved (R3) |
 | Budget/reset/month discrepancy | `help/ledger.py`, `store/models.py`: reserved + settled + uncertain micro-USD, UTC month and independent usage rows |

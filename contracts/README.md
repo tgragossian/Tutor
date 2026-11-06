@@ -51,7 +51,8 @@ Responses:
 - `submit-response-correct.json`, `-incorrect.json`, `-unable.json`, `-format-issue.json`.
 - `error-stale-item.json`, `error-verifier-busy.json`, `error-invalid-request.json`.
 - `sessions-history.json`: `GET /api/sessions`.
-- `help-request.json`; `help-response-delivered.json`, `-pending.json`, `-unavailable.json`;
+- `help-request.json`; `help-response-delivered.json`, `-pending.json`, `-unavailable.json`,
+  `-try_again.json` (a repeat Hint: a fixed message, no model call);
   `item-help.json` (an item with help availability); `error-help-limited.json`.
 
 ## Rules

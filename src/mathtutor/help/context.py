@@ -61,7 +61,7 @@ class HelpContext:
     hint_level: int
     misconception_note: str | None
     variable: str
-    start_step: int = 1  # R35: which level-0 hint (1 a question about the form, 2 the rule)
+    start_step: int = 1  # level-0 hint: 1 a question about the form; 2 the rule (eval only, D6a)
 
 
 @dataclass(frozen=True)

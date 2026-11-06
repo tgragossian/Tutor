@@ -81,9 +81,9 @@ def test_defaults(db: Session) -> None:
     row = _help(user, item, "r" * 36)
     db.add_all([state, row])
     db.commit()
-    assert (user.privacy_epoch, state.hint_level, state.help_seq) == (0, 1, 0)
+    assert (user.privacy_epoch, state.start_hints, state.help_seq) == (0, 0, 0)
     assert state.in_flight is None
-    assert (row.arm, row.output_json, row.cleared_at) == ("none", None, None)
+    assert (row.arm, row.output_json, row.cleared_at, row.answer_id) == ("none", None, None, None)
 
 
 def test_request_id_unique(db: Session) -> None:

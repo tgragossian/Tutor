@@ -22,7 +22,7 @@ from support.webapp import (
     start,
 )
 
-from mathtutor.domain import FormatIssueCode
+from mathtutor.domain import MAX_TRIES, FormatIssueCode
 from mathtutor.verify.types import FormatIssue, VerifierBusy
 from mathtutor.web import schemas
 
@@ -72,7 +72,7 @@ def test_full_loop_over_json(client_logged_in: TestClient, pool: SpyPool) -> Non
     cur = _current(c, sid)
     assert cur["done"] is False and cur["reason"] is None
     item = cur["item"]
-    assert item["allowed_actions"] == ["submit", "skip"] and item["tries_left"] == 3
+    assert item["allowed_actions"] == ["submit", "skip"] and item["tries_left"] == MAX_TRIES
 
     pool.script = [INCORRECT, CORRECT]
     wrong = c.post(f"/api/sessions/{sid}/submit", json=_submit_body(item))
@@ -83,7 +83,7 @@ def test_full_loop_over_json(client_logged_in: TestClient, pool: SpyPool) -> Non
         "reason": "counterexample",
         "method": "refutation",
     }
-    assert body["item"]["tries_left"] == 2 and body["replayed"] is False
+    assert body["item"]["tries_left"] == MAX_TRIES - 1 and body["replayed"] is False
 
     right = c.post(f"/api/sessions/{sid}/submit", json=_submit_body(body["item"]))
     assert right.json()["outcome"]["status"] == "correct"
@@ -115,9 +115,9 @@ def test_stale_and_action_errors(client_logged_in: TestClient) -> None:
 def test_reveal_after_exhaustion(client_logged_in: TestClient, pool: SpyPool) -> None:
     c = client_logged_in
     sid = start(c)
-    pool.script = [INCORRECT] * 3
+    pool.script = [INCORRECT] * MAX_TRIES
     item = _current(c, sid)["item"]
-    for _ in range(3):
+    for _ in range(MAX_TRIES):
         item = c.post(f"/api/sessions/{sid}/submit", json=_submit_body(item)).json()["item"]
     r = c.post(f"/api/sessions/{sid}/reveal", json=_action(item))
     assert r.status_code == 200
