@@ -1,4 +1,4 @@
-# C1 status: pre-release (2026-10-28)
+# C1 status: released as a beta (2026-11-06)
 
 [C1 plan](README.md) · [Gates](02-gates.md) · [Runbook C1](../../../../../ops/runbook-c1.md) ·
 [Open register](../03-open-decisions.md) · [Tuning list](22-tuning.md)

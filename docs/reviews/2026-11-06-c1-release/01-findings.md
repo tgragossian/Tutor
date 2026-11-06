@@ -14,7 +14,9 @@ The one-shot holdout used prompt fingerprint `1ba6dc7937da`; R40 changed that pr
 the run. The holdout is valid evidence for the released beta at its frozen version, not an
 independent measurement of R40. The reported host still runs `8b35584`, before R40. A new,
 disjoint holdout is needed for a fresh performance claim about the changed prompt. An
-untracked dev run has a spend journal but no summary yet; do not cite its result.
+dev run 3 (`20261106-024324-dev`) is now recorded with prompt `da2eb7555541` and rubric
+v2. It has judge labels only and misses usefulness (20/36), citation support (29/33), guard
+false blocks (10/42) and retrieval Recall@6 (0.774); do not call it an audited result.
 
 ## R2 — Answer box: fix is coherent; browser proof still needed
 
