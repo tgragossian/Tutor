@@ -41,3 +41,22 @@ at the same moment.
   about 205 + Caddy 28 + OS 400 = about 1,400 MiB worst case against the 773 MiB budget of
   the 1 GB bundle. Measured RSS is far below the caps, as in B. The headroom rule decides;
   if it fails, the move to 2 GB (approved 2026-10-26) is in [runbook C1](runbook-c1.md).
+
+## Container measurement on the host (2026-11-05, image from `8b35584`)
+
+Lightsail 1 GB, 2 vCPU; live app stopped, e2e overlay (scripted help, no provider calls).
+`tests/container/smoke.sh` passed on the host (migrations 0004-0005 included); the help browser
+test (`HELP_E2E=1 npm run e2e`) passed from a workstation through an SSH tunnel.
+
+| Run | Grading replies | Help replies | Peak app container | Lowest available |
+|---|---|---|---|---|
+| `8 grading` | 7 incorrect, 1 `verifier_busy`; p95 2156 ms | — | 200 MiB | 248 MiB |
+| `8 help 20` (failed run) | 2 incorrect, 6 `verifier_busy`; p95 2555 ms | 4 delivered, 16 unavailable | 245 MiB | 203 MiB |
+
+Per-process peak RSS: web 193 MiB, workers 68 + 68 + 16 MiB; Caddy 14-16 MiB.
+- **Memory passes the 85% rule on 1 GB:** at most 909 − 203 = 706 MiB used (78%). C-O3: stay on
+  1 GB; 2 GB would not help the finding below, since that bundle also has 2 vCPU.
+- **CPU contention fails the mixed burst:** with 20 simultaneous help requests, 6 of 8 grading
+  submits got `verifier_busy` (1 of 8 without help). The guard and grading compete for 2 vCPU.
+  A 20-hint burst is a stress case for a portfolio site; disclosed, with lowering
+  `admission.concurrency` from 4 to 2 as the first mitigation if it appears in real traffic.
