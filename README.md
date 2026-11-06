@@ -1,44 +1,84 @@
 # Calculus Tutor
 
-As a student and tutor, I often saw LLMs fail students learning mathematics. They tend to give
-too much away, which takes the understanding out of the student's hands. This project builds a
-tutor that holds back: prompt engineering, hard-coded limits, symbolic answer checking, RAG over
-OpenStax's *Calculus Volume 1* (textbook-grounded hints), and, next, LoRA fine-tuning on
-tutoring data scored with TutorBench's human-written rubrics.[^ai]
+As a student and tutor, I often found myself seeing LLMs fail students in their learning process of mathematics. LLMs often provide too much information about a problem, decreasing learning outcomes of students by not allowing them to understand the problem for themselves. This project aims to find a solution to this problem by combining prompt engineering, hard-coded limitations, student input equivalency checks, RAG on OpenStax's *Calculus Volume 1* textbook (textbook-grounded AI hints), and LoRA fine-tuning on tutoring data using TutorBench's human-made rubrics of tutoring benchmarks.[^ai]
 
-**Live:** <https://tutor.thomasgragossian.dev> · **Status:** practice loop live since 2026-10-21;
-AI help live as a **beta** since 2026-11-06 (Claude Sonnet 5.5), with every missed target below.
+**Live:** <https://tutor.thomasgragossian.dev> · **Status:** practice loop live since
+2026-10-21; AI help live as a **beta** since 2026-11-05 (Claude Sonnet 5.5).
 
-<!-- TODO: 20-second GIF: wrong derivative → "What did I do wrong?" → cited help -->
+<p align="center">
+  <img src="readmeImges/help-explain.png" width="560"
+       alt="After a wrong answer, Explain this answers a power-rule question with a worked textbook example and three OpenStax citations, without giving the answer">
+</p>
 
 ## What it does
 
-- **Practice** on derivatives (basic rules, trig, chain rule): 22 reviewed problems, math input
-  with MathLive, answers graded by a SymPy checker that *proves* equivalence or abstains.
-- **Help** when stuck: *Hint* (a ladder that gets more direct each time), *What did I do wrong?*
-  and *Explain this*. Every response cites the OpenStax passages it used, unless it abstains.
-- **Answer containment:** a leak guard checks the math in each response against the reference
-  answer before the student sees it. If it detects the answer, the tutor blocks the response
-  or abstains. *Show answer* (two clicks, with a warning) is the only intended answer path.
+- **Practice** on derivatives (basic rules, trig, chain rule): 22 reviewed problems, math
+  input with MathLive, answers graded by a SymPy checker that *proves* equivalence or abstains.
+- **Help** when stuck: *Hint* (a ladder that gets more direct each time), *What did I do
+  wrong?* and *Explain this*. Every response cites the OpenStax passages it used, given it did
+  not abstain from responding.
+- **Answer containment:** a leak guard checks supported math in each response against the
+  reference answer before the student sees it. If it detects an answer in the output for the
+  student, the tutor blocks the response or abstains. *Show answer* is the intended answer path.
+
+| Choose topics | Enter an answer | Checked symbolically |
+|---|---|---|
+| ![Topic picker with three derivative sections and problem counts](readmeImges/topics.png) | ![A product-rule problem from OpenStax with the math input and help buttons](readmeImges/problem.png) | ![An unsimplified product-rule answer marked correct](readmeImges/correct-answer.png) |
 
 ## How a hint is made
 
 ```mermaid
 flowchart LR
-  A[Student asks for help] --> B[Query from problem + latest attempt]
+  A[Student asks for help] --> B[Build query from problem + latest attempt]
   B --> C[BM25 over 1,765 textbook chunks, home-section boost]
   C --> D[Top 6 passages + problem + attempts]
   D --> E[Claude Sonnet 5.5, structured output with chunk-ID citations]
   E --> F{Leak guard: SymPy checks extracted math vs. answer}
-  F -- clean --> G[Cited help shown]
+  F -- clean --> G[Cited hint shown]
   F -- leak or bad output --> H[One strict repair call, else abstain]
 ```
 
-The help ladder is set by the server, not the model. Before any wrong answer the tutor asks a
-question about the problem's form, without naming the rule; asked again, it names the rule.
-After a wrong answer, the model labels the mistake (algebra slip, wrong rule, rule misapplied,
-incomplete) and each type climbs its own ladder, from a gentle nudge to a walkthrough that
-stops before the answer.
+The help ladder is set by the server, not the model: before any wrong answer the tutor asks a
+question about the problem's form; after one, it labels the mistake (algebra slip, wrong
+rule, rule misapplied, incomplete) and climbs a separate ladder per mistake type.
+
+## How RAG works
+
+Every hint is grounded in the textbook, so the model explains with the same definitions,
+rules and worked examples the student's course uses, and each claim can be traced to a page.
+
+**Building the corpus.** A fetch script downloads *Calculus Volume 1* from OpenStax's archive
+(polite, one request per second, pinned to a book version). The pages carry math only as
+MathML, so I wrote a MathML-to-LaTeX converter; all 18,058 math elements convert with none
+lost. The builder splits each section into chunks of about 300–500 tokens along the book's own
+structure (prose under one heading, a definition box, a theorem, a worked example), keeping
+each display equation with its lead-in sentence. Each chunk gets a stable ID such as
+`c1-3.3-ex2`, a role (definition, theorem, rule, example, explanation, exercise, answer key)
+and its section URL. The result is 1,765 chunks, hashed so that if the corpus was edited or
+corrupted, the app turns help off instead of citing it.
+
+**Retrieval.** Search is BM25, written from scratch in pure Python and held in memory by the
+web process. The tokenizer is tuned for math text: it keeps LaTeX commands like `\sin` and
+`\ln` as terms, turns `f''` into two "prime" tokens, maps `\sin^{-1}` to arcsin and `e^x` to
+"exponential", and folds accents so "L'Hôpital" matches "LHopital". The query is built from
+the problem statement and topic, plus the student's latest wrong attempt (for *What did I do
+wrong?*) or the confusion they picked (for *Explain this*). Chunks from the problem's own
+section get a 1.3× score boost, and the top 6 are kept.
+
+**Keeping the answer out of the passages.** The practice problems are themselves textbook
+exercises, so retrieval only searches teaching text (definitions, theorems, rules, examples,
+explanations). Exercises and the answer key are never searched. Any retrieved passage that
+contains the problem's answer is dropped before the model sees it. If no passages are left,
+the tutor abstains rather than answering without a source.
+
+**Using the passages.** The model gets the passages with their chunk IDs and must return
+structured output naming the IDs it used. The server rejects any citation that was not in
+this request's retrieved set, so the model cannot invent a source. The student sees each
+citation as a link to the exact OpenStax section.
+
+**Measuring it.** I hand labeled which chunks are relevant for 28 development and 12 holdout
+queries and score retrieval on its own, separately from the model (results below). This shows
+whether a weak hint came from a bad search or from the model.
 
 ## Design decisions and why
 
@@ -48,75 +88,69 @@ stops before the answer.
 | Own chunk IDs as citations | Citations are checked against what was actually retrieved, so the model cannot cite a passage it never saw. |
 | Server-owned hint levels | The model writes the text; code decides how much it may reveal. Easier to test and tune. |
 | A guard that can say no | Prompting alone does not stop answer leaks; a symbolic check plus abstention does for supported math. |
-| Sonnet over Haiku, by measurement | Same retrieval, prompts, citation checks and guard, compared before choosing: Sonnet 31/36 useful and 5/6 correct abstentions vs Haiku 25/36 and 2/6, at about 1.4¢ vs 0.1¢ a hint. A fine-tuned Qwen model is meant to replace both. |
+| Sonnet over Haiku, by measurement | Compared on the same cases before choosing: Sonnet gave useful help 31/36 times vs Haiku's 25/36, at about 1.4¢ vs 0.1¢ per hint (to be replaced by a LoRA fine-tuned Qwen model). |
 | Spend ledger | Every call reserves its worst-case cost before it runs, with per-user rate limits and a monthly cap, so a bug cannot run up a bill. |
 
 ## Evaluation
 
-I measure answer checking, textbook retrieval and AI help separately: first on hand-reviewed
-development sets, then once on a held-out set. These tests measure system behavior, not whether
-students learn more.
+I measure answer checking, textbook retrieval, and AI help separately: first on development
+sets, then once on a held-out set. These tests measure system behavior, not whether students
+learn more.
 
 | Component | Result | Who reviewed it |
 |---|---|---|
-| Answer checker | 0 false accepts among 50 incorrect answers; 0 false rejects among 49 correct answers | I hand reviewed the labels for [136 development cases](evals/verifier/results/dev-b.md); code scored the answers |
-| Textbook retrieval | Recall@6: dev 0.774, holdout **0.722** (target 0.80); Hit@6: dev 0.964, holdout 0.833 | I hand labeled 28 dev and 12 holdout queries; code computed the scores |
-| AI help, development | Sonnet: 0/42 leaks, 31/36 useful, 5/6 correct abstentions; Haiku: 0/42 leaks, 25/36 useful, 2/6 | An AI judge scored every response; I audited 31 of them blind ([summary](evals/help/results/20261105-232124-dev/summary.md)) |
-| AI help, holdout (once) | Sonnet: 0/24 leaks, 0/17 math errors, 17/17 citations supported, 3/4 correct abstentions, **12/20 useful** (target 70%), **7/23** good responses blocked by the guard (target ≤ 15%), p95 7.1 s | Judge-scored, 8 rows audited blind ([summary](evals/help/results/20261106-005314-holdout/summary.md)) |
-| Judge vs my labels | Agreed on 136 of 138 labels in the random dev sample and 48 of 48 on the holdout | The audit itself |
+| Answer checker | 0 false accepts among 50 incorrect answers; 0 false rejects among 49 correct answers | Hand reviewed the labels for [136 development cases](evals/verifier/results/dev-b.md); code scored the answers |
+| Textbook retrieval | Recall@6: dev 0.774, holdout 0.722 (target 0.80); Hit@6: dev 0.964, holdout 0.833 | Hand labeled 28 dev and 12 holdout queries; code computed the scores |
+| AI help, development | Sonnet: 0/42 leaks, 31/36 useful; Haiku: 0/42 leaks, 25/36 useful | AI judge scored every response; I audited a blind sample ([summary](evals/help/results/20261105-232124-dev/summary.md)) |
+| AI help, holdout (run once) | Sonnet: 0/24 leaks, 0/17 math errors, 17/17 citations supported, **12/20 useful** (target 70%) | AI judge plus blind audit ([summary](evals/help/results/20261106-005314-holdout/summary.md)) |
 
 **Answer checking.** A false accept marks a wrong answer correct; a false reject marks a correct
 answer wrong. Both were zero on the hand-reviewed development cases. That is evidence about
 those cases rather than a universal guarantee. If symbolic proof and certified counterexample
 checks cannot decide, the checker says *unable to verify* without using a try.
 
-**Retrieval.** Recall@6 is the share of hand-labeled relevant passages that appear in the top
-six results; Hit@6 asks whether at least one appears there. High Hit@6 can coexist with lower
-recall when several passages are relevant: most misses are the extra worked example or
-explanation that a "how do I…" question also deserves. Both splits fall short of the
-predeclared 0.80 gate.
+**Retrieval.** Recall@6 is the share of passages hand labeled relevant that appear in the
+top six results; Hit@6 asks whether at least one appears there. High Hit@6 can coexist with
+lower recall when several passages are relevant: most misses are the extra worked example a
+"how do I…" question also deserves. Both splits fall short of the predeclared 0.80 gate.
 
-**AI help.** I hand reviewed the 42 development and 24 holdout cases, which cover hints,
-feedback, explanations, known mistakes, answer-seeking and requests the textbook cannot
-support. Haiku and Sonnet used the same retrieval, prompts, citation checks and leak guard. A
-blind AI judge scores each response against [my written rubric](evals/help/rubric/v2.md) for
-leaks, accuracy, citation support and usefulness; it cannot see which model produced a
-response. My audit is blind to model identity too: a stratified random 20% plus every flagged
-response. For rows I review, my labels replace the judge's; other rows keep the judge's. Rubric
-v2 adds two usefulness standards I set during the development audit (confusing or
-self-contradicting help is not useful; *Explain this* must not set up the student's own problem).
+**AI help.** Hand reviewed the 42 development and 24 holdout cases, which cover hints,
+feedback, explanations, mistakes, answer-seeking, and unsupported requests. Haiku and Sonnet
+used the same retrieval, prompt, citation checks, and leak guard. A blinded AI judge scores
+each response for usefulness, math accuracy, citation support, and leakage against
+[my written rubric](evals/help/rubric/v2.md); it cannot see which model produced a response.
+My audit is blind to model identity too: I reviewed a stratified random 20% plus every flagged
+case, and my labels replace the judge's where I reviewed. The judge agreed with me on 184 of
+186 labels.
 
-**Holdout.** After the development decisions I froze the model and prompt and ran the holdout
-once, with Sonnet only. A draft holdout retrieval score was seen before the final labeling rule,
-so I do not call that set entirely uninspected. Missed gates are reported here, not tuned away
-by rerunning the same cases. The set is small, so the linked summaries give counts and 95%
-uncertainty intervals alongside the percentages.
-
-**What the misses say.** Even the stronger model needs retrieval, a guard and a human audit to
-tutor well, and it still falls short on usefulness; that gap is what the fine-tuning step
-targets. Testing the live site as a student also found that the prompt let the model coach an
-*earlier* attempt when there were several. That fix (ruling R40) shipped after the holdout and
-was re-checked on development cases only, so the holdout numbers describe the earlier prompt.
+**Holdout.** After the development decisions, I froze the model and prompt and ran the holdout
+once. A draft holdout retrieval score was seen before the final labeling rule, so I do not call
+that set entirely uninspected. Missed gates are reported here, not tuned away by rerunning the
+same cases. The holdout is small, so the linked summaries give counts and uncertainty intervals
+alongside percentages. The guard also blocked 7 of 23 good responses (target at most 15%).
+One prompt fix found by testing the live site shipped after the holdout, so the holdout numbers
+describe the earlier prompt.
 
 ## What's next
 
-1. **Fine-tuned open model:** QLoRA on Qwen 9B for tutoring, served on RunPod, compared with
-   the Claude baseline on this harness, a separate untouched test set and TutorBench Calculus.
-   The aim is lower serving cost while maintaining or improving help quality.
-2. **Pre-written explanations:** generate the 18 *Explain this* answers once, review them by
-   hand, and serve them from storage: no model call, no latency, no over-helping.
-3. **Retrieval and guard:** pin a worked example for "how do I…" questions (most current recall
+1. **Fine-tuned open model:** LoRA on Qwen 9B for tutoring, served on RunPod, compared with the
+   Claude baseline on the same harness, a separate untouched test set and TutorBench. Aim to
+   reduce serving cost while maintaining or improving help quality.
+2. **Retrieval and guard:** pin a worked example for "how do I…" questions (most current
    misses), and stop the guard blocking general formulas such as f(x)g(x).
+3. **Pre-written explanations:** generate the 18 *Explain this* answers once, review them by
+   hand, and serve them with no model call.
 4. **With real users:** A/B test hint styles (e.g. how much the first hint gives) on solve rate
-   after help, not just ratings. Ratings and a complete Clear history come in C2.
-5. **Exam and quiz prep, personalized:** students add course materials, how long they have
-   before an exam and how many hours they can commit; the tutor quizzes them to find weak spots
-   and builds high-value problem sets and a study plan around that time.
+   after help, not just ratings.
+5. **Exam/Quiz prep, personalized:** students can input course learning materials for tuned
+   help for quizzes and exams. The tutor gives quizzes to find weaknesses and creates high-value
+   problem sets. Students can also say how long they have before their exam and how many hours
+   they can commit to the learning process.
 
 ## Stack
 
-Python · FastAPI · SQLAlchemy/Alembic · SymPy · Anthropic API · MathLive · Docker Compose with
-Caddy on AWS Lightsail (1 GB) · Cloudflare DNS. 1,648 Python tests and 49 web tests in CI.
+Python · FastAPI · SQLAlchemy/Alembic · SymPy · Anthropic API · MathLive · Docker Compose
+with Caddy on AWS Lightsail (1 GB) · Cloudflare DNS. 1,648 Python tests and 49 web tests in CI.
 
 ## Run locally
 
@@ -125,15 +159,13 @@ cp deploy/.env.example deploy/.env    # set MATHTUTOR_SECRET_KEY and SITE_ADDRES
 docker build -t mathtutor:local . && docker compose -f deploy/compose.yaml up -d
 ```
 
-Details: [local setup](docs/ops/local.md). Help needs `MATHTUTOR_ANTHROPIC_API_KEY`; without
-it, practice works and help is hidden.
+Details: [local setup](docs/ops/local.md).
+Help needs `MATHTUTOR_ANTHROPIC_API_KEY`; without it, practice works and help is hidden.
 
 ## For reviewers
 
 Engineering detail lives in [`docs/`](docs/README.md): [decisions](docs/decisions/),
 [help evaluation](evals/help/README.md), [verifier results](evals/verifier/results/dev-b.md),
-[C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulings.md),
-[tuning list](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/22-tuning.md),
 [code reviews](docs/reviews/README.md) and the [handoff](handoff.md) with current status.
 
 Textbook content: *Calculus Volume 1* by Gilbert Strang and Edwin "Jed" Herman, OpenStax,
