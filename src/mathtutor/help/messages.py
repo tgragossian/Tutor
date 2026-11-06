@@ -14,6 +14,10 @@ TRY_AGAIN = (
     "what you change. If the method is unclear, use Explain this."
 )
 TRY_EXHAUSTED = "You've used all your tries. Use Show answer or Explain this."
+EXPLAIN_LIMIT = (
+    "You've used all three explanations for this problem. Try an answer, or use Hint or "
+    "Show answer."
+)
 TRY_UNVERIFIED = (
     "I couldn't verify your last answer. Try entering it another way, or use Explain this."
 )

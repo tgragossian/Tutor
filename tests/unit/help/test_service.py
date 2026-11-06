@@ -118,6 +118,23 @@ def test_feedback_and_explain_do_not_advance_ladder(kit: Kit) -> None:
     assert kit.svc.availability(kit.item, kit.user).hint_level == 1
 
 
+def test_explain_capped_per_problem_with_fixed_message(kit: Kit) -> None:
+    """Three model-written explanations per problem; the fourth gets a fixed message with no
+    model call, ledger entry or reservation, and clearing history frees no slot."""
+    kit.generator.script = [output() for _ in range(3)]
+    for _ in range(3):
+        assert kit.help("explain", "why_multiply_inside").status is HelpStatus.DELIVERED
+    usage_before = len(kit.usage())
+    out = kit.help("explain", "why_multiply_inside")
+    assert out.status is HelpStatus.TRY_AGAIN and out.sources == []
+    assert out.html == render_help_html(messages.EXPLAIN_LIMIT)
+    assert len(kit.generator.requests) == 3 and len(kit.usage()) == usage_before
+    assert kit.rows()[-1].reason == "explain_limit" and kit.rows()[-1].calls in (0, None)
+    kit.submit_wrong()
+    kit.generator.script = [output()]
+    assert kit.help().status is HelpStatus.DELIVERED  # hints are unaffected
+
+
 def test_feedback_requires_wrong_attempt(kit: Kit) -> None:
     with pytest.raises(InvalidAction) as info:
         kit.help("feedback")
@@ -445,9 +462,10 @@ def test_semaphore_exhausted_is_unavailable(tmp_path: Path) -> None:
 
 
 def test_limited_by_ledger(kit: Kit) -> None:
+    kit.submit_wrong()
     kit.generator.script = [output() for _ in range(CFG.admission.per_hour)]
-    for _ in range(CFG.admission.per_hour):
-        assert kit.help("explain", "why_multiply_inside").status is HelpStatus.DELIVERED
+    for _ in range(CFG.admission.per_hour):  # feedback: no per-problem cap, unlike explain
+        assert kit.help("feedback").status is HelpStatus.DELIVERED
     out = kit.help()
     assert out.status is HelpStatus.LIMITED and out.html == render_help_html(messages.LIMITED)
     assert len(kit.rows()) == CFG.admission.per_hour

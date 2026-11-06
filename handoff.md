@@ -16,6 +16,11 @@ records R1–R40. Milestone B is closed; actual hours are not a gate.
    (the `...T231804Z.db` file is zero bytes). Pending: Thomas's browser check in the
    [runbook](docs/ops/runbook-answers-table.md#thomass-live-acceptance-check); confirm a
    live wrong answer gets a `mistake_type`. [Findings](docs/reviews/2026-11-06-answers-table/03-findings.md).
+   Thomas's 2026-11-06 test: storage, order, hint lock and per-type ladder work. Queue:
+   (a) classifier labels the same mistake differently (`15x^2+1` algebra vs `+2/+3`
+   rule_misapplied), so the ladder climbs less; (b) three citations all read "§3.3": label
+   example vs text; (c) hints say "the example" without naming it; (d) the answer prompt
+   shows raw `y=\dots`. Explain is capped at 3 per problem (`MAX_EXPLAINS`), fixed text after.
 2. **[Baseline ladder plan](docs/superpowers/plans/2026-11-06-baseline-ladder/README.md):**
    (plain request vs paste-in prompt vs tutor without textbook vs full tutor, with cost per
    useful hint). [Codex review](docs/reviews/2026-11-06-baseline-ladder/README.md)

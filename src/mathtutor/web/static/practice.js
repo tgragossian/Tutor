@@ -317,7 +317,7 @@ function renderHelpSources(sources) {
 
 function showHelp(data, type) {
   if (data.help_seq > 0) helpShownSeq = data.help_seq;
-  if (data.status === 'try_again' && visibleHelpType === 'hint' && $('help-body').innerHTML) {
+  if (data.status === 'try_again' && (visibleHelpType === 'hint' || type === 'explain') && $('help-body').innerHTML) {
     $('help-message').textContent = data.html ? new DOMParser().parseFromString(data.html, 'text/html').body.textContent : '';
     return;
   }

@@ -43,7 +43,7 @@ from datetime import datetime, timedelta
 from typing import get_args
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -98,6 +98,9 @@ logger = logging.getLogger(__name__)
 
 HELP_TYPES: tuple[str, ...] = get_args(HelpType)
 OPEN_STATES = frozenset({ItemState.ACTIVE, ItemState.EXHAUSTED})
+# Explanations per problem, until fixed explanations replace the model call. A repeat past
+# the cap gets a fixed message (status ``try_again``, reason "explain_limit"), no model call.
+MAX_EXPLAINS = 3
 MAX_HINT_LEVEL = 3
 MAX_CONFUSION_ID = 64
 _TEXT_STATUSES = frozenset({HelpStatus.DELIVERED, HelpStatus.FALLBACK})
@@ -404,6 +407,10 @@ class HelpService:
         plan = self._plan(db, item, wrong) if req.help_type == "hint" else None
         if plan is not None and plan.try_again:  # D6a: no slot, ledger or model call needed
             return self._try_again(db, rid, req, item, user, state, payload, answer_id)
+        if req.help_type == "explain" and self._explains_used(db, item) >= MAX_EXPLAINS:
+            return self._try_again(
+                db, rid, req, item, user, state, payload, answer_id, "explain_limit"
+            )
         if self._user_in_flight(db, user_id) >= self._cfg.admission.user_in_flight:
             # Fairness: one user never holds every slot. No row and no reservation.
             logger.info("help unavailable reason=user_in_flight")
@@ -432,8 +439,10 @@ class HelpService:
         state: ItemHelpState,
         payload: str,
         answer_id: int | None,
+        reason: str | None = None,
     ) -> HelpOutcome:
-        """Spec D6a: this state already had its hint. A finished row with the fixed message;
+        """Spec D6a: this state already had its hint (or, with ``reason`` "explain_limit",
+        the item used its ``MAX_EXPLAINS``). A finished row with the fixed message;
         no ledger entry, no model call, no reservation; ``help_seq`` advances."""
         state.help_seq += 1
         row = self._new_row(
@@ -442,13 +451,15 @@ class HelpService:
         row.finished_at = row.created_at
         row.latency_ms = 0
         latest = latest_applied(db, item.id)
-        if item.state is ItemState.EXHAUSTED:
+        if reason is not None:
+            row.reason = reason
+        elif item.state is ItemState.EXHAUSTED:
             row.reason = "exhausted"
         elif latest is not None and latest.status is VerdictStatus.UNABLE_TO_VERIFY:
             row.reason = "unverified"
         db.add(row)
         db.flush()
-        logger.info("help finished status=try_again reason=repeat_hint calls=0")
+        logger.info("help finished status=try_again reason=%s calls=0", reason or "repeat_hint")
         return self._outcome(row, HelpStatus.TRY_AGAIN, None, [])
 
     def _new_row(
@@ -715,6 +726,22 @@ class HelpService:
         return None
 
     @staticmethod
+    def _explains_used(db: Session, item: SessionItem) -> int:
+        """Explanations the model wrote for this item, cleared or not (clearing frees no cap)."""
+        return (
+            db.scalar(
+                select(func.count(HelpRequestRow.id)).where(
+                    HelpRequestRow.session_item_id == item.id,
+                    HelpRequestRow.help_type == "explain",
+                    HelpRequestRow.status.in_(
+                        (HelpStatus.DELIVERED.value, HelpStatus.FALLBACK.value)
+                    ),
+                )
+            )
+            or 0
+        )
+
+    @staticmethod
     def _latest_status(db: Session, item: SessionItem) -> VerdictStatus | None:
         """The latest applied (consumed) verdict on the item."""
         latest = latest_applied(db, item.id)
@@ -799,7 +826,9 @@ class HelpService:
         if status in _TEXT_STATUSES and text is not None:
             html: str | None = render_help_html(text)
         elif status is HelpStatus.TRY_AGAIN:  # R2: no answer yet, or a hint on this answer
-            if row.reason == "exhausted":
+            if row.reason == "explain_limit":
+                message = messages.EXPLAIN_LIMIT
+            elif row.reason == "exhausted":
                 message = messages.TRY_EXHAUSTED
             elif row.reason == "unverified":
                 message = messages.TRY_UNVERIFIED
