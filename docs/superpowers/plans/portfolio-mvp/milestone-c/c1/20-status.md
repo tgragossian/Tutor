@@ -1,7 +1,7 @@
 # C1 status: pre-release (2026-10-28)
 
 [C1 plan](README.md) · [Gates](02-gates.md) · [Runbook C1](../../../../../ops/runbook-c1.md) ·
-[Open register](../03-open-decisions.md)
+[Open register](../03-open-decisions.md) · [Tuning list](22-tuning.md)
 
 Tasks 1 to 15 are implemented on branch `milestone-c1`; reviewed by subagent per task. The
 branch is **not released**: nothing is deployed, no holdout has run and no key is on the host.

@@ -45,3 +45,6 @@ release. Holdout cases are never edited in response; new cases go to dev or a fr
 
 12. `contracts/examples/help-response-delivered.json` still shows the old citation label
     ("3.6 The Chain Rule"); it should read "Calculus Volume 1, §3.6".
+13. **Duplicate-looking citations:** with section-only labels (S2-5), three passages from one
+    section show as three identical "Calculus Volume 1, §3.3" rows (Thomas, live). Merge rows
+    per section, or number them ("§3.3, passage 1"), keeping each passage's own link.
