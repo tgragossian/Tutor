@@ -106,7 +106,7 @@ def _offline(monkeypatch: pytest.MonkeyPatch, generator: ScriptedGenerator, case
 
 def _args(run_id: str, split: str = "dev", freeze: str | None = None) -> SimpleNamespace:
     return SimpleNamespace(
-        draft=False, retrieval_only=False, split=split, max_usd="4", models=CFG.model,
+        draft=False, retrieval_only=False, split=split, max_usd="4", models=HAIKU,
         run_id=run_id, seed="t", no_retrieval=False, no_judge=True, freeze=freeze,
     )  # fmt: skip
 

@@ -1,0 +1,120 @@
+{
+  "run_id": "20261106-005314-holdout",
+  "split": "holdout",
+  "models": [
+    "claude-sonnet-5-5"
+  ],
+  "seed": "20261106-005314-holdout",
+  "started": "2026-11-06T00:53:28Z",
+  "no_retrieval": false,
+  "judge": "claude-sonnet-5-5",
+  "rubric_version": "v2",
+  "config_version": "c1-2",
+  "prompt_version": "v1",
+  "prompt_fingerprint": "1ba6dc7937da",
+  "versions": {
+    "schema": "1",
+    "parser": "1",
+    "guard": "1"
+  },
+  "tariff_version": "2026-10-26",
+  "tariffs": {
+    "claude-haiku-5-5": {
+      "model_id": "claude-haiku-5-5",
+      "input_micros_per_mtok": 100000,
+      "output_micros_per_mtok": 500000
+    },
+    "claude-sonnet-5-5": {
+      "model_id": "claude-sonnet-5-5",
+      "input_micros_per_mtok": 2000000,
+      "output_micros_per_mtok": 10000000
+    }
+  },
+  "corpus_hash": "3656bd882038bfc26f2cd507770317b61190b85b8b839a1fdf7cdadd3033748b",
+  "index_fingerprint": "30e9092b2783be7315f564e3d94fe521b6cc62c1d1339e53897360771b98e678",
+  "head": "1de6f3bf1c2ef06a1902dcfb978d1906f5391132",
+  "dirty": true,
+  "freeze": "1de6f3b",
+  "cap_micros": 12600000,
+  "spent_micros": 534184,
+  "spend_journal": "spend.jsonl",
+  "stopped": null,
+  "cases": 24,
+  "mix_warnings": [],
+  "answers": {
+    "openstax-c1-3.3-109": "32x^3+18x",
+    "openstax-c1-3.3-137": "-7x-3",
+    "openstax-c1-3.3-145": "\\frac{12}{121}",
+    "openstax-c1-3.5-187": "x+1-\\frac{3\\pi}{2}",
+    "openstax-c1-3.5-193": "\\frac{1}{2}\\sin(x)",
+    "openstax-c1-3.6-217": "-\\frac{1}{8}\\sin\\left(\\frac{x}{8}\\right)",
+    "openstax-c1-3.6-229": "\\frac{4}{(5-2x)^3}"
+  },
+  "retrieval": {
+    "recall_at_6": 0.7222,
+    "mrr_at_6": 0.5069,
+    "queries": 12,
+    "per_query": [
+      [
+        "rq-hold-01",
+        0.6666666666666666,
+        1.0
+      ],
+      [
+        "rq-hold-02",
+        1.0,
+        0.16666666666666666
+      ],
+      [
+        "rq-hold-03",
+        1.0,
+        0.3333333333333333
+      ],
+      [
+        "rq-hold-04",
+        1.0,
+        1.0
+      ],
+      [
+        "rq-hold-05",
+        1.0,
+        1.0
+      ],
+      [
+        "rq-hold-06",
+        0.0,
+        0.0
+      ],
+      [
+        "rq-hold-07",
+        0.6666666666666666,
+        1.0
+      ],
+      [
+        "rq-hold-08",
+        0.3333333333333333,
+        0.5
+      ],
+      [
+        "rq-hold-09",
+        1.0,
+        0.3333333333333333
+      ],
+      [
+        "rq-hold-10",
+        1.0,
+        0.5
+      ],
+      [
+        "rq-hold-11",
+        0.0,
+        0.0
+      ],
+      [
+        "rq-hold-12",
+        1.0,
+        0.25
+      ]
+    ]
+  }
+}

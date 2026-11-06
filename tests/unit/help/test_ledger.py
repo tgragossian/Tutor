@@ -15,14 +15,14 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from mathtutor.application.errors import AppError, HelpLimited
 from mathtutor.domain import ItemState
-from mathtutor.help.config import DEFAULT_CONFIG_PATH, load_help_config
+from mathtutor.help.config import DEFAULT_CONFIG_PATH, load_help_config, worst_case_micros
 from mathtutor.help.ledger import Ledger, main, micros_for, month_of
 from mathtutor.store.db import make_engine, make_sessionmaker, upgrade, write_transaction
 from mathtutor.store.models import HelpRequestRow, SessionItem, StudySession, UsageEntry, User
 
 CFG = load_help_config(DEFAULT_CONFIG_PATH)
 HAIKU = "claude-haiku-5-5"
-WORST = 2_300  # 8,000 × 0.1 + 3,000 × 0.5 µ$ (config c1-2)
+WORST = worst_case_micros(CFG, HAIKU)  # one Haiku call (these tests reserve Haiku)
 START = datetime(2026, 10, 26, 9, 0, tzinfo=UTC)
 
 
@@ -219,14 +219,14 @@ def test_budget_includes_reservations(ledger: Ledger, sessions: sessionmaker[Ses
 
 
 def test_budget_counts_open_reservations(ledger: Ledger, sessions: sessionmaker[Session]) -> None:
-    _settle_month(sessions, 15_000_000 - 2 * WORST)
+    _settle_month(sessions, CFG.admission.month_budget_micros - 2 * WORST)
     _admit(ledger, sessions, 1)
     _admit(ledger, sessions, 2)  # exactly at the budget: allowed (≤)
     assert _reason(ledger, sessions, 3) == "budget"
 
 
 def test_reserve_call_checks_budget(ledger: Ledger, sessions: sessionmaker[Session]) -> None:
-    _settle_month(sessions, 15_000_000 - WORST)
+    _settle_month(sessions, CFG.admission.month_budget_micros - WORST)
     rid = _rid()
     with write_transaction(sessions) as db:
         ledger.admit(db, 1, rid, HAIKU)

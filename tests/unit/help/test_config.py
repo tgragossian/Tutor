@@ -13,8 +13,8 @@ CONFIG_PATH = Path(__file__).parents[3] / "src" / "mathtutor" / "help" / "help_c
 
 def test_config_values() -> None:
     cfg = load_help_config(CONFIG_PATH)
-    assert cfg.version == "c1-2"
-    assert cfg.model == "claude-haiku-5-5"
+    assert cfg.version == "c1-3"
+    assert cfg.model == "claude-sonnet-5-5"
     assert cfg.effort == "low"
     assert cfg.deadline_s == 15.0
     assert cfg.max_calls == 2
@@ -34,7 +34,7 @@ def test_config_values() -> None:
     assert (g.budget_s, g.pool_deadline_s, g.queue_max, g.queue_wait_s) == (5.0, 2.0, 4, 1.0)
     a = cfg.admission
     assert (a.per_hour, a.per_day, a.concurrency) == (30, 150, 4)
-    assert a.month_budget_micros == 15_000_000
+    assert a.month_budget_micros == 10_000_000
     assert a.uncertain_after_s == 120
     assert (a.web_per_user, a.web_window_s, a.user_in_flight) == (10, 60.0, 2)
     r = cfg.retrieval
@@ -86,7 +86,7 @@ def test_settings_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
     assert s.help_generator == "claude"
     assert s.guard_pool_memory_mb == 384
     assert s.help_config_path.is_file()
-    assert load_help_config(s.help_config_path).version == "c1-2"
+    assert load_help_config(s.help_config_path).version == "c1-3"
 
 
 def test_messages_us_spelling() -> None:

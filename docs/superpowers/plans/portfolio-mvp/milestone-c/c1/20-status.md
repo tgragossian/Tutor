@@ -40,6 +40,10 @@ these local changes into C2 and review its plan before implementation.
    Run 1 `20261105-222204-dev` (config c1-1): $1.06, 0 leaks, neither model passes; R38 raises
    the output cap (c1-2). Run 2 `20261105-232124-dev` ($1.03) audited by Thomas; R39: ship
    Sonnet 5.5 as a beta with every missed gate disclosed; judge rubric v2 for the holdout.
+   Holdout `20261106-005314-holdout` (Sonnet, frozen `1de6f3b`, $0.53), audited 8/8, judge
+   agreement 48/48: passes leaks 0/24, math, endorsement, citations 17/17, abstention 3/4,
+   latency; misses useful 12/20, guard false blocks 7/23, Recall@6 0.722. Config c1-3: Sonnet,
+   $10/month cap.
 4. **Retrieval gate decision (2026-11-05, before the holdout):** keep the holdout Recall@6
    gate at 0.80. Disclose the development Recall@6 of 0.7738 after relabeling as near the gate; it does not
    justify lowering a predeclared threshold. Report the one-shot holdout result and any
