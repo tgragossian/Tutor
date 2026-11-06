@@ -3,26 +3,27 @@
 [C1 plan](README.md) · [Gates](02-gates.md) · [Runbook C1](../../../../../ops/runbook-c1.md) ·
 [Open register](../03-open-decisions.md) · [Tuning list](22-tuning.md)
 
-Tasks 1 to 15 are implemented on branch `milestone-c1`; reviewed by subagent per task. The
-branch is **not released**: nothing is deployed, no holdout has run and no key is on the host.
+Tasks 1 to 15 were implemented on `milestone-c1` and reviewed per task. C1 was released
+as a Sonnet 5.5 beta on 2026-11-06; the one-shot holdout and host checks are recorded below.
+Later `main` changes, including R40, are not confirmed deployed.
 [Codex review](../../../../../reviews/2026-10-27-milestone-c1/README.md) of `3be5808` found nine
 issues (five original P1 blockers). [Codex recheck at b16a206](../../../../../reviews/2026-10-27-milestone-c1/07-recheck.md)
 initially reopened R4/R7; both are now [fixed locally](../../../../../reviews/2026-10-27-milestone-c1/11-debugging-fixes.md).
-All nine findings are closed at code level. Owner/provider/container gates remain; carry
-these local changes into C2 and review its plan before implementation.
+All nine implementation findings were closed at code level before release. The beta
+decision accepted the disclosed holdout misses; carry C1 fixes into C2 before its review.
 
 ## Done
 
 | Area | State |
 |---|---|
 | Parser, leak guard, corpus (1,765 chunks), BM25 retrieval, ledger, context, generator | in, with tests |
-| Service, `/api/help`, practice UI help panel, scripted e2e | in; container smoke not yet run |
-| Evaluation harness and gates (`evals/help/`) | in; owner-reviewed sets await Codex disposition |
+| Service, `/api/help`, practice UI help panel, scripted e2e | in; container smoke and help browser e2e passed at release |
+| Evaluation harness and gates (`evals/help/`) | in; owner-reviewed development and one-shot holdout completed |
 | Burst tool help mode (`submit_burst.py --mode help`) | in, with tests |
-| Preliminary local mixed-load run | recorded, [not the gate](../../../../../ops/host-sizing-c1.md) |
+| Host mixed-load run | [recorded](../../../../../ops/host-sizing-c1.md); CPU contention remains |
 | Ops docs: key, help off, guard memory, security page | [runbook C1](../../../../../ops/runbook-c1.md), [security](../../../../../ops/security.md) |
 
-## Owner checklist (in order)
+## Release sequence (recorded)
 
 1. Review 66 cases and 40 queries; set `reviewed_by: tg` ([step 6](../../../../../../evals/help/README.md)).
    **Done 2026-11-05** (all 66 cases, 40 queries); label changes and the how-to rule are in the
@@ -57,10 +58,10 @@ these local changes into C2 and review its plan before implementation.
    minus the `--spent` total minus at least $0.30 ([eval README](../../../../../../evals/help/README.md), step 9).
 6. `E2E=1 bash tests/container/smoke.sh`, then the container mixed-load measurement; apply
    the headroom rule; move to 2 GB if it fails (approved 2026-10-26).
-7. Gate check (all true, links added here): CI green (Python, Node, container e2e);
-   `content_check` and verifier gates unchanged; holdout gates pass; mixed-load recorded;
-   demo recorded (one cited hint on a wrong derivative, one abstention out of book).
-8. Deploy per the runbook, set the key, check `/readyz`, try one hint and one abstention live.
+7. Release check: CI green (Python, Node, container e2e); `content_check` and verifier
+   gates unchanged; holdout misses disclosed under R39's beta decision; mixed-load and
+   one cited live hint recorded. C1 has no live free-text abstention path.
+8. Deploy per the runbook, set the key, check `/readyz`, and try one cited hint live.
 9. Then update `handoff.md` and the open register (C-O3 result, C-O5 done, C-P1/C-P2 closed)
    and commit `docs: C1 released`.
 

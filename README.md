@@ -85,8 +85,8 @@ of three.
 
 ## How RAG works
 
-Every hint is grounded in the textbook, so the model explains with the same definitions,
-rules and worked examples the student's course uses, and each claim can be traced to a page.
+Generated help draws on OpenStax definitions, rules and worked examples, with citations to
+the source sections. The tutor abstains when it cannot provide supported help.
 
 **Building the corpus.** A fetch script downloads *Calculus Volume 1* from OpenStax's archive
 (polite, one request per second, pinned to a book version). The pages carry math only as
@@ -108,9 +108,9 @@ section get a 1.3× score boost, and the top 6 are kept.
 
 **Keeping the answer out of the passages.** The practice problems are themselves textbook
 exercises, so retrieval only searches teaching text (definitions, theorems, rules, examples,
-explanations). Exercises and the answer key are never searched. Any retrieved passage that
-contains the problem's answer is dropped before the model sees it. If no passages are left,
-the tutor abstains rather than answering without a source.
+explanations). Exercises and the answer key are never searched. The passage filter checks
+supported mathematical forms of the problem's answer and drops matches before generation.
+If no passages are left, the tutor abstains rather than answering without a source.
 
 **Using the passages.** The model gets the passages with their chunk IDs and must return
 structured output naming the IDs it used. The server rejects any citation that was not in
@@ -169,15 +169,19 @@ once. A draft holdout retrieval score was seen before the final labeling rule, s
 that set entirely uninspected. Missed gates are reported here, not tuned away by rerunning the
 same cases. The holdout is small, so the linked summaries give counts and uncertainty intervals
 alongside percentages. The guard also blocked 7 of 23 good responses (target at most 15%).
-One prompt fix found by testing the live site shipped after the holdout, so the holdout numbers
-describe the earlier prompt.
+One prompt fix found by testing the live site was committed after the holdout; its deployment
+is not yet confirmed. The holdout numbers describe the earlier prompt.
 
 These results were measured with three tries and a ladder that climbed per hint given; the
 current code allows five tries and climbs per labeled mistake made.
 
 ## What's next
 
-1. **Fine-tuning experiment: LoRA vs QLoRA on open models.** I plan to compare LoRA and QLoRA
+1. **Baseline comparison (planned).** On the same fresh cases, compare a plain LLM request,
+   a paste-in tutoring prompt, the tutor without retrieval, and the full textbook-grounded
+   tutor. Use one model and rubric; report useful help, answer leaks, math errors, latency,
+   and cost per useful hint. No paid comparison result is available yet.
+2. **Fine-tuning experiment: LoRA vs QLoRA on open models.** I plan to compare LoRA and QLoRA
    fine-tuning on open Qwen models at roughly 9B and 27B parameters, benchmarked with
    TutorBench's human-written rubrics. The aim is cheaper tutoring help that matches or beats
    the Claude baseline.
@@ -196,13 +200,13 @@ current code allows five tries and climbs per labeled mistake made.
      ([decision 0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md)).
    - **Infrastructure:** training on AWS GPUs (SageMaker training jobs or EC2 spot), serving
      off this host on a serverless GPU.
-2. **Retrieval and guard:** pin a worked example for "how do I…" questions (most current
+3. **Retrieval and guard:** pin a worked example for "how do I…" questions (most current
    misses), and stop the guard blocking general formulas such as f(x)g(x).
-3. **Pre-written explanations:** generate the 18 *Explain this* answers once, review them by
+4. **Pre-written explanations:** generate the 18 *Explain this* answers once, review them by
    hand, and serve them with no model call.
-4. **With real users:** A/B test hint styles (e.g. how much the first hint gives) on solve rate
+5. **With real users:** A/B test hint styles (e.g. how much the first hint gives) on solve rate
    after help, not just ratings.
-5. **Exam/Quiz prep, personalized:** students can input course learning materials for tuned
+6. **Exam/Quiz prep, personalized:** students can input course learning materials for tuned
    help for quizzes and exams. The tutor gives quizzes to find weaknesses and creates high-value
    problem sets. Students can also say how long they have before their exam and how many hours
    they can commit to the learning process.
@@ -218,7 +222,7 @@ reporting the missed targets above rather than tuning them away.
 ## Stack
 
 Python · FastAPI · SQLAlchemy/Alembic · SymPy · Anthropic API · MathLive · Docker Compose
-with Caddy on AWS Lightsail (1 GB) · Cloudflare DNS. 1,648 Python tests and 49 web tests in CI.
+with Caddy on AWS Lightsail (1 GB) · Cloudflare DNS. Python and web test suites run in CI.
 
 ## Run locally
 
