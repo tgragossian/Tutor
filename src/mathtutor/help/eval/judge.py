@@ -3,7 +3,7 @@
 The prompt never names a model: responses are numbered in an order shuffled by
 ``random.Random(f"{seed}:{case_id}")``, and the order (item keys) is recorded with the
 judgment. The judge alone sees the authoritative answer and the cited passages' text
-(spec 08: offline judging only). The rubric is ``evals/help/rubric/v2.md`` (v1 kept for earlier runs).
+(spec 08: offline judging only). The rubric is ``evals/help/rubric/v2.md`` (v1: earlier runs).
 """
 
 from __future__ import annotations
