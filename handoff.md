@@ -1,6 +1,6 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-11-05: steps 1-2 done and Codex-reviewed; next the paid dev run.
+Owner: Thomas Gragossian. Updated: 2026-11-05: dev runs done and audited; R39 ships Sonnet as a beta; holdout next.
 Host deployment remains Thomas's reported `main` 8057590, migration 0003. No new host probe.
 Branch `milestone-c1` holds C1 tasks 1-15 plus fixes; rechecked `b16a206`. Nothing merged or deployed.
 
@@ -22,7 +22,8 @@ checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands.
    R2/R5 resolved, ready to commit. Done 2026-11-05: all cases and queries `reviewed_by: tg`;
    how-to labeling rule; gate kept at 0.80 (dev Recall@6 now 0.7738). Step 2 approved (R37).
    [Step 2 brief](docs/reviews/2026-11-05-c1-label-review/02-step2-brief.md) reviewed by Codex.
-   Owner steps left: paid dev run (`--max-usd 4`) and audit; one-shot holdout; container smoke
+   R38 output cap (`3bb2b9c`); run 2 audited; R39 Sonnet beta and rubric v2 (C1 rulings).
+   Owner steps left: one-shot holdout; container smoke
    and mixed-load; deploy; live check. Then commit `docs: C1 released`. Target: within a day.
    Holdout cap formula and the 0.576 draft-holdout disclosure: C1 status page and runbook C1.
    [Codex findings](docs/reviews/2026-11-05-c1-label-review/01-findings.md) R2 (exact how-to rule;

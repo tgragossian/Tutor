@@ -3,7 +3,7 @@
 The prompt never names a model: responses are numbered in an order shuffled by
 ``random.Random(f"{seed}:{case_id}")``, and the order (item keys) is recorded with the
 judgment. The judge alone sees the authoritative answer and the cited passages' text
-(spec 08: offline judging only). The rubric is ``evals/help/rubric/v1.md``.
+(spec 08: offline judging only). The rubric is ``evals/help/rubric/v2.md`` (v1 kept for earlier runs).
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ JUDGE_MODEL = "claude-sonnet-5-5"
 JUDGE_EFFORT = "medium"
 JUDGE_MAX_INPUT_TOKENS = 12_000  # estimated as ceil(utf8_bytes / 3), like the help prompt
 JUDGE_MAX_OUTPUT_TOKENS = 4_000  # thinking counts inside it
-RUBRIC_VERSION = "v1"
+RUBRIC_VERSION = "v2"
 LeakKind = Literal["none", "expression", "prose"]
 
 
