@@ -172,6 +172,20 @@ HINT_CHOICE_SCHEMA: dict[str, Any] = {
     "required": [*HELP_OUTPUT_SCHEMA["required"], "mistake_type"],
 }
 
+# The background classifier's reply (spec D5): one label, nothing for the student.
+CLASSIFY_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "mistake_type": {
+            "type": "string",
+            "enum": list(MISTAKE_TYPES),
+            "description": "The kind of mistake in the student's answer.",
+        },
+    },
+    "required": ["mistake_type"],
+    "additionalProperties": False,
+}
+
 _TEXT_STOP_REASONS = frozenset({"end_turn"})
 
 
@@ -301,6 +315,8 @@ class FixedHintGenerator:
         found = self._PASSAGE.search(req.user)
         ids = [found.group(1)] if found else []
         reply: dict[str, Any] = {"text": self.TEXT, "source_ids": ids, "abstain": False}
-        if req.schema == HINT_CHOICE_SCHEMA:
+        if req.schema == CLASSIFY_SCHEMA:
+            reply = {"mistake_type": "rule_misapplied"}
+        elif req.schema == HINT_CHOICE_SCHEMA:
             reply["mistake_type"] = "rule_misapplied"
         return GenerationResult(json.dumps(reply), "end_turn", 0, 0, "fixed-test", None, 0)

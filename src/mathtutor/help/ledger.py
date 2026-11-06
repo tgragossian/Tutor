@@ -90,15 +90,18 @@ class Ledger:
     ) -> int:
         """Admit a logical request inside the caller's write transaction; reserve call 1.
 
-        Raises ``HelpLimited("hour" | "day" | "budget")``. Returns the usage entry id.
+        Raises ``HelpLimited("hour" | "day" | "budget")``. Returns the usage entry id. The
+        per-user limits apply to ``kind == "help"`` only; other kinds (the background
+        classifier, spec D5) are inside the month budget but neither limited nor counted.
         """
         now = self._now()
         self._reconcile(db, now)
         limits = self._cfg.admission
-        if self._count_admissions(db, user_id, now - HOUR) >= limits.per_hour:
-            raise HelpLimited("hour")
-        if self._count_admissions(db, user_id, now - DAY) >= limits.per_day:
-            raise HelpLimited("day")
+        if kind == "help":
+            if self._count_admissions(db, user_id, now - HOUR) >= limits.per_hour:
+                raise HelpLimited("hour")
+            if self._count_admissions(db, user_id, now - DAY) >= limits.per_day:
+                raise HelpLimited("day")
         return self._reserve(db, now, request_id, user_id, 1, model, kind)
 
     def reserve_call(

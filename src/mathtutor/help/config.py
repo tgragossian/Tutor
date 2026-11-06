@@ -52,6 +52,16 @@ class RetrievalParams(_Frozen):
     question_max_bytes: int
 
 
+class ClassifierParams(_Frozen):
+    """The background mistake classifier (spec D5): one call per applied wrong answer."""
+
+    model: str
+    effort: str
+    max_output_tokens: int = Field(ge=1)
+    timeout_s: float = Field(gt=0)
+    queue_max: int = Field(ge=1)  # answers waiting for the one worker; more are dropped
+
+
 class HelpConfig(_Frozen):
     version: str
     model: str
@@ -67,6 +77,7 @@ class HelpConfig(_Frozen):
     guard: GuardLimits
     admission: AdmissionLimits
     retrieval: RetrievalParams
+    classifier: ClassifierParams
     tariffs: dict[str, ModelTariff]
     prompt_version: str
     schema_version: str

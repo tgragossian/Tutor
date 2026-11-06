@@ -6,6 +6,7 @@ import json
 import logging
 import re
 import threading
+import time
 import uuid
 from collections.abc import Iterator
 from pathlib import Path
@@ -21,6 +22,7 @@ from support.webapp import INCORRECT, ROOT, SpyPool, login, make_settings, start
 from mathtutor.domain import FormatIssueCode
 from mathtutor.help import messages
 from mathtutor.help.generator import (
+    CLASSIFY_SCHEMA,
     HINT_CHOICE_SCHEMA,
     GenerationRequest,
     GenerationResult,
@@ -36,15 +38,22 @@ WRONG_LATEX = "7777q"
 
 
 class CitingGenerator(ScriptedGenerator):
-    """Cites the first retrieved passage; ``gate`` (if set) blocks each call until released."""
+    """Cites the first retrieved passage; ``gate`` (if set) blocks each call until released.
+    The background classifier's calls (spec D5) go to ``classified`` and get a label at once,
+    so ``requests``, ``gate`` and ``entered`` see help calls only."""
 
     def __init__(self, text: str = HINT) -> None:
         super().__init__([])
         self.text = text
         self.gate: threading.Event | None = None
         self.entered = threading.Event()
+        self.classified: list[GenerationRequest] = []
 
     def generate(self, req: GenerationRequest) -> GenerationResult:
+        if req.schema == CLASSIFY_SCHEMA:
+            self.classified.append(req)
+            label = json.dumps({"mistake_type": "wrong_rule"})
+            return GenerationResult(label, "end_turn", 300, 5, req.model, "req_c", 2)
         self.requests.append(req)
         self.entered.set()
         if self.gate is not None:
@@ -249,17 +258,47 @@ def test_readyz_ready_without_help(tmp_path: Path) -> None:
     settings = make_settings(tmp_path).model_copy(
         update={"help_generator": "claude", "anthropic_api_key": None, "corpus_path": CORPUS}
     )
-    app = create_app(settings, pool=SpyPool(), guard_pool=SpyPool())
+    pool = SpyPool()
+    pool.default = INCORRECT
+    app = create_app(settings, pool=pool, guard_pool=SpyPool())
     with TestClient(app, base_url="https://testserver") as c:
         assert c.get("/readyz").status_code == 200
         login(c)
-        item = _item(c, start(c))
+        sid = start(c)
+        item = _item(c, sid)
         assert item["help"] is None
         r = c.post("/api/help", json=_help(c, item))
+        # Review focus 3: help off, so a wrong answer is graded as usual and never classified.
+        _, graded = _submit(c, sid, item)
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "unavailable" and messages.UNAVAILABLE in body["html"]
     assert body["sources"] == [] and _rows(app) == []
+    assert graded["outcome"]["status"] == "incorrect" and app.state.classifier is None
+    with app.state.sessions() as db:
+        (answer,) = db.scalars(select(Answer))
+        assert answer.mistake_type is None and db.scalars(select(UsageEntry)).all() == []
+
+
+def test_wrong_answer_is_labeled_in_background(
+    client: TestClient, app_pool: tuple[FastAPI, SpyPool], gen: CitingGenerator
+) -> None:
+    """Spec D5: an applied wrong answer is classified by the worker, not the request."""
+    app = app_pool[0]
+    sid = start(client)
+    _submit(client, sid, _item(client, sid))
+    deadline = time.monotonic() + 5
+    while True:
+        with app.state.sessions() as db:
+            (answer,) = db.scalars(select(Answer))
+            entries = db.scalars(select(UsageEntry)).all()
+        if answer.mistake_type is not None:
+            break
+        assert time.monotonic() < deadline, "the answer was never labeled"
+        time.sleep(0.01)
+    assert answer.mistake_type == "wrong_rule" and len(gen.classified) == 1
+    assert gen.classified[0].model == "claude-haiku-5-5" and gen.requests == []
+    assert [(e.request_id, e.kind) for e in entries] == [(f"classify-{answer.id}", "classify")]
 
 
 @pytest.mark.parametrize(
@@ -287,6 +326,7 @@ def test_help_disabled_starts_no_guard_pool(
         assert c.get("/readyz").status_code == 200
         assert len(made) == 1 and app.state.guard_pool is None
         assert app.state.help.enabled is False
+        assert app.state.classifier is None  # spec D5: no classifier when help is off
 
 
 def test_claude_with_key_enables_help(tmp_path: Path) -> None:

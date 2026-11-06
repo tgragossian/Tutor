@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import uuid
 from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, timedelta
@@ -559,3 +560,50 @@ def test_stale_answer_is_not_numbered(w: World) -> None:
         (VerdictStatus.INCORRECT, True, 1, True),
         (VerdictStatus.CORRECT, False, None, False),
     ]
+
+
+def _hooked(w: World, hook: Callable[[int], None]) -> None:
+    w.svc = PracticeService(w.sessions, CONTENT, w.pool, w.clock, on_wrong=hook)
+
+
+def test_on_wrong_called_once_for_applied_incorrect(w: World) -> None:
+    calls: list[int] = []
+    _hooked(w, calls.append)
+    sid = w.svc.start_session(w.alice, [BASIC])
+    v, key = w.view(sid), uuid.uuid4()
+    w.submit(sid, INCORRECT, sid=key)
+    (row,) = _answers(w)
+    assert calls == [row.id]
+    again = w.svc.submit_answer(w.alice, sid, key, v.session_item_id, v.revision, ANSWER)
+    assert again.replayed and calls == [row.id]
+
+
+def test_on_wrong_not_called_for_correct_or_stale(w: World) -> None:
+    calls: list[int] = []
+    _hooked(w, calls.append)
+    sid = w.svc.start_session(w.alice, [BASIC])
+    w.submit(sid, UNABLE)
+    w.submit(sid, FormatIssue(FormatIssueCode.INCOMPLETE, ""))
+    v = w.view(sid)
+    w.pool.during = lambda: w.svc.skip(w.alice, sid, *_at(v))
+    with pytest.raises(StaleItem):
+        w.submit(sid, INCORRECT)  # stored, not applied
+    w.submit(sid, CORRECT)  # the next problem
+    assert calls == []
+
+
+def test_on_wrong_error_does_not_fail_submit(w: World, caplog: pytest.LogCaptureFixture) -> None:
+    def boom(answer_id: int) -> None:
+        raise RuntimeError("secret student text")
+
+    _hooked(w, boom)
+    sid = w.svc.start_session(w.alice, [BASIC])
+    with caplog.at_level(logging.WARNING):
+        out = w.submit(sid, INCORRECT)
+    assert out.outcome == INCORRECT and out.item.tries_left == MAX_TRIES - 1
+    assert "RuntimeError" in caplog.text and "secret student text" not in caplog.text
+
+
+def _answers(w: World) -> list[Answer]:
+    with w.sessions() as db:
+        return list(db.scalars(select(Answer).order_by(Answer.id)))

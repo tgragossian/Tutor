@@ -274,7 +274,7 @@ class UsageEntry(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     request_id: Mapped[str] = mapped_column(String(36))
     user_id: Mapped[int] = mapped_column(Integer)
-    kind: Mapped[str] = mapped_column(String(16))  # "help" | "eval"
+    kind: Mapped[str] = mapped_column(String(16))  # "help" | "classify" | "eval"
     call_no: Mapped[int] = mapped_column(Integer)
     model: Mapped[str] = mapped_column(String(64))
     month: Mapped[str] = mapped_column(String(7))  # UTC "YYYY-MM"

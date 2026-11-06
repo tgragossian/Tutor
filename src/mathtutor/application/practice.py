@@ -6,6 +6,7 @@ Every transaction is short; the verifier pool is only ever called with no transa
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -51,6 +52,7 @@ from mathtutor.verify.types import (
     VerifierBusy,
 )
 
+logger = logging.getLogger(__name__)
 ORPHAN_AFTER = timedelta(seconds=10)  # ruling R5 / R13
 ALL_CORRECT = "all_correct"  # every problem in the topics has been answered correctly
 SESSION_COMPLETE = "session_complete"  # every unsolved problem was shown in this session
@@ -172,11 +174,17 @@ class PracticeService:
         content: LoadedContent,
         pool: Pool,
         clock: Callable[[], datetime],
+        *,
+        on_wrong: Callable[[int], None] | None = None,
     ) -> None:
+        """``on_wrong`` gets the answer id after the grading transaction commits, only for an
+        applied incorrect verdict (the background classifier's ``submit``, spec D5). It must
+        not block; its exceptions are logged by type and never reach the student."""
         self._sessions = sessions
         self._content = content
         self._pool = pool
         self._clock = clock
+        self._on_wrong = on_wrong
         self._problems: dict[str, Problem] = {p.id: p for p in content.bundle.problems}
         self._snapshots: dict[tuple[str, str], Problem] = {}
         self._topics = {t.topic_id for t in content.bundle.topics}
@@ -558,6 +566,11 @@ class PracticeService:
             raise StaleItem("This problem changed; reload it.") from None
         if not applied:
             raise StaleItem("This problem changed while it was being checked.")
+        if outcome.status is VerdictStatus.INCORRECT and self._on_wrong is not None:
+            try:
+                self._on_wrong(res.submission_pk)
+            except Exception as exc:  # noqa: BLE001 - labeling never fails a submit
+                logger.warning("on_wrong failed: %s", type(exc).__name__)
         return SubmitView(outcome, view, False, checked.worker_ms, checked.queue_ms)
 
     @staticmethod

@@ -31,6 +31,8 @@ from mathtutor.application.auth import AuthService
 from mathtutor.application.errors import AppError, DatabaseBusy
 from mathtutor.application.practice import Pool, PracticeService
 from mathtutor.content.loader import LoadedContent, load_bundle, servable
+from mathtutor.content.schema import Problem
+from mathtutor.help.classify import MistakeClassifier
 from mathtutor.help.config import HelpConfig, load_help_config
 from mathtutor.help.context import Confusion, load_confusions
 from mathtutor.help.generator import (
@@ -43,10 +45,12 @@ from mathtutor.help.leak_guard import LeakGuard
 from mathtutor.help.ledger import Ledger
 from mathtutor.help.pipeline import HelpPipeline
 from mathtutor.help.service import HelpService
+from mathtutor.jsonio import loads_exact
 from mathtutor.retrieval.bm25 import Bm25Index
 from mathtutor.retrieval.corpus import Corpus, CorpusError, load_corpus
 from mathtutor.settings import Settings
 from mathtutor.store.db import is_lock_error, make_engine, make_sessionmaker
+from mathtutor.store.models import SessionItem
 from mathtutor.verify.pool import VerifierPool
 from mathtutor.web.api import auth_router, help_router, practice_router
 from mathtutor.web.logging import BodyLimitMiddleware, RequestLogMiddleware
@@ -222,6 +226,22 @@ def _help_service(
     return HelpService(sessions, cfg, ledger, pipeline, grading, parts.confusions, now=_utcnow)
 
 
+def _problem_of(item: SessionItem) -> Problem:
+    """The problem exactly as presented (the item's snapshot), never newer content."""
+    return Problem.model_validate(loads_exact(item.problem_json))
+
+
+def _classifier(
+    sessions: sessionmaker[Session], cfg: HelpConfig, parts: _HelpParts | None, help_: HelpService
+) -> MistakeClassifier | None:
+    """The background mistake classifier (spec D5), only when help is enabled."""
+    if parts is None or not help_.enabled:
+        return None
+    return MistakeClassifier(
+        sessions, cfg, Ledger(sessions, cfg, _utcnow), parts.generator, _problem_of
+    )
+
+
 def create_app(
     settings: Settings,
     *,
@@ -255,8 +275,12 @@ def create_app(
 
     def attach_pool(p: _Pool) -> None:
         app.state.pool = p
-        app.state.practice = PracticeService(sessions, content, p, _utcnow)
-        app.state.help = _help_service(sessions, help_cfg, help_parts, p, app.state.guard_pool)
+        help_ = _help_service(sessions, help_cfg, help_parts, p, app.state.guard_pool)
+        classifier = _classifier(sessions, help_cfg, help_parts, help_)
+        app.state.classifier = classifier
+        on_wrong = None if classifier is None else classifier.submit
+        app.state.practice = PracticeService(sessions, content, p, _utcnow, on_wrong=on_wrong)
+        app.state.help = help_
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
@@ -285,6 +309,8 @@ def create_app(
                 attach_pool(grading)  # after the guard pool: help is built with it
             yield
         finally:
+            if app.state.classifier is not None:  # before the pools and the engine close
+                await run_in_threadpool(app.state.classifier.close)
             for p in owned:
                 await run_in_threadpool(p.close)
             engine.dispose()
@@ -297,6 +323,7 @@ def create_app(
     app.state.pool = None
     app.state.guard_pool = guard_pool
     app.state.help = None
+    app.state.classifier = None
     app.state.help_generator = None if help_parts is None else help_parts.generator
     app.state.templates = templates
     app.state.vendor = vendor

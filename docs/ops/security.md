@@ -37,12 +37,15 @@ each with its reason below. Scripts stay self-only: no inline scripts, no `unsaf
 
 ## C1 help: provider processing, logs and the key
 
-- **Provider processing:** when a student asks for help, their attempt text (LaTeX), the
-  problem, the chosen confusion label and retrieved textbook passages are sent to Anthropic
-  to write the reply. Nothing is sent unless a student presses a help
-  button; grading stays local. Spec 09 requires the page to say so in plain language, without promising zero
-  retention; it is implemented (`#help-disclosure`, shown only when help is enabled), wording
-  pending Thomas's approval. Help text is saved with history and nulled by Clear history.
+- **Provider processing:** when a student submits a wrong answer (help enabled), that
+  answer's text (LaTeX), the problem and its correct answer are sent to Anthropic (Claude
+  Haiku) to sort the mistake; only a mistake-type label comes back and is stored. When a
+  student asks for help, their recent attempts, the problem, the chosen confusion label and
+  retrieved textbook passages are sent to write the reply. Grading stays local. Spec 09
+  requires the page to say so in plain language, without promising zero retention
+  (`#help-disclosure`, shown only when help is enabled): "When you submit a wrong answer or
+  ask for help, the problem and your recent answers are sent to Anthropic's Claude to sort
+  the mistake and write the hint." Help text is saved with history and nulled by Clear history.
 - **Logs:** request logs and errors never contain student text, model output, chunk text or
   the API key (counts, ids, status and error type only). Usage rows store tokens and cost.
 - **Key:** `MATHTUTOR_ANTHROPIC_API_KEY` lives only in the host's `deploy/.env` (mode 600,
