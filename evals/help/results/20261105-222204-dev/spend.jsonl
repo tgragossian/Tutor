@@ -1,0 +1,302 @@
+{"event": "reserve", "id": 1, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 1, "micros": 394}
+{"event": "reserve", "id": 2, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 2, "micros": 8260}
+{"event": "reserve", "id": 3, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 3, "micros": 10050}
+{"event": "reserve", "id": 4, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 4, "micros": 464}
+{"event": "reserve", "id": 5, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 5, "micros": 10040}
+{"event": "reserve", "id": 6, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 6, "micros": 10474}
+{"event": "reserve", "id": 7, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 7, "micros": 577}
+{"event": "reserve", "id": 8, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 8, "micros": 9430}
+{"event": "reserve", "id": 9, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 9, "micros": 9810}
+{"event": "reserve", "id": 10, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 10, "micros": 482}
+{"event": "reserve", "id": 11, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 11, "micros": 9982}
+{"event": "reserve", "id": 12, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 12, "micros": 10488}
+{"event": "reserve", "id": 13, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 14, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 13, "micros": 874}
+{"event": "settle", "id": 14, "micros": 858}
+{"event": "reserve", "id": 15, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 15, "micros": 13032}
+{"event": "reserve", "id": 16, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 16, "micros": 10242}
+{"event": "reserve", "id": 17, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 18, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 17, "micros": 835}
+{"event": "settle", "id": 18, "micros": 789}
+{"event": "reserve", "id": 19, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 19, "micros": 10544}
+{"event": "reserve", "id": 20, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 20, "micros": 11460}
+{"event": "reserve", "id": 21, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 21, "micros": 693}
+{"event": "reserve", "id": 22, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 22, "micros": 10174}
+{"event": "reserve", "id": 23, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 23, "micros": 10866}
+{"event": "reserve", "id": 24, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 25, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 24, "micros": 401}
+{"event": "settle", "id": 25, "micros": 403}
+{"event": "reserve", "id": 26, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 26, "micros": 8426}
+{"event": "reserve", "id": 27, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 27, "micros": 9354}
+{"event": "reserve", "id": 28, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 29, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 28, "micros": 842}
+{"event": "settle", "id": 29, "micros": 734}
+{"event": "reserve", "id": 30, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 30, "micros": 10530}
+{"event": "reserve", "id": 31, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 31, "micros": 10264}
+{"event": "reserve", "id": 32, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 32, "micros": 547}
+{"event": "reserve", "id": 33, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 33, "micros": 11136}
+{"event": "reserve", "id": 34, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 34, "micros": 11454}
+{"event": "reserve", "id": 35, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 35, "micros": 456}
+{"event": "reserve", "id": 36, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 36, "micros": 9572}
+{"event": "reserve", "id": 37, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 37, "micros": 11086}
+{"event": "reserve", "id": 38, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 38, "micros": 499}
+{"event": "reserve", "id": 39, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 39, "micros": 10098}
+{"event": "reserve", "id": 40, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 40, "micros": 8376}
+{"event": "reserve", "id": 41, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 41, "micros": 532}
+{"event": "reserve", "id": 42, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 42, "micros": 11164}
+{"event": "reserve", "id": 43, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 43, "micros": 9692}
+{"event": "reserve", "id": 44, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 45, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 44, "micros": 985}
+{"event": "settle", "id": 45, "micros": 564}
+{"event": "reserve", "id": 46, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "reserve", "id": 47, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 46, "micros": 17002}
+{"event": "settle", "id": 47, "micros": 12058}
+{"event": "reserve", "id": 48, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 48, "micros": 13784}
+{"event": "reserve", "id": 49, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 50, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 49, "micros": 1047}
+{"event": "settle", "id": 50, "micros": 934}
+{"event": "reserve", "id": 51, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 51, "micros": 13140}
+{"event": "reserve", "id": 52, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 52, "micros": 12374}
+{"event": "reserve", "id": 53, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 53, "micros": 889}
+{"event": "reserve", "id": 54, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 54, "micros": 11554}
+{"event": "reserve", "id": 55, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 55, "micros": 9886}
+{"event": "reserve", "id": 56, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 56, "micros": 686}
+{"event": "reserve", "id": 57, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 57, "micros": 14786}
+{"event": "reserve", "id": 58, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 58, "micros": 12462}
+{"event": "reserve", "id": 59, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 59, "micros": 524}
+{"event": "reserve", "id": 60, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 60, "micros": 11162}
+{"event": "reserve", "id": 61, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 61, "micros": 10036}
+{"event": "reserve", "id": 62, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 63, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 62, "micros": 904}
+{"event": "settle", "id": 63, "micros": 596}
+{"event": "reserve", "id": 64, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "reserve", "id": 65, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 64, "micros": 12710}
+{"event": "settle", "id": 65, "micros": 12376}
+{"event": "reserve", "id": 66, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 66, "micros": 15002}
+{"event": "reserve", "id": 67, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 68, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 67, "micros": 586}
+{"event": "settle", "id": 68, "micros": 602}
+{"event": "reserve", "id": 69, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 69, "micros": 9810}
+{"event": "reserve", "id": 70, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 70, "micros": 7758}
+{"event": "reserve", "id": 71, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 71, "micros": 853}
+{"event": "reserve", "id": 72, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 72, "micros": 14636}
+{"event": "reserve", "id": 73, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 73, "micros": 13766}
+{"event": "reserve", "id": 74, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 75, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 74, "micros": 999}
+{"event": "settle", "id": 75, "micros": 665}
+{"event": "reserve", "id": 76, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 76, "micros": 13734}
+{"event": "reserve", "id": 77, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 77, "micros": 11016}
+{"event": "reserve", "id": 78, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 78, "micros": 554}
+{"event": "reserve", "id": 79, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 79, "micros": 11848}
+{"event": "reserve", "id": 80, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 80, "micros": 9930}
+{"event": "reserve", "id": 81, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 81, "micros": 766}
+{"event": "reserve", "id": 82, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 82, "micros": 12724}
+{"event": "reserve", "id": 83, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 83, "micros": 11348}
+{"event": "reserve", "id": 84, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 84, "micros": 757}
+{"event": "reserve", "id": 85, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 85, "micros": 12006}
+{"event": "reserve", "id": 86, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 86, "micros": 9434}
+{"event": "reserve", "id": 87, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 87, "micros": 462}
+{"event": "reserve", "id": 88, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 88, "micros": 9528}
+{"event": "reserve", "id": 89, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 89, "micros": 9204}
+{"event": "reserve", "id": 90, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 91, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 90, "micros": 538}
+{"event": "settle", "id": 91, "micros": 523}
+{"event": "reserve", "id": 92, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "reserve", "id": 93, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 92, "micros": 10616}
+{"event": "settle", "id": 93, "micros": 9892}
+{"event": "reserve", "id": 94, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 94, "micros": 16060}
+{"event": "reserve", "id": 95, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 96, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 95, "micros": 529}
+{"event": "settle", "id": 96, "micros": 524}
+{"event": "reserve", "id": 97, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 97, "micros": 11174}
+{"event": "reserve", "id": 98, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 98, "micros": 12942}
+{"event": "reserve", "id": 99, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 99, "micros": 701}
+{"event": "reserve", "id": 100, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 100, "micros": 9856}
+{"event": "reserve", "id": 101, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 101, "micros": 0}
+{"event": "reserve", "id": 102, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 102, "micros": 587}
+{"event": "reserve", "id": 103, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "reserve", "id": 104, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 103, "micros": 12288}
+{"event": "settle", "id": 104, "micros": 12434}
+{"event": "reserve", "id": 105, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 105, "micros": 13652}
+{"event": "reserve", "id": 106, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 107, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 106, "micros": 507}
+{"event": "settle", "id": 107, "micros": 499}
+{"event": "reserve", "id": 108, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 108, "micros": 9048}
+{"event": "reserve", "id": 109, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 109, "micros": 0}
+{"event": "reserve", "id": 110, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 110, "micros": 729}
+{"event": "reserve", "id": 111, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 111, "micros": 11962}
+{"event": "reserve", "id": 112, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 112, "micros": 11944}
+{"event": "reserve", "id": 113, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 113, "micros": 542}
+{"event": "reserve", "id": 114, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 114, "micros": 12150}
+{"event": "reserve", "id": 115, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 115, "micros": 10956}
+{"event": "reserve", "id": 116, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 116, "micros": 541}
+{"event": "reserve", "id": 117, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 117, "micros": 9856}
+{"event": "reserve", "id": 118, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 118, "micros": 0}
+{"event": "reserve", "id": 119, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 120, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 119, "micros": 584}
+{"event": "settle", "id": 120, "micros": 599}
+{"event": "reserve", "id": 121, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 121, "micros": 12532}
+{"event": "reserve", "id": 122, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 122, "micros": 8410}
+{"event": "reserve", "id": 123, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 124, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 123, "micros": 1068}
+{"event": "settle", "id": 124, "micros": 1057}
+{"event": "reserve", "id": 125, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "reserve", "id": 126, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 125, "micros": 16956}
+{"event": "settle", "id": 126, "micros": 16852}
+{"event": "reserve", "id": 127, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 127, "micros": 11442}
+{"event": "reserve", "id": 128, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 129, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 128, "micros": 517}
+{"event": "settle", "id": 129, "micros": 514}
+{"event": "reserve", "id": 130, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "reserve", "id": 131, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 130, "micros": 10152}
+{"event": "settle", "id": 131, "micros": 9798}
+{"event": "reserve", "id": 132, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 132, "micros": 13880}
+{"event": "reserve", "id": 133, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 134, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 133, "micros": 554}
+{"event": "settle", "id": 134, "micros": 557}
+{"event": "reserve", "id": 135, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "reserve", "id": 136, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 135, "micros": 10848}
+{"event": "settle", "id": 136, "micros": 11244}
+{"event": "reserve", "id": 137, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 137, "micros": 14900}
+{"event": "reserve", "id": 138, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 138, "micros": 688}
+{"event": "reserve", "id": 139, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 139, "micros": 14624}
+{"event": "reserve", "id": 140, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 140, "micros": 10236}
+{"event": "reserve", "id": 141, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 141, "micros": 644}
+{"event": "reserve", "id": 142, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 142, "micros": 13566}
+{"event": "reserve", "id": 143, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 143, "micros": 11882}
+{"event": "reserve", "id": 144, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 144, "micros": 629}
+{"event": "reserve", "id": 145, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 145, "micros": 12300}
+{"event": "reserve", "id": 146, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 146, "micros": 11660}
+{"event": "reserve", "id": 147, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "reserve", "id": 148, "kind": "help", "model": "claude-haiku-5-5", "worst": 1300}
+{"event": "settle", "id": 147, "micros": 572}
+{"event": "settle", "id": 148, "micros": 568}
+{"event": "reserve", "id": 149, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "reserve", "id": 150, "kind": "help", "model": "claude-sonnet-5-5", "worst": 26000}
+{"event": "settle", "id": 149, "micros": 11588}
+{"event": "settle", "id": 150, "micros": 11394}
+{"event": "reserve", "id": 151, "kind": "judge", "model": "claude-sonnet-5-5", "worst": 64000}
+{"event": "settle", "id": 151, "micros": 13498}

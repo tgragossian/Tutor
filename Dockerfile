@@ -23,6 +23,10 @@ RUN groupadd --gid 10001 app \
 WORKDIR /app
 COPY --from=build /app/.venv /app/.venv
 COPY content/compiled/ /app/content/compiled/
+# Textbook corpus for help retrieval (chunks.jsonl + manifest.json, verified at load).
+COPY content/corpus/ /app/content/corpus/
+# Per-topic confusion labels for "Explain this"; help stays off without them (C1-R1).
+COPY content/help/ /app/content/help/
 # Migrations run as a one-shot `alembic upgrade head` (compose service `migrate`) before the app.
 COPY alembic.ini /app/alembic.ini
 COPY migrations/ /app/migrations/
@@ -34,6 +38,8 @@ ENV PATH=/app/.venv/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     MATHTUTOR_ENV=production \
     MATHTUTOR_CONTENT_PATH=/app/content/compiled/problems.json \
+    MATHTUTOR_CORPUS_PATH=/app/content/corpus/chunks.jsonl \
+    MATHTUTOR_CONFUSIONS_PATH=/app/content/help/confusions.json \
     MATHTUTOR_DATABASE_URL=sqlite:////data/mathtutor.db \
     MATHTUTOR_GIT_SHA=$GIT_SHA
 USER 10001

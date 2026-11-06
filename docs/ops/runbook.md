@@ -36,6 +36,8 @@ container memory, peak RSS of the app and verifier worker, and the lowest availa
 Some `503 verifier_busy` replies are expected (queue of 8). It leaves 16 `load_*` accounts.
 Paste the output into [host sizing](host-sizing.md).
 
+Milestone C1 (Claude-written help): [Anthropic key, help off, guard memory, release checklist](runbook-c1.md).
+
 ## Logs and status
 
 ```bash

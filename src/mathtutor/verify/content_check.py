@@ -21,8 +21,10 @@ from mathtutor.content.schema import (
     ExpressionAnswer,
     NumericAnswer,
     Problem,
+    split_misconception,
+    states_correction,
 )
-from mathtutor.domain import AnswerKind, VerdictStatus
+from mathtutor.domain import AnswerKind, ReviewStatus, VerdictStatus
 from mathtutor.verify.check import check
 from mathtutor.verify.equivalence import Budget, equivalent, to_sympy_set, violation_set
 from mathtutor.verify.latex_rules import unparenthesized_function
@@ -157,7 +159,12 @@ def _misconception_checks(problem: Problem) -> list[str]:
     spec = problem.answer
     for i, text in enumerate(problem.misconceptions):
         field = f"misconceptions[{i}]"
-        head = text.split("  #")[0].strip()
+        head, note = split_misconception(text)
+        if problem.review.status is ReviewStatus.HUMAN_VERIFIED:
+            if note is None:
+                errors.append(f"{field}: needs a note after '  # ' (help text is built from it)")
+            elif states_correction(note):
+                errors.append(f"{field}: note states a corrected expression; describe the error")
         if isinstance(spec, ChoiceAnswer):
             if head not in {c.id for c in spec.choices}:
                 errors.append(f"{field}: {head!r} is not a choice id")

@@ -1,0 +1,59 @@
+# C1 execution rulings
+
+[C1 plan](README.md) · [Status](20-status.md)
+
+Rulings made while executing the C1 plan with subagents (2026-10-26/27). Each amends the plan
+where they differ; the spec stays binding. "Cost" is what it costs if the ruling is wrong.
+
+| # | Ruling | Cost if wrong |
+|---|---|---|
+| R1 | Parser roundtrip checks choice LaTeX as an `ExpressionAnswer` (choice specs grade ids). | Weaker test on 2 problems. |
+| R2 | `create_app(settings, *, pool=None, guard_pool=None)`; the app owns a guard pool only when it owns the grading pool and help is on. | Extra worker in some dev runs. |
+| R3 | Pure `assemble_context` and `match_misconception`; `build_context` = DB read + these (eval reuses them). | Small refactor. |
+| R4 | `HelpPipeline.run` holds the post-context path; the service wraps it; eval calls it directly. | Eval/production drift. |
+| R5 | Owner-only and paid steps (Task 14 steps 6–10, Task 15 steps 5, 7–9) are left for Thomas. | None. |
+| R6 | Guard choice rule broadened (keyword + filler + letter, line-start letter, ordinals). | Some over-blocking. |
+| R7 | Numeric problems: prose numbers are worker-checked guard candidates. | More candidates. |
+| R8 | Foreign single letters also checked as the variable and as 0. | Extra worker checks. |
+| R9 | Prose with a LaTeX command, `^` or `_` outside math blocks; renderer renders only guard-extracted delimiters. | Over-blocking odd prose. |
+| R10 | A bare letter counts as a choice only as a standalone token (after verbs / "answer is"). | Rare phrasing passes the letter rule. |
+| R11 | After `option`/`choice`, the correct letter always blocks. | "option a" as an article over-blocks. |
+| R12 | Prose fractions with spaces, ÷ and parentheses; each prose number checked with both signs. | More worker calls. |
+| R13 | Glued digit+letter runs block on numeric problems; dedup before the cap; per-letter variants; linear-time regexes; prose `2x` tokens checked. | Some over-blocking. |
+| R14 | Foreign letters → 1 variant on numeric problems; thousands separators; ordinal suffixes exempt. | Edge cases. |
+| R15 | Appendix tables, intros, preface and index are left out of the corpus. | A few table lookups miss. |
+| R16 | Chapter pages use section `N.0`; answer keys keep role `answer_key`; exercise/answer_key never retrievable. | Answer text near the prompt (guard is the backstop). |
+| R17 | Task 6 created `help/context.py` types early; Task 9 extended it. | Small move. |
+| R18 | Confusion labels ship as JSON (stdlib), not YAML. | Less pleasant hand-editing. |
+| R19 | Misconception notes describe the error only; 4 notes reworded; checked at build and at runtime. | Thomas re-words notes. |
+| R20 | Choice problems don't show the option list to the model. | Weaker hints on 2 problems. |
+| R21 | An in-flight help request older than 120 s is abandoned by the next request. | A very slow result is lost. |
+| R22 | `help_seq` advances on every non-stale finalization; hint level only on a delivered hint. | Occasional abstain. |
+| R23 | The answer filter uses substring match only for answers ≥ 5 characters; shorter ones match whole math spans. | A short-answer passage reaches the prompt. |
+| R24 | Disclaimer says "use Show answer for that"; the source line doesn't repeat the book name. | Copy edit. |
+| R25 | Container smoke and compose checks are owner/CI steps (no Docker here). | None. |
+| R26 | Paid eval runs use `--max-usd 4` ($5 credit); R34 adds durable per-call reservations. | Interrupted/unknown calls retain worst-case spend; provider reconciliation is manual. |
+| R27 | Task 15 in-session = burst tool, docs, a labeled preliminary Windows run; container measurement, gate, deploy are Thomas's. | None. |
+| R28 | Model selection: Haiku if it passes, else Sonnet if it passes, else none (spec 08). | One line. |
+| R29 | Retrieval fixes tuned on dev only: labeling policy, tokenizer `tok-2`, production section boost. A reviewer computed draft holdout BM25 Recall@6 (0.576); no holdout label was edited in response. | Gate may still fail. |
+| R30 | Provider/retention disclosure shown with the help UI (spec 09); wording pending Thomas. | Copy edit. |
+| R31 | C1-R2: foreign shapes and `f(x)` applications are substituted atoms, every variant checked; > 3 atoms block. | Some over-blocking; a variant set can miss a contrived form. |
+| R32 | C1-R4: holdout claims case/problem/query/chunk ids before retrieval scoring; retrieval-only is dev-only. | A claim remains consumed after interruption; fresh holdout needs disjoint problems/queries. |
+| R33 | C1-R7: `--no-retrieval` adds eval-only `no_passages.md`; uncited replies; same guard. | Recorded mode now preserves uncited judge/audit/recompute; citation support is N/A. |
+| R34 | C1-R9: per-run `spend.jsonl` (reserve before, settle after) and `--spent`, not an early `run.json`. | Provider reconciliation remains manual; open reservations count at worst case. |
+| R35 | Hint ladder per mistake type (Thomas, 2026-10-27): level 0 before a wrong answer, in two steps (wording superseded by R37: a question about the form, then the rule, which repeats); the first hint on each new wrong attempt has the model label it `algebra`, `wrong_rule`, `rule_misapplied` or `incomplete` and write at that type's level (its hint count + 1, cap 3, offered by the server); later hints on the same attempt reuse the type. Migration 0005. Feedback unchanged. | A mislabel gives one hint too gentle or one step too direct (guard still applies). |
+| R36 | Prompt fingerprint (Thomas, 2026-10-27, C2 Q3): help rows store `prompt_version` as `v1+<12 hex>` and runs record `prompt_fingerprint`, a hash of every `prompts/v1/*.md`, `prompts.py`, the output schemas and the mistake-type descriptions. New prompt files may join `v1`; the fingerprint shows the change. | None: a wording change shows up as a new fingerprint. |
+| R37 | Level 0 asks, then names (Thomas, 2026-11-05): step 1 asks one question about the problem's form without naming the rule or starting the work; step 2 names the rule or method that fits. Prompt, `system.md`, rubric and 10 case notes updated together; Show answer takes two clicks with a warning. |
+| R38 | Output cap 3,000 tokens, config `c1-2` (Thomas, 2026-11-05): dev run `20261105-222204-dev` ($1.06) showed Haiku 5.5's thinking, which counts against `max_tokens`, used the whole 1,000-token cap on 8 of 42 first calls, forcing retries and the p95 latency miss. Thinking stays on at effort low. Worst case per call: Haiku 2,300 µ$, Sonnet 46,000 µ$. |
+| R39 | Ship Sonnet 5.5 as a beta (Thomas, 2026-11-05): dev run 2 `20261105-232124-dev` audited (31 rows; judge agreement 136/138 random, 30/36 flagged). Sonnet passes leaks 0/42, useful 31/36, abstention 5/6, math 1/34, latency; misses citation support 28/34, endorsement 1/8, guard false blocks 7/41, Recall@6 0.774, one unjudged case. Haiku fails useful 25/36 and abstention 2/6. Release despite the selection rule; every missed gate is reported in the README; the holdout runs once with Sonnet and is reported pass or miss. Judge rubric v2 adds Thomas's audit standards for `useful` before the holdout. |
+
+Final whole-branch review added: per-user help limits (10 per 60 s, 2 in flight), guard pool
+and query caps read from config, runtime note filtering, finalize retry, ledger reconcile in
+`settle-uncertain`, a holdout "started" marker.
+
+Codex's [2026-10-28 recheck](../../../../../reviews/2026-10-27-milestone-c1/07-recheck.md)
+initially closed seven and reopened R4/R7; both are now [fixed locally](../../../../../reviews/2026-10-27-milestone-c1/11-debugging-fixes.md). R31 closes the reported unchecked-composite bypass
+with bounded substitution coverage; it is not a proof for every foreign expression. R34's
+durable journal is accepted. R32/R33's local fixes need carrying into C2; owner release gates remain.
+[R35/R36 review](../../../../../reviews/2026-10-27-milestone-c1/09-hint-and-prompt-review.md)
+accepts the implemented scope; the fingerprint identifies instructions, not full dynamic requests.

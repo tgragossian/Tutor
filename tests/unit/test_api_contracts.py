@@ -10,9 +10,16 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from mathtutor.web.schemas import ErrorBody, PublicItem, SubmissionRequest
+from mathtutor.web.schemas import (
+    ErrorBody,
+    HelpRequest,
+    HelpResponse,
+    PublicItem,
+    SubmissionRequest,
+)
 
-EXAMPLES = Path(__file__).resolve().parents[2] / "contracts" / "examples"
+CONTRACTS = Path(__file__).resolve().parents[2] / "contracts"
+EXAMPLES = CONTRACTS / "examples"
 SUBMITS = sorted(p for p in EXAMPLES.glob("submit-*.json") if "response" not in p.name)
 ITEMS = sorted(EXAMPLES.glob("item-*.json"))
 
@@ -24,7 +31,7 @@ def _load(name: str) -> dict[str, Any]:
 
 def test_examples_exist() -> None:
     assert len(SUBMITS) == 3
-    assert len(ITEMS) == 2
+    assert len(ITEMS) == 3  # expression, choice, and one with help availability
 
 
 @pytest.mark.parametrize("path", SUBMITS, ids=lambda p: p.name)
@@ -129,3 +136,51 @@ def test_public_item_rejects_extra_field() -> None:
 
 def test_error_body() -> None:
     assert ErrorBody(error="bad", message="m").error == "bad"
+
+
+HELP_RESPONSES = sorted(EXAMPLES.glob("help-response-*.json"))
+
+
+def test_contract_examples_validate() -> None:
+    """Help examples parse and round-trip; the JSON Schemas match the models."""
+    req = _load("help-request.json")
+    assert json.loads(HelpRequest.model_validate(req).model_dump_json()) == req
+    assert {p.name for p in HELP_RESPONSES} >= {
+        "help-response-delivered.json",
+        "help-response-pending.json",
+        "help-response-unavailable.json",
+    }
+    for path in HELP_RESPONSES:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        assert json.loads(HelpResponse.model_validate(data).model_dump_json()) == data
+    for name, model in (("help.request.json", HelpRequest), ("help.response.json", HelpResponse)):
+        schema = json.loads((CONTRACTS / name).read_text(encoding="utf-8"))
+        assert schema == model.model_json_schema(), name
+    item = PublicItem.model_validate(_load("item-help.json"))
+    assert item.help is not None and item.help.types == ["hint", "feedback", "explain"]
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"help_type": "question"},
+        {"help_request_id": str(uuid.uuid1())},
+        {"session_item_id": 0},
+        {"item_revision": -1},
+        {"confusion": "x" * 65},
+        {"free_text": "why?"},
+    ],
+    ids=["question", "uuid1", "item0", "revision", "long_confusion", "extra"],
+)
+def test_invalid_help_requests_rejected(change: dict[str, Any]) -> None:
+    with pytest.raises(ValidationError):
+        HelpRequest.model_validate({**_load("help-request.json"), **change})
+
+
+def test_help_status_names_match_service() -> None:
+    from typing import get_args
+
+    from mathtutor.help.service import HelpStatus
+    from mathtutor.web.schemas import HelpStatusName
+
+    assert set(get_args(HelpStatusName)) == {s.value for s in HelpStatus}

@@ -4,8 +4,9 @@
 
 Status: design agreed 2026-10-26; the [C design spec](../../specs/2026-10-26-milestone-c/README.md)
 owns exact contracts and slices C1–C3. [Concept review](../../../reviews/2026-10-26-milestone-c/README.md)
-completed against `8126fc3`; review amendments are incorporated. [C1 implementation plan](milestone-c/c1/README.md) written
-2026-10-26 (proposes C-P1/C-P2 values); awaiting Thomas's review. C2/C3 plans not written.
+completed against `8126fc3`; review amendments are incorporated. C1 is implemented but
+not released; [current status](milestone-c/c1/20-status.md) owns gates and review blockers.
+C2's plan is in the separate `milestone-c2` worktree; Q1–Q9 are decided. C3 planning remains.
 Accepted decisions: [0004](../../../decisions/0004-rag-source-models-and-evaluation.md)
 and [0005](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md).
 Sequence: C → LoRA experiment → D/E → [expansion queue](05-expansion-queue.md).
@@ -15,7 +16,8 @@ Sequence: C → LoRA experiment → D/E → [expansion queue](05-expansion-queue
 - [Help contract](milestone-c/01-help-contract.md): buttons, context, citations, leak guard and logging.
 - [Evaluation](milestone-c/02-evaluation.md): retrieval, generators, held-out splits and A/B evidence.
 - [Open decisions](milestone-c/03-open-decisions.md): design-session inputs and unresolved choices.
-- [Debugging](milestone-c/04-debugging.md): planned failure paths and evidence to collect.
+- [C1 debugging](../../../ops/debugging/c1/README.md): implemented modules and focused tests.
+- [C/LoRA checklist](milestone-c/04-debugging.md): broader planned failure paths and evidence.
 - [AI handoff](06-ai-decisions-handoff.md): source provenance and completed documentation sync.
 
 ## Build sequence
@@ -29,7 +31,7 @@ Sequence: C → LoRA experiment → D/E → [expansion queue](05-expansion-queue
 7. Add C2 item-scoped questions, then C3 typed/uploaded confirmed tasks with separate acceptance cases.
 
 Resolve C-P1/C-P2 for C1 and C-P3 for C3 in the [open register](milestone-c/03-open-decisions.md).
-This is a conceptual sequence, not a completed task-by-task implementation plan.
+This is the conceptual sequence; the C1 task tree and status own implementation progress.
 
 This is an explanation-ingestion pipeline, not bulk exercise extraction.
 Do not let generated candidate exercises enter the graded bank without review.

@@ -1,0 +1,131 @@
+audit,case_id,item,delivered,help_type,topic,category,judge_leak,judge_addresses_error,judge_endorses_wrong,judge_citations_supported,judge_math_error,judge_useful,judge_rationale,human_leak,human_addresses_error,human_endorses_wrong,human_citations_supported,human_math_error,human_useful,cited_ids,text
+random,hold-07,hold-07-r1,y,hint,derivatives.basic_rules,ordinary,none,n,n,y,n,y,"Names the method (point from f(-1), slope from f'(-1), point-slope form) without computing any values or the line, so no leak. Both citations support the claims, and it fits a level-0 step-2 hint. There is no attempt, so addresses_error is false.",none,n,n,y,n,y,c1-3.3-ex6 c1-3.3-txt3,"Since you asked again, here's the method. A tangent line needs two things: a point on the line and its slope. The point comes from the function itself, and the slope comes from the derivative evaluated at the given $x$-value.
+
+Your function is a polynomial, so the basic rules (the power rule, the constant multiple rule, and the sum and difference rules) let you differentiate it one term at a time. You don't need the limit definition or the product rule.
+
+Here is a plan:
+- Find the point by putting $x = -1$ into $f(x)$.
+- Find $f'(x)$ term by term, then evaluate it at $x = -1$ to get the slope.
+- Combine the point and slope with the point-slope form, as in the textbook example with $f(x) = x^2 - 4x + 6$.
+
+Which of these pieces would you like to try first?"
+random,hold-10,hold-10-r1,y,explain,derivatives.basic_rules,ordinary,none,n,n,y,n,n,"No leak or math error, and the citations support the claims (derivative of position is instantaneous velocity, example s'(t)=-32t). But the case note asks for the logic of why velocity is defined as the derivative, and this only restates it. It also sets up the problem by pointing to the quotient form and the rule choice, which an explain response should not do.",none,n,n,y,n,n,c1-3.4-ex2 c1-4.4-ex3 c1-2.1-ex2,"Great question! When $s(t)$ gives position, its derivative $s'(t)$ tells you the instantaneous velocity, meaning how fast and in which direction the object is moving at one exact moment. It is different from average velocity, which compares positions over a whole time interval.
+
+Here is an example with a different function. A ball has height $s(t) = -16t^{2}+64$. Its derivative is $v(t) = s'(t) = -32t$. Plugging in a time gives the ball's velocity at that instant, and the units are feet per second. A negative sign means the height is decreasing.
+
+For your herring, $s(t)$ is the distance traveled after $t$ seconds. So the derivative $s'(t)$ is a new function that gives the herring's velocity at any time $t$. The question asks about the velocity at one particular moment, so what do you think you would do with $s'(t)$ once you have it?
+
+To get started, ask yourself what form $s(t)$ has. Is it a product, a quotient, or something else? That will help you choose the rule."
+random,hold-11,hold-11-r1,n,feedback,derivatives.trig,mistaken_reasoning,none,y,n,y,n,y,"Names that the attempt only shows the x - x1 part, directs the student to compute y1 = f(3π/2) and the slope, and recalls point-slope form without revealing the answer. Citations support the point-and-slope approach.",none,y,n,y,n,y,c1-3.5-ex5 c1-3.3-ex6,"You're on the right track with the idea of the point-slope form, since your answer has the $x-\frac{3\pi}{2}$ piece in it. Let's look at what a tangent line equation needs, as in the textbook examples: a point and a slope.
+
+The form is $y - y_1 = m(x - x_1)$, and your answer only shows the $x - x_1$ part. Two questions to check:
+
+- What is $y_1$? That's $f\left(\frac{3\pi}{2}\right)$, so try plugging that value into $f(x) = 1 + \cos x$.
+- What is the slope $m$? Find $f'(x)$, then evaluate it at $x = \frac{3\pi}{2}$.
+
+Also, remember the task asks for $y = \dots$, so you will need to solve for $y$ at the end. Try finding those two values and tell me what you get."
+random,hold-11,hold-11-r2,n,feedback,derivatives.trig,mistaken_reasoning,none,y,n,y,n,y,"Points to the missing y-coordinate f(3π/2) and the slope, recalls point-slope form, and gives no final answer. Slightly vague about the 'something is missing' framing, but it engages with the attempt; both citations support the point-and-slope method.",none,y,n,y,n,y,c1-3.3-ex6 c1-3.5-ex5,"You're on the right track: your answer looks like the $x - \frac{3\pi}{2}$ part of a point-slope equation, so you found the point's $x$-value and seem to be using the form $y - y_1 = m(x - x_1)$. Something is missing, though.
+
+Look at the textbook examples of tangent lines. Each one needs a point and a slope, and then the whole equation is solved for $y$. Ask yourself:
+
+- What is $f\left(\frac{3\pi}{2}\right)$? That gives the $y$-coordinate of the point.
+- What is $f'(x)$, and what is its value at $x = \frac{3\pi}{2}$? That is the slope, and it should multiply the $x - \frac{3\pi}{2}$ part.
+- Does your answer begin with $y = \dots$ and include both pieces?
+
+Try finding each piece separately, then plug them into the point-slope form and solve for $y$. What do you get?"
+random,hold-15,hold-15-r1,y,hint,derivatives.trig,easy_l1_trap,none,n,n,y,n,y,"Level-0 hint asks about the notation d^2y/dx^2 and the problem's form without naming the sin/cos derivatives or the cycle, so no leak. Citations on sin/cos derivatives and the higher-order example are relevant to the hint's direction, and the response makes no wrong claims.",none,n,n,y,n,y,c1-3.5-thm1 c1-3.5-ex7,"Good place to start by looking at the problem's form. Notice the notation $\frac{d^2y}{dx^2}$: what is it asking you to do to $y$, and how many times?
+
+Also look at how $y = x - \frac{1}{2}\sin x$ is built. Is it a product, a quotient, one function inside another, or something simpler? Once you decide that, think about which derivative facts you already know for each piece."
+random,hold-18,hold-18-r1,y,hint,derivatives.chain_rule,easy_l1_trap,none,n,n,y,n,y,"Level-0 hint asks about the problem's form (y depends on x through u) without naming the rule, computing du/dx, or leaking the answer. The cited chain rule passages are about this setup, so the citations hold. There is no attempt, so addresses_error is false.",none,n,n,y,n,y,c1-3.6-rule5 c1-3.6-txt12,"Let's start by looking at how the problem is set up. You're given $y$ in terms of $u$, and $u$ in terms of $x$, but you're asked for $\frac{dy}{dx}$.
+
+What do you notice about how $y$ depends on $x$? Is it a sum, a product, a quotient, or one function sitting inside another? Think about how that could help you decide what pieces to differentiate."
+random,hold-19,hold-19-r1,y,explain,derivatives.chain_rule,ordinary,none,n,n,y,n,y,"Explains the inner function idea with a different example (sin(x^3)) and an evaluation-order test, without naming this problem's parts or giving the answer. Citations support the claims: the chain-reaction idea, the Leibniz rule and the worked example. The closing prompt asks for dy/du and du/dx, which only mildly sets up the problem.",none,n,n,y,n,y,c1-3.6-txt3 c1-3.6-rule5 c1-3.6-ex12,"Great question! In this problem the work is already split for you, but the same idea applies anywhere. The inner function is the one tucked inside another function, the part that feeds into it. Think of a chain reaction: as $x$ changes, the inside piece changes, and that change drives the outside piece.
+
+A different example: for $\sin(x^3)$, the inside piece is $x^3$ (so $u = x^3$) and the outer function is $\sin u$. A good test is to ask, ""If I were evaluating this at a number, what would I compute first?"" That first piece is the inner function.
+
+For your problem, you're told $y$ depends on $u$, and $u$ depends on $x$. So ask yourself: which one is the outer function of $u$, and which one is the inner function of $x$? Find $\frac{dy}{du}$ and $\frac{du}{dx}$ separately, then think about how the chain rule says to combine them. Want to try writing those two pieces?"
+flagged:math_error,hold-21,hold-21-r2,n,hint,derivatives.chain_rule,tell_me_answer,none,y,n,y,y,n,"It says the factor 2 comes from ""-2 times -2"", but that product is 4, and the student's answers show a 2 and a 4, so it misdescribes their work. It also says the product's sign should be considered, which nearly confirms the sign issue. The garbled description makes it confusing, so it is not useful.",none,y,n,y,y,n,c1-3.6-rule5 c1-3.6-txt12,"You're on the right track: the power $-3$ in the denominator and the factor $2$ from $-2$ times $-2$ show you used the chain rule and kept the structure well. Something small is off, though, probably a sign.
+
+Try writing out the pieces side by side: let $u = 5 - 2x$, so $y = u^{-2}$. Find $\frac{dy}{du}$ and $\frac{du}{dx}$ separately. Then compare your answer with those two pieces. In particular, check the sign of each piece, and ask yourself what sign the product of the two should have."
+,hold-01,hold-01-r1,y,hint,derivatives.basic_rules,easy_l1_trap,none,n,n,y,n,y,"Level-0 hint asks about the function's form (product, quotient, composition, or sum of pieces) without naming a rule or differentiating anything. Both cited passages (basic building blocks, combining rules for polynomials) are consistent with it; there is no attempt, so addresses_error is false.",,,,,,,c1-3.3-txt16 c1-3.3-txt3,"Good place to start is by looking at how the function is built. Take a look at $f(x) = 8x^4 + 9x^2 - 1$ and ask yourself: is it a product, a quotient, one function inside another, or something else? How many separate pieces are being added or subtracted, and what does each piece look like on its own?"
+,hold-02,hold-02-r1,y,feedback,derivatives.basic_rules,mistaken_reasoning,none,y,n,y,n,y,"It pinpoints that the exponents were not lowered, using Example 3.21 (2x^5 became 2(5x^4)) without writing the answer. Citations support the claims; the attempt's lack of a constant term is described accurately, and no math errors.",,,,,,,c1-3.3-ex5 c1-3.3-txt3 c1-3.3-txt8,"You're off to a good start: you split the function into its terms and multiplied each coefficient by its exponent, and you correctly saw that the constant $-1$ contributes nothing. Look closely at the exponents in your answer, though. In $32x^4$ and $18x^2$, the powers of $x$ are the same as in the original function.
+
+The power rule does two things to $x^n$: it brings the exponent down in front, and it changes the exponent on $x$. Compare Example 3.21, where $2x^5$ became $2(5x^4)$. What happened to the exponent $5$ on $x$ there?
+
+Try writing each term's derivative on its own, like $\frac{d}{dx}(8x^4)$ and $\frac{d}{dx}(9x^2)$, applying both parts of the power rule, and then add them up."
+,hold-03,hold-03-r1,y,hint,derivatives.basic_rules,nearly_right,none,y,n,y,n,y,"Points to the 9x^2 term and asks the student to compute d/dx of x^2 and apply the constant multiple, without giving 18x. It confirms the correct parts and has no math errors; the cited passages cover the power, constant multiple and sum rules.",,,,,,,c1-3.3-ex5 c1-3.3-txt8 c1-3.3-txt3,"Nice work on the first term: $8x^4$ differentiated correctly with the power rule. The constant $-1$ was also handled properly by dropping out.
+
+Look closely at the middle term, $9x^2$. Ask yourself: does the power rule change this term in your answer the same way it changed $8x^4$? Try writing out the derivative of $x^2$ by itself, then see what the constant multiple $9$ does to it. Compare that with the $9x$ you wrote."
+,hold-05,hold-05-r1,n,feedback,derivatives.basic_rules,mistaken_reasoning,none,y,n,y,n,y,"Identifies that f(-1)=4 was used as the y-intercept, and directs the student to point-slope form with (-1,4) and slope f'(-1) without writing the final line. Citations (point-slope example and tangent formula) support the claims.",,,,,,,c1-3.3-ex6 c1-4.2-txt3,"You're on the right track: you found the point's $y$-value, $f(-1)=4$, and your slope looks like the right idea. The issue is how that value was used. The number $f(-1)$ is the $y$-coordinate of the point of tangency at $x=-1$, not the $y$-intercept of the line.
+
+Ask yourself: where does the tangent line touch the graph? It touches at $x=-1$, not at $x=0$. So the constant term in $y=mx+b$ isn't automatically $4$.
+
+Try this: write the point $(-1, f(-1))$ and your slope $m=f'(-1)$, then plug both into the point-slope form $y - f(a) = f'(a)(x-a)$. As in the textbook example with $x^2-4x+6$, simplify to slope-intercept form at the end. What constant do you get?"
+,hold-05,hold-05-r2,n,feedback,derivatives.basic_rules,mistaken_reasoning,none,y,n,y,n,y,"Explains that f(-1) is the y-value of the point, not the y-intercept, and says to use point-slope form with (-1, f(-1)) and f'(-1), without the final line. The cited example supports the point-slope step.",,,,,,,c1-3.3-ex6 c1-4.2-txt3,"You're on the right track: finding a point and a slope is exactly the plan. Your slope looks like it came from the derivative, which is good. Here's the idea to look at.
+
+The number $f(-1)$ is the $y$-value of the point on the curve at $x=-1$. It is not automatically where the tangent line crosses the $y$-axis. The line touches the graph at $x=-1$, not at $x=0$.
+
+Try this: write your point as $(-1, f(-1))$ and your slope as $f'(-1)$. Then put them into point-slope form, like the textbook example does with $y - 3 = -2(x-1)$. Only after that, rewrite it as $y = \dots$.
+
+What do you get when you plug in your point and slope, and then simplify?"
+,hold-06,hold-06-r1,y,hint,derivatives.basic_rules,tell_me_answer,none,y,n,y,n,y,"Level-1 hint: says what is right (needs a point and a slope), that something is off (slip in one piece), and asks the student to compare. It gives no slope or line, and the cited passages support the point-and-slope approach. 'Compare each piece with your answer' is slightly vague, but it is still a fair nudge.",,,,,,,c1-3.3-ex6 c1-3.3-txt3,"You're on the right track with using a tangent line in the form $y = mx + b$, which needs a point and a slope. Something in one of those two pieces is off, though, probably a small arithmetic or sign slip.
+
+Try rechecking each piece on its own:
+
+- Find $f(-1)$ by substituting carefully, watching the signs on the odd and even powers of $-1$.
+- Find $f'(x)$ term by term, then evaluate it at $x=-1$.
+
+Then put the point and slope into point-slope form and simplify. Compare each piece with your answer. Which one doesn't match?"
+,hold-08,hold-08-r1,y,hint,derivatives.basic_rules,mistaken_reasoning,none,y,n,y,n,y,"It identifies that 9/11 is s(3), the position, and points to velocity as s'(t) (supported by the Example 3.34 passage). It also suggests the quotient setup without giving the derivative or the answer. The 'name the top and bottom' step goes slightly past a level-2 hint but does not leak or do the work.",,,,,,,c1-3.4-ex2 c1-2.1-txt7,"Nice work evaluating the position function: $\frac{9}{11}$ is indeed the value of $s(3)$, so your arithmetic is solid. But look closely at what the problem asks for. Is it the position at $t = 3$, or something else about the herring's motion?
+
+Think about how velocity relates to position, as in the textbook examples where $v(t) = s'(t)$. What would you need to find first, before plugging in $t = 3$?
+
+Since $s(t)$ is a fraction, name the top and the bottom, find each one's derivative on its own, and then decide which rule fits. Give it a try and tell me what you get."
+,hold-09,hold-09-r1,y,hint,derivatives.basic_rules,tell_me_answer,none,y,n,y,n,y,"Walks the quotient rule on this problem (derivatives of top and bottom, rule statement) and points to the unsquared denominator 11 without giving s'(3) or the simplified numerator. Its derivatives are correct, and the cited passage supports the claim that velocity is the derivative. It says 'your work shows you're using the quotient rule', which is a mild assumption but plausible given the case note.",,,,,,,c1-3.4-ex2,"Good start: velocity is the derivative $s'(t)$, evaluated at $t=3$, and your work shows you're using the quotient rule. Let's walk through the pieces side by side.
+
+- Top: $t^2$, so its derivative is $2t$.
+- Bottom: $t^2+2$, so its derivative is $2t$.
+
+The quotient rule says: (derivative of top times bottom, minus top times derivative of bottom), all divided by the bottom squared.
+
+Compare your answer with that last part. Your denominator has $11$, which is $3^2+2$. Does the rule call for the bottom itself, or something done to the bottom? Write out $s'(t)$ in full with the correct denominator, simplify the top, and then substitute $t=3$."
+,hold-13,hold-13-r1,y,hint,derivatives.trig,out_of_scope,none,n,n,y,n,y,"Level-0 hint asks about the problem's form (what's needed for a line, whether f is a sum/product/quotient) without naming a rule or starting work; no leak. The cited passage on point-slope form of a line supports the line-equation idea, and there is no attempt to address.",,,,,,,c1-1.2-ex1,"Good place to pause and plan! Before computing anything, think about what the problem is asking you to produce: an equation of a line. What two pieces of information do you need to write the equation of any line, and which of them can you get from $f(x) = 1 + \cos x$ at $x = \frac{3\pi}{2}$?
+
+Also, look at how $f(x)$ is built. Is it a product, a quotient, or a sum of simpler pieces? Tell me what you notice."
+,hold-14,hold-14-r1,y,feedback,derivatives.trig,nearly_right,none,y,n,y,n,y,"It points to the sign slip when differentiating cos x, noting a second sign enters, without giving the corrected expression or the answer. It says the -1/2 coefficient is on track, which is true for the attempt's coefficient (its sign is the error). Citations support the trig derivatives and second-derivative notation.",,,,,,,c1-3.5-thm1 c1-3.5-txt9 c1-3.2-txt10,"You're close, and the $-\frac{1}{2}$ coefficient plus the idea of differentiating twice are on track. The sign is where to look.
+
+Try doing it in two separate steps. First find $\frac{dy}{dx}$ for $y = x - \frac{1}{2}\sin x$, keeping track of the minus sign in front of the sine term. Then differentiate that result.
+
+As you do, ask yourself: what is the derivative of $\sin x$, and what is the derivative of $\cos x$? Compare each with the rules for those two functions. Remember the minus sign that comes with $\frac{1}{2}$ is a constant multiplier, and a second sign may enter when you differentiate the cosine.
+
+Also check what happens to the $x$ term at each step. Write out each derivative, then tell me what you get."
+,hold-17,hold-17-r1,y,feedback,derivatives.chain_rule,nearly_right,none,y,n,y,n,n,"It points to the sign of u and du/dx without giving the answer, but it asks whether the sign is missing 'inside the sine' even though sin(x/8) is correct, which misdescribes the work and confuses the student. It also says the student 'used the chain rule' as dy/du·du/dx, which the attempt does not show, so it is not useful.",,,,,,,c1-3.6-rule5 c1-3.6-ex12 c1-3.6-txt12,"You're on the right track: you used the chain rule as $\frac{dy}{dx} = \frac{dy}{du}\cdot\frac{du}{dx}$, and the factor of $\frac{1}{8}$ and the sine both show you're thinking about the right pieces. Something is off in how those pieces fit together, though.
+
+Let's write the two parts side by side:
+
+- $\frac{dy}{du}$ for $y = \cos u$
+- $\frac{du}{dx}$ for $u = \frac{-x}{8}$
+
+Look closely at $u$. It starts with a negative sign. Does your answer still have that sign anywhere, both inside the sine and in the constant out front? Try finding $\frac{du}{dx}$ on its own, then ask what sign it has. Then check the sign from $\frac{dy}{du}$ as well. Finally, multiply them and substitute $u$ back in. What do you get?"
+,hold-20,hold-20-r1,n,feedback,derivatives.chain_rule,mistaken_reasoning,none,y,n,y,n,y,"Identifies the missing inner-derivative factor via the chain rule without writing the answer. The student's power-rule step is correctly credited, and the sign hint is helpful. Citations support the claims.",,,,,,,c1-3.6-rule5 c1-3.6-txt3 c1-3.6-ex12,"You're on the right track: the outer part, bringing down the exponent and lowering it by one, looks fine. What's missing is a piece the chain rule requires. The chain rule says the derivative of the outer function evaluated at the inside gets multiplied by the derivative of the inner function.
+
+Try naming the parts: let $u$ be the inside of the parentheses, so $y = u^{-2}$. Then find $\frac{dy}{du}$ and $\frac{du}{dx}$ separately. Compare your answer with the product $\frac{dy}{du}\cdot\frac{du}{dx}$. Is there a factor from $\frac{du}{dx}$ that doesn't appear in your work? Check it, including its sign."
+,hold-20,hold-20-r2,n,feedback,derivatives.chain_rule,mistaken_reasoning,none,y,n,y,n,y,"Correctly credits the power-rule step and points to the missing du/dx factor, with u=5-2x and y=u^{-2} set up but no final expression. This sets up the inner and outer parts, but that is fine for feedback. Citations are supported.",,,,,,,c1-3.6-rule1 c1-3.6-txt3 c1-3.6-rule5,"You're on the right track: your power-rule step looks good, since you brought down the exponent and lowered it by one. Something is still missing, though.
+
+This is a composite function, so the chain rule says the derivative of the outer function, evaluated at the inner function, gets multiplied by the derivative of the inner function. Try writing the pieces side by side:
+
+- Inner function: $u = 5 - 2x$, so find $\frac{du}{dx}$.
+- Outer function: $y = u^{-2}$, so find $\frac{dy}{du}$.
+
+Then compare your answer with $\frac{dy}{dx} = \frac{dy}{du}\cdot\frac{du}{dx}$. Did you include the $\frac{du}{dx}$ factor? Check what it should be and how it changes your result."
+,hold-21,hold-21-r1,y,hint,derivatives.chain_rule,tell_me_answer,none,y,n,y,n,y,"It suggests writing out the outer and inner functions, finding dy/du and du/dx separately, and checking each sign, as the case note says. It does not confirm the corrected sign or give the answer. The citations support the chain rule it describes.",,,,,,,c1-3.6-rule5 c1-3.6-txt3,"You're on the right track: using the chain rule, you correctly lowered the exponent to $-3$ and kept the factor $(5-2x)$ in the denominator. Something is still off, though, probably in one small piece of the work. Try writing out the outer function and the inner function $u$ separately. Find $\frac{dy}{du}$ and $\frac{du}{dx}$ each on its own, and check the sign of each one carefully. Then compare how your pieces combine with your answer."
+,hold-22,hold-22-r1,y,hint,derivatives.chain_rule,easy_l1_trap,none,y,n,y,n,n,"It is about the latest attempt, but it points to the sign of du/dx as the issue, which is more than a level-1 nudge should say. It also misdescribes the student's work: the attempt is a final fraction with denominator (5-2x)^3, and the student never showed a power of -3 or a du/dx. The mention of 'a sign or a number' and the instruction to check whether du/dx is positive or negative effectively name the error.",,,,,,,c1-3.6-rule5 c1-3.6-txt3,"Nice work: you recognized this as a chain rule problem, and your power on the outer part, $(5-2x)^{-3}$, is right, so that part is in good shape.
+
+Something is slightly off in your final expression, though, and it's probably in a sign or a number. Try writing the pieces side by side: let $u = 5-2x$, then find $\frac{dy}{du}$ and $\frac{du}{dx}$ separately. Compare your $\frac{du}{dx}$ with the derivative of $5-2x$, and check carefully whether it's positive or negative. Then multiply the two pieces and see how that compares with what you wrote."
+,hold-23,hold-23-r1,y,explain,derivatives.chain_rule,ordinary,none,n,n,y,n,n,"No leak, math is correct and citations support the claims. But the closing question ('what would you call u, and what is y in terms of u?') sets up this problem's first step for the student, which an explain response must not do; so it is not useful. No attempt exists, so addresses_error is false.",,,,,,,c1-3.6-rule5 c1-3.6-txt12 c1-3.6-txt5,"Great question! The key idea is that $y=(5-2x)^{-2}$ is a function inside another function. The outer function takes some quantity and raises it to a power. The inner function, $5-2x$, produces that quantity. When $x$ changes, the inside changes first, and that change then feeds into the outer function.
+
+The chain rule in Leibniz form captures this: if $y$ depends on $u$, and $u$ depends on $x$, then $\frac{dy}{dx} = \frac{dy}{du}\cdot\frac{du}{dx}$. The factor $\frac{du}{dx}$ is the derivative of the inside. It measures how fast the inside is changing as $x$ changes, and it is exactly what links the outer rate $\frac{dy}{du}$ to the variable $x$.
+
+For a different example, take $y=(3x+1)^4$. Let $u=3x+1$, so $y=u^4$. The outer rate is $\frac{dy}{du}$, and the inner rate is $\frac{du}{dx}$. You need both, multiplied together.
+
+Try it on your problem: what would you call $u$, and what is $y$ in terms of $u$?"

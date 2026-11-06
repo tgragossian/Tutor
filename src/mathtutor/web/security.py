@@ -6,6 +6,7 @@ Rate limits live in process memory, so they assume a single app process (one uvi
 from __future__ import annotations
 
 import hmac
+import math
 import threading
 import time
 from collections import deque
@@ -116,7 +117,9 @@ class RateLimiter:
             while hits and hits[0] <= now - self._window:
                 hits.popleft()
             if len(hits) >= self._limit:
-                raise RateLimited("Too many requests. Please wait a minute and try again.")
+                error = RateLimited("Too many requests. Please wait a minute and try again.")
+                error.retry_after_s = max(1, math.ceil(hits[0] + self._window - now))
+                raise error
             hits.append(now)
             if len(self._hits) > 10_000:
                 self._prune(now)

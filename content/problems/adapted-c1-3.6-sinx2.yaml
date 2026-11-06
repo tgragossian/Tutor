@@ -22,7 +22,7 @@ answer:
       latex: '2x\sin(x^2)'
   correct: a
 misconceptions:
-  - 'b  # missing inner derivative 2x'
+  - 'b  # missing inner derivative'
   - 'c  # differentiated the inside in place'
   - 'd  # derivative of sin taken as sin'
 review:

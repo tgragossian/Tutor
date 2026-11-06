@@ -18,6 +18,7 @@ against its pydantic model in `src/mathtutor/web/schemas.py` and must round-trip
 | `GET /api/sessions/{id}/current` | — | `CurrentResponse` (read-only) |
 | `POST /api/sessions/{id}/submit` | `SubmissionRequest` | `SubmitResponse` |
 | `POST /api/sessions/{id}/{advance,skip,reveal}` | `ActionRequest` | `CurrentResponse` |
+| `POST /api/help` | `HelpRequest` | `HelpResponse`: 200 finished, 202 `pending` |
 
 - Every cookie-authenticated `POST` carries the CSRF token as `X-CSRF-Token` (or a
   `csrf_token` form field); otherwise 403 `csrf_failed`.
@@ -27,6 +28,11 @@ against its pydantic model in `src/mathtutor/web/schemas.py` and must round-trip
   `invalid_input`, `kind_mismatch`), 429 `rate_limited`, 503 `verifier_busy` or `database_busy`
   with `Retry-After: 2`. JSON nested deeper than 40 levels is 422 `invalid_request`.
 - A format issue is a 200 `SubmitResponse` whose `outcome` is `{code, message}`; nothing changes.
+- Help: 404 for someone else's item, 409 `stale_item`, `conflict` (request id reused with
+  another body), `help_closed` or `no_wrong_attempt`, 422 for an unknown `help_type`
+  (`question` arrives in C2), 429 `help_limited`. While help is not enabled every item's `help`
+  is null and `/api/help` answers 200 `unavailable`. JSON Schemas: `help.request.json`,
+  `help.response.json` (generated from the models; a test keeps them equal).
 
 ## Examples
 
@@ -45,6 +51,8 @@ Responses:
 - `submit-response-correct.json`, `-incorrect.json`, `-unable.json`, `-format-issue.json`.
 - `error-stale-item.json`, `error-verifier-busy.json`, `error-invalid-request.json`.
 - `sessions-history.json`: `GET /api/sessions`.
+- `help-request.json`; `help-response-delivered.json`, `-pending.json`, `-unavailable.json`;
+  `item-help.json` (an item with help availability); `error-help-limited.json`.
 
 ## Rules
 

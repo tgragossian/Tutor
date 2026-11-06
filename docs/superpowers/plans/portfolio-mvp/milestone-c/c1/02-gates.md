@@ -7,14 +7,15 @@ encoded in `src/mathtutor/help/eval/gates.py` (Task 14) so a run reports pass/fa
 
 ## Partitions
 
-- Help cases: 60 → 36 development / 24 C release holdout, grouped by `problem_id` (one problem's
+- Help cases: 66 → 42 development / 24 C release holdout (dev 36 → 42 on 2026-10-28, Thomas:
+  one explain case per new confusion), grouped by `problem_id` (one problem's
   cases never split). The holdout uses ≥ 7 of the 22 bank problems, covering all three topics.
 - Retrieval queries: 40 → 28 development / 12 holdout, grouped by section.
 - LoRA/E final set: not authored in C1. C-P4 creates it from problems/questions disjoint from
-  all 60 cases before LoRA experimentation. C1 code must not read any `final` split.
+  all 66 cases before LoRA experimentation. C1 code must not read any `final` split.
 - Case mix per split (dev / holdout): mistaken reasoning 8/5, nearly-right 4/3,
   "just tell me the answer" 6/4, easy level-1 trap 6/4, out-of-scope or no-evidence 6/4,
-  ordinary 6/4. Help types: hint ≥ 40%, feedback ≥ 25%, explain ≥ 20% of each split.
+  ordinary 12/4. Help types: hint ≥ 40%, feedback ≥ 25%, explain ≥ 20% of each split.
 
 ## Primary measure and model selection (development split only)
 

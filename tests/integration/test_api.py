@@ -304,6 +304,8 @@ def test_pool_closed_on_shutdown_only_when_owned(tmp_path: Path, pool: SpyPool) 
 
 
 MODELS: dict[str, type[BaseModel]] = {
+    "help-response-": schemas.HelpResponse,
+    "help-request": schemas.HelpRequest,
     "submit-response-": schemas.SubmitResponse,
     "submit-": schemas.SubmissionRequest,
     "item-": schemas.PublicItem,

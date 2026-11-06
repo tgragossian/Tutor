@@ -1,0 +1,783 @@
+{
+  "edition": "calculus-volume-1@8dbc2ce",
+  "base_url": "https://openstax.org/apps/archive/20260604.144757/contents",
+  "fetched_at": "2026-10-27T00:40:59Z",
+  "source_kind": "archive_json",
+  "toc": [
+    {
+      "slug": "preface",
+      "section": "preface",
+      "title": "Preface",
+      "kind": "preface",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:054c519f-91dd-4df7-b604-050ff3e3e6fc.json",
+      "sha256": "837bc84d0c04e490492a0ec6d3d049d6d8bd09e47294b6e204ae24d66eddf504",
+      "bytes": 21984
+    },
+    {
+      "slug": "1-introduction",
+      "section": "1.intro",
+      "title": "Introduction",
+      "kind": "intro",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:1f64cb6f-6f92-4ee8-a4e7-9c20c6eed1e7.json",
+      "sha256": "7b0fbcb7f93ef824779f44c93c0b7d99c02975ac1cfa8c4d8bd01d3521dd77ca",
+      "bytes": 8528
+    },
+    {
+      "slug": "1-1-review-of-functions",
+      "section": "1.1",
+      "title": "Review of Functions",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:7cfe0552-bc12-452e-9c56-418ec508a280.json",
+      "sha256": "f06332ea74bc22974eafe3d275401bb88a2110fe91307c17cdbf3513831720d6",
+      "bytes": 421840
+    },
+    {
+      "slug": "1-2-basic-classes-of-functions",
+      "section": "1.2",
+      "title": "Basic Classes of Functions",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:d39e9c40-7f01-4254-aaa8-8da23ce7621b.json",
+      "sha256": "e4fbd5f19cac5442866933f5984d8c65c89653eddb98245041898bc336989d17",
+      "bytes": 387642
+    },
+    {
+      "slug": "1-3-trigonometric-functions",
+      "section": "1.3",
+      "title": "Trigonometric Functions",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:6e565dfe-80df-4361-96f3-4eb5aa11e52d.json",
+      "sha256": "afae6f4403076615eb07c95f038d6d71018f8fdf1d3ac0d7fa3763f6999074dc",
+      "bytes": 264477
+    },
+    {
+      "slug": "1-4-inverse-functions",
+      "section": "1.4",
+      "title": "Inverse Functions",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:21bf0e2b-d95b-4e26-b9b9-fb7179ceaed1.json",
+      "sha256": "b5f3059a6ce1af9fef7e98d74ef2cd3146b09c90f83182a33b732fb01b93319c",
+      "bytes": 263843
+    },
+    {
+      "slug": "1-5-exponential-and-logarithmic-functions",
+      "section": "1.5",
+      "title": "Exponential and Logarithmic Functions",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:4e380129-1af7-4fd5-a8e8-2893f56fb2de.json",
+      "sha256": "dac093687538e5df30b20d0b22785c087e683e98b235d67e7f18c621ebcd19fb",
+      "bytes": 387543
+    },
+    {
+      "slug": "1-key-terms",
+      "section": "1.key-terms",
+      "title": "Key Terms",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:e316e9e3-8d10-516e-b53f-c29b3b1544fd.json",
+      "sha256": "38aaa9e0018ed5c2210a856fc83f971102b27ac3e421991960ab2f45160c5b6c",
+      "bytes": 39556
+    },
+    {
+      "slug": "1-key-equations",
+      "section": "1.key-equations",
+      "title": "Key Equations",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:23452f44-bf85-50be-9f80-c25aa81260fa.json",
+      "sha256": "9ff8c62b54a4f89913b568fab386a7c9ffa74fb6bd6749f73fe0764c8af25305",
+      "bytes": 10552
+    },
+    {
+      "slug": "1-key-concepts",
+      "section": "1.key-concepts",
+      "title": "Key Concepts",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:1086b66f-9ffd-5de6-b980-e66f27b9801e.json",
+      "sha256": "3863cffd1c96c04c72bc3bf30ca13e9e7bb8f14658ad0984b8c4b6babe228466",
+      "bytes": 28044
+    },
+    {
+      "slug": "1-review-exercises",
+      "section": "1.review-exercises",
+      "title": "Review Exercises",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:e750e633-ad77-5350-a038-fe188e45ea7e.json",
+      "sha256": "6437dbef3abd8c1af4d38f831ab74522cbd1f6de70f29726cc4a038a341f8b69",
+      "bytes": 36025
+    },
+    {
+      "slug": "2-introduction",
+      "section": "2.intro",
+      "title": "Introduction",
+      "kind": "intro",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:7ebb4d1b-98e5-4f5f-a950-b097168c8130.json",
+      "sha256": "68d0487c13342b942113b648b5ffc4526ab4b1d2a83855ef15898dc2616b6a90",
+      "bytes": 10742
+    },
+    {
+      "slug": "2-1-a-preview-of-calculus",
+      "section": "2.1",
+      "title": "A Preview of Calculus",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:caf3fc11-a5f5-49c6-b3c3-31d84cb93751.json",
+      "sha256": "4f9107478c6682fc5c0e4e08b034febcd1bee3378d2d728d77752132c9e17ff8",
+      "bytes": 118172
+    },
+    {
+      "slug": "2-2-the-limit-of-a-function",
+      "section": "2.2",
+      "title": "The Limit of a Function",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:74a09fc9-5f6e-4f6d-a6da-b13c909ad307.json",
+      "sha256": "01335c653283c8c75be3ff81691294cbdfdfe853e139e2a804e3cda8a9cac5fd",
+      "bytes": 344864
+    },
+    {
+      "slug": "2-3-the-limit-laws",
+      "section": "2.3",
+      "title": "The Limit Laws",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:fb10befb-c5c7-46f4-b066-10f3f7131b52.json",
+      "sha256": "36244c8867cb3169378c8e06f57fb384b3ea35325ebb9785e20f20ae3f3c51e1",
+      "bytes": 392698
+    },
+    {
+      "slug": "2-4-continuity",
+      "section": "2.4",
+      "title": "Continuity",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:789d3c02-cb97-4f5f-9193-489f0a0cf050.json",
+      "sha256": "39666ae59b7b4d6c444d8cb706ff9e01e429a2252ef62867a249c9f95f5ee874",
+      "bytes": 270706
+    },
+    {
+      "slug": "2-5-the-precise-definition-of-a-limit",
+      "section": "2.5",
+      "title": "The Precise Definition of a Limit",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:8d2b312f-0cc4-4c97-adbc-edb41bf05137.json",
+      "sha256": "736c2eeda502d2d1e04905c42c46d6e21f01228bd6608fc631cd3041609619c4",
+      "bytes": 267080
+    },
+    {
+      "slug": "2-key-terms",
+      "section": "2.key-terms",
+      "title": "Key Terms",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:64bc9e4d-b9a4-57a8-b89f-72162312d3bb.json",
+      "sha256": "2f0aa37a3277a99228930b3b5360261cc90d0dcecc0a5fa28b6b02cee17286d4",
+      "bytes": 45081
+    },
+    {
+      "slug": "2-key-equations",
+      "section": "2.key-equations",
+      "title": "Key Equations",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:a99cb0f5-edff-5391-a6c4-25dd443b5109.json",
+      "sha256": "50f4664c931f138be048cad6d7d3bf0ecb02de400dcdbcbea8b82ed511a9d2ed",
+      "bytes": 17801
+    },
+    {
+      "slug": "2-key-concepts",
+      "section": "2.key-concepts",
+      "title": "Key Concepts",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:94fa29df-44c7-5872-9b78-baa71d6a9e49.json",
+      "sha256": "ea931430c240adb42dfef9899c2e38df6b0b43b30641728348084f2e150f26c3",
+      "bytes": 12278
+    },
+    {
+      "slug": "2-review-exercises",
+      "section": "2.review-exercises",
+      "title": "Review Exercises",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:9d04faf5-4d2a-567a-8407-2117f42e0834.json",
+      "sha256": "03b94d5c847bdc4688508d56258245776c1fd97d27b9260dc7becfa8796020fc",
+      "bytes": 51063
+    },
+    {
+      "slug": "3-introduction",
+      "section": "3.intro",
+      "title": "Introduction",
+      "kind": "intro",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:b56f3f62-f26d-4a04-a9fd-dd9bb6e23fda.json",
+      "sha256": "9d0d083046190ebdaf5b072d168605459a3f029adf7a8f335f2704cb99ac1674",
+      "bytes": 10363
+    },
+    {
+      "slug": "3-1-defining-the-derivative",
+      "section": "3.1",
+      "title": "Defining the Derivative",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:874f263f-c81b-42ff-9d4f-0fc8db63974c.json",
+      "sha256": "b161c2c18fc248dab4b98f978f46b9233e8194627c8db78b897915d6da88f7cc",
+      "bytes": 352644
+    },
+    {
+      "slug": "3-2-the-derivative-as-a-function",
+      "section": "3.2",
+      "title": "The Derivative as a Function",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:272d1a59-5e99-4a80-90e1-ccf60fb3cc1c.json",
+      "sha256": "26922e49a92ff8565a20056b32d0c3cca69cccceb966bb81a521c4dc770c3436",
+      "bytes": 345134
+    },
+    {
+      "slug": "3-3-differentiation-rules",
+      "section": "3.3",
+      "title": "Differentiation Rules",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:f1a25413-3af2-4f97-8aac-dd75a16c8aea.json",
+      "sha256": "6acd8724b7f6b1d8568c6f0dd1bc595b00337a7594a951fa0899da75fece0e3c",
+      "bytes": 384824
+    },
+    {
+      "slug": "3-4-derivatives-as-rates-of-change",
+      "section": "3.4",
+      "title": "Derivatives as Rates of Change",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:610ace30-270f-4dfc-8fad-5e44c4723919.json",
+      "sha256": "6088bfd7b3fc215053efd5b53196382b10772ab2815b27072cec54458387b672",
+      "bytes": 151343
+    },
+    {
+      "slug": "3-5-derivatives-of-trigonometric-functions",
+      "section": "3.5",
+      "title": "Derivatives of Trigonometric Functions",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:147ddf25-f9d0-479f-be13-eab353ffee90.json",
+      "sha256": "2afa5409673d172f1d5ef4d210c16ff7587166f4a10e89f2b2805894bc9d2240",
+      "bytes": 204252
+    },
+    {
+      "slug": "3-6-the-chain-rule",
+      "section": "3.6",
+      "title": "The Chain Rule",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:ec67b972-681d-403b-b456-82729dae0b91.json",
+      "sha256": "379e469cb2ae5a0727c0f1a4da339cd167f7a586927f8fd18444be09f0fb20ec",
+      "bytes": 360509
+    },
+    {
+      "slug": "3-7-derivatives-of-inverse-functions",
+      "section": "3.7",
+      "title": "Derivatives of Inverse Functions",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:afb02c92-f502-4a0f-91cf-793930632bd6.json",
+      "sha256": "f773614976eb7451efd1e9ac47ae5eaf3d9e40fd43380a8e759e58c17192e3ee",
+      "bytes": 216273
+    },
+    {
+      "slug": "3-8-implicit-differentiation",
+      "section": "3.8",
+      "title": "Implicit Differentiation",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:19fcb009-6677-4691-bf1a-a8d40e32bf11.json",
+      "sha256": "9e7a172204abb64bed7c5b7a553179e55f68e87574661aeebdbdbf409cec8f83",
+      "bytes": 186984
+    },
+    {
+      "slug": "3-9-derivatives-of-exponential-and-logarithmic-functions",
+      "section": "3.9",
+      "title": "Derivatives of Exponential and Logarithmic Functions",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:40fef24a-e790-49bf-9c6a-edc93696b724.json",
+      "sha256": "88b749ea6decb8ce0f0404208b3588874e81045fb90c80b0c2c89c2e87112a53",
+      "bytes": 288192
+    },
+    {
+      "slug": "3-key-terms",
+      "section": "3.key-terms",
+      "title": "Key Terms",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:6f639523-1c2d-5f14-9341-85528e6879e4.json",
+      "sha256": "250612dfdf910e59c3888765881fdc4604d7cc89d732d54d4a1e05774f7be639",
+      "bytes": 25325
+    },
+    {
+      "slug": "3-key-equations",
+      "section": "3.key-equations",
+      "title": "Key Equations",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:9e686ecb-b5c1-5393-8266-4e05963ce762.json",
+      "sha256": "c3d83c9aea33858b31a0b8edbf3a60047685a77a4ec877070e0ebd0ae3b261c1",
+      "bytes": 34495
+    },
+    {
+      "slug": "3-key-concepts",
+      "section": "3.key-concepts",
+      "title": "Key Concepts",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:aeb4347a-89f0-5313-a7b2-48cbe2127ab9.json",
+      "sha256": "b172801018c2078840d041924af7f39303da31fcdb417978cc54541215a60c65",
+      "bytes": 33037
+    },
+    {
+      "slug": "3-review-exercises",
+      "section": "3.review-exercises",
+      "title": "Review Exercises",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:7a176c30-a757-5743-bf03-07880edea272.json",
+      "sha256": "9ad33234aedad09520c78bf8049f86b8785d750e6273ef54de490267f2e7fc8c",
+      "bytes": 35946
+    },
+    {
+      "slug": "4-introduction",
+      "section": "4.intro",
+      "title": "Introduction",
+      "kind": "intro",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:7709b0cf-003a-479c-bd44-521eadfff68a.json",
+      "sha256": "ef72dfeeecfadc5b142354623986bc4056ce4a2155404cbf03c18bc27dd7b0a4",
+      "bytes": 10875
+    },
+    {
+      "slug": "4-1-related-rates",
+      "section": "4.1",
+      "title": "Related Rates",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:ef8bd00f-7d2e-47a5-a840-2be08285798a.json",
+      "sha256": "6007d5259469faf3baf54abde885d6ebce92ba5a94d7f02e3815a100515ec5fb",
+      "bytes": 153003
+    },
+    {
+      "slug": "4-2-linear-approximations-and-differentials",
+      "section": "4.2",
+      "title": "Linear Approximations and Differentials",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:dbb1a1c8-9eb0-482b-9ded-66588adef938.json",
+      "sha256": "afaed0139d0647ed4fc0f5f55612dcde37129e9aab6a0f0340b02a4ee393e71c",
+      "bytes": 227962
+    },
+    {
+      "slug": "4-3-maxima-and-minima",
+      "section": "4.3",
+      "title": "Maxima and Minima",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:f3849900-d1cd-44c9-96ae-f30447c4cd35.json",
+      "sha256": "e839b57c7d7cb3eb9c37821aeb4929d88af5e7d21f06efe1f20edbeade2a1257",
+      "bytes": 221815
+    },
+    {
+      "slug": "4-4-the-mean-value-theorem",
+      "section": "4.4",
+      "title": "The Mean Value Theorem",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:431f7dd4-c3b4-46e3-aa21-dead3e83a5f4.json",
+      "sha256": "18849aefbaf4514b8b1535c1e80cdedbb8e8dc345eab555f355e9adce5b25779",
+      "bytes": 208696
+    },
+    {
+      "slug": "4-5-derivatives-and-the-shape-of-a-graph",
+      "section": "4.5",
+      "title": "Derivatives and the Shape of a Graph",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:ce336553-5ce0-4a5d-afcb-21187fc5b29b.json",
+      "sha256": "38a682c7fd21874a315f3ada029641209741787c706d70d27afc947cf9044813",
+      "bytes": 278006
+    },
+    {
+      "slug": "4-6-limits-at-infinity-and-asymptotes",
+      "section": "4.6",
+      "title": "Limits at Infinity and Asymptotes",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:319a7d02-7432-42d8-aec3-7274b5591ceb.json",
+      "sha256": "b44efb6342758ce4bd22137b077d43e53d8719518e2103943ba5eaf8bca3ff06",
+      "bytes": 639064
+    },
+    {
+      "slug": "4-7-applied-optimization-problems",
+      "section": "4.7",
+      "title": "Applied Optimization Problems",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:b2fca278-57bd-421d-aa85-21f539b4cc6f.json",
+      "sha256": "15b1086762923a17822bca1d25f2c2ef8e23cfdbe0cb1cb300b28047f83a4696",
+      "bytes": 244155
+    },
+    {
+      "slug": "4-8-lhopitals-rule",
+      "section": "4.8",
+      "title": "L’Hôpital’s Rule",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:bb6e333c-402d-4401-b750-4faac36169ff.json",
+      "sha256": "c57ac56dd04ea0d919fd88e45c8e1ea0d6159f55a4a0a21e3bc9642a64a8d604",
+      "bytes": 424461
+    },
+    {
+      "slug": "4-9-newtons-method",
+      "section": "4.9",
+      "title": "Newton’s Method",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:c0e46c4d-3d5c-400e-a3b9-af3cb3e066e2.json",
+      "sha256": "308231f8797f9f8d1f058047e04ec23c301fc710b2e83be2ff2265af2e26a7c3",
+      "bytes": 244666
+    },
+    {
+      "slug": "4-10-antiderivatives",
+      "section": "4.10",
+      "title": "Antiderivatives",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:315fd30e-9061-44bc-8c4f-2db55d620f25.json",
+      "sha256": "9d16d0ebc3d41e328086e6c424ac202f062f79c8f200f88fa573796e42019232",
+      "bytes": 281227
+    },
+    {
+      "slug": "4-key-terms",
+      "section": "4.key-terms",
+      "title": "Key Terms",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:9e7bd481-3f10-5814-b8ce-c0a0d27701a1.json",
+      "sha256": "b2bdce486b8e71e1d6e26c9a07faa60dfb32b20147b24e2442d36a87aca45fdc",
+      "bytes": 56989
+    },
+    {
+      "slug": "4-key-equations",
+      "section": "4.key-equations",
+      "title": "Key Equations",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:c27deb2d-015b-5f01-9ef2-dd08edcea89b.json",
+      "sha256": "039056a12b727ae52118f353cbdd47e5c94137bf4d5f9736cda022a4c17eccf4",
+      "bytes": 4770
+    },
+    {
+      "slug": "4-key-concepts",
+      "section": "4.key-concepts",
+      "title": "Key Concepts",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:4c2575b5-6cac-5f23-991b-6bd53a9da3c0.json",
+      "sha256": "365fbc6d238e24c87751d43f5e1ad0a6f5bc1f22730b53ea073586dba2fa76f3",
+      "bytes": 59261
+    },
+    {
+      "slug": "4-review-exercises",
+      "section": "4.review-exercises",
+      "title": "Review Exercises",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:ffbaf3f1-3df0-5318-9fb4-4e53f9626e61.json",
+      "sha256": "d9b8e75e2ca4dba79fea0e817ea198b362a2b3afa04e3bd0a9b15e2640cd90be",
+      "bytes": 53655
+    },
+    {
+      "slug": "5-introduction",
+      "section": "5.intro",
+      "title": "Introduction",
+      "kind": "intro",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:aebce6b3-aacf-45ce-86d3-44925fc0a4e6.json",
+      "sha256": "a549a1fcb535c0415987060c9128d2a9907dd28a4383de242c41ab16b267f95f",
+      "bytes": 9574
+    },
+    {
+      "slug": "5-1-approximating-areas",
+      "section": "5.1",
+      "title": "Approximating Areas",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:30cf4f11-db33-41bf-aa24-3dd0650b7d0b.json",
+      "sha256": "cabeffd013e652d8c9048c50fe6ff028fe71c208a635e82407934cb31c42e283",
+      "bytes": 327943
+    },
+    {
+      "slug": "5-2-the-definite-integral",
+      "section": "5.2",
+      "title": "The Definite Integral",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:e3ff3567-a949-4c81-a266-c5dc47b654ad.json",
+      "sha256": "3a2bd0039232ba23c1e35a2c5be670f4e9994cc94c183cc3f3b1527482431170",
+      "bytes": 420943
+    },
+    {
+      "slug": "5-3-the-fundamental-theorem-of-calculus",
+      "section": "5.3",
+      "title": "The Fundamental Theorem of Calculus",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:ae7e03b0-1054-4c54-8211-a6411bd440ff.json",
+      "sha256": "ca0432810a3b8432dafdc606af18c8dadf87ccdc1d6132a1d9d74033c03aed28",
+      "bytes": 352941
+    },
+    {
+      "slug": "5-4-integration-formulas-and-the-net-change-theorem",
+      "section": "5.4",
+      "title": "Integration Formulas and the Net Change Theorem",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:71cde57b-d60f-4143-ba88-a7a1fde3dae2.json",
+      "sha256": "36c281dc1a214007f268276b65abbbf7aaf656c346f49b24485b7e78c038434a",
+      "bytes": 255842
+    },
+    {
+      "slug": "5-5-substitution",
+      "section": "5.5",
+      "title": "Substitution",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:c311f572-14dc-47ed-89b1-3997a0c80e4c.json",
+      "sha256": "e5329fd46783ed8900cc8b25b4455de1986ed247932949f38a98db3894a087d0",
+      "bytes": 348384
+    },
+    {
+      "slug": "5-6-integrals-involving-exponential-and-logarithmic-functions",
+      "section": "5.6",
+      "title": "Integrals Involving Exponential and Logarithmic Functions",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:b05b4322-00d3-48e5-b476-66ceaa747220.json",
+      "sha256": "6193769142b555241538a92faee420ef28965c6810829726f3f07c95c483836a",
+      "bytes": 328513
+    },
+    {
+      "slug": "5-7-integrals-resulting-in-inverse-trigonometric-functions",
+      "section": "5.7",
+      "title": "Integrals Resulting in Inverse Trigonometric Functions",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:100d4b89-50fd-47f5-b530-99221cb6a5bd.json",
+      "sha256": "735bac7640d28b2f26e1ae47174998e31f52361ff470dc3cc21fe60b97650ca1",
+      "bytes": 206102
+    },
+    {
+      "slug": "5-key-terms",
+      "section": "5.key-terms",
+      "title": "Key Terms",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:e9538442-020c-586c-811b-f67f6a5772d5.json",
+      "sha256": "169b80ced5786895247af8b72bf581489678b42c2f0cf8971ee719532c328555",
+      "bytes": 11397
+    },
+    {
+      "slug": "5-key-equations",
+      "section": "5.key-equations",
+      "title": "Key Equations",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:5c00b87e-8443-5ada-b01d-d2aa3baa9c34.json",
+      "sha256": "9f822ed9c3e90a58764eaf9195d5f350b78c3693840645febecc423d27ed70b6",
+      "bytes": 45975
+    },
+    {
+      "slug": "5-key-concepts",
+      "section": "5.key-concepts",
+      "title": "Key Concepts",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:d5f7fe8c-4505-5d38-8e38-0a658e1ae23b.json",
+      "sha256": "e5bc54a99da3a9868e426d7a91de70fe26ec4677c0586d4378d4d9c789484253",
+      "bytes": 17018
+    },
+    {
+      "slug": "5-review-exercises",
+      "section": "5.review-exercises",
+      "title": "Review Exercises",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:88008958-dcff-5460-bfe5-85b7d668de81.json",
+      "sha256": "7575d9d3a51b58c301134c636e8da30c79371eb1ef2bba282be240246ca7184d",
+      "bytes": 57006
+    },
+    {
+      "slug": "6-introduction",
+      "section": "6.intro",
+      "title": "Introduction",
+      "kind": "intro",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:0e9b28ca-f080-4d11-add1-28820fd7b281.json",
+      "sha256": "45a0e65d3cfbd940a99b8a5a8e643eb75112b352ac6d9e494c888d5f6d938205",
+      "bytes": 10624
+    },
+    {
+      "slug": "6-1-areas-between-curves",
+      "section": "6.1",
+      "title": "Areas between Curves",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:0d216b57-b657-418d-87a4-3f5474dc1750.json",
+      "sha256": "eb4b57823fabc96e74092f0587adf198c1e837a2731235660a3df7d6e7720439",
+      "bytes": 272113
+    },
+    {
+      "slug": "6-2-determining-volumes-by-slicing",
+      "section": "6.2",
+      "title": "Determining Volumes by Slicing",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:053bfd25-c130-4dcb-9b51-41790a4db886.json",
+      "sha256": "37445c61af55167b49e53b4121f7d5da4c2ad33407e9c52794d297d9b72f97bf",
+      "bytes": 276193
+    },
+    {
+      "slug": "6-3-volumes-of-revolution-cylindrical-shells",
+      "section": "6.3",
+      "title": "Volumes of Revolution: Cylindrical Shells",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:fcd8bb49-9f9c-41ea-89e8-72eb34aed9fb.json",
+      "sha256": "b47a12b6c101bbcec177aeef64c494243082858ca7c3baf12f13198ebde059aa",
+      "bytes": 254554
+    },
+    {
+      "slug": "6-4-arc-length-of-a-curve-and-surface-area",
+      "section": "6.4",
+      "title": "Arc Length of a Curve and Surface Area",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:8e57d53e-4025-4fcf-af30-0aa16381df10.json",
+      "sha256": "a775170db3c7f6d83ca5259cd7e27b69c573b5c4bea9d80a8ba95345bf17bf74",
+      "bytes": 290471
+    },
+    {
+      "slug": "6-5-physical-applications",
+      "section": "6.5",
+      "title": "Physical Applications",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:01383df4-190d-426f-906e-060c203b744d.json",
+      "sha256": "dd4bd6ac2d3185f1c3f93ab3488490f1c8f89dbbd387c192da9b8f873040cc13",
+      "bytes": 268115
+    },
+    {
+      "slug": "6-6-moments-and-centers-of-mass",
+      "section": "6.6",
+      "title": "Moments and Centers of Mass",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:8f2b4f6e-e851-4e59-a2c6-9f2bb0c7887b.json",
+      "sha256": "c621eb098588579e724bac80b55b6a8f4db580b9b4a36e2851000d50976fed57",
+      "bytes": 306266
+    },
+    {
+      "slug": "6-7-integrals-exponential-functions-and-logarithms",
+      "section": "6.7",
+      "title": "Integrals, Exponential Functions, and Logarithms",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:010e59af-566e-430f-809f-a99ce444bac2.json",
+      "sha256": "4a7444d46746d4724f5405a2c1ac8257970f9b1a7bf17c47361785ddb4e3571a",
+      "bytes": 239518
+    },
+    {
+      "slug": "6-8-exponential-growth-and-decay",
+      "section": "6.8",
+      "title": "Exponential Growth and Decay",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:0e8f2277-0157-429c-b3bf-f74d6487e4b8.json",
+      "sha256": "a307dd5e0d860056b5721c063a3c10b19d02ae5d94c45d0c83b8b0f0a0a5c73f",
+      "bytes": 197440
+    },
+    {
+      "slug": "6-9-calculus-of-the-hyperbolic-functions",
+      "section": "6.9",
+      "title": "Calculus of the Hyperbolic Functions",
+      "kind": "numbered-section",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:a638202c-6a3c-4dc8-a598-4aab3650ac84.json",
+      "sha256": "11ffbc6fb458154f3b36540af48a976eecef54092626bd2422a584269aead8b9",
+      "bytes": 211595
+    },
+    {
+      "slug": "6-key-terms",
+      "section": "6.key-terms",
+      "title": "Key Terms",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:6249846b-6d5a-526b-82e0-695fb7fe7f33.json",
+      "sha256": "fa030003efd546bc834f0da641f21960c7555debece62ba8a45b77ac7d6c1f11",
+      "bytes": 16102
+    },
+    {
+      "slug": "6-key-equations",
+      "section": "6.key-equations",
+      "title": "Key Equations",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:1387a8e4-05c5-59d5-8bce-454bf97251e1.json",
+      "sha256": "9ac7dbdc2a265d7722280aad01d32cefe67fe9b7ce390d2187563d916a27010d",
+      "bytes": 23193
+    },
+    {
+      "slug": "6-key-concepts",
+      "section": "6.key-concepts",
+      "title": "Key Concepts",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:9a131f35-f6a9-5393-8635-125f7d735c1c.json",
+      "sha256": "5a321e040c01e0e8c11a0d00742a89f203478d0fc85c0a5ca15129ac02d83d3a",
+      "bytes": 22626
+    },
+    {
+      "slug": "6-review-exercises",
+      "section": "6.review-exercises",
+      "title": "Review Exercises",
+      "kind": "composite-page",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:e8320f5e-f511-580f-9ab5-a326c9590812.json",
+      "sha256": "8cd04d25f38a14a6ffad14bab91133864dd579ae6b42e086c188f64add3597f9",
+      "bytes": 43267
+    },
+    {
+      "slug": "a-table-of-integrals",
+      "section": "Appendix A",
+      "title": "Table of Integrals",
+      "kind": "appendix",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:11340fed-e663-401b-a4c8-6956078f569c.json",
+      "sha256": "e99acb4fb5f8c629600e6382868896acfa3065ca053231d4fc096f24a06a92d8",
+      "bytes": 170238
+    },
+    {
+      "slug": "b-table-of-derivatives",
+      "section": "Appendix B",
+      "title": "Table of Derivatives",
+      "kind": "appendix",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:a5a5a2aa-3a35-4c5e-947f-9ae5da92edcb.json",
+      "sha256": "35e569df09efe3d36d9ffbc261709cb632785420b44d036a3c49780c66c3954d",
+      "bytes": 35690
+    },
+    {
+      "slug": "c-review-of-pre-calculus",
+      "section": "Appendix C",
+      "title": "Review of Pre-Calculus",
+      "kind": "appendix",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:3be3840a-d419-4680-a09e-8dea36bacbf7.json",
+      "sha256": "2ee66da6957b2eb8e4efb78e20c2b730d5e78bd77b1572c659b4cb7a2b31d968",
+      "bytes": 56273
+    },
+    {
+      "slug": "chapter-1",
+      "section": "answer-key.chapter-1",
+      "title": "Chapter 1",
+      "kind": "answer-key",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:cfd44847-1421-5845-9f39-6dfb7e31d9f1.json",
+      "sha256": "4f1da49ceaa14ea13cd09afc95968aa8cc0fbca5c56cd3a5b72bd5f240341454",
+      "bytes": 279797
+    },
+    {
+      "slug": "chapter-2",
+      "section": "answer-key.chapter-2",
+      "title": "Chapter 2",
+      "kind": "answer-key",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:3d449028-80b8-5707-89b2-35672d46f26d.json",
+      "sha256": "397285c7a6a529c91b7c93136b9e48341d6ed3d7c3a9ffa308dceb2461992500",
+      "bytes": 219280
+    },
+    {
+      "slug": "chapter-3",
+      "section": "answer-key.chapter-3",
+      "title": "Chapter 3",
+      "kind": "answer-key",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:a329ca25-ddf9-5b35-8d21-8a816d63bb2d.json",
+      "sha256": "d047fd2f20cefbfeee34dc0ef7fe350c3018f841517610ca07ad1e50cb93911e",
+      "bytes": 454205
+    },
+    {
+      "slug": "chapter-4",
+      "section": "answer-key.chapter-4",
+      "title": "Chapter 4",
+      "kind": "answer-key",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:7265e10b-69e4-5921-9a2c-5b70f7e010bd.json",
+      "sha256": "8fb2f6d5995a820619842079fc673f3a59119e724fa95e3e9ee8527d1befea4e",
+      "bytes": 416706
+    },
+    {
+      "slug": "chapter-5",
+      "section": "answer-key.chapter-5",
+      "title": "Chapter 5",
+      "kind": "answer-key",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:ef79875c-6cea-55f7-8864-af5f8f593b5a.json",
+      "sha256": "f0d9aadae8d6346020ed092fe7543f688a8b0ac2ea7aacdafdc6518f8e61b62d",
+      "bytes": 584838
+    },
+    {
+      "slug": "chapter-6",
+      "section": "answer-key.chapter-6",
+      "title": "Chapter 6",
+      "kind": "answer-key",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:42e940c0-7a50-5ab4-92cf-4749913ed40d.json",
+      "sha256": "1b66267dbf37b83728c902d1655f59043f71f12e0aa00e88828d560cd03b4ce7",
+      "bytes": 343332
+    },
+    {
+      "slug": "index",
+      "section": "index",
+      "title": "Index",
+      "kind": "index",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/8b89d172-2927-466f-8661-01abc7ccdba4@8dbc2ce:0abf5180-0395-59bb-9e7c-603abeadbe20.json",
+      "sha256": "84bf1c19fb7c78affae6e5ac13eb98e922ef52392d78f6fe812c4d4080dae86d",
+      "bytes": 165187
+    }
+  ],
+  "fetch_tool_version": "1"
+}

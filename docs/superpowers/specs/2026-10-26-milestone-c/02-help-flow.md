@@ -23,7 +23,10 @@ Admission, replay and stale completion follow [state/accounting](06-state-and-ac
 
 - Problem statement, topic and version; answer kind (expression, numeric or choice).
 - The student's last 3 attempts on this item with their verdicts; tries used.
-- Hint level for this item: 1 → 2 → 3, rising once per accepted hint, capped at 3.
+- Hint level (amended 2026-10-27, Thomas, ruling R35): 0 "how to start" before any wrong
+  answer (R37: step 1 asks about the form without naming the rule, step 2 names the rule, repeating); then per mistake type (algebra, wrong rule, rule misapplied, incomplete), 1 → 2
+  → 3 with that type's hints on the item. The model labels a new attempt's type; the server
+  sets each type's level, so the label can only pick among offered levels.
 - A recorded misconception matched by the latest wrong answer, checked through the existing
   bounded SymPy path (choice problems: the chosen distractor's note).
 - Match only reviewed misconception entries. Existing content has expression strings/compiled
@@ -41,7 +44,7 @@ Admission, replay and stale completion follow [state/accounting](06-state-and-ac
 | Explain this | active/exhausted item | Student picks from a short per-topic confusion list; explains that idea |
 | Ask a question (C2) | active/exhausted item | Free text; model labels hint/feedback/explain for measurement, never to bypass checks |
 
-Confusion lists live in versioned content files per topic, about 3–5 entries each.
+Confusion lists live in versioned content files per topic, 3–6 entries each (6 since 2026-10-28, Thomas).
 
 ## Retrieval
 

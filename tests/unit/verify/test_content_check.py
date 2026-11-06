@@ -226,3 +226,46 @@ def test_upper_endpoint_rule(tmp_path: Path) -> None:
 def test_strict_domain_intervals_are_the_answer_and_not_adjusted(tmp_path: Path) -> None:
     content = _with_domain(tmp_path, ["Sqrt", "x"], r"\sqrt{x}", ["0", "inf", "open", "open"], True)
     assert not any("should be closed" in e for e in check_bundle(content))
+
+
+def _noted(tmp_path: Path, note: str, status: str = "human_verified") -> list[str]:
+    def edit(problems: list[dict[str, Any]]) -> None:
+        problems[0]["misconceptions"] = [f"2x  # {note}", "3x  # forgot the factor"]
+        problems[0]["misconceptions_mathjson"] = [
+            ["InvisibleOperator", 2, "x"],
+            ["InvisibleOperator", 3, "x"],
+        ]
+        problems[0]["review"]["status"] = status
+
+    return check_bundle(_edited(tmp_path, edit))
+
+
+@pytest.mark.parametrize(
+    "note",
+    [
+        "exponent kept: 3x^2 instead of 3x^{-2}",
+        "used x^2 instead of \\frac{1}{x}",
+        "the inner derivative = 6x",
+        "dy/du = 18(7x-4)^2 here",
+    ],
+)
+def test_note_must_not_state_a_correction(tmp_path: Path, note: str) -> None:
+    errors = _noted(tmp_path, note)
+    assert len(errors) == 1 and "states a corrected expression" in errors[0]
+
+
+@pytest.mark.parametrize(
+    "note",
+    [
+        "missing du/dx = 7",
+        "missing du/dx = -1/8",
+        "used f(-1) = 4 as the intercept",
+        "used the product instead of using the chain rule",
+    ],
+)
+def test_note_may_name_a_step_or_number(tmp_path: Path, note: str) -> None:
+    assert _noted(tmp_path, note) == []
+
+
+def test_correction_rule_exempts_unverified_problems(tmp_path: Path) -> None:
+    assert _noted(tmp_path, "a = 6x instead of 3x^2", status="needs_review") == []

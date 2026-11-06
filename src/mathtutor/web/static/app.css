@@ -55,3 +55,11 @@ math-field[read-only] { display: inline-block; width: auto; border: none; paddin
 .feedback.incorrect { color: var(--bad); }
 .feedback.unable_to_verify, .feedback.issue { color: var(--warn); }
 .error { color: var(--bad); }
+
+.help-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.75rem; }
+.help-explain-row { display: inline-flex; gap: 0.5rem; align-items: center; }
+.help-explain-row[hidden], .help-controls[hidden], .help-panel[hidden] { display: none; }
+select { font: inherit; padding: 0.4rem; border: 1px solid var(--line); border-radius: 6px; max-width: 100%; }
+.help-panel { margin-top: 0.75rem; padding: 0.75rem; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; background: #f8f9fc; }
+.help-panel p { margin: 0.4rem 0; }
+.help-source { display: block; }

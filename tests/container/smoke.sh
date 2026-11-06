@@ -14,8 +14,8 @@ BODY=$(mktemp)
 CREATED_ENV=0
 
 cleanup() {
-  docker rm -f "$NAME" "$NAME-nosecret" >/dev/null 2>&1 || true
-  docker volume rm -f "$VOLUME" >/dev/null 2>&1 || true
+  docker rm -f "$NAME" "$NAME-e2e" "$NAME-nosecret" >/dev/null 2>&1 || true
+  docker volume rm -f "$VOLUME" "$VOLUME-e2e" >/dev/null 2>&1 || true
   rm -f "$JAR" "$BODY"
   if [ "$CREATED_ENV" = 1 ]; then rm -f deploy/.env; fi
 }
@@ -30,6 +30,11 @@ uid=$(docker run --rm "$IMAGE" id -u)
 
 node=$(docker run --rm "$IMAGE" sh -c 'command -v node || echo none')
 [ "$node" = none ] || fail "node found in image at $node"
+
+# Help data the app loads at start; without it help silently stays off (C1-R1).
+for f in content/corpus/chunks.jsonl content/corpus/manifest.json content/help/confusions.json; do
+  docker run --rm "$IMAGE" test -s "/app/$f" || fail "image lacks /app/$f"
+done
 
 secret=$(head -c 48 /dev/urandom | base64 | tr -d '\n')
 
@@ -106,7 +111,29 @@ docker logs "$NAME" 2>&1 | grep -q '"route": "/api/sessions/{session_id}/submit"
 # Browser test on the production image. localhost, not 127.0.0.1: Chromium keeps the Secure
 # session cookie over plain http only for localhost.
 if [ "${E2E:-0}" = 1 ]; then
-  BASE_URL=http://localhost:18000 npm run e2e --prefix tools     || { docker logs "$NAME" >&2; fail "browser e2e failed against the container"; }
+  # Base browser test on the production-configuration container (help is off there).
+  BASE_URL=http://localhost:18000 npm run e2e --prefix tools \
+    || { docker logs "$NAME" >&2; fail "browser e2e failed against the container"; }
+  # Same image, test configuration (offline fixed help generator), own volume: never the
+  # deployed settings (see deploy/compose.e2e.yaml).
+  E2E_NAME=$NAME-e2e
+  E2E_VOLUME=$VOLUME-e2e
+  docker volume create "$E2E_VOLUME" >/dev/null
+  docker run --rm -e MATHTUTOR_SECRET_KEY="$secret" -v "$E2E_VOLUME:/data" "$IMAGE" \
+    alembic upgrade head || fail "alembic upgrade head failed for the e2e volume"
+  docker run -d --name "$E2E_NAME" -e MATHTUTOR_SECRET_KEY="$secret" \
+    -e MATHTUTOR_ENV=test -e MATHTUTOR_HELP_GENERATOR=scripted \
+    -v "$E2E_VOLUME:/data" -p 127.0.0.1:18001:8000 "$IMAGE" >/dev/null
+  ready=0
+  for _ in $(seq 1 30); do
+    if curl -fsS http://127.0.0.1:18001/readyz >/dev/null 2>&1; then ready=1; break; fi
+    sleep 1
+  done
+  [ "$ready" = 1 ] || { docker logs "$E2E_NAME" >&2; fail "e2e container /readyz not 200 within 30 s"; }
+  HELP_E2E=1 BASE_URL=http://localhost:18001 npm run e2e --prefix tools \
+    || { docker logs "$E2E_NAME" >&2; fail "help browser e2e failed against the container"; }
+  docker rm -f "$E2E_NAME" >/dev/null 2>&1 || true
+  docker volume rm -f "$E2E_VOLUME" >/dev/null 2>&1 || true
 fi
 
 set +e
@@ -119,5 +146,7 @@ set -e
 # compose reads env_file deploy/.env; supply the example if none exists.
 if [ ! -f deploy/.env ]; then cp deploy/.env.example deploy/.env; CREATED_ENV=1; fi
 SITE_ADDRESS=localhost docker compose -f deploy/compose.yaml --env-file deploy/.env.example config -q
+SITE_ADDRESS=localhost docker compose -f deploy/compose.yaml -f deploy/compose.e2e.yaml \
+  --env-file deploy/.env.example config -q
 
 echo "container smoke test: PASS"

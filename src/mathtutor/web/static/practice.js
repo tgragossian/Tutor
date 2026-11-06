@@ -61,6 +61,7 @@ let pending = null; // the submit body being retried, under one submission_id
 // definite reply arrives the answer stays locked and Check resends the same body, so the
 // visible answer is always the one being checked and nothing counts twice (review B-R1).
 let unresolved = false;
+let lastOutcome = null; // the latest check result for the shown item (null after a reload)
 let busy = false; // one check or action at a time; every button is disabled meanwhile
 
 // Same rule as the server's incomplete-input pre-check (ADR 0002).
@@ -199,6 +200,189 @@ function updateCheck() {
   for (const id of ['next', 'skip', 'reveal']) $(id).disabled = busy;
 }
 
+// -- help (milestone C1) ----------------------------------------------------------------
+const HELP_FAILED = "Help isn't available right now. Please try again in a moment.";
+const HELP_SLOW = 'Help is taking longer than expected. Please try again in a moment.';
+const HELP_IDS = ['help-hint', 'help-feedback', 'help-explain', 'help-explain-go'];
+let helpBusy = false;
+let helpGen = 0; // bumped whenever the panel is cleared: older replies are dropped
+let helpShownSeq = 0; // the newest help_seq shown for this item
+// Requests sent without a definitive answer (lost response, unreadable body, a 5xx, still
+// pending), by item/revision/type/confusion: a retry resends the same body and request id, so
+// the server replays a result it may already have generated instead of paying for and
+// advancing the ladder with a second one (review C1-R8). Cleared on a definitive answer and
+// whenever the panel is cleared (item change, correct answer, reveal).
+const helpUnresolved = new Map();
+
+function helpKey(type, confusion) {
+  return `${item.session_item_id}:${item.revision}:${type}:${confusion ?? ''}`;
+}
+
+async function helpApi(body) {
+  const response = await fetch('/api/help', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+    body: JSON.stringify(body),
+  });
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+  return { response, data };
+}
+
+function setHelpDisabled(disabled) {
+  for (const id of HELP_IDS) $(id).disabled = disabled;
+}
+
+function renderHelpButtons() {
+  const help = item?.help;
+  const enabled = Boolean(help?.enabled);
+  const types = enabled ? help.types : [];
+  // After a reload the last outcome is unknown; the server lists "feedback" only when the
+  // item has a wrong attempt, so trust that until a check says otherwise.
+  const wrong = lastOutcome === null || (lastOutcome.status === 'incorrect' && !lastOutcome.code);
+  $('help-controls').hidden = !enabled;
+  $('help-note').hidden = !enabled;
+  $('help-disclosure').hidden = !enabled;
+  $('help-hint').hidden = !types.includes('hint');
+  $('reveal-try-hint').hidden = !types.includes('hint'); // the warning names Hint only if it exists
+  $('help-feedback').hidden = !(types.includes('feedback') && wrong);
+  $('help-explain').hidden = !(types.includes('explain') && help.confusions.length > 0);
+  if (!enabled) $('help-explain-row').hidden = true;
+}
+
+function openExplain() {
+  const select = $('help-confusion');
+  select.textContent = '';
+  for (const confusion of item.help.confusions) {
+    const option = document.createElement('option');
+    option.value = confusion.id;
+    option.textContent = confusion.label;
+    select.append(option);
+  }
+  $('help-explain-row').hidden = false;
+}
+
+function clearHelp() {
+  helpGen += 1; // an in-flight reply for the old view is now dropped
+  helpShownSeq = 0;
+  helpUnresolved.clear();
+  helpBusy = false;
+  setHelpDisabled(false);
+  $('help-body').innerHTML = '';
+  $('help-sources').textContent = '';
+  $('help-message').textContent = '';
+  $('help-panel').hidden = true;
+  $('help-explain-row').hidden = true;
+}
+
+function showHelpMessage(text) {
+  $('help-body').innerHTML = '';
+  $('help-sources').textContent = '';
+  $('help-message').textContent = text;
+  $('help-panel').hidden = false;
+}
+
+function renderHelpSources(sources) {
+  const out = $('help-sources');
+  out.textContent = '';
+  for (const source of sources) {
+    if (!source.url.startsWith('https://openstax.org/')) continue; // never link elsewhere
+    const row = document.createElement('span');
+    row.className = 'help-source';
+    const link = document.createElement('a');
+    link.href = source.url;
+    link.rel = 'noopener';
+    link.target = '_blank';
+    const named = source.label.includes('Calculus Volume 1');
+    link.textContent = `${named ? '' : 'OpenStax Calculus Vol. 1, '}${source.label} ↗`;
+    row.append(link, ` · ${source.license}`);
+    out.append(row);
+  }
+}
+
+function showHelp(data) {
+  if (data.help_seq > 0) helpShownSeq = data.help_seq;
+  $('help-message').textContent = '';
+  $('help-body').innerHTML = data.html || ''; // the server renders and sanitizes it
+  renderHelpSources(data.status === 'delivered' || data.status === 'fallback' ? data.sources : []);
+  $('help-panel').hidden = false;
+}
+
+function helpIsCurrent(data) {
+  return Boolean(item)
+    && data.session_item_id === item.session_item_id
+    && data.item_revision === item.revision
+    && !(data.help_seq > 0 && data.help_seq < helpShownSeq);
+}
+
+async function askHelp(type) {
+  if (helpBusy || !item?.help) return;
+  const confusion = type === 'explain' ? $('help-confusion').value : null;
+  if (type === 'explain' && !confusion) return;
+  helpBusy = true;
+  setHelpDisabled(true);
+  const generation = helpGen;
+  const key = helpKey(type, confusion);
+  const body = helpUnresolved.get(key) ?? {
+    help_request_id: crypto.randomUUID(), // reused for the poll and any retry until answered
+    session_item_id: item.session_item_id,
+    item_revision: item.revision,
+    help_type: type,
+    confusion,
+  };
+  helpUnresolved.set(key, body); // until a definitive answer
+  try {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      let result;
+      try {
+        result = await helpApi(body);
+      } catch {
+        if (generation === helpGen) showHelpMessage(HELP_FAILED);
+        return; // the server may have the request: a retry resends the same id
+      }
+      if (generation !== helpGen) return; // the panel was cleared while waiting
+      const { response, data } = result;
+      if (response.ok && data?.status === 'pending') {
+        // Another request is in flight on this item (another tab): follow that one, never
+        // turn this poll into a new generation once it finishes. A different help type
+        // under that id is a 409, which reloads.
+        if (typeof data.request_id === 'string' && data.request_id !== body.help_request_id) {
+          body.help_request_id = data.request_id;
+        }
+        if (attempt === 0) await sleep(2);
+        else showHelpMessage(HELP_SLOW);
+        continue;
+      }
+      if (!data || response.status >= 500) {
+        showHelpMessage(HELP_FAILED); // no definitive answer: keep the id for a retry
+        return;
+      }
+      helpUnresolved.delete(key);
+      if (response.ok && data?.status === 'stale') {
+        await load();
+      } else if (response.ok) {
+        if (helpIsCurrent(data)) showHelp(data);
+      } else if (data?.error === 'stale_item' || response.status === 409) {
+        await load();
+      } else if (data?.error === 'help_limited') {
+        showHelpMessage(data.message); // fixed server text
+      } else {
+        showHelpMessage(HELP_FAILED); // never the raw error body
+      }
+      return;
+    }
+  } finally {
+    if (generation === helpGen) { // else clearHelp already reset it, maybe for a newer request
+      helpBusy = false;
+      setHelpDisabled(false);
+    }
+  }
+}
+
 function renderButtons(actions) {
   for (const [action, id] of Object.entries(BUTTONS)) {
     $(id).hidden = !actions.includes(action);
@@ -226,7 +410,13 @@ function render(current, revealedLatex) {
     setFeedback('');
     pending = null;
     unresolved = false;
+    lastOutcome = null;
   }
+  // Help stays open while the item is active or exhausted (submit or reveal still allowed);
+  // a new, revealed or closed (answered, completed) item clears the panel.
+  const actions = next.allowed_actions;
+  const helpOpen = actions.includes('submit') || actions.includes('reveal');
+  if (isNew || revealedLatex || !helpOpen) clearHelp();
   $('hint').textContent = next.precision_hint || '';
   $('hint').hidden = !next.precision_hint;
   $('revealed').hidden = !revealedLatex;
@@ -237,6 +427,25 @@ function render(current, revealedLatex) {
   $('tries').textContent = `Tries left: ${next.tries_left}`;
   $('tries').hidden = !canSubmit;
   renderButtons(next.allowed_actions);
+  if (isNew || revealedLatex || !actions.includes('reveal')) armReveal(false);
+  renderHelpButtons();
+}
+
+// Show answer takes two clicks: the first shows a warning, the second reveals (Thomas, 2026-11-05).
+let revealArmed = false;
+
+function armReveal(on) {
+  revealArmed = on;
+  $('reveal-warning').hidden = !on;
+  $('reveal').textContent = on ? 'Show answer anyway' : 'Show answer';
+}
+
+function onReveal() {
+  if (!revealArmed) {
+    armReveal(true);
+    return;
+  }
+  act('reveal');
 }
 
 async function load() {
@@ -299,6 +508,7 @@ async function check() {
       } else if (response.ok && item.session_item_id !== target) {
         await load();
       } else if (response.ok) {
+        lastOutcome = data.outcome;
         render({ done: false, item: data.item }, null);
         const kind = data.outcome.code ? 'issue' : data.outcome.status;
         setFeedback(verdictText(data.outcome, data.item.tries_left), kind);
@@ -351,5 +561,9 @@ async function act(action) {
 $('check').addEventListener('click', check);
 $('next').addEventListener('click', () => act('advance'));
 $('skip').addEventListener('click', () => act('skip'));
-$('reveal').addEventListener('click', () => act('reveal'));
+$('reveal').addEventListener('click', onReveal);
+$('help-hint').addEventListener('click', () => askHelp('hint'));
+$('help-feedback').addEventListener('click', () => askHelp('feedback'));
+$('help-explain').addEventListener('click', openExplain);
+$('help-explain-go').addEventListener('click', () => askHelp('explain'));
 load();

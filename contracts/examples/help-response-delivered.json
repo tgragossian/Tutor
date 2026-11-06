@@ -1,0 +1,16 @@
+{
+  "request_id": "6f1c2a8e-3b4d-4e5f-9a0b-1c2d3e4f5a6b",
+  "session_item_id": 42,
+  "item_revision": 1,
+  "status": "delivered",
+  "help_seq": 1,
+  "hint_level": 1,
+  "html": "<p>Name the <strong>outer</strong> function first, then the inner one.</p>",
+  "sources": [
+    {
+      "label": "Calculus Volume 1, 3.6 The Chain Rule",
+      "url": "https://openstax.org/books/calculus-volume-1/pages/3-6-the-chain-rule",
+      "license": "CC BY-NC-SA 4.0"
+    }
+  ]
+}

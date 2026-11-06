@@ -1,29 +1,44 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-28, C1 debugging fixes and documentation continuation.
+Owner: Thomas Gragossian. Updated: 2026-11-05: dev runs done and audited; R39 ships Sonnet as a beta; holdout next.
 Host deployment remains Thomas's reported `main` 8057590, migration 0003. No new host probe.
-This checkout remains `main` at `292cee4`; C1 was rechecked in its worktree at `b16a206`.
+Branch `milestone-c1` holds C1 tasks 1-15 plus fixes; rechecked `b16a206`. Nothing merged or deployed.
 
 **Milestone B is closed.** Thomas removed actual hours as a gate on 2026-10-26.
-Host sizing remains C-O3; Thomas allows 2 GB if measurement needs it.
 
-**C1 is implemented on `milestone-c1`, reviewed, and not released.** That branch's
-`handoff.md` and `docs/reviews/2026-10-27-milestone-c1/README.md` own its current status:
-all nine findings closed in local code; owner release gates remain. C1 is not merged here.
+**C1 (Claude-written, textbook-grounded help) is implemented but not released.**
+[C1 status](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/20-status.md) owns the owner
+checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands. Rulings R1-R36
+(R35 hint ladder per mistake type with a two-step level 0; R36 prompt fingerprint) are in [C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulings.md).
 
 ## Resume here
 
-1. Claude: work on `milestone-c1`; follow its
-   `docs/reviews/2026-10-27-milestone-c1/11-debugging-fixes.md`.
-   R4/R7 are fixed on that branch. Follow owner release gates; carry these fixes into C2.
-2. Preserve the [C concept review](docs/reviews/2026-10-26-milestone-c/README.md) as historical
-   design context. Record C1 fixing commits/tests and update its handoff before owner gates.
-3. C2 planning is on `milestone-c2`; Q1–Q9 are decided. Review/rebase after C1 closure; C3 needs C-P3.
-4. Accepted sequence remains **C → LoRA experiment → D/E → expansion**. Automated Calc 1
-   graded sets need a broader checker/review; Thomas placed them after the LoRA (C-O4,
-   2026-10-26). Thomas supplies Anthropic access via secrets config (C-O5).
-5. Measure corpus/index and mixed help/grading memory for C-O3; include decoder load in C3.
-   Qwen serving is on RunPod, training on AWS, separate from the web host; no compute launched.
+1. [C1 debugging fixes](docs/reviews/2026-10-27-milestone-c1/11-debugging-fixes.md): all nine
+   findings closed in local code. R4 claims holdout use before scoring; R7 preserves uncited
+   baseline judging/audit/recompute. Saved probes and normal regressions
+   pass. R35/R36 reviewed. Follow the owner gates below and carry these fixes into C2 before
+   its plan review/implementation. No paid comparison, actual holdout or release ran.
+2. [2026-11-05 label review](docs/reviews/2026-11-05-c1-label-review/README.md): Codex reviewed;
+   R2/R5 resolved, ready to commit. Done 2026-11-05: all cases and queries `reviewed_by: tg`;
+   how-to labeling rule; gate kept at 0.80 (dev Recall@6 now 0.7738). Step 2 approved (R37).
+   [Step 2 brief](docs/reviews/2026-11-05-c1-label-review/02-step2-brief.md) reviewed by Codex.
+   R38 output cap (`3bb2b9c`); run 2 audited; R39 Sonnet beta and rubric v2 (C1 rulings).
+   Owner steps left: one-shot holdout; container smoke
+   and mixed-load; deploy; live check. Then commit `docs: C1 released`. Target: within a day.
+   Holdout cap formula and the 0.576 draft-holdout disclosure: C1 status page and runbook C1.
+   [Codex findings](docs/reviews/2026-11-05-c1-label-review/01-findings.md) R2 (exact how-to rule;
+   rq-dev-24 → 4.1-ex1, rq-hold-08 + 4.8-ex1) and R5 (settings test clears the key) are applied.
+   [Step 2 findings](docs/reviews/2026-11-05-c1-label-review/03-step2-findings.md) resolved: S2-1 old R35/spec wording updated; S2-4 reveal is a browser rule
+   (API unchanged); S2-5 help citations show the section number only (`pipeline.source_ref`).
+3. Key: `MATHTUTOR_ANTHROPIC_API_KEY` only in the host's `deploy/.env`; console spend limit,
+   auto-reload off; $15 credit (topped up 2026-11-05). Turn help off with `MATHTUTOR_HELP_GENERATOR=off`.
+4. Then review/rebase C2 (plan on `milestone-c2`, Q1–Q9 decided by Thomas; adds ratings and a
+   completion-only Clear history) and C3 own problems (resolve C-P3 first). The C2 worktree
+   cannot build its venv yet (Windows Application Control blocks uv). Sequence remains
+   **C -> LoRA experiment -> D/E -> expansion** (C-O4). Qwen serving: RunPod; training: AWS.
+5. Memory: the only mixed-load numbers so far are
+   [preliminary, Windows, not the gate](docs/ops/host-sizing-c1.md); 1 GB vs 2 GB is decided by
+   the container run (Thomas approved 2 GB on 2026-10-26).
 
 ## C concepts to preserve
 
@@ -33,10 +48,9 @@ all nine findings closed in local code; owner release gates remain. C1 is not me
   This is explanation retrieval, not an automated graded bank or a corpus for LoRA training.
 - Reveal is the only intentional answer path. The guard checks supported extracted math;
   it cannot guarantee no prose/cumulative leakage. Hints-only C3 has no reference guard.
-- The existing verifier accepts bounded MathJSON. Runtime model-LaTeX parsing, leak-specific
-  results and typed derivative solving are new work, not already provided by the current pool.
-- C needs request IDs/revision checks, deletion epochs and independent durable usage records.
-  B's Clear history hides sessions; C's private-text deletion requires additional implementation.
+- C1 implements bounded model-LaTeX parsing, tri-state guard decisions, request/revision checks,
+  deletion epochs and durable usage. Typed own-problem solving remains C3 work.
+- C1 clears help text while retaining usage; C2's completion-only history behavior is planned.
 - Local upload cleanup does not delete provider copies. HEIC conversion and decoded-size bounds
   are required; confirm task/variable/domain before admitting a supported derivative for grading.
 - Evaluate raw and delivered help, including useful coverage. C's release holdout becomes
@@ -44,8 +58,7 @@ all nine findings closed in local code; owner release gates remain. C1 is not me
 
 ## Documentation tree
 
-- C1 branch: `docs/reviews/2026-10-27-milestone-c1/11-debugging-fixes.md` owns current evidence;
-  `docs/ops/debugging/c1/README.md` maps generation/guard → state/cost → evaluation.
+- [C1 debugging](docs/ops/debugging/c1/README.md): generation/guard → state/cost → evaluation.
 - [C plan](docs/superpowers/plans/portfolio-mvp/03-rag.md): sequence and links to exact contracts.
 - [C spec](docs/superpowers/specs/2026-10-26-milestone-c/README.md): components → help → guard → intake
   → acceptance; children own state/accounting, corpus, evaluation protocol and provider evidence.
@@ -66,7 +79,7 @@ all nine findings closed in local code; owner release gates remain. C1 is not me
 - [B status](docs/superpowers/plans/portfolio-mvp/milestone-b/03-execution-status.md) owns completed tasks.
   [B review dispositions](docs/reviews/2026-10-22-milestone-b/06-dispositions.md) owns fix chronology.
 - [Verification evidence](docs/superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md)
-  separates historical CI/browser/host evidence from local checks. C review reruns docs checks only.
+  separates historical CI/browser/host evidence from local checks; C1 has its own validation page.
 - [Reviewed verifier result](evals/verifier/results/README.md): dev FA 0/50 (95% upper bound 7.1%),
   FR 0/49, coverage 49/49, agreement 136/136; not a frozen final benchmark.
 - [Follow-ups](docs/superpowers/plans/portfolio-mvp/milestone-b/05-follow-ups.md): slow nested-trig
@@ -82,5 +95,6 @@ all nine findings closed in local code; owner release gates remain. C1 is not me
 - No assistant co-author trailers; assistance is acknowledged in [README](README.md#acknowledgments).
 - Actual hours are optional owner records; never infer them from agent runtime.
 - Windows/OneDrive: `UV_LINK_MODE=copy` for `uv add`; explicit UTF-8 and raw strings for LaTeX.
-  Playwright MathLive input needs `{delay: 80}`. Local `.superpowers/sdd/README/progress.md` is ignored;
-  tracked [app rulings](docs/superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md) own B decisions.
+  Playwright MathLive input needs `{delay: 80}`. Local `.superpowers/` is ignored scratch; tracked
+  [B rulings](docs/superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md) and
+  [C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulings.md) own decisions.

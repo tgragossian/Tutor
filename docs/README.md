@@ -15,10 +15,11 @@ Read the [current handoff](../handoff.md) before continuing work.
   - [R24 implementation](superpowers/plans/portfolio-mvp/milestone-b/r24/README.md): scoped precision, debugging and release checklist.
   - [App-track rulings](superpowers/plans/portfolio-mvp/milestone-b/06-app-track-rulings.md): A1–A21; recovery ruling A14 amended and rechecked.
   - [Verification evidence](superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md): local checks versus historical CI.
-  - [Milestone C](superpowers/plans/portfolio-mvp/03-rag.md): planned help contract, evaluation, open choices and debugging children.
+  - [Milestone C](superpowers/plans/portfolio-mvp/03-rag.md): implemented C1, planned C2/C3 and shared contracts.
   - [AI handoff](superpowers/plans/portfolio-mvp/06-ai-decisions-handoff.md): accepted decisions map and completed doc sync.
   - [LoRA compute/serving](decisions/0005-tutoring/01-compute-and-serving.md) and [cost assumptions](decisions/0005-tutoring/02-sizing-and-costs.md).
 - [Reviews](reviews/README.md): dated findings and evidence.
+  - [C1 implementation recheck](reviews/2026-10-27-milestone-c1/07-recheck.md): current verdicts, remaining fixes and validation.
   - [2026-10-26 C concept review](reviews/2026-10-26-milestone-c/README.md): guard, lifecycle/cost, intake, evaluation and corpus findings.
   - [2026-10-22 code review](reviews/2026-10-22-milestone-b/README.md): prioritized fixes, modular debugging and executable probes.
   - [2026-10-21 code review](reviews/2026-10-21-milestone-b/README.md): historical issues and implemented fixes.
@@ -28,6 +29,7 @@ Read the [current handoff](../handoff.md) before continuing work.
   - [Original task plan](superpowers/plans/2026-10-13-core-practice-loop.md).
 - [Operations](ops/README.md): development setup, hours, host, runbook and security.
   - [Debugging tree](ops/debugging/README.md): symptoms, owning files and focused checks.
+  - [C1 debugging](ops/debugging/c1/README.md): generation/guard, state/cost and evaluation modules.
 - [API contracts](../contracts/README.md): example request and item bodies.
 - [Verifier](verifier/README.md): what it accepts, limitations and milestone B results.
 - [Verifier evaluation](../evals/verifier/README.md): case format, gates and commands.
