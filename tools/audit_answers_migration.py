@@ -21,12 +21,17 @@ def _db(path: Path) -> sqlite3.Connection:
 def audit(before: Path, after: Path) -> None:
     with _db(before) as old, _db(after) as new:
         old_rows = old.execute(
-            "SELECT s.*, r.status, r.applied, r.reason, ss.user_id "
+            "SELECT s.*, r.status, r.applied, r.reason, r.method, r.verifier_version, "
+            "r.worker_ms, r.queue_ms, r.seconds_on_item, r.counts_as_try, ss.user_id "
             "FROM submissions s "
             "JOIN session_items i ON i.id = s.session_item_id "
             "JOIN study_sessions ss ON ss.id = i.session_id "
             "LEFT JOIN attempt_results r ON r.submission_pk = s.id ORDER BY s.id"
         ).fetchall()
+        old_count = old.execute("SELECT COUNT(*) FROM submissions").fetchone()[0]
+        assert old_count == len(old_rows), "source has orphan submissions"
+        assert old.execute("PRAGMA foreign_key_check").fetchall() == [], "source foreign key error"
+        assert old.execute("PRAGMA integrity_check").fetchone()[0] == "ok", "source integrity error"
         new_rows = new.execute("SELECT * FROM answers ORDER BY id").fetchall()
         assert len(old_rows) == len(new_rows), "submission/answer count changed"
         old_results = old.execute("SELECT COUNT(*) FROM attempt_results").fetchone()[0]
@@ -50,6 +55,12 @@ def audit(before: Path, after: Path) -> None:
                 "answer_kind",
                 "status",
                 "reason",
+                "method",
+                "verifier_version",
+                "worker_ms",
+                "queue_ms",
+                "seconds_on_item",
+                "counts_as_try",
                 "applied",
                 "created_at",
                 "reserved_revision",
@@ -72,6 +83,7 @@ def audit(before: Path, after: Path) -> None:
             assert target["mistake_type"] == expected_label, f"label changed at {pk}"
             labeled += expected_label is not None
         assert new.execute("PRAGMA foreign_key_check").fetchall() == [], "foreign key error"
+        assert new.execute("PRAGMA integrity_check").fetchone()[0] == "ok", "integrity error"
         print(
             f"PASS answers={len(new_rows)} graded={new_results} "
             f"items={len(sequence)} labels={labeled}"

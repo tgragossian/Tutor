@@ -1,4 +1,7 @@
 import sqlite3
+import subprocess
+import sys
+from pathlib import Path
 
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
@@ -329,6 +332,20 @@ def test_0006_copies_answers_with_attempt_numbers(db_url: str) -> None:
         assert copied[5] == ["Multiply", {"num": "0.1"}, "x"]
     finally:
         engine.dispose()
+
+
+def test_migration_audit_checks_upgraded_copy(db_url: str) -> None:
+    upgrade(db_url, "0005")
+    path = Path(db_url.removeprefix("sqlite:///"))
+    _populate_0005(str(path))
+    before = path.with_name("before.db")
+    with sqlite3.connect(path) as source, sqlite3.connect(before) as copy:
+        source.backup(copy)
+    upgrade(db_url)
+    command = [sys.executable, "tools/audit_answers_migration.py", str(before), str(path)]
+    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr
+    assert "PASS answers=5 graded=3 items=1 labels=1" in result.stdout
 
 
 def test_0006_downgrade_round_trip(db_url: str) -> None:
