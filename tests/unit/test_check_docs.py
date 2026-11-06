@@ -32,3 +32,12 @@ def test_anchor_http_and_fenced_links_ok(tmp_path):
 def test_excluded_dirs_skipped(tmp_path):
     write(tmp_path, "node_modules/x.md", "x\n" * 500)
     assert check(tmp_path) == []
+
+
+def test_root_readme_exempt_from_line_limit_but_links_checked(tmp_path):
+    write(tmp_path, "README.md", "x\n" * 150 + "[b](missing.md)\n")
+    write(tmp_path, "docs/README.md", "x\n" * 101)  # only the root README is exempt
+    problems = check(tmp_path)
+    assert not any(p.startswith("README.md:") and "lines" in p for p in problems)
+    assert any("missing.md" in p for p in problems)
+    assert any(p.startswith("docs/README.md") and "101 lines" in p for p in problems)

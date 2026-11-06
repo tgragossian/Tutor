@@ -1,4 +1,8 @@
-"""Docs check: Markdown files stay <= 100 lines and relative links resolve."""
+"""Docs check: Markdown files stay <= 100 lines and relative links resolve.
+
+The line limit keeps docs small for AI context; the root README.md is for human readers and
+is exempt from it (Thomas, 2026-11-06). Its links are still checked.
+"""
 
 from __future__ import annotations
 
@@ -7,6 +11,7 @@ import sys
 from pathlib import Path
 
 MAX_LINES = 100
+LINE_LIMIT_EXEMPT = {"README.md"}  # root README only, for human readers
 SKIP_DIRS = {".git", ".venv", "node_modules", ".superpowers", "test-results", ".claude"}
 LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 INLINE_CODE = re.compile(r"`+[^`]*`+")
@@ -38,7 +43,7 @@ def check(root: Path) -> list[str]:
         rel = path.relative_to(root).as_posix()
         text = path.read_text(encoding="utf-8")
         n_lines = len(text.splitlines())
-        if n_lines > MAX_LINES:
+        if n_lines > MAX_LINES and rel not in LINE_LIMIT_EXEMPT:
             problems.append(f"{rel}: {n_lines} lines (max {MAX_LINES})")
         for target in _links(text):
             if re.match(r"(https?:|mailto:)", target, re.IGNORECASE):
