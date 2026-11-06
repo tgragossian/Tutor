@@ -1,6 +1,6 @@
 # Evaluation and portfolio evidence
 
-[Review index](README.md) · [Original task 10](../../superpowers/plans/core-practice-loop/tasks/10-verifier-evaluation-set-and-ci-gate.md)
+[Review index](README.md) · [Original task recovery](../../history.md)
 
 ## E1 — P1: generator labels are not an independent oracle
 

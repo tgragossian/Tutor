@@ -1,7 +1,34 @@
 # Calculus Tutor
 
-As a student and tutor, I often found myself seeing LLMs fail students in their learning process of mathematics. LLMs often provide too much information about a problem, decreasing learning outcomes of students by not allowing them to understand the problem for themselves. This project aims to find a solution to this problem by combining prompt engineering, hard-coded limitations, student input equivalency checks, RAG on OpenStax's *Calculus Volume 1* textbook (textbook-grounded AI hints), and LoRA fine-tuning on tutoring data using TutorBench's human-made rubrics of tutoring benchmarks. All code was written by AI agents
-under my direction ([how this was built](#how-this-was-built)).
+## Why this exists
+
+As a student and tutor, I have seen students ask an LLM for a hint and receive a complete
+solution instead. The answer may help with today's homework while leaving the student less
+prepared to solve the next problem alone. In a [high-school math experiment](https://pmc.ncbi.nlm.nih.gov/articles/PMC12232635/),
+students using an unrestricted AI tutor did better during practice but worse on an exam
+without AI; a version constrained to teacher-designed hints avoided that drop.
+
+AI use is already common: a [study of 95,513 undergraduates](https://cshe.berkeley.edu/news/study-finds-widespread-generative-ai-use-among-college-students-signaling-urgent-need)
+at 20 public research universities found that 53% of students in mathematics used
+generative AI at least monthly. Separately, [UC San Diego's mathematics department](https://math.ucsd.edu/about/chair-statement-math-preparedness)
+reports declining preparation among incoming students and lists widely available AI among
+several possible contributors. UC Berkeley mathematics professor [Zvezdelina Stankova](https://sfstandard.com/opinion/2026/08/15/uc-berkeley-sat-test-blind-admissions-math-scores/)
+has described some students as five to eight years behind in math. Together, these sources
+show widespread AI use and serious preparedness concerns; they do not show that AI caused
+those preparation gaps.
+
+Calculus Tutor is my attempt to steer students toward using AI as support while they do
+the mathematical work themselves. Students enter their own answers, and a symbolic checker
+grades what it can prove. The server controls how direct each hint can be, grounds help in
+OpenStax, and checks supported mathematical answer forms for leaks before showing a reply.
+These guardrails make the tutor harder to use as an answer machine and encourage students
+to reason through the next step instead of repeating an LLM's solution. Current evaluations
+measure hint usefulness and leaks, not learning gains; a TutorBench-guided LoRA experiment
+is planned. Independent assessments, including in-person exams, still matter for judging
+what a student can do unaided.
+
+All code was written by AI agents under my direction
+([how this was built](#how-this-was-built)).
 
 **Live:** <https://tutor.thomasgragossian.dev> · **Status:** practice loop live since
 2026-10-21; AI help live as a **beta** since 2026-11-05 (Claude Sonnet 5.5).
@@ -44,13 +71,14 @@ question about the problem's form; after one, a fast model labels the mistake (a
 wrong rule, rule misapplied, incomplete), and each repeat of the same type makes the next hint
 more direct.
 
-This is on `main` but not yet live. Each answer is one database row with its owner, attempt
-number, verdict and mistake type, and the fast model labels every wrong answer in the
-background. The tutor gives one hint per attempt: one to get started, then one for each wrong
-answer. Extra clicks get a short prompt to try again, so the ladder moves only when the student
-does. A student who is missing the concept uses *Explain this*, which walks through how this
-kind of problem is done; one who knows the direction but finds the problem hard climbs the
-ladder by trying. Students get five tries instead of three.
+This is implemented on `answers-table` but not merged or live. Each answer is one database
+row with its owner, attempt number, verdict and mistake type. A fast model labels wrong
+answers in the background. The tutor gives one hint per attempt: one to get started, then
+one for each wrong answer. Extra clicks get a short prompt to try again, so the ladder
+moves only when the student does. A student missing the concept can use *Explain this*,
+which walks through how this kind of problem is done. A student who knows the direction
+but finds the problem hard climbs the ladder by trying. Students get five tries instead
+of three.
 [Design and plan](docs/superpowers/plans/2026-11-05-answers-table/README.md).
 
 ## How RAG works

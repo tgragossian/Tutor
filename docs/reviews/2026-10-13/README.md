@@ -37,11 +37,11 @@ the relevant release. These are priorities for a draft, not incident severity la
 - [Evaluation and portfolio evidence](evaluation.md).
 - [Project structure and dependency boundaries](structure.md).
 - [Deployment and operating costs](operations.md).
-- [Reference plan](../../superpowers/plans/2026-10-13-core-practice-loop.md).
+- [Reference plan recovery](../../history.md).
 
 The three original Markdown documents are preserved as ordered modules.
 Their [preservation manifest](archive-manifest.json) records hashes and original line ranges.
-Original paths remain entry points. Thomas selected option B after this review.
+The original paths are listed in the history index. Thomas selected option B after this review.
 The [decision record](../../decisions/0001-delivery-verifier-attribution.md) updates scope,
 domain semantics, implicit checking and attribution; other findings still need resolution.
 The manifest records the explicit amendment to the original commit-attribution rule.

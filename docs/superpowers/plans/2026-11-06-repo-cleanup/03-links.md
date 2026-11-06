@@ -2,9 +2,9 @@
 
 [Plan](README.md)
 
-Current files that link into G1–G7 (grep on 2026-11-06, excluding the groups themselves).
-Each link is either removed, pointed at a current page, or replaced by
-`git show archive-2026-11-06:<path>` in `docs/history.md`. `tools/check_docs.py` must pass.
+Pre-cleanup inventory of files linking into G1–G7 (grep on 2026-11-06, excluding the
+groups themselves). G1 Markdown links were repaired and `tools/check_docs.py` passed.
+The other groups remain, so their links remain valid. See [history](../../../history.md).
 
 - `handoff.md`
 - `content/review/README.md`

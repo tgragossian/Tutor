@@ -1,6 +1,6 @@
 # Deployment review
 
-[Review index](README.md) · [Original deployment](../../superpowers/specs/core-practice-loop/11-deployment.md)
+[Review index](README.md) · [Original deployment recovery](../../history.md)
 
 ## O1 — P2: size the full host, not only the web process
 

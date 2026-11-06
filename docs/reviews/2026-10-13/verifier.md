@@ -1,6 +1,6 @@
 # Verifier findings
 
-[Review index](README.md) · [Original rules](../../superpowers/specs/core-practice-loop/04-equivalence.md)
+[Review index](README.md) · [Original rules recovery](../../history.md)
 
 ## V1 — P1: finite sampling cannot establish exact equivalence
 

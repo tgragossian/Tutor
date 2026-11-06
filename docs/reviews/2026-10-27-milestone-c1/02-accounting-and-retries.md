@@ -11,7 +11,7 @@
   catch with no call record. `_settle` interprets that absence as "reserved, never sent"
   and settles the reservation to zero, even though the provider was contacted.
 - Reproduction: `test_reply_decode_error_retains_spend_reservation` in
-  [Python probes](test_review_probes.py). A fake Messages client returns malformed `content`
+  retired Python probes (recover from the tag in [history](../../history.md)). A fake Messages client returns malformed `content`
   after one dispatch. The real `ClaudeGenerator` raises `TypeError`; the service responds
   `unavailable`, with a usage entry in `state='settled'`, `settled_micros=0`.
   This simulates a malformed provider response; no real billing event was generated.

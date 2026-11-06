@@ -4,7 +4,7 @@
 
 ## C1 — P1: introduce an item-presentation record
 
-[Task 16](../../superpowers/plans/core-practice-loop/tasks/16-session-and-attempt-api.md)
+[Original task 16](../../history.md)
 asks whether an item is finished using attempts_on_item; the schema has no
 presentation identity. A previously exhausted item selected again by Task 14 can
 already appear finished. First attempt, retry count and elapsed time are ambiguous.

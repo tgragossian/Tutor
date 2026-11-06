@@ -51,7 +51,7 @@ The serving test still needs Thomas's account/go-ahead. AWS remains the selected
 5. [04-release](04-release.md): Qwen/dataset transfer, AWS/RunPod, offline and live A/B.
 6. [Expansion queue](05-expansion-queue.md): extraction stands alone; no “LoRA after extraction”.
 7. [Plan index](README.md) and [host sizing](../../../ops/host-sizing.md): linked and synchronized.
-8. [Original scope](../../specs/core-practice-loop/00-scope.md): preserved as historical reference.
+8. [Original scope](../../../history.md): recoverable from the tagged draft.
 
 Current status pages also reflect Thomas's recorded B deploy at 8057590 with migration 0003.
 Dated review evidence is retained; no new application, browser, host or GPU validation is implied.

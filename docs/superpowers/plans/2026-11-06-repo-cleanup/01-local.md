@@ -2,6 +2,9 @@
 
 [Plan](README.md)
 
+These proposals were not executed in this cleanup. The worktrees and browser output may
+contain working state; inspect each again before any local removal.
+
 These live only in Thomas's working folder, so removing them changes no commit. They are
 the likeliest source of AI confusion: each worktree is a full old copy of the repo.
 

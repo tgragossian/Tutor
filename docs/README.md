@@ -25,8 +25,7 @@ Read the [current handoff](../handoff.md) before continuing work.
   - [2026-10-21 code review](reviews/2026-10-21-milestone-b/README.md): historical issues and implemented fixes.
 - Historical references:
   - [Original handoff](handoff/README.md).
-  - [Original design](superpowers/specs/2026-10-13-core-practice-loop-design.md).
-  - [Original task plan](superpowers/plans/2026-10-13-core-practice-loop.md).
+  - [Removed draft index](history.md): the superseded original design and task plan.
 - [Operations](ops/README.md): development setup, hours, host, runbook and security.
   - [Debugging tree](ops/debugging/README.md): symptoms, owning files and focused checks.
   - [C1 debugging](ops/debugging/c1/README.md): generation/guard, state/cost and evaluation modules.

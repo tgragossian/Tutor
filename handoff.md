@@ -15,14 +15,17 @@ records R1–R40. Milestone B is closed; actual hours are not a gate.
 1. **Codex: review branch `answers-table`** (worktree `.claude/worktrees/answers-table`):
    one row per attempt, mistake ladder, one hint per attempt, five tries, background Haiku
    labels. [Brief](docs/reviews/2026-11-06-answers-table/README.md) · [rulings](docs/reviews/2026-11-06-answers-table/01-rulings.md)
-   · [owner decisions](docs/reviews/2026-11-06-answers-table/02-open-decisions.md). Not merged,
+   · [owner decisions](docs/reviews/2026-11-06-answers-table/02-open-decisions.md) ·
+   [Codex findings](docs/reviews/2026-11-06-answers-table/03-findings.md). Not merged,
    not deployed; Thomas merges after review, deploys after a fresh backup in `/srv/backups/`.
-2. **Codex: review the draft [baseline ladder plan](docs/superpowers/plans/2026-11-06-baseline-ladder/README.md)**
+2. **[Baseline ladder plan](docs/superpowers/plans/2026-11-06-baseline-ladder/README.md):**
    (plain request vs paste-in prompt vs tutor without textbook vs full tutor, with cost per
-   useful hint). Do not implement until Codex and Thomas approve it and the spend.
-3. **Codex: review the draft [repo cleanup plan](docs/superpowers/plans/2026-11-06-repo-cleanup/README.md)**
+   useful hint). [Codex review](docs/reviews/2026-11-06-baseline-ladder/README.md)
+   recommends revisions before implementation or paid runs.
+3. **[Repo cleanup](docs/superpowers/plans/2026-11-06-repo-cleanup/README.md):**
    (old worktrees, ~140 stale docs, 8 review scripts; tag first, delete, `docs/history.md`).
-   Nothing is deleted before Codex and Thomas approve; run it after `answers-table` merges.
+   [Codex disposition](docs/reviews/2026-11-06-repo-cleanup/README.md): 40 superseded draft
+   pages and one empty probe stub removed on this branch; other candidates retained.
 4. [C1 release review](docs/reviews/2026-11-06-c1-release/01-findings.md): R40 now labels
    the latest attempt in the generator prompt; the judge still reads attempts oldest first.
    The answer-box fix is coherent but needs a real MathLive check after deployment.
@@ -61,6 +64,8 @@ records R1–R40. Milestone B is closed; actual hours are not a gate.
 
 ## Documentation tree
 
+- [Removed draft recovery](docs/history.md): superseded original practice-loop pages at
+  `archive-2026-11-06`; current contracts and dated evidence remain in the tree.
 - [C1 debugging](docs/ops/debugging/c1/README.md) and [release review](docs/reviews/2026-11-06-c1-release/README.md).
 - [C plan](docs/superpowers/plans/portfolio-mvp/03-rag.md), [C spec](docs/superpowers/specs/2026-10-26-milestone-c/README.md),
   [C review](docs/reviews/2026-10-26-milestone-c/README.md) and [open register](docs/superpowers/plans/portfolio-mvp/milestone-c/03-open-decisions.md).

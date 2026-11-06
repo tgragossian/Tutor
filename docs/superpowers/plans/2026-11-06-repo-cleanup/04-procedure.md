@@ -1,19 +1,20 @@
-# Cleanup: procedure
+# Cleanup: executed steps and recovery
 
-[Plan](README.md)
+[Plan](README.md) · [Disposition](../../../reviews/2026-11-06-repo-cleanup/README.md)
 
-Run after Codex's review and Thomas's approval, on its own branch, after `answers-table`
-is merged (so the two do not conflict in `handoff.md` and the indexes).
+1. Tagged the clean pre-cleanup `answers-table` head `f9a9cbc` as
+   `archive-2026-11-06` (local tag).
+2. Removed G1's 40 superseded Markdown files and the empty C1 original probe stub.
+3. Added [history](../../../history.md), repaired inbound Markdown links, and recorded
+   the group-by-group keep decisions in the review.
+4. Ran `tools/check_docs.py` and `git diff --check`; both passed.
 
-1. **Local clutter** ([01-local.md](01-local.md)): remove the four worktrees, delete
-   `%SystemDrive%/` and `.playwright-mcp/`, add `.playwright-mcp/` to `.gitignore`.
-2. **Tag:** `git tag archive-2026-11-06` on `main` (push the tag if Codex recommends it).
-3. **Move evidence first:** copy any fact Codex marks as still needed (G4 verification
-   evidence, G2 still-true facts) into its current home; commit.
-4. **Delete** the approved groups from [02-candidates.md](02-candidates.md); commit per group,
-   so each is easy to review or revert.
-5. **Fix links** in [03-links.md](03-links.md); add `docs/history.md` (≤ 100 lines: group,
-   reason, date, how to read it from the tag).
-6. **Checks:** `uv run python tools/check_docs.py` (no output), full pytest (G6 removal must
-   not drop a collected test), `git grep` for every deleted path returns nothing.
-7. **Handoff:** one line in `handoff.md` pointing at `docs/history.md`.
+To inspect any deleted file:
+
+```text
+git show archive-2026-11-06:<path>
+git show f9a9cbc:<path>
+```
+
+The branch remains unmerged. The tag is local. The worktrees and untracked browser
+output remain untouched; they require a separate, fresh inspection before removal.

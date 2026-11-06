@@ -1,9 +1,10 @@
-# Baseline Ladder Plan (draft: awaiting Codex review)
+# Baseline Ladder Plan (draft: revisions needed)
 
 [Plans](../README.md) · [Handoff](../../../../handoff.md) · [Help evaluation](../../../../evals/help/README.md)
 
-> **Status:** draft. Do not implement until Codex has reviewed it (findings in
-> `docs/reviews/<date>-baseline-ladder/`) and Thomas has approved it and the spend.
+> **Status:** [Codex review](../../../reviews/2026-11-06-baseline-ladder/README.md)
+> identified design changes. Revise the plan before implementation or paid runs;
+> Thomas still owns spend approval.
 > For agentic workers, after approval: REQUIRED SUB-SKILL superpowers:subagent-driven-development.
 
 **Goal:** answer "is any of this needed?" with one table: a plain request, a paste-in prompt,

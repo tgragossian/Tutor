@@ -12,6 +12,7 @@ with a disposition.
 Built by Claude subagents, one task at a time; each task was reviewed for spec compliance and
 quality, then a final whole-branch review. Controller rulings: [01-rulings.md](01-rulings.md).
 Decisions still owed by Thomas: [02-open-decisions.md](02-open-decisions.md).
+Codex review: [03-findings.md](03-findings.md).
 
 ## What changed
 

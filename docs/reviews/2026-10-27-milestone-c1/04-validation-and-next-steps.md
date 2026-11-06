@@ -31,8 +31,8 @@ Expected-failure probes are separate from the default test suite; they are not p
 regressions. Running with `--runxfail` confirmed all eleven fail at their intended assertions.
 
 ```powershell
-.venv\Scripts\python.exe -m pytest docs/reviews/2026-10-27-milestone-c1/test_review_probes.py -q -rx
-.venv\Scripts\python.exe -m pytest docs/reviews/2026-10-27-milestone-c1/test_review_probes.py -q --runxfail --tb=short
+# Historical commands: the original probe file is recoverable from archive-2026-11-06.
+# Current regressions live under tests/.
 node --test docs/reviews/2026-10-27-milestone-c1/review_ui_probe.mjs
 .venv\Scripts\python.exe tools/check_docs.py
 ```
