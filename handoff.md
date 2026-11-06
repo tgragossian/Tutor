@@ -1,23 +1,24 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-10-26, Codex milestone C concept review.
+Owner: Thomas Gragossian. Updated: 2026-10-28, C1 debugging fixes and documentation continuation.
 Host deployment remains Thomas's reported `main` 8057590, migration 0003. No new host probe.
-Review baseline: `8126fc3`; this review changes documentation only.
+This checkout remains `main` at `292cee4`; C1 was rechecked in its worktree at `b16a206`.
 
 **Milestone B is closed.** Thomas removed actual hours as a gate on 2026-10-26.
 Host sizing remains C-O3; Thomas allows 2 GB if measurement needs it.
 
-**Milestone C design reviewed; implementation tasks still needed.** The
-[C spec](docs/superpowers/specs/2026-10-26-milestone-c/README.md) contains review amendments.
-The [concept review](docs/reviews/2026-10-26-milestone-c/README.md) owns prioritized findings,
-code evidence and dispositions. No C modules, model evaluation or upload pipeline exist yet.
+**C1 is implemented on `milestone-c1`, reviewed, and not released.** That branch's
+`handoff.md` and `docs/reviews/2026-10-27-milestone-c1/README.md` own its current status:
+all nine findings closed in local code; owner release gates remain. C1 is not merged here.
 
 ## Resume here
 
-1. Read the [C review index](docs/reviews/2026-10-26-milestone-c/README.md), then the amended spec.
-2. [C1 implementation plan](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/README.md) written
-   2026-10-26 (15 tasks); it proposes C-P1 values and C-P2 gates. Thomas reviews, then execution.
-3. Implement C1 buttons → C2 item-scoped questions → C3 own problems. Resolve C-P3 before C3.
+1. Claude: work on `milestone-c1`; follow its
+   `docs/reviews/2026-10-27-milestone-c1/11-debugging-fixes.md`.
+   R4/R7 are fixed on that branch. Follow owner release gates; carry these fixes into C2.
+2. Preserve the [C concept review](docs/reviews/2026-10-26-milestone-c/README.md) as historical
+   design context. Record C1 fixing commits/tests and update its handoff before owner gates.
+3. C2 planning is on `milestone-c2`; Q1–Q9 are decided. Review/rebase after C1 closure; C3 needs C-P3.
 4. Accepted sequence remains **C → LoRA experiment → D/E → expansion**. Automated Calc 1
    graded sets need a broader checker/review; Thomas placed them after the LoRA (C-O4,
    2026-10-26). Thomas supplies Anthropic access via secrets config (C-O5).
@@ -43,6 +44,8 @@ code evidence and dispositions. No C modules, model evaluation or upload pipelin
 
 ## Documentation tree
 
+- C1 branch: `docs/reviews/2026-10-27-milestone-c1/11-debugging-fixes.md` owns current evidence;
+  `docs/ops/debugging/c1/README.md` maps generation/guard → state/cost → evaluation.
 - [C plan](docs/superpowers/plans/portfolio-mvp/03-rag.md): sequence and links to exact contracts.
 - [C spec](docs/superpowers/specs/2026-10-26-milestone-c/README.md): components → help → guard → intake
   → acceptance; children own state/accounting, corpus, evaluation protocol and provider evidence.
