@@ -15,6 +15,7 @@ data/corpus-raw/
 dist/
 node_modules/
 test-results/
+.playwright-mcp/
 .hypothesis/
 # Fine-tuning artefacts are never published (decision 0005)
 models/

@@ -1,7 +1,34 @@
 # Calculus Tutor
 
-As a student and tutor, I often found myself seeing LLMs fail students in their learning process of mathematics. LLMs often provide too much information about a problem, decreasing learning outcomes of students by not allowing them to understand the problem for themselves. This project aims to find a solution to this problem by combining prompt engineering, hard-coded limitations, student input equivalency checks, RAG on OpenStax's *Calculus Volume 1* textbook (textbook-grounded AI hints), and LoRA fine-tuning on tutoring data using TutorBench's human-made rubrics of tutoring benchmarks. All code was written by AI agents
-under my direction ([how this was built](#how-this-was-built)).
+## Why this exists
+
+As a student and tutor, I have seen students ask an LLM for a hint and receive a complete
+solution instead. The answer may help with today's homework while leaving the student less
+prepared to solve the next problem alone. In a [high-school math experiment](https://pmc.ncbi.nlm.nih.gov/articles/PMC12232635/),
+students using an unrestricted AI tutor did better during practice but worse on an exam
+without AI; a version constrained to teacher-designed hints avoided that drop.
+
+AI use is already common: a [study of 95,513 undergraduates](https://cshe.berkeley.edu/news/study-finds-widespread-generative-ai-use-among-college-students-signaling-urgent-need)
+at 20 public research universities found that 53% of students in mathematics used
+generative AI at least monthly. Separately, [UC San Diego's mathematics department](https://math.ucsd.edu/about/chair-statement-math-preparedness)
+reports declining preparation among incoming students and lists widely available AI among
+several possible contributors. UC Berkeley mathematics professor [Zvezdelina Stankova](https://sfstandard.com/opinion/2026/08/15/uc-berkeley-sat-test-blind-admissions-math-scores/)
+has described some students as five to eight years behind in math. Together, these sources
+show widespread AI use and serious preparedness concerns; they do not show that AI caused
+those preparation gaps.
+
+Calculus Tutor is my attempt to steer students toward using AI as support while they do
+the mathematical work themselves. Students enter their own answers, and a symbolic checker
+grades what it can prove. The server controls how direct each hint can be, grounds help in
+OpenStax, and checks supported mathematical answer forms for leaks before showing a reply.
+These guardrails make the tutor harder to use as an answer machine and encourage students
+to reason through the next step instead of repeating an LLM's solution. Current evaluations
+measure hint usefulness and leaks, not learning gains; a TutorBench-guided LoRA experiment
+is planned. Independent assessments, including in-person exams, still matter for judging
+what a student can do unaided.
+
+All code was written by AI agents under my direction
+([how this was built](#how-this-was-built)).
 
 **Live:** <https://tutor.thomasgragossian.dev> · **Status:** practice loop live since
 2026-10-21; AI help live as a **beta** since 2026-11-05 (Claude Sonnet 5.5).
@@ -45,8 +72,8 @@ rule, rule misapplied, incomplete) and climbs a separate ladder per mistake type
 
 ## How RAG works
 
-Every hint is grounded in the textbook, so the model explains with the same definitions,
-rules and worked examples the student's course uses, and each claim can be traced to a page.
+Generated help draws on OpenStax definitions, rules and worked examples, with citations to
+the source sections. The tutor abstains when it cannot provide supported help.
 
 **Building the corpus.** A fetch script downloads *Calculus Volume 1* from OpenStax's archive
 (polite, one request per second, pinned to a book version). The pages carry math only as
@@ -68,9 +95,9 @@ section get a 1.3× score boost, and the top 6 are kept.
 
 **Keeping the answer out of the passages.** The practice problems are themselves textbook
 exercises, so retrieval only searches teaching text (definitions, theorems, rules, examples,
-explanations). Exercises and the answer key are never searched. Any retrieved passage that
-contains the problem's answer is dropped before the model sees it. If no passages are left,
-the tutor abstains rather than answering without a source.
+explanations). Exercises and the answer key are never searched. The passage filter checks
+supported mathematical forms of the problem's answer and drops matches before generation.
+If no passages are left, the tutor abstains rather than answering without a source.
 
 **Using the passages.** The model gets the passages with their chunk IDs and must return
 structured output naming the IDs it used. The server rejects any citation that was not in
@@ -129,8 +156,8 @@ once. A draft holdout retrieval score was seen before the final labeling rule, s
 that set entirely uninspected. Missed gates are reported here, not tuned away by rerunning the
 same cases. The holdout is small, so the linked summaries give counts and uncertainty intervals
 alongside percentages. The guard also blocked 7 of 23 good responses (target at most 15%).
-One prompt fix found by testing the live site shipped after the holdout, so the holdout numbers
-describe the earlier prompt.
+One prompt fix found by testing the live site was committed after the holdout; its deployment
+is not yet confirmed. The holdout numbers describe the earlier prompt.
 
 ## What's next
 
@@ -144,7 +171,11 @@ concept uses *Explain this*, which walks through how this kind of problem is don
 knows the direction but finds the problem hard climbs the ladder by trying. Students get five
 tries instead of three. [Design and plan](docs/superpowers/plans/2026-11-05-answers-table/README.md).
 
-1. **Fine-tuning experiment: LoRA vs QLoRA on open models.** I plan to compare LoRA and QLoRA
+1. **Baseline comparison (planned).** On the same fresh cases, compare a plain LLM request,
+   a paste-in tutoring prompt, the tutor without retrieval, and the full textbook-grounded
+   tutor. Use one model and rubric; report useful help, answer leaks, math errors, latency,
+   and cost per useful hint. No paid comparison result is available yet.
+2. **Fine-tuning experiment: LoRA vs QLoRA on open models.** I plan to compare LoRA and QLoRA
    fine-tuning on open Qwen models at roughly 9B and 27B parameters, benchmarked with
    TutorBench's human-written rubrics. The aim is cheaper tutoring help that matches or beats
    the Claude baseline.
@@ -163,13 +194,13 @@ tries instead of three. [Design and plan](docs/superpowers/plans/2026-11-05-answ
      ([decision 0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md)).
    - **Infrastructure:** training on AWS GPUs (SageMaker training jobs or EC2 spot), serving
      off this host on a serverless GPU.
-2. **Retrieval and guard:** pin a worked example for "how do I…" questions (most current
+3. **Retrieval and guard:** pin a worked example for "how do I…" questions (most current
    misses), and stop the guard blocking general formulas such as f(x)g(x).
-3. **Pre-written explanations:** generate the 18 *Explain this* answers once, review them by
+4. **Pre-written explanations:** generate the 18 *Explain this* answers once, review them by
    hand, and serve them with no model call.
-4. **With real users:** A/B test hint styles (e.g. how much the first hint gives) on solve rate
+5. **With real users:** A/B test hint styles (e.g. how much the first hint gives) on solve rate
    after help, not just ratings.
-5. **Exam/Quiz prep, personalized:** students can input course learning materials for tuned
+6. **Exam/Quiz prep, personalized:** students can input course learning materials for tuned
    help for quizzes and exams. The tutor gives quizzes to find weaknesses and creates high-value
    problem sets. Students can also say how long they have before their exam and how many hours
    they can commit to the learning process.
@@ -185,7 +216,7 @@ reporting the missed targets above rather than tuning them away.
 ## Stack
 
 Python · FastAPI · SQLAlchemy/Alembic · SymPy · Anthropic API · MathLive · Docker Compose
-with Caddy on AWS Lightsail (1 GB) · Cloudflare DNS. 1,648 Python tests and 49 web tests in CI.
+with Caddy on AWS Lightsail (1 GB) · Cloudflare DNS. Python and web test suites run in CI.
 
 ## Run locally
 

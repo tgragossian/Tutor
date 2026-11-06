@@ -1,10 +1,8 @@
 # Documentation
 
-Milestone B (practice loop) and review fixes are deployed at 8057590 per Thomas; migration 0003 applied.
-The load tool's verifier-crash case (B-R4) was fixed in 04de2d2. See
-[dispositions](reviews/2026-10-22-milestone-b/06-dispositions.md) for fix/recheck chronology.
-B is closed; Thomas removed the hours gate on 2026-10-26. Host sizing is deferred to C.
-Read the [current handoff](../handoff.md) before continuing work.
+Milestone B is closed; C1 textbook-grounded help is live as a Sonnet 5.5 beta with
+[disclosed gate misses](superpowers/plans/portfolio-mvp/milestone-c/c1/20-status.md).
+The [current handoff](../handoff.md) records the reported host version and next checks.
 
 - [Current handoff](../handoff.md): status, priorities and next action.
 - [Decisions](decisions/README.md): accepted direction and precedence.
