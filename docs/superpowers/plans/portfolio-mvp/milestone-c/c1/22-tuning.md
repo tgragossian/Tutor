@@ -17,8 +17,11 @@ release. Holdout cases are never edited in response; new cases go to dev or a fr
    attempt. New dev case: two attempts where the right and wrong terms swap.
 2. **Feedback can point at the wrong term** (dev-02-r1): praised a copied −x, sent the student
    to the +1, and implied a constant contributes to the derivative.
-3. **Explain sets up the student's own problem** (dev-17-r2): wrote out this problem's factors
-   and a step list. Explain should teach on a different function and stop at the concept.
+3. **Explain sets up the student's own problem** (dev-17-r2; 9/12 explain cases under rubric v2
+   in dev run 3). **Plan (Thomas, 2026-11-06): pre-generate the 18 explanations** offline, one per
+   confusion, on a different example with chunk-ID citations; Thomas reviews them
+   (`reviewed_by: tg`); the app serves the stored text after a per-problem SymPy leak-guard check
+   and calls the model only for hints and feedback. Removes cost, latency and this failure mode.
 4. **How much "What did I do wrong?" reveals** (dev-04-r3): decide after more live testing.
 5. **Quotient rule mnemonic:** allow "lo d-hi minus hi d-lo, over lo-lo" for the quotient-rule
    confusion, as an uncited memory aid.
