@@ -1,83 +1,100 @@
 # Calculus Tutor
 
-A portfolio project by Thomas Gragossian: build and evaluate a deployed Calculus I tutor.[^ai]
+As a student and tutor, I often saw LLMs fail students learning mathematics. They tend to give
+too much away, which takes the understanding out of the student's hands. This project builds a
+tutor that holds back: prompt engineering, hard-coded limits, symbolic answer checking, RAG over
+OpenStax's *Calculus Volume 1* (textbook-grounded hints), and, next, LoRA fine-tuning on
+tutoring data scored with TutorBench's human-written rubrics.[^ai]
 
-Live: <https://tutor.thomasgragossian.dev>
+**Live:** <https://tutor.thomasgragossian.dev> · **Status:** practice loop live since 2026-10-21;
+AI help live as a **beta** since 2026-11-06 (Claude Sonnet 5.5), with every missed target below.
 
-Status (2026-10-26): **milestone B closed; practice loop live.** Accounts, practice on three
-derivative topics (22 reviewed problems) with MathLive input and a proof-based SymPy grader,
-and history. Review fixes are deployed per Thomas; actual hours are optional.
-Host sizing is deferred to C under a recorded exception. See the
-[handoff](handoff.md), [what the verifier accepts](docs/verifier/supported.md),
-[verifier results](evals/verifier/results/dev-b.md) and [API contracts](contracts/README.md).
-Option B remains selected: ship the core early, then restore features in a gated queue.
+<!-- TODO: 20-second GIF: wrong derivative → "What did I do wrong?" → cited help -->
 
-Hosting is on one AWS instance ([host record](docs/ops/host.md)); the AWS Budget alert emails
-at $10/month and is not a spending cap.
+## What it does
 
-Start with the [handoff](handoff.md), [reviews](docs/reviews/README.md),
-and [active implementation sequence](docs/superpowers/plans/portfolio-mvp/README.md).
+- **Practice** on derivatives (basic rules, trig, chain rule): 22 reviewed problems, math input
+  with MathLive, answers graded by a SymPy checker that *proves* equivalence or abstains.
+- **Help** when stuck: *Hint* (a ladder that gets more direct each time), *What did I do wrong?*
+  and *Explain this*. Every delivered response cites the OpenStax passages it used.
+- **Answer containment:** a leak guard checks the math in each response against the reference
+  answer before the student sees it, and blocks or abstains on a match. *Show answer* (two
+  clicks, with a warning) is the only intended answer path.
 
-## Documentation tree
+## How a hint is made
 
-```text
-README.md → handoff.md → docs/README.md
-  docs/decisions/                  Accepted decisions and precedence
-    0005-tutoring/                 Compute/serving and provisional sizing/costs
-  docs/ops/                       Local setup, host record, runbook, security
-    debugging/                    Symptom → owner → focused check
-  docs/verifier/                  What the grader accepts; results
-  docs/superpowers/plans/portfolio-mvp/
-    milestone-b/                  Status, rulings, evidence and file map
-      tasks/                      One implementation task per file
-      r22-r23/, r24/              Verifier changes and debugging
-    milestone-c/                  Planned help contract, evaluation, open choices, debugging
-  docs/superpowers/specs/          Approved contracts and preserved design
-  docs/handoff/, docs/reviews/     Historical background and dated reviews
-  contracts/, content/, evals/     API examples, authoring and evaluation
+```mermaid
+flowchart LR
+  A[Student asks for help] --> B[Query from problem + latest attempt]
+  B --> C[BM25 over 1,765 textbook chunks, home-section boost]
+  C --> D[Top 6 passages + problem + attempts]
+  D --> E[Claude Sonnet 5.5, structured output with chunk-ID citations]
+  E --> F{Leak guard: SymPy checks extracted math vs. answer}
+  F -- clean --> G[Cited help shown]
+  F -- leak or bad output --> H[One strict repair call, else abstain]
 ```
 
-Every Markdown file must remain at most 100 lines. Split by responsibility and link
-from a parent index; keep results and proposed work visibly distinct.
+The server sets how much help may reveal: before a wrong answer the tutor asks about the
+problem's form; after one, the mistake type (algebra, wrong rule, misapplied, incomplete) picks its ladder.
 
-The [reviewed release result](evals/verifier/results/dev-b.json) reports FA 0/50 (95% upper
-bound 7.1%), FR 0/49, coverage 49/49 and agreement 136/136. These are reviewed dev-set results.
-[CI and result evidence](evals/verifier/results/README.md): Python, Node and container smoke
-passed for tasks 1–9. [App-track evidence](docs/superpowers/plans/portfolio-mvp/milestone-b/07-verification-evidence.md)
-records the app-track checks separately.
-Next: [RAG hints (C)](docs/superpowers/plans/portfolio-mvp/03-rag.md), then LoRA, then D/E.
-C design and [concept review](docs/reviews/2026-10-26-milestone-c/README.md) are complete;
-implementation tasks are next. No RAG/upload capability is implemented yet.
+## Design decisions and why
 
-## Development
+| Decision | Why |
+|---|---|
+| BM25, not embeddings (yet) | Small closed corpus; keyword match on math vocabulary is cheap, reproducible and fits a 1 GB host. Embeddings are a measured upgrade, not a default. |
+| Own chunk IDs as citations | Citations are checked against what was retrieved, so the model cannot cite a passage it never saw. |
+| Server-owned hint levels | The model writes the text; code decides how much it may reveal. |
+| A guard that can say no | Prompting alone does not stop leaks; a symbolic check plus abstention does for supported math. |
+| Sonnet over Haiku, by measurement | Same harness, blind audit: Sonnet 31/36 useful and 5/6 correct abstentions vs Haiku 25/36 and 2/6, at about 1.4¢ vs 0.1¢ a hint. |
+| Spend ledger | Each call reserves its worst-case cost first, with per-user limits and a monthly cap. |
 
-Install [uv](https://docs.astral.sh/uv/) (`winget install astral-sh.uv`), then:
+## Evaluation
+
+Each part is measured on hand-reviewed dev sets, then once on a held-out set (behavior, not learning gains).
+
+| Component | Result | Set |
+|---|---|---|
+| Answer checker | 0 false accepts (of 50 wrong), 0 false rejects (of 49 right) | [136 dev cases](evals/verifier/results/dev-b.md) |
+| Retrieval, Recall@6 / Hit@6 | dev 0.774 / 0.964; holdout **0.722** / 0.833 (target 0.80) | 28 dev, 12 holdout queries |
+| Help: answer leaks | **0 of 66** responses (dev and holdout) | 42 dev, 24 holdout cases |
+| Help: holdout, Sonnet | math errors 0/17, citations supported 17/17, correct abstentions 3/4, **useful 12/20** (target 70%), good help blocked by the guard **7/23** (target ≤ 15%), p95 7.1 s | [holdout summary](evals/help/results/20261106-005314-holdout/summary.md) |
+| Judge vs my labels | agreed on 136/138 random dev labels and 48/48 holdout labels | blind audit |
+
+**How help is scored.** A blind AI judge scores each response against [my rubric](evals/help/rubric/v2.md);
+I audit a random 20% plus every flagged response without seeing the model, and my labels win.
+Gates were fixed before results and the holdout ran once; misses are reported, not tuned away
+(a draft holdout retrieval score was seen before the final labeling rule).
+
+**What the misses say.** Even the stronger model needs retrieval, a guard and an audit, and still
+falls short on usefulness: the gap fine-tuning targets. Live testing found the prompt let it coach
+an *earlier* attempt; that fix (R40) shipped after the holdout, re-checked on dev only.
+
+## What's next
+
+1. **Fine-tuned open model:** QLoRA on Qwen 9B, compared with Claude on this harness, an untouched
+   test set and TutorBench Calculus; aiming for lower cost at equal or better quality.
+2. **Pre-written explanations:** generate the 18 *Explain this* answers once, review them, and
+   serve them from storage: no model call, no latency, no over-helping.
+3. **Retrieval and guard:** pin worked examples for "how do I…" queries; stop blocking f(x)g(x)-style formulas.
+4. **With real users:** A/B test hint styles on solve rate after help, not just ratings.
+5. **Exam prep:** course materials and an exam date in; weak spots, a study plan and problem sets out.
+
+## Stack and running locally
+
+Python · FastAPI · SQLAlchemy/Alembic · SymPy · Anthropic API · MathLive · Docker Compose with
+Caddy on AWS Lightsail (1 GB) · Cloudflare DNS; 1,648 Python and 49 web tests in CI. Help needs
+`MATHTUTOR_ANTHROPIC_API_KEY`; without it practice works and help is hidden ([setup](docs/ops/local.md)).
 
 ```bash
-uv sync
-uv run pytest
-uv run python tools/check_docs.py
+cp deploy/.env.example deploy/.env    # set MATHTUTOR_SECRET_KEY and SITE_ADDRESS=localhost
+docker build -t mathtutor:local . && docker compose -f deploy/compose.yaml up -d
 ```
 
-For a migrated local app and browser smoke, use [development setup](docs/ops/development.md).
+## For reviewers
 
-## Content licence and attribution
-
-Problems in `content/`, and the textbook passages used for hints from milestone C, are adapted
-from *Calculus Volume 1* by Gilbert Strang and Edwin "Jed" Herman, OpenStax, licensed under
-[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Download for free at
-<https://openstax.org/details/books/calculus-volume-1>. That adapted content is shared under the
-same licence and is not for commercial use. OpenStax and Rice University do not endorse this
-project. Details: [source manifest](content/sources/openstax-calculus-v1.md) and
-[decision 0004](docs/decisions/0004-rag-source-models-and-evaluation.md).
-
-The planned fine-tuning experiment uses [TutorBench](https://huggingface.co/datasets/ScaleAI/TutorBench)
-(Scale AI; Srinivasa et al., 2025, [paper](https://arxiv.org/abs/2510.02663) licensed CC BY-NC-ND 4.0)
-and [Eedi's tutoring dialogues](https://huggingface.co/datasets/Eedi/Question-Anchored-Tutoring-Dialogues-2k)
-(recorded licence discrepancy in decision 0005) and [MathDial](https://huggingface.co/datasets/eth-nlped/mathdial)
-(CC BY 4.0). Data splits, licence notes and private-weight restrictions are recorded in
-[decision 0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md).
-
-## Acknowledgments
+Detail in [`docs/`](docs/README.md): [decisions](docs/decisions/), [help evaluation](evals/help/README.md),
+[C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulings.md), [tuning list](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/22-tuning.md),
+[reviews](docs/reviews/README.md), [handoff](handoff.md). Textbook: *Calculus Volume 1*, Strang and
+Herman, OpenStax, CC BY-NC-SA 4.0.
 
 [^ai]: Planning and technical review were assisted by Anthropic Claude and OpenAI Codex.
