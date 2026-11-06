@@ -12,26 +12,31 @@ records R1–R40. Milestone B is closed; actual hours are not a gate.
 
 ## Resume here
 
-1. Answers table (one row per attempt, mistake ladder, five tries) is on `main`, not
-   deployed. Deploy only after a fresh backup in `/srv/backups/` and Codex review; migrations
-   0006 and 0007 run in the one-shot `migrate` service ([runbook C1](docs/ops/runbook-c1.md)).
-2. [C1 release review](docs/reviews/2026-11-06-c1-release/01-findings.md): R40 now labels
+1. **Codex: review branch `answers-table`** (worktree `.claude/worktrees/answers-table`):
+   one row per attempt, mistake ladder, one hint per attempt, five tries, background Haiku
+   labels. [Brief](docs/reviews/2026-11-06-answers-table/README.md) · [rulings](docs/reviews/2026-11-06-answers-table/01-rulings.md)
+   · [owner decisions](docs/reviews/2026-11-06-answers-table/02-open-decisions.md). Not merged,
+   not deployed; Thomas merges after review, deploys after a fresh backup in `/srv/backups/`.
+2. **Codex: review the draft [baseline ladder plan](docs/superpowers/plans/2026-11-06-baseline-ladder/README.md)**
+   (plain request vs paste-in prompt vs tutor without textbook vs full tutor, with cost per
+   useful hint). Do not implement until Codex and Thomas approve it and the spend.
+3. [C1 release review](docs/reviews/2026-11-06-c1-release/01-findings.md): R40 now labels
    the latest attempt in the generator prompt; the judge still reads attempts oldest first.
    The answer-box fix is coherent but needs a real MathLive check after deployment.
-3. Finish the outsider README with audited numbers and explicit beta gate misses. Dev run 3
+4. Finish the outsider README with audited numbers and explicit beta gate misses. Dev run 3
    after R40 is recorded but unaudited (judge-only useful 20/36); audit before citing it as a
    measured improvement. Deploy R40 only after testing. The one-shot holdout measured
    the pre-R40 prompt; use a new, disjoint holdout for a fresh claim about the changed prompt.
    The [C1 tuning list](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/22-tuning.md)
    owns follow-ups. Carry C1 fixes into C2 before reviewing its plan.
-4. Audited holdout: 24 Sonnet cases; no observed delivered leaks, math errors or unsupported
+5. Audited holdout: 24 Sonnet cases; no observed delivered leaks, math errors or unsupported
    citations. Misses: useful 12/20, guard false blocks 7/23, retrieval Recall@6 0.722
    (gate 0.80). Memory passed on 1 GB; 20 simultaneous hints caused 6/8 grading
    `verifier_busy` replies. [Host sizing C1](docs/ops/host-sizing-c1.md) records the load.
    The C1 status page still has a pre-release heading and pending gate table to clean up.
-5. The key belongs only in host `deploy/.env`; console spend limit on, auto-reload off.
+6. The key belongs only in host `deploy/.env`; console spend limit on, auto-reload off.
    Turn help off with `MATHTUTOR_HELP_GENERATOR=off` if needed. Do not put keys in git.
-6. Then review/rebase C2 (`milestone-c2`, owner decisions Q1–Q9; ratings and completion-only
+7. Then review/rebase C2 (`milestone-c2`, owner decisions Q1–Q9; ratings and completion-only
    Clear history) and C3 own problems (resolve C-P3 first). Sequence: **C → LoRA experiment
    → D/E → expansion** (C-O4). Qwen serving: RunPod; training: AWS.
 
