@@ -1,6 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -124,6 +125,27 @@ def test_ungraded_answer_has_null_verdict(db: Session) -> None:
     assert loaded is not None
     stored = loaded.answers[0]
     assert (stored.status, stored.applied, stored.attempt_no, stored.lease) == (None, None, None, 0)
+
+
+def test_mathjson_round_trips_exactly(db: Session) -> None:
+    """A bare integer past int64 and a decimal come back exactly, never as floats (R5)."""
+    item = _item(db)
+    big, decimal = _answer(item, "big"), _answer(item, "decimal")
+    big.mathjson = 10**20 + 1
+    decimal.mathjson = ["Multiply", 0.1, "x"]
+    choice = _answer(item, "choice")
+    choice.mathjson = None
+    db.add_all([big, decimal, choice])
+    db.commit()
+    db.expire_all()
+    rows = {a.submission_id: a.mathjson for a in db.scalars(select(Answer))}
+    assert rows == {
+        "big": 10**20 + 1,
+        "decimal": ["Multiply", {"num": "0.1"}, "x"],
+        "choice": None,
+    }
+    raw = db.execute(text("SELECT typeof(mathjson) FROM answers ORDER BY id")).scalars().all()
+    assert raw == ["text", "text", "null"]
 
 
 def test_session_item_sequence_unique(db: Session) -> None:

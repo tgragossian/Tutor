@@ -17,7 +17,7 @@ from sqlalchemy import select
 from unit.application.test_practice import ANSWER, BASIC, CORRECT, INCORRECT, World
 
 from mathtutor.application.errors import Busy, StaleItem, SubmissionPending
-from mathtutor.domain import AnswerKind, FormatIssueCode, ItemState
+from mathtutor.domain import AnswerKind, FormatIssueCode, ItemState, VerdictStatus
 from mathtutor.store.models import Answer
 from mathtutor.verify.types import FormatIssue, VerifierBusy
 
@@ -199,3 +199,25 @@ def test_recovered_answer_keeps_its_original_answer_time(w: World) -> None:
     w.pool.script.append(INCORRECT)
     w.svc.submit_answer(w.alice, sid, key, w.view(sid).session_item_id, 0, ANSWER)
     assert w.graded_row().seconds_on_item == 30
+
+
+def test_recovery_grades_first_so_the_original_replays_its_verdict(w: World) -> None:
+    """The original request finds a verdict already stored (zero rows updated): it keeps the
+    recovery's result and replays it instead of overwriting it."""
+    sid = w.svc.start_session(w.alice, [BASIC])
+    item = w.view(sid).session_item_id
+    key = uuid.uuid4()
+
+    def recovery_grades_first() -> None:
+        w.clock.now += timedelta(seconds=11)  # the original looks orphaned
+        w.pool.script.insert(0, CORRECT)
+        r = w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER)
+        assert r.outcome == CORRECT and not r.replayed
+
+    w.pool.during = recovery_grades_first
+    r = w.submit(sid, INCORRECT, sid=key)
+    assert r.replayed and r.outcome == CORRECT
+    assert r.item.state is ItemState.ANSWERED and r.item.tries_left == 3
+    assert w.graded() == 1 and len(w.pool.requests) == 2
+    row = w.graded_row()
+    assert (row.status, row.applied, row.attempt_no) == (VerdictStatus.CORRECT, True, 1)

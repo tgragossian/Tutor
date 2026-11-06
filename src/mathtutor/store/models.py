@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
@@ -23,6 +24,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from mathtutor.domain import Action, AnswerKind, ItemState, Method, VerdictReason, VerdictStatus
+from mathtutor.jsonio import loads_exact
 
 
 class UTCDateTime(TypeDecorator[datetime]):
@@ -44,6 +46,20 @@ class UTCDateTime(TypeDecorator[datetime]):
         if value.tzinfo is None:
             return value.replace(tzinfo=UTC)
         return value.astimezone(UTC)
+
+
+class ExactJSON(TypeDecorator[Any]):
+    """JSON kept as TEXT and read with exact decimals (``loads_exact``). A column declared JSON
+    has NUMERIC affinity in SQLite, which would turn a bare large integer into a float."""
+
+    impl = Text
+    cache_ok = True
+
+    def process_bind_param(self, value: Any, dialect: Dialect) -> str | None:
+        return None if value is None else json.dumps(value)
+
+    def process_result_value(self, value: str | None, dialect: Dialect) -> Any:
+        return None if value is None else loads_exact(value)
 
 
 def _enum(cls: type[StrEnum]) -> Enum:
@@ -158,7 +174,7 @@ class Answer(Base):
     session_item_id: Mapped[int] = mapped_column(ForeignKey("session_items.id"))
     attempt_no: Mapped[int | None] = mapped_column(Integer)
     answer_kind: Mapped[AnswerKind] = mapped_column(_enum(AnswerKind))
-    mathjson: Mapped[Any] = mapped_column(JSON(none_as_null=True), nullable=True)
+    mathjson: Mapped[Any] = mapped_column(ExactJSON(), nullable=True)
     choice_id: Mapped[str | None] = mapped_column(String(64))
     latex: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime]

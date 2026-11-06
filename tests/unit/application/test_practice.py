@@ -522,3 +522,39 @@ def test_clear_history_only_touches_the_user(w: World) -> None:
     w.svc.submit_answer(w.bob, b, uuid.uuid4(), v.session_item_id, v.revision, ANSWER)
     w.svc.clear_history(w.alice)
     assert [s.session_id for s in w.svc.session_summary(w.bob)] == [b]
+
+
+def _attempts(w: World) -> list[tuple[VerdictStatus | None, bool | None, int | None, bool | None]]:
+    with w.sessions() as db:
+        rows = db.execute(
+            select(Answer.status, Answer.applied, Answer.attempt_no, Answer.counts_as_try).order_by(
+                Answer.id
+            )
+        ).all()
+    return [tuple(r) for r in rows]
+
+
+def test_applied_answers_are_numbered_in_order(w: World) -> None:
+    """Spec D3: every applied verdict is numbered, unable_to_verify included (no try used)."""
+    sid = w.svc.start_session(w.alice, [BASIC])
+    w.submit(sid, INCORRECT)
+    w.submit(sid, UNABLE)
+    w.submit(sid, INCORRECT)
+    assert _attempts(w) == [
+        (VerdictStatus.INCORRECT, True, 1, True),
+        (VerdictStatus.UNABLE_TO_VERIFY, True, 2, False),
+        (VerdictStatus.INCORRECT, True, 3, True),
+    ]
+
+
+def test_stale_answer_is_not_numbered(w: World) -> None:
+    sid = w.svc.start_session(w.alice, [BASIC])
+    w.submit(sid, INCORRECT)
+    v = w.view(sid)
+    w.pool.during = lambda: w.svc.skip(w.alice, sid, *_at(v))
+    with pytest.raises(StaleItem):
+        w.submit(sid, CORRECT)
+    assert _attempts(w) == [
+        (VerdictStatus.INCORRECT, True, 1, True),
+        (VerdictStatus.CORRECT, False, None, False),
+    ]

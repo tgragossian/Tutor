@@ -2,7 +2,7 @@ import sqlite3
 
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, select, text
 
 from mathtutor.store.db import (
     downgrade,
@@ -11,7 +11,7 @@ from mathtutor.store.db import (
     upgrade,
     write_transaction,
 )
-from mathtutor.store.models import Base
+from mathtutor.store.models import Answer, Base
 
 TABLES = {
     "users",
@@ -252,9 +252,10 @@ def _populate_0005(path: str) -> None:
                 'x^2', '2026-10-01 00:02:00.000000', 1, 1, '2026-10-01 00:02:30.000000'),
             (3, 's3', 1, 'choice', '{"mathjson": null, "choice_id": "b"}',
                 NULL, '2026-10-01 00:03:00.000000', 1, 0, NULL),
-            (4, 's4', 2, 'expression', '{"mathjson": 3, "choice_id": null}',
+            (4, 's4', 2, 'expression', '{"mathjson": 100000000000000000001, "choice_id": null}',
                 '3', '2026-10-01 00:04:00.000000', 0, 0, NULL),
-            (5, 's5', 2, 'expression', '{"mathjson": 4, "choice_id": null}',
+            (5, 's5', 2, 'expression',
+                '{"mathjson": ["Multiply", {"num": "0.1"}, "x"], ' || '"choice_id": null}',
                 '4', '2026-10-01 00:05:00.000000', NULL, 0, NULL);
         INSERT INTO attempt_results (id, submission_pk, status, reason, method,
             verifier_version, worker_ms, queue_ms, seconds_on_item, counts_as_try, applied)
@@ -277,6 +278,9 @@ def _rows(path: str, sql: str) -> list[tuple[object, ...]]:
     finally:
         raw.close()
 
+
+BIG = "100000000000000000001"  # 10**20 + 1: past int64, so NUMERIC affinity would make it REAL
+DECIMAL = '["Multiply", {"num": "0.1"}, "x"]'
 
 _OLD_SUBMISSIONS = "SELECT * FROM submissions ORDER BY id"
 _OLD_RESULTS = (
@@ -308,8 +312,10 @@ def test_0006_copies_answers_with_attempt_numbers(db_url: str) -> None:
         + (12, 2, 120, 0, 1, None),
         (3, "s3", 1, 1, None, "choice", None, "b", None, t(3), 1, 0, None)
         + ("correct", "proven", "symbolic", *graded, 13, 3, 180, 0, 0, None),
-        (4, "s4", 1, 2, None, "expression", 3, None, "3", t(4), 0, 0, None) + (None,) * 9 + (None,),
-        (5, "s5", 1, 2, None, "expression", 4, None, "4", t(5), None, 0, None)
+        (4, "s4", 1, 2, None, "expression", BIG, None, "3", t(4), 0, 0, None)
+        + (None,) * 9
+        + (None,),
+        (5, "s5", 1, 2, None, "expression", DECIMAL, None, "4", t(5), None, 0, None)
         + (None,) * 9
         + (None,),
     ]
@@ -317,6 +323,10 @@ def test_0006_copies_answers_with_attempt_numbers(db_url: str) -> None:
     try:
         with engine.connect() as conn:
             assert conn.execute(text("PRAGMA foreign_key_check")).all() == []
+        with make_sessionmaker(engine)() as db:
+            copied = {a.id: a.mathjson for a in db.scalars(select(Answer))}
+        assert copied[4] == 10**20 + 1  # read back exactly through the ORM
+        assert copied[5] == ["Multiply", {"num": "0.1"}, "x"]
     finally:
         engine.dispose()
 

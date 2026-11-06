@@ -72,7 +72,7 @@ def upgrade() -> None:
         sa.Column("session_item_id", sa.Integer(), nullable=False),
         sa.Column("attempt_no", sa.Integer(), nullable=True),
         sa.Column("answer_kind", sa.String(length=32), nullable=False),
-        sa.Column("mathjson", sa.JSON(), nullable=True),
+        sa.Column("mathjson", sa.Text(), nullable=True),  # TEXT affinity keeps numbers exact
         sa.Column("choice_id", sa.String(length=64), nullable=True),
         sa.Column("latex", sa.Text(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
@@ -196,10 +196,7 @@ def downgrade() -> None:
     submissions: list[dict[str, Any]] = []
     results: list[dict[str, Any]] = []
     for row in answers:
-        # The JSON column has NUMERIC affinity: a bare number answer comes back as a number.
-        mathjson = row["mathjson"]
-        if isinstance(mathjson, str):
-            mathjson = loads_exact(mathjson)
+        mathjson = None if row["mathjson"] is None else loads_exact(row["mathjson"])
         submissions.append(
             {c: row[c] for c in ("id",) + _TYPED + _LEASE}
             | {
