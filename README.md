@@ -144,9 +144,25 @@ concept uses *Explain this*, which walks through how this kind of problem is don
 knows the direction but finds the problem hard climbs the ladder by trying. Students get five
 tries instead of three. [Design and plan](docs/superpowers/plans/2026-11-05-answers-table/README.md).
 
-1. **Fine-tuned open model:** LoRA on Qwen 9B for tutoring, served on RunPod, compared with the
-   Claude baseline on the same harness, a separate untouched test set and TutorBench. Aim to
-   reduce serving cost while maintaining or improving help quality.
+1. **Fine-tuning experiment: LoRA vs QLoRA on open models.** I plan to compare LoRA and QLoRA
+   fine-tuning on open Qwen models at roughly 9B and 27B parameters, benchmarked with
+   TutorBench's human-written rubrics. The aim is cheaper tutoring help that matches or beats
+   the Claude baseline.
+   - **Comparison:** each size trained both ways (LoRA, and QLoRA on a 4-bit base), then
+     compared on help quality, answer leaks, cost per hint, GPU memory and latency. The 9B
+     comparison comes first; 27B follows if 9B falls short.
+   - **Benchmarks:** TutorBench Calculus (258 expert tasks with per-task rubrics), this
+     project's evaluation harness and a new untouched test set (the C1 holdout has already
+     been used once).
+   - **Shipping rule, set before training:** a fine-tuned model replaces Claude only with zero
+     observed leaks and usefulness within a predeclared margin of the Claude baseline, at a
+     lower cost per hint. Otherwise I report the result and keep Claude.
+   - **Data:** training uses TutorBench's non-calculus tasks (several generated responses per
+     task, scored against its rubrics) and Eedi tutoring dialogues. Evaluation data is never
+     trained on, and the weights are not published
+     ([decision 0005](docs/decisions/0005-tutoring-datasets-and-fine-tuning.md)).
+   - **Infrastructure:** training on AWS GPUs (SageMaker training jobs or EC2 spot), serving
+     off this host on a serverless GPU.
 2. **Retrieval and guard:** pin a worked example for "how do I…" questions (most current
    misses), and stop the guard blocking general formulas such as f(x)g(x).
 3. **Pre-written explanations:** generate the 18 *Explain this* answers once, review them by
@@ -188,4 +204,5 @@ Engineering detail lives in [`docs/`](docs/README.md): [decisions](docs/decision
 [code reviews](docs/reviews/README.md) and the [handoff](handoff.md) with current status.
 
 Textbook content: *Calculus Volume 1* by Gilbert Strang and Edwin "Jed" Herman, OpenStax,
-CC BY-NC-SA 4.0.
+CC BY-NC-SA 4.0. Planned benchmark and training data: TutorBench (Scale AI; Srinivasa et al.,
+2025; paper CC BY-NC-ND 4.0) and Eedi Question-Anchored Tutoring Dialogues (CC BY-NC-SA 4.0).
