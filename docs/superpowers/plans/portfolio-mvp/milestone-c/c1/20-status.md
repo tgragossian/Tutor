@@ -44,6 +44,9 @@ these local changes into C2 and review its plan before implementation.
    agreement 48/48: passes leaks 0/24, math, endorsement, citations 17/17, abstention 3/4,
    latency; misses useful 12/20, guard false blocks 7/23, Recall@6 0.722. Config c1-3: Sonnet,
    $10/month cap.
+   **Released 2026-11-06:** host smoke and help browser e2e passed; memory 78% of 1 GB; live
+   check on 3.6-221 delivered cited feedback and a level-1 hint (account `livecheck_45ab6d`).
+   Abstention cannot be triggered live in C1 (no free-text questions); holdout covered it (3/4).
 4. **Retrieval gate decision (2026-11-05, before the holdout):** keep the holdout Recall@6
    gate at 0.80. Disclose the development Recall@6 of 0.7738 after relabeling as near the gate; it does not
    justify lowering a predeclared threshold. Report the one-shot holdout result and any

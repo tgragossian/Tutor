@@ -1,15 +1,15 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-11-05: dev runs done and audited; R39 ships Sonnet as a beta; holdout next.
-Host deployment remains Thomas's reported `main` 8057590, migration 0003. No new host probe.
-Branch `milestone-c1` holds C1 tasks 1-15 plus fixes; rechecked `b16a206`. Nothing merged or deployed.
+Owner: Thomas Gragossian. Updated: 2026-11-06: C1 released (beta, Sonnet 5.5).
+Host runs `main` `8b35584`, migration 0005, help on; pre-C1 DB backup in `/srv/backups/` on the host.
+`milestone-c1` is merged into `main` (`8b35584`).
 
 **Milestone B is closed.** Thomas removed actual hours as a gate on 2026-10-26.
 
-**C1 (Claude-written, textbook-grounded help) is implemented but not released.**
+**C1 (Claude-written, textbook-grounded help) is released as a beta (R39), live 2026-11-06.**
 [C1 status](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/20-status.md) owns the owner
-checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands. Rulings R1-R36
-(R35 hint ladder per mistake type with a two-step level 0; R36 prompt fingerprint) are in [C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulings.md).
+checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands. Rulings R1-R39
+(R35 hint ladder; R37 level 0 asks then names; R38 output cap; R39 Sonnet beta) are in [C1 rulings](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/21-rulings.md).
 
 ## Resume here
 
@@ -23,8 +23,8 @@ checklist and gate table; [runbook C1](docs/ops/runbook-c1.md) has the commands.
    how-to labeling rule; gate kept at 0.80 (dev Recall@6 now 0.7738). Step 2 approved (R37).
    [Step 2 brief](docs/reviews/2026-11-05-c1-label-review/02-step2-brief.md) reviewed by Codex.
    R38 output cap (`3bb2b9c`); run 2 audited; R39 Sonnet beta and rubric v2 (C1 rulings).
-   Owner steps left: one-shot holdout; container smoke
-   and mixed-load; deploy; live check. Then commit `docs: C1 released`. Target: within a day.
+   Released 2026-11-06 (holdout, host checks, live check: C1 status). Next: outsider README with
+   the measured numbers, then the post-release tuning list and C2.
    Holdout cap formula and the 0.576 draft-holdout disclosure: C1 status page and runbook C1.
    [Codex findings](docs/reviews/2026-11-05-c1-label-review/01-findings.md) R2 (exact how-to rule;
    rq-dev-24 → 4.1-ex1, rq-hold-08 + 4.8-ex1) and R5 (settings test clears the key) are applied.
