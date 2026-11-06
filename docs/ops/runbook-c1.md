@@ -89,3 +89,12 @@ the [runbook](runbook.md). Check `/readyz`, update [host](host.md) with the new 
 6. Gate check, [deploy](runbook.md), set the key, `/readyz`; on the live site one cited hint
    on a wrong derivative and one abstention on an out-of-book question.
 7. Commit `docs: C1 released` after the live check.
+
+## Deploy the answers table (migrations 0006, 0007)
+
+Order matters; the migrations rewrite `submissions` and `attempt_results` into `answers`.
+1. Back up the DB to `/srv/backups/`; `git pull --ff-only`; build the image.
+2. Run `migrate`; it must exit 0. Do not start `app` otherwise.
+3. Start `app` and check `/readyz`.
+4. Submit one wrong answer; its `answers` row has `attempt_no` 1 and, within a minute, a
+   `mistake_type`.
