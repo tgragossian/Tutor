@@ -154,9 +154,14 @@ def _attempts(case: HelpCase, problem: Problem) -> tuple[list[AttemptLine], str 
     answer = problem.answer
     if isinstance(answer, ChoiceAnswer):
         latex = {c.id: c.latex for c in answer.choices}
-        lines = [AttemptLine(latex[a], VerdictStatus.INCORRECT) for a in case.attempts]
+        lines = [
+            AttemptLine(latex[a], VerdictStatus.INCORRECT, n)
+            for n, a in enumerate(case.attempts, 1)
+        ]
         return lines, case.attempts[-1] if case.attempts else None
-    return [AttemptLine(a, VerdictStatus.INCORRECT) for a in case.attempts], None
+    return [
+        AttemptLine(a, VerdictStatus.INCORRECT, n) for n, a in enumerate(case.attempts, 1)
+    ], None
 
 
 def hint_levels(case: HelpCase) -> dict[str, int] | None:

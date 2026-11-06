@@ -46,6 +46,7 @@ _CONFUSION_ID = re.compile(r"^[a-z_]{3,40}$")
 class AttemptLine:
     latex: str
     status: VerdictStatus
+    attempt_no: int
 
 
 @dataclass(frozen=True)
@@ -90,13 +91,14 @@ def assemble_context(
     hint_level: int,
     misconception_note: str | None,
 ) -> HelpContext:
-    """``attempts`` are oldest first, as submitted; the context lists the newest three first.
+    """``attempts`` are oldest first; the context keeps the newest three in the same order,
+    so the latest is ``attempts[-1]``.
 
     ``tries_used`` here is an approximation (the count of incorrect attempts given) for callers
     without an item; ``build_context`` replaces it with the item's own counter.
     """
     answer = problem.answer
-    recent = [AttemptLine(_clip(a.latex), a.status) for a in reversed(attempts[-MAX_ATTEMPTS:])]
+    recent = [AttemptLine(_clip(a.latex), a.status, a.attempt_no) for a in attempts[-MAX_ATTEMPTS:]]
     return HelpContext(
         problem_id=problem.id,
         topic=problem.topic,
@@ -186,7 +188,8 @@ def build_context(
         last_choice = row.choice_id
         latex = choices.get(last_choice or "", "") if choices else (row.latex or "")
         assert row.status is not None  # applied answers are graded
-        attempts.append(AttemptLine(latex, row.status))
+        assert row.attempt_no is not None  # applied answers are numbered
+        attempts.append(AttemptLine(latex, row.status, row.attempt_no))
     latest = attempts[-1] if attempts else None
     note = match_misconception(problem, latest, last_choice, pool)
     context = assemble_context(problem, attempts, hint_level, note)

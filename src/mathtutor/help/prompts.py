@@ -132,15 +132,14 @@ def _context_block(ctx: HelpContext, caps: dict[str, int]) -> str:
     if ctx.attempts:
         # Oldest to newest, with the latest named outright: a numbered newest-first list was
         # read as chronological, so help described an earlier attempt (R40, Thomas live test).
-        shown = list(reversed(ctx.attempts))  # ctx.attempts is newest first
         lines.append(
             f"<attempts> The student's recent attempts, oldest to newest "
             f"(tries used so far: {ctx.tries_used}). Help with the LATEST attempt; "
             f"earlier attempts are context only:"
         )
-        for i, a in enumerate(shown, 1):
+        for i, a in enumerate(ctx.attempts, 1):
             latex = _data(a.latex, caps["attempt_latex"])
-            tag = "LATEST attempt" if i == len(shown) else f"Earlier attempt {i}"
+            tag = "LATEST attempt" if i == len(ctx.attempts) else f"Earlier attempt {i}"
             lines.append(f"{tag}: <student_text>{latex}</student_text> checked: {a.status.value}")
         lines.append("</attempts>")
     else:
