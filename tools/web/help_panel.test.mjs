@@ -71,6 +71,11 @@ function page({ help = HELP } = {}) {
   const context = vm.createContext({
     MathfieldElement: class {},
     ComputeEngine: class {},
+    DOMParser: class {
+      parseFromString(html) {
+        return { body: { textContent: html.replace(/<[^>]*>/g, '').replaceAll('&#x27;', "'") } };
+      }
+    },
     document: {
       getElementById: element,
       querySelector: element,
@@ -293,6 +298,19 @@ test('a repeat hint shows the fixed try-again message without sources', async ()
   assert.equal(p.el('help-sources').textContent, '');
   assert.equal(p.el('help-panel').hidden, false);
   assert.equal(p.el('help-hint').disabled, false);
+});
+
+test('a repeat hint keeps the visible hint and shows the reminder beneath it', async () => {
+  const p = page();
+  p.reply(reply(), reply({
+    status: 'try_again', help_seq: 2, hint_level: null,
+    html: '<p>Try again with it in mind.</p>', sources: [],
+  }));
+  await p.run("askHelp('hint')");
+  await p.run("askHelp('hint')");
+  assert.equal(p.el('help-body').innerHTML, '<p>Name the outer function.</p>');
+  assert.equal(p.el('help-sources').find('a').length, 1);
+  assert.equal(p.el('help-message').textContent, 'Try again with it in mind.');
 });
 
 test('explain sends the chosen confusion; hint sends none', async () => {

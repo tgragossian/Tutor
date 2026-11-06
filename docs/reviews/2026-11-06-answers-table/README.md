@@ -4,15 +4,14 @@
 [Design D1–D12](../../superpowers/plans/2026-11-05-answers-table/00-design.md) ·
 [Handoff](../../../handoff.md)
 
-Scope: branch `answers-table` from merge-base `3c3d939` to its head. Worktree:
-`.claude/worktrees/answers-table`. **Not merged to `main`, not deployed.** Thomas merges only
-after this review. Record findings in `03-findings.md` beside this file as `A1`, `A2`, ...
-with a disposition.
+Scope: branch `answers-table` from merge-base `3c3d939` to its release. Worktree:
+`.claude/worktrees/answers-table`. Release state and remaining gates are in
+`03-findings.md`; Thomas tests the live browser after deployment.
 
 Built by Claude subagents, one task at a time; each task was reviewed for spec compliance and
 quality, then a final whole-branch review. Controller rulings: [01-rulings.md](01-rulings.md).
 Decisions still owed by Thomas: [02-open-decisions.md](02-open-decisions.md).
-Codex review: [03-findings.md](03-findings.md).
+Codex review and release dispositions: [03-findings.md](03-findings.md).
 
 ## What changed
 

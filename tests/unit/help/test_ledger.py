@@ -199,6 +199,27 @@ def test_hourly_and_daily_limits(
     _admit(ledger, sessions, user_id)
 
 
+def test_classifier_has_separate_daily_per_user_limit(
+    sessions: sessionmaker[Session], clock: FakeClock
+) -> None:
+    cfg = CFG.model_copy(
+        update={"classifier": CFG.classifier.model_copy(update={"per_user_day": 2})}
+    )
+    ledger = Ledger(sessions, cfg, clock)
+    for _ in range(2):
+        with write_transaction(sessions) as db:
+            ledger.admit(db, 1, _rid(), HAIKU, kind="classify")
+    with write_transaction(sessions) as db, pytest.raises(HelpLimited) as exc:
+        ledger.admit(db, 1, _rid(), HAIKU, kind="classify")
+    assert exc.value.reason == "classify_day"
+    with write_transaction(sessions) as db:
+        ledger.admit(db, 2, _rid(), HAIKU, kind="classify")
+        ledger.admit(db, 1, _rid(), HAIKU, kind="help")
+    clock.advance(days=1, seconds=1)
+    with write_transaction(sessions) as db:
+        ledger.admit(db, 1, _rid(), HAIKU, kind="classify")
+
+
 def test_later_calls_do_not_count_toward_rate(
     ledger: Ledger, sessions: sessionmaker[Session]
 ) -> None:

@@ -715,6 +715,27 @@ def test_repeat_hint_same_attempt_returns_fixed_message(kit: Kit) -> None:
     assert state is not None and (state.help_seq, state.in_flight) == (2, None)
 
 
+def test_clear_history_unlocks_hint_on_same_wrong_answer(kit: Kit) -> None:
+    kit.submit_wrong()
+    kit.generator.script = [output(), output()]
+    assert kit.help().status is HelpStatus.DELIVERED
+    assert kit.help().status is HelpStatus.TRY_AGAIN
+    kit.practice.clear_history(kit.user)
+    assert kit.help().status is HelpStatus.DELIVERED
+    assert len(kit.generator.requests) == 2
+
+
+def test_repeat_hint_after_exhaustion_points_to_available_actions(kit: Kit) -> None:
+    for _ in range(MAX_TRIES):
+        kit.submit_wrong()
+    kit.generator.script = [output()]
+    assert kit.help().status is HelpStatus.DELIVERED
+    again = kit.help()
+    assert again.status is HelpStatus.TRY_AGAIN
+    assert again.html == render_help_html(messages.TRY_EXHAUSTED)
+    assert len(kit.generator.requests) == 1
+
+
 def test_classifying_hint_labels_answer(kit: Kit) -> None:
     kit.submit_wrong()
     kit.generator.script = [_typed("wrong_rule")]

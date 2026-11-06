@@ -13,6 +13,10 @@ TRY_AGAIN = (
     "You've already had a hint for this answer. Try again with it in mind, and I can help with "
     "what you change. If the method is unclear, use Explain this."
 )
+TRY_EXHAUSTED = "You've used all your tries. Use Show answer or Explain this."
+TRY_UNVERIFIED = (
+    "I couldn't verify your last answer. Try entering it another way, or use Explain this."
+)
 
 # Error messages for rejected help requests (the web layer shows them as-is).
 ID_REUSED = "This help request ID was already used for a different request."

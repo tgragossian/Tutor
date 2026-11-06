@@ -17,7 +17,11 @@ pytest run was started and stopped during its slow early portion; no failure had
 | A5 | P2 provenance | Classifier prompt changes affect stored `mistake_type`, but the label stores no classifier prompt/model fingerprint. The hint `prompt_id` includes the classifier template even when no classifier was used. This limits later label audits and conflates hint prompt versions. | Store classifier provenance with the classification result, or document the label as an unaudited heuristic; split prompt fingerprints by call type. |
 | A6 | P2 release gate | Structured output from Haiku 5.5 with `effort=low` and the image/browser path have only fake-provider/local coverage. The deploy runbook asks for container smoke but no result is recorded. | One capped real classifier call and container smoke before the host deploy; record the result here. |
 
-The monthly ledger prevents budget overspend, but classifier calls bypass per-user limits:
-one account can consume the shared help budget. This is owner decision 5 in [02](02-open-decisions.md).
-The disclosure wording and deploy timing remain owner decisions 4 and 6. These findings
-do not claim the existing C1 evaluation applies to the new five-try ladder.
+Release fixes address A3, A4, and the classifier cap in [02](02-open-decisions.md).
+A2 remains a known accuracy limit: the ladder counts labeled mistakes, so a dropped or
+failed classifier call can leave a level lower than the student's wrong-answer count.
+A5 remains an audit limit: a stored label is an unaudited heuristic; its exact classifier
+prompt is not recorded with the label. Neither limit is claimed as a measured outcome.
+A1 and A6 require the live backup rehearsal and provider/container checks before deploy.
+Thomas checks the disclosure and student flow in the live browser. The existing C1
+evaluation does not apply to the new five-try ladder.

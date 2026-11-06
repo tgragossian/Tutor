@@ -60,6 +60,7 @@ class ClassifierParams(_Frozen):
     max_output_tokens: int = Field(ge=1)
     timeout_s: float = Field(gt=0)
     queue_max: int = Field(ge=1)  # answers waiting for the one worker; more are dropped
+    per_user_day: int = Field(default=100, ge=1)  # protect the shared monthly help budget
 
 
 class HelpConfig(_Frozen):

@@ -68,10 +68,12 @@ flowchart LR
 
 The help ladder is set by the server, not the model: before any wrong answer the tutor asks a
 question about the problem's form; after one, a fast model labels the mistake (algebra slip,
-wrong rule, rule misapplied, incomplete), and each repeat of the same type makes the next hint
-more direct.
+wrong rule, rule misapplied, incomplete), and each labeled repeat of the same type makes the
+next hint more direct. A failed or dropped classification can leave a wrong answer unlabeled
+until a hint classifies it.
 
-This is implemented on `answers-table` but not merged or live. Each answer is one database
+The answers-table refactor is prepared for release; deployment status is in the
+[answers-table review](docs/reviews/2026-11-06-answers-table/README.md). Each answer is one database
 row with its owner, attempt number, verdict and mistake type. A fast model labels wrong
 answers in the background. The tutor gives one hint per attempt: one to get started, then
 one for each wrong answer. Extra clicks get a short prompt to try again, so the ladder
@@ -171,7 +173,7 @@ One prompt fix found by testing the live site shipped after the holdout, so the 
 describe the earlier prompt.
 
 These results were measured with three tries and a ladder that climbed per hint given; the
-current code allows five tries and climbs per mistake made.
+current code allows five tries and climbs per labeled mistake made.
 
 ## What's next
 

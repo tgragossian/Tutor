@@ -72,7 +72,6 @@ from mathtutor.help.render import render_help_html
 from mathtutor.jsonio import loads_exact
 from mathtutor.store.answers import (
     latest_applied,
-    latest_wrong,
     mistake_counts,
     set_mistake_type,
 )
@@ -268,7 +267,6 @@ class HelpService:
     def availability(self, item_view: ItemView, user_id: int) -> HelpAvailability:
         with self._sessions() as db:
             item = self._owned_item(db, user_id, item_view.session_item_id)
-            state = db.get(ItemHelpState, item.id)
             problem = self._problem(item)
             confusions = list(self._confusions.get(problem.topic, []))
             types: list[HelpType] = []
@@ -279,7 +277,11 @@ class HelpService:
                 if confusions:
                     types.append("explain")
             # When the next hint classifies the mistake, this is the highest level it may use.
-            level = self._plan(db, item, state, latest_wrong(db, item.id)).level
+            latest = latest_applied(db, item.id)
+            wrong = (
+                latest if latest is not None and latest.status is VerdictStatus.INCORRECT else None
+            )
+            level = self._plan(db, item, wrong).level
         return HelpAvailability(self._enabled, types, confusions, level)
 
     # -- the request -------------------------------------------------------------------------
@@ -396,9 +398,10 @@ class HelpService:
                 state.in_flight, HelpStatus.PENDING, item.id, item.revision, state.help_seq,
                 None, None, [],
             )  # fmt: skip
-        wrong = latest_wrong(db, item.id)
+        latest = latest_applied(db, item.id)
+        wrong = latest if latest is not None and latest.status is VerdictStatus.INCORRECT else None
         answer_id = wrong.id if wrong is not None else None
-        plan = self._plan(db, item, state, wrong) if req.help_type == "hint" else None
+        plan = self._plan(db, item, wrong) if req.help_type == "hint" else None
         if plan is not None and plan.try_again:  # D6a: no slot, ledger or model call needed
             return self._try_again(db, rid, req, item, user, state, payload, answer_id)
         if self._user_in_flight(db, user_id) >= self._cfg.admission.user_in_flight:
@@ -438,6 +441,11 @@ class HelpService:
         )
         row.finished_at = row.created_at
         row.latency_ms = 0
+        latest = latest_applied(db, item.id)
+        if item.state is ItemState.EXHAUSTED:
+            row.reason = "exhausted"
+        elif latest is not None and latest.status is VerdictStatus.UNABLE_TO_VERIFY:
+            row.reason = "unverified"
         db.add(row)
         db.flush()
         logger.info("help finished status=try_again reason=repeat_hint calls=0")
@@ -716,14 +724,23 @@ class HelpService:
     def _plan(
         db: Session,
         item: SessionItem,
-        state: ItemHelpState | None,
         wrong: Answer | None,
     ) -> HintPlan:
         """The next hint's plan from the item's answers (D6); ``wrong`` is the latest applied
         wrong answer. ``hinted``: a delivered hint row already names it (D6a)."""
-        start_hints = state.start_hints if state is not None else 0
         if wrong is None:
-            return _hint_plan(start_hints, None, {})
+            visible_start_hint = db.scalar(
+                select(HelpRequestRow.id)
+                .where(
+                    HelpRequestRow.session_item_id == item.id,
+                    HelpRequestRow.help_type == "hint",
+                    HelpRequestRow.status == HelpStatus.DELIVERED.value,
+                    HelpRequestRow.answer_id.is_(None),
+                    HelpRequestRow.cleared_at.is_(None),
+                )
+                .limit(1)
+            )
+            return _hint_plan(int(visible_start_hint is not None), None, {})
         hinted = db.scalar(
             select(HelpRequestRow.id)
             .where(
@@ -731,10 +748,11 @@ class HelpService:
                 HelpRequestRow.help_type == "hint",
                 HelpRequestRow.status == HelpStatus.DELIVERED.value,
                 HelpRequestRow.answer_id == wrong.id,
+                HelpRequestRow.cleared_at.is_(None),
             )
             .limit(1)
         )
-        return _hint_plan(start_hints, wrong, mistake_counts(db, item.id), hinted is not None)
+        return _hint_plan(0, wrong, mistake_counts(db, item.id), hinted is not None)
 
     @staticmethod
     def _owned_item(db: Session, user_id: int, session_item_id: int) -> SessionItem:
@@ -781,9 +799,15 @@ class HelpService:
         if status in _TEXT_STATUSES and text is not None:
             html: str | None = render_help_html(text)
         elif status is HelpStatus.TRY_AGAIN:  # R2: no answer yet, or a hint on this answer
-            html = render_help_html(
-                messages.TRY_FIRST if row.answer_id is None else messages.TRY_AGAIN
-            )
+            if row.reason == "exhausted":
+                message = messages.TRY_EXHAUSTED
+            elif row.reason == "unverified":
+                message = messages.TRY_UNVERIFIED
+            elif row.answer_id is None:
+                message = messages.TRY_FIRST
+            else:
+                message = messages.TRY_AGAIN
+            html = render_help_html(message)
         elif status in _FIXED:
             html = render_help_html(_FIXED[status])
         else:

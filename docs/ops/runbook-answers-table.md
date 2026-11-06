@@ -17,8 +17,9 @@ Resolve the [Codex findings](../reviews/2026-11-06-answers-table/03-findings.md)
    ```
 2. Rehearse the migration on a copy of the latest live backup, never the live volume. The
    repo has no backup or restore command, so in words: copy the newest file in
-   `/srv/backups/` to `mathtutor.db` in an empty directory and make that directory owned by
-   uid 10001 (the image's user, see `smoke.sh`). Then run the image's own migrate command,
+   `/srv/backups/` to both `before.db` and `mathtutor.db` in an empty directory and make
+   `mathtutor.db` writable by uid 10001 (the image's user, see `smoke.sh`). Then run the
+   image's own migrate command,
    as `smoke.sh` and the `migrate` service in `deploy/compose.yaml` do, against that
    directory, and check it exits 0:
    ```bash
@@ -26,9 +27,13 @@ Resolve the [Codex findings](../reviews/2026-11-06-answers-table/03-findings.md)
    sudo docker run --rm -e MATHTUTOR_SECRET_KEY=temporary-rehearsal-key \
      -v "$COPY_DIR:/data" mathtutor:local alembic upgrade head; echo $?
    ```
-   Before and after, record row counts: `answers` must match old `submissions`, and graded
-   answers must match old `attempt_results`. Check consecutive applied `attempt_no` values
-   per item, the carried mistake labels, and empty `PRAGMA foreign_key_check` output.
+   Run the read-only audit against the untouched and upgraded copies:
+   ```bash
+   sudo python3 tools/audit_answers_migration.py \
+     "$COPY_DIR/before.db" "$COPY_DIR/mathtutor.db"
+   ```
+   It checks answer IDs and contents, graded counts, consecutive applied `attempt_no` values
+   per item, carried labels, and `PRAGMA foreign_key_check`. Record its PASS line.
    Test downgrade on a second copy, retaining the first as migration evidence. If any check
    fails, stop: do not touch the live volume.
 
