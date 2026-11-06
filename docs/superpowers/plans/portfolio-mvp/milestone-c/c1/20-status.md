@@ -64,16 +64,16 @@ these local changes into C2 and review its plan before implementation.
 9. Then update `handoff.md` and the open register (C-O3 result, C-O5 done, C-P1/C-P2 closed)
    and commit `docs: C1 released`.
 
-## Gate evidence (fill in at release)
+## Gate evidence (at release, 2026-11-06)
 
 | Gate | Link or result |
 |---|---|
 | Code review fixes | all nine closed locally; see debugging fixes and validation |
-| CI green | pending |
-| Verifier and `content_check` unchanged | pending |
-| Holdout gates | pending (dev Recall@6 0.7738 after relabeling) |
-| Container mixed-load and memory | pending (preliminary only) |
-| Demo | pending |
+| CI green | GitHub CI passed on the merge `8b35584` and on `3556970` (Python, Node) |
+| Verifier and `content_check` unchanged | gate B ok on generated and dev sets; 22 problems ok (merge CI) |
+| Holdout gates | `20261106-005314-holdout`: passes leaks, math, endorsement, citations, abstention, latency; misses useful 12/20, guard false blocks 7/23, Recall@6 0.722 (R39 beta) |
+| Container mixed-load and memory | [host sizing C1](../../../../../ops/host-sizing-c1.md): memory 78%; mixed burst CPU-bound (disclosed) |
+| Demo | live check on 3.6-221 (cited feedback and level-1 hint); GIF for the README pending |
 | Provider disclosure wording approved | approved by Thomas 2026-11-05 |
 
 Post-release dev run 3 `20261106-024324-dev` (R40 prompt, judge rubric v2, Sonnet, $0.90, not
