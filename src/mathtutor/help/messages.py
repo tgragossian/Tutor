@@ -4,6 +4,19 @@ UNAVAILABLE = "Help is unavailable right now."
 LIMITED = "You've reached the help limit for now."
 ABSTAIN = "I can't answer that from the textbook."
 NUDGE = "Here's a nudge without the answer: re-read {section}."
+# Spec D6a: one hint per attempt; a repeat Hint click gets one of these, with no model call.
+TRY_FIRST = (
+    "You've already had a hint for getting started. Try an answer, even a partial one, and I "
+    "can help with what you wrote. If a step is unclear, use Explain this."
+)
+TRY_AGAIN = (
+    "You've already had a hint for this answer. Try again with it in mind, and I can help with "
+    "what you change. If the method is unclear, use Explain this."
+)
+TRY_EXHAUSTED = "You've used all your tries. Use Show answer or Explain this."
+TRY_UNVERIFIED = (
+    "I couldn't verify your last answer. Try entering it another way, or use Explain this."
+)
 
 # Error messages for rejected help requests (the web layer shows them as-is).
 ID_REUSED = "This help request ID was already used for a different request."

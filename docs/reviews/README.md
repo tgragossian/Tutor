@@ -1,5 +1,9 @@
 # Design and code reviews
 
+- [2026-11-06 cleanup review](2026-11-06-repo-cleanup/README.md): narrow deletion and retention decisions
+- [2026-11-06 baseline ladder review](2026-11-06-baseline-ladder/README.md): design changes before paid runs
+- [2026-11-06 answers table review](2026-11-06-answers-table/README.md): Codex brief for the one-row-per-attempt branch, rulings and owner decisions
+
 - [2026-11-06 C1 release review](2026-11-06-c1-release/README.md): Codex brief for R38-R40, the holdout, merge, host checks and live fixes
 
 - [2026-11-05 C1 owner label review](2026-11-05-c1-label-review/README.md): Codex brief for the reviewed eval sets, how-to rule and gate decision

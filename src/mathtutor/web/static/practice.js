@@ -215,6 +215,7 @@ const HELP_IDS = ['help-hint', 'help-feedback', 'help-explain', 'help-explain-go
 let helpBusy = false;
 let helpGen = 0; // bumped whenever the panel is cleared: older replies are dropped
 let helpShownSeq = 0; // the newest help_seq shown for this item
+let visibleHelpType = null;
 // Requests sent without a definitive answer (lost response, unreadable body, a 5xx, still
 // pending), by item/revision/type/confusion: a retry resends the same body and request id, so
 // the server replays a result it may already have generated instead of paying for and
@@ -277,6 +278,7 @@ function openExplain() {
 function clearHelp() {
   helpGen += 1; // an in-flight reply for the old view is now dropped
   helpShownSeq = 0;
+  visibleHelpType = null;
   helpUnresolved.clear();
   helpBusy = false;
   setHelpDisabled(false);
@@ -288,6 +290,7 @@ function clearHelp() {
 }
 
 function showHelpMessage(text) {
+  visibleHelpType = null;
   $('help-body').innerHTML = '';
   $('help-sources').textContent = '';
   $('help-message').textContent = text;
@@ -312,8 +315,13 @@ function renderHelpSources(sources) {
   }
 }
 
-function showHelp(data) {
+function showHelp(data, type) {
   if (data.help_seq > 0) helpShownSeq = data.help_seq;
+  if (data.status === 'try_again' && visibleHelpType === 'hint' && $('help-body').innerHTML) {
+    $('help-message').textContent = data.html ? new DOMParser().parseFromString(data.html, 'text/html').body.textContent : '';
+    return;
+  }
+  visibleHelpType = type;
   $('help-message').textContent = '';
   $('help-body').innerHTML = data.html || ''; // the server renders and sanitizes it
   renderHelpSources(data.status === 'delivered' || data.status === 'fallback' ? data.sources : []);
@@ -373,7 +381,7 @@ async function askHelp(type) {
       if (response.ok && data?.status === 'stale') {
         await load();
       } else if (response.ok) {
-        if (helpIsCurrent(data)) showHelp(data);
+        if (helpIsCurrent(data)) showHelp(data, type);
       } else if (data?.error === 'stale_item' || response.status === 409) {
         await load();
       } else if (data?.error === 'help_limited') {

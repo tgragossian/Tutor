@@ -11,6 +11,7 @@ from support.webapp import CORRECT, INCORRECT, REAL_PATH, SpyPool, login, make_c
 
 from mathtutor.content.loader import load_bundle
 from mathtutor.content.schema import ChoiceAnswer
+from mathtutor.domain import MAX_TRIES
 from mathtutor.web.security import RateLimiter
 
 CONTENT = load_bundle(REAL_PATH)
@@ -93,8 +94,8 @@ def test_no_private_fields_anywhere(tmp_path: Path) -> None:
                         "latex": "2x",
                     }
                 )
-                pool.script = [INCORRECT] * 3
-                for _ in range(3):
+                pool.script = [INCORRECT] * MAX_TRIES
+                for _ in range(MAX_TRIES):
                     r = c.post(
                         f"/api/sessions/{sid}/submit",
                         json={

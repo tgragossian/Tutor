@@ -73,4 +73,4 @@ Accepted direction is consolidated in the [AI handoff](06-ai-decisions-handoff.m
 Decision [0005](../../../decisions/0005-tutoring-datasets-and-fine-tuning.md) links compute/serving
 and sizing/cost children. Keep decisions there; current implementation status belongs in the plan.
 Use the [B status](milestone-b/03-execution-status.md) for completed work; do not restart B tasks.
-The original 20 tasks remain linked [here](../2026-10-13-core-practice-loop.md) for reuse.
+The superseded original 20 tasks are recoverable from [history](../../../history.md).

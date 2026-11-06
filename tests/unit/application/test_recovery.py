@@ -17,8 +17,8 @@ from sqlalchemy import select
 from unit.application.test_practice import ANSWER, BASIC, CORRECT, INCORRECT, World
 
 from mathtutor.application.errors import Busy, StaleItem, SubmissionPending
-from mathtutor.domain import AnswerKind, FormatIssueCode, ItemState
-from mathtutor.store.models import AttemptResult, Submission
+from mathtutor.domain import MAX_TRIES, AnswerKind, FormatIssueCode, ItemState, VerdictStatus
+from mathtutor.store.models import Answer
 from mathtutor.verify.types import FormatIssue, VerifierBusy
 
 
@@ -37,12 +37,13 @@ def _orphan(w: World, sid: int, revision: int | None) -> uuid.UUID:
     key = uuid.uuid4()
     with w.sessions.begin() as db:
         db.add(
-            Submission(
+            Answer(
                 submission_id=str(key),
+                user_id=w.alice,
                 session_item_id=v.session_item_id,
                 answer_kind=AnswerKind.EXPRESSION,
-                answer_json='{"mathjson": ["Multiply", 2, "x"], "choice_id": null}',
-                answer_latex="2x",
+                mathjson=["Multiply", 2, "x"],
+                latex="2x",
                 created_at=w.clock.now,
                 reserved_revision=revision,
             )
@@ -70,14 +71,10 @@ def test_busy_duplicate_does_not_delete_a_live_reservation(w: World) -> None:
     r = w.submit(alice_sid, CORRECT, sid=key)
     assert r.outcome == CORRECT
     with w.sessions() as db:
-        rows = db.execute(
-            select(Submission.submission_id, AttemptResult.status).join(
-                AttemptResult, AttemptResult.submission_pk == Submission.id
-            )
-        ).all()
-        assert [row[0] for row in rows] == [str(key)]
-        bob = db.scalar(select(Submission).where(Submission.submission_id == str(bob_key)))
-        assert bob is not None and bob.result is None
+        rows = db.scalars(select(Answer.submission_id).where(Answer.status.is_not(None))).all()
+        assert rows == [str(key)]
+        bob = db.scalar(select(Answer).where(Answer.submission_id == str(bob_key)))
+        assert bob is not None and bob.status is None
 
 
 def test_recovery_holds_a_lease_so_a_second_recovery_waits(w: World) -> None:
@@ -94,7 +91,7 @@ def test_recovery_holds_a_lease_so_a_second_recovery_waits(w: World) -> None:
     w.pool.script.append(CORRECT)
     r = w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER)
     assert r.outcome == CORRECT
-    assert w.count(AttemptResult) == 1 and len(w.pool.requests) == 1
+    assert w.graded() == 1 and len(w.pool.requests) == 1
 
 
 def test_busy_recovery_keeps_the_reservation_for_a_later_retry(w: World) -> None:
@@ -105,13 +102,13 @@ def test_busy_recovery_keeps_the_reservation_for_a_later_retry(w: World) -> None
     w.pool.script.append(VerifierBusy)
     with pytest.raises(Busy):
         w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER)
-    assert w.count(Submission) == 1
+    assert w.count(Answer) == 1
     with pytest.raises(SubmissionPending):  # the lease is fresh again
         w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER)
     w.clock.now += timedelta(seconds=11)
     w.pool.script.append(INCORRECT)
     assert w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER).outcome == INCORRECT
-    assert w.count(AttemptResult) == 1
+    assert w.graded() == 1
 
 
 def test_format_issue_on_recovery_removes_the_reservation(w: World) -> None:
@@ -122,7 +119,7 @@ def test_format_issue_on_recovery_removes_the_reservation(w: World) -> None:
     issue = FormatIssue(FormatIssueCode.INCOMPLETE, "")
     w.pool.script.append(issue)
     assert w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER).outcome == issue
-    assert w.count(Submission) == 0 and w.view(sid).tries_left == 3
+    assert w.count(Answer) == 0 and w.view(sid).tries_left == MAX_TRIES
 
 
 def test_original_owner_busy_after_recovery_claimed_does_not_delete(w: World) -> None:
@@ -140,7 +137,7 @@ def test_original_owner_busy_after_recovery_claimed_does_not_delete(w: World) ->
     w.pool.during = recovery_claims_and_finishes
     with pytest.raises(Busy):
         w.svc.submit_answer(w.alice, sid, key, v.session_item_id, 0, ANSWER)
-    assert w.count(Submission) == 1 and w.count(AttemptResult) == 1
+    assert w.count(Answer) == 1 and w.graded() == 1
 
 
 def test_orphan_keeps_its_original_revision(w: World) -> None:
@@ -151,12 +148,12 @@ def test_orphan_keeps_its_original_revision(w: World) -> None:
     w.svc._reserve(w.alice, sid, str(key), initial.session_item_id, 0, ANSWER)
     w.submit(sid, INCORRECT)  # another request wins revision 0
     current = w.view(sid)
-    assert (current.revision, current.tries_left) == (1, 2)
+    assert (current.revision, current.tries_left) == (1, MAX_TRIES - 1)
     w.clock.now += timedelta(seconds=11)
     w.pool.script.append(INCORRECT)
     with pytest.raises(StaleItem):
         w.svc.submit_answer(w.alice, sid, key, initial.session_item_id, current.revision, ANSWER)
-    assert w.view(sid).tries_left == 2
+    assert w.view(sid).tries_left == MAX_TRIES - 1
 
 
 def test_orphan_with_its_original_revision_still_recovers(w: World) -> None:
@@ -177,8 +174,8 @@ def test_pre_migration_orphan_without_a_revision_is_dropped_as_stale(w: World) -
     item = w.view(sid).session_item_id
     with pytest.raises(StaleItem):
         w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER)
-    assert w.count(Submission) == 0 and w.pool.requests == []
-    assert w.view(sid).tries_left == 3
+    assert w.count(Answer) == 0 and w.pool.requests == []
+    assert w.view(sid).tries_left == MAX_TRIES
 
 
 def test_seconds_on_item_ends_at_submission(w: World) -> None:
@@ -191,9 +188,7 @@ def test_seconds_on_item_ends_at_submission(w: World) -> None:
 
     w.pool.during = grading_delay
     w.submit(sid, INCORRECT)
-    with w.sessions() as db:
-        result = db.scalar(select(AttemptResult))
-        assert result is not None and result.seconds_on_item == 42
+    assert w.graded_row().seconds_on_item == 42
 
 
 def test_recovered_answer_keeps_its_original_answer_time(w: World) -> None:
@@ -203,6 +198,26 @@ def test_recovered_answer_keeps_its_original_answer_time(w: World) -> None:
     w.clock.now += timedelta(minutes=5)
     w.pool.script.append(INCORRECT)
     w.svc.submit_answer(w.alice, sid, key, w.view(sid).session_item_id, 0, ANSWER)
-    with w.sessions() as db:
-        result = db.scalar(select(AttemptResult))
-        assert result is not None and result.seconds_on_item == 30
+    assert w.graded_row().seconds_on_item == 30
+
+
+def test_recovery_grades_first_so_the_original_replays_its_verdict(w: World) -> None:
+    """The original request finds a verdict already stored (zero rows updated): it keeps the
+    recovery's result and replays it instead of overwriting it."""
+    sid = w.svc.start_session(w.alice, [BASIC])
+    item = w.view(sid).session_item_id
+    key = uuid.uuid4()
+
+    def recovery_grades_first() -> None:
+        w.clock.now += timedelta(seconds=11)  # the original looks orphaned
+        w.pool.script.insert(0, CORRECT)
+        r = w.svc.submit_answer(w.alice, sid, key, item, 0, ANSWER)
+        assert r.outcome == CORRECT and not r.replayed
+
+    w.pool.during = recovery_grades_first
+    r = w.submit(sid, INCORRECT, sid=key)
+    assert r.replayed and r.outcome == CORRECT
+    assert r.item.state is ItemState.ANSWERED and r.item.tries_left == MAX_TRIES
+    assert w.graded() == 1 and len(w.pool.requests) == 2
+    row = w.graded_row()
+    assert (row.status, row.applied, row.attempt_no) == (VerdictStatus.CORRECT, True, 1)

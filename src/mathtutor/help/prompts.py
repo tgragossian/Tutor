@@ -22,6 +22,7 @@ from mathtutor.domain import AnswerKind
 from mathtutor.help.config import DEFAULT_CONFIG_PATH, HelpConfig, load_help_config
 from mathtutor.help.context import HelpContext, HelpType
 from mathtutor.help.generator import (
+    CLASSIFY_SCHEMA,
     HELP_OUTPUT_SCHEMA,
     HINT_CHOICE_SCHEMA,
     MISTAKE_DESCRIPTIONS,
@@ -84,7 +85,7 @@ def prompt_fingerprint(version: str) -> str:
     for path in files:
         digest.update(path.name.encode("utf-8") + b"\0")
         digest.update(path.read_bytes().replace(b"\r\n", b"\n") + b"\0")
-    for data in (HELP_OUTPUT_SCHEMA, HINT_CHOICE_SCHEMA, MISTAKE_DESCRIPTIONS):
+    for data in (HELP_OUTPUT_SCHEMA, HINT_CHOICE_SCHEMA, CLASSIFY_SCHEMA, MISTAKE_DESCRIPTIONS):
         digest.update(json.dumps(data, sort_keys=True).encode("utf-8"))
     return digest.hexdigest()[:12]
 
@@ -132,15 +133,14 @@ def _context_block(ctx: HelpContext, caps: dict[str, int]) -> str:
     if ctx.attempts:
         # Oldest to newest, with the latest named outright: a numbered newest-first list was
         # read as chronological, so help described an earlier attempt (R40, Thomas live test).
-        shown = list(reversed(ctx.attempts))  # ctx.attempts is newest first
         lines.append(
             f"<attempts> The student's recent attempts, oldest to newest "
             f"(tries used so far: {ctx.tries_used}). Help with the LATEST attempt; "
             f"earlier attempts are context only:"
         )
-        for i, a in enumerate(shown, 1):
+        for i, a in enumerate(ctx.attempts, 1):
             latex = _data(a.latex, caps["attempt_latex"])
-            tag = "LATEST attempt" if i == len(shown) else f"Earlier attempt {i}"
+            tag = "LATEST attempt" if i == len(ctx.attempts) else f"Earlier attempt {i}"
             lines.append(f"{tag}: <student_text>{latex}</student_text> checked: {a.status.value}")
         lines.append("</attempts>")
     else:
@@ -200,6 +200,29 @@ def _task(
         clipped = _data(label, cfg.field_caps["confusion_text"]).replace('"', "'")
         return _fill(template, {"confusion": clipped})
     return _fill(template, {})
+
+
+def build_classify_prompt(
+    statement: str, reference_latex: str, attempt_latex: str, cfg: HelpConfig
+) -> tuple[str, str]:
+    """``(system, user)`` for the background mistake classifier (spec D5). The reference answer
+    is included: the reply is only a ``MISTAKE_TYPES`` label, never shown to the student. The
+    attempt is the only student text, and it sits inside ``<student_text>``."""
+    types = "\n".join(f"- `{t}`: {MISTAKE_DESCRIPTIONS[t]}" for t in MISTAKE_TYPES)
+    system = _fill(_template(cfg.prompt_version, "classify"), {"types": types})
+    caps = cfg.field_caps
+    user = "\n".join(
+        [
+            "<problem>",
+            f"Statement: {_data(statement, caps['statement'])}",
+            f"Correct answer: ${_data(reference_latex, caps['attempt_latex'])}$",
+            "</problem>",
+            "",
+            "The student's answer, checked as incorrect: "
+            f"<student_text>{_data(attempt_latex, caps['attempt_latex'])}</student_text>",
+        ]
+    )
+    return system, user
 
 
 def build_prompt(

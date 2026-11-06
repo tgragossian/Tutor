@@ -7,7 +7,8 @@
 - Evidence: `src/mathtutor/help/eval/run.py:391-435`, especially both `meta.head == head`
   checks at lines 417 and 423. The same holdout becomes runnable after any new commit.
 - Reproduction: `test_used_holdout_stays_used_after_new_commit` in
-  [Python probes](test_review_probes.py), for both `run.json` and crash `started.json`.
+  retired Python probes (recover from the tag in [history](../../history.md)), for both
+  `run.json` and crash `started.json`.
   Synthetic previous metadata at `old` plus a clean mocked HEAD `new` passes `check_freeze`.
   Only the precondition helper is called; no actual holdout files or markers are used.
 - This contradicts [spec 08](../../superpowers/specs/2026-10-26-milestone-c/08-evaluation-protocol.md):

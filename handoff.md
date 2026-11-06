@@ -12,22 +12,37 @@ records R1–R40. Milestone B is closed; actual hours are not a gate.
 
 ## Resume here
 
-1. [C1 release review](docs/reviews/2026-11-06-c1-release/01-findings.md): R40 now labels
+1. **Codex: review branch `answers-table`** (worktree `.claude/worktrees/answers-table`):
+   one row per attempt, mistake ladder, one hint per attempt, five tries, background Haiku
+   labels. [Brief](docs/reviews/2026-11-06-answers-table/README.md) · [rulings](docs/reviews/2026-11-06-answers-table/01-rulings.md)
+   · [owner decisions](docs/reviews/2026-11-06-answers-table/02-open-decisions.md) ·
+   [Codex findings](docs/reviews/2026-11-06-answers-table/03-findings.md). Not merged,
+   not deployed; Thomas merges after review, deploys after a fresh backup in `/srv/backups/`.
+2. **[Baseline ladder plan](docs/superpowers/plans/2026-11-06-baseline-ladder/README.md):**
+   (plain request vs paste-in prompt vs tutor without textbook vs full tutor, with cost per
+   useful hint). [Codex review](docs/reviews/2026-11-06-baseline-ladder/README.md)
+   recommends revisions before implementation or paid runs.
+3. **[Repo cleanup](docs/superpowers/plans/2026-11-06-repo-cleanup/README.md):**
+   (old worktrees, ~140 stale docs, 8 review scripts; tag first, delete, `docs/history.md`).
+   [Codex disposition](docs/reviews/2026-11-06-repo-cleanup/README.md): 40 superseded draft
+   pages and one empty probe stub removed on this branch; other candidates retained.
+4. [C1 release review](docs/reviews/2026-11-06-c1-release/01-findings.md): R40 now labels
    the latest attempt in the generator prompt; the judge still reads attempts oldest first.
    The answer-box fix is coherent but needs a real MathLive check after deployment.
-2. Finish the outsider README with audited numbers and explicit beta gate misses. Dev run 3
+5. Finish the outsider README with audited numbers and explicit beta gate misses. Dev run 3
    after R40 is recorded but unaudited (judge-only useful 20/36); audit before citing it as a
    measured improvement. Deploy R40 only after testing. The one-shot holdout measured
    the pre-R40 prompt; use a new, disjoint holdout for a fresh claim about the changed prompt.
    The [C1 tuning list](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/22-tuning.md)
    owns follow-ups. Carry C1 fixes into C2 before reviewing its plan.
-3. Audited holdout: 24 Sonnet cases; no observed delivered leaks, math errors or unsupported
+6. Audited holdout: 24 Sonnet cases; no observed delivered leaks, math errors or unsupported
    citations. Misses: useful 12/20, guard false blocks 7/23, retrieval Recall@6 0.722
    (gate 0.80). Memory passed on 1 GB; 20 simultaneous hints caused 6/8 grading
    `verifier_busy` replies. [Host sizing C1](docs/ops/host-sizing-c1.md) records the load.
-4. The key belongs only in host `deploy/.env`; console spend limit on, auto-reload off.
+   The C1 status page still has a pre-release heading and pending gate table to clean up.
+7. The key belongs only in host `deploy/.env`; console spend limit on, auto-reload off.
    Turn help off with `MATHTUTOR_HELP_GENERATOR=off` if needed. Do not put keys in git.
-5. Then review/rebase C2 (`milestone-c2`, owner decisions Q1–Q9; ratings and completion-only
+8. Then review/rebase C2 (`milestone-c2`, owner decisions Q1–Q9; ratings and completion-only
    Clear history) and C3 own problems (resolve C-P3 first). Sequence: **C → LoRA experiment
    → D/E → expansion** (C-O4). Qwen serving: RunPod; training: AWS.
 
@@ -49,6 +64,8 @@ records R1–R40. Milestone B is closed; actual hours are not a gate.
 
 ## Documentation tree
 
+- [Removed draft recovery](docs/history.md): superseded original practice-loop pages at
+  `archive-2026-11-06`; current contracts and dated evidence remain in the tree.
 - [C1 debugging](docs/ops/debugging/c1/README.md) and [release review](docs/reviews/2026-11-06-c1-release/README.md).
 - [C plan](docs/superpowers/plans/portfolio-mvp/03-rag.md), [C spec](docs/superpowers/specs/2026-10-26-milestone-c/README.md),
   [C review](docs/reviews/2026-10-26-milestone-c/README.md) and [open register](docs/superpowers/plans/portfolio-mvp/milestone-c/03-open-decisions.md).

@@ -161,7 +161,7 @@ class SourceRefOut(_Model):
 
 
 HelpStatusName = Literal[
-    "delivered", "abstained", "fallback", "unavailable", "limited", "stale", "pending"
+    "delivered", "abstained", "fallback", "unavailable", "limited", "stale", "pending", "try_again"
 ]
 
 

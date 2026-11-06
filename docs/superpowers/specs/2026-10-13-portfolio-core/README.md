@@ -5,7 +5,8 @@
 **Status:** approved by Thomas on 2026-10-13. For implementation and release progress,
 see [milestone B status](../../plans/portfolio-mvp/milestone-b/03-execution-status.md).
 
-**What this replaces:** the [reference design](../2026-10-13-core-practice-loop-design.md), for milestones A and B (deployed skeleton + three-topic practice loop). Where the two conflict, this spec wins.
+**What this replaces:** the [original draft](../../../history.md), for milestones A and B
+(deployed skeleton + three-topic practice loop). Where the two conflict, this spec wins.
 
 **What takes precedence over this spec:** decision 0001. Approved amendments include
 [R22/R23](../2026-10-19-function-input-and-domain-rewrite-design.md) and

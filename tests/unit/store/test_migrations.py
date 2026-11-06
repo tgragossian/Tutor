@@ -1,8 +1,11 @@
 import sqlite3
+import subprocess
+import sys
+from pathlib import Path
 
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, select, text
 
 from mathtutor.store.db import (
     downgrade,
@@ -11,15 +14,14 @@ from mathtutor.store.db import (
     upgrade,
     write_transaction,
 )
-from mathtutor.store.models import Base
+from mathtutor.store.models import Answer, Base
 
 TABLES = {
     "users",
     "web_sessions",
     "study_sessions",
     "session_items",
-    "submissions",
-    "attempt_results",
+    "answers",
     "item_events",
     "alembic_version",
 }
@@ -173,10 +175,10 @@ def test_server_defaults_apply_to_raw_inserts(db_url: str) -> None:
         " '[]', '[]', '{}', 1, '2026-10-01 00:00:00')"
     )
     raw.commit()
-    state = raw.execute("SELECT hint_level, help_seq FROM item_help_state").fetchone()
+    state = raw.execute("SELECT start_hints, help_seq FROM item_help_state").fetchone()
     arm = raw.execute("SELECT arm FROM help_requests WHERE request_id='r2'").fetchone()
     raw.close()
-    assert state == (1, 0)
+    assert state == (0, 0)
     assert arm == ("none",)
 
 
@@ -200,7 +202,7 @@ def test_write_transactions_begin_immediate_reads_do_not(db_url: str) -> None:
 
 def test_0005_adds_hint_ladder_columns_and_downgrades(db_url: str) -> None:
     """R35: nullable columns only; 0004 rows survive the upgrade and the downgrade."""
-    upgrade(db_url)
+    upgrade(db_url, "0005")
     path = db_url.removeprefix("sqlite:///")
     _populate_0004(path)
     raw = sqlite3.connect(path)
@@ -232,3 +234,194 @@ def test_0005_adds_hint_ladder_columns_and_downgrades(db_url: str) -> None:
             assert conn.execute(text("SELECT request_id FROM help_requests")).all() == [("r1",)]
     finally:
         engine.dispose()
+
+
+def _populate_0005(path: str) -> None:
+    """Old rows on two items: applied incorrect (1, labeled by the last hint), applied correct
+    (2), an unapplied result (3), an orphan with no result (4) and a pre-0003 orphan with a
+    NULL reserved_revision (5). Item 2's hint state points at the correct answer."""
+    _populate_0004(path)
+    raw = sqlite3.connect(path)
+    raw.executescript(
+        """
+        INSERT INTO session_items (id, session_id, item_id, content_version, problem_json,
+            sequence, state, revision, served_at, tries_used)
+            VALUES (2, 1, 'j', 'v', '{}', 2, 'active', 0, '2026-10-01 00:00:00', 0);
+        INSERT INTO submissions (id, submission_id, session_item_id, answer_kind, answer_json,
+            answer_latex, created_at, reserved_revision, lease, leased_at) VALUES
+            (1, 's1', 1, 'expression', '{"mathjson": ["Multiply", 2, "x"], "choice_id": null}',
+                '2x', '2026-10-01 00:01:00.000000', 0, 0, NULL),
+            (2, 's2', 1, 'expression', '{"mathjson": ["Power", "x", 2], "choice_id": null}',
+                'x^2', '2026-10-01 00:02:00.000000', 1, 1, '2026-10-01 00:02:30.000000'),
+            (3, 's3', 1, 'choice', '{"mathjson": null, "choice_id": "b"}',
+                NULL, '2026-10-01 00:03:00.000000', 1, 0, NULL),
+            (4, 's4', 2, 'expression', '{"mathjson": 100000000000000000001, "choice_id": null}',
+                '3', '2026-10-01 00:04:00.000000', 0, 0, NULL),
+            (5, 's5', 2, 'expression',
+                '{"mathjson": ["Multiply", {"num": "0.1"}, "x"], ' || '"choice_id": null}',
+                '4', '2026-10-01 00:05:00.000000', NULL, 0, NULL);
+        INSERT INTO attempt_results (id, submission_pk, status, reason, method,
+            verifier_version, worker_ms, queue_ms, seconds_on_item, counts_as_try, applied)
+            VALUES
+            (7, 1, 'incorrect', 'counterexample', 'refutation', 'v1', 11, 1, 60, 1, 1),
+            (8, 3, 'correct', 'proven', 'symbolic', 'v1', 13, 3, 180, 0, 0),
+            (9, 2, 'correct', 'proven', 'symbolic', 'v1', 12, 2, 120, 0, 1);
+        INSERT INTO item_help_state (session_item_id, hint_attempt_pk, hint_type)
+            VALUES (1, 1, 'algebra'), (2, 2, 'wrong_rule');
+        """
+    )
+    raw.commit()
+    raw.close()
+
+
+def _rows(path: str, sql: str) -> list[tuple[object, ...]]:
+    raw = sqlite3.connect(path)
+    try:
+        return raw.execute(sql).fetchall()
+    finally:
+        raw.close()
+
+
+BIG = "100000000000000000001"  # 10**20 + 1: past int64, so NUMERIC affinity would make it REAL
+DECIMAL = '["Multiply", {"num": "0.1"}, "x"]'
+
+_OLD_SUBMISSIONS = "SELECT * FROM submissions ORDER BY id"
+_OLD_RESULTS = (
+    "SELECT submission_pk, status, reason, method, verifier_version, worker_ms, queue_ms,"
+    " seconds_on_item, counts_as_try, applied FROM attempt_results ORDER BY submission_pk"
+)
+
+
+def test_0006_copies_answers_with_attempt_numbers(db_url: str) -> None:
+    upgrade(db_url, "0005")
+    path = db_url.removeprefix("sqlite:///")
+    _populate_0005(path)
+    upgrade(db_url)
+    assert not {"submissions", "attempt_results"} & _tables(db_url)
+    rows = _rows(
+        path,
+        "SELECT id, submission_id, user_id, session_item_id, attempt_no, answer_kind,"
+        " mathjson, choice_id, latex, created_at, reserved_revision, lease, leased_at,"
+        " status, reason, method, verifier_version, worker_ms, queue_ms, seconds_on_item,"
+        " counts_as_try, applied, mistake_type FROM answers ORDER BY id",
+    )
+    t = "2026-10-01 00:0{}:00.000000".format
+    graded = ("v1",)
+    assert rows == [
+        (1, "s1", 1, 1, 1, "expression", '["Multiply", 2, "x"]', None, "2x", t(1), 0, 0, None)
+        + ("incorrect", "counterexample", "refutation", *graded, 11, 1, 60, 1, 1, "algebra"),
+        (2, "s2", 1, 1, 2, "expression", '["Power", "x", 2]', None, "x^2", t(2), 1, 1)
+        + ("2026-10-01 00:02:30.000000", "correct", "proven", "symbolic", *graded)
+        + (12, 2, 120, 0, 1, None),
+        (3, "s3", 1, 1, None, "choice", None, "b", None, t(3), 1, 0, None)
+        + ("correct", "proven", "symbolic", *graded, 13, 3, 180, 0, 0, None),
+        (4, "s4", 1, 2, None, "expression", BIG, None, "3", t(4), 0, 0, None)
+        + (None,) * 9
+        + (None,),
+        (5, "s5", 1, 2, None, "expression", DECIMAL, None, "4", t(5), None, 0, None)
+        + (None,) * 9
+        + (None,),
+    ]
+    engine = make_engine(db_url)
+    try:
+        with engine.connect() as conn:
+            assert conn.execute(text("PRAGMA foreign_key_check")).all() == []
+        with make_sessionmaker(engine)() as db:
+            copied = {a.id: a.mathjson for a in db.scalars(select(Answer))}
+        assert copied[4] == 10**20 + 1  # read back exactly through the ORM
+        assert copied[5] == ["Multiply", {"num": "0.1"}, "x"]
+    finally:
+        engine.dispose()
+
+
+def test_migration_audit_checks_upgraded_copy(db_url: str) -> None:
+    upgrade(db_url, "0005")
+    path = Path(db_url.removeprefix("sqlite:///"))
+    _populate_0005(str(path))
+    before = path.with_name("before.db")
+    with sqlite3.connect(path) as source, sqlite3.connect(before) as copy:
+        source.backup(copy)
+    upgrade(db_url)
+    command = [sys.executable, "tools/audit_answers_migration.py", str(before), str(path)]
+    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr
+    assert "PASS answers=5 graded=3 items=1 labels=1" in result.stdout
+
+
+def test_0006_downgrade_round_trip(db_url: str) -> None:
+    """Old rows come back unchanged; only ``attempt_results.id`` is renumbered."""
+    upgrade(db_url, "0005")
+    path = db_url.removeprefix("sqlite:///")
+    _populate_0005(path)
+    before = _rows(path, _OLD_SUBMISSIONS), _rows(path, _OLD_RESULTS)
+    upgrade(db_url)
+    downgrade(db_url, "0005")
+    assert "answers" not in _tables(db_url)
+    assert (_rows(path, _OLD_SUBMISSIONS), _rows(path, _OLD_RESULTS)) == before
+    assert _rows(path, "SELECT id FROM attempt_results ORDER BY id") == [(1,), (2,), (3,)]
+    upgrade(db_url)
+    assert _rows(path, "SELECT attempt_no FROM answers ORDER BY id") == [
+        (1,),
+        (2,),
+        (None,),
+        (None,),
+        (None,),
+    ]
+
+
+def _columns(url: str, table: str) -> set[str]:
+    engine = make_engine(url)
+    try:
+        return {c["name"] for c in inspect(engine).get_columns(table)}
+    finally:
+        engine.dispose()
+
+
+_COUNTERS = {"hint_attempt_pk", "hint_type", "hint_counts", "hint_level"}
+
+
+def test_0007_round_trip(db_url: str) -> None:
+    """Spec D9/D10: ``help_requests.answer_id`` (old rows NULL) and the R35 counters dropped;
+    the downgrade re-adds the counters with their old defaults and keeps every row."""
+    upgrade(db_url, "0005")
+    path = db_url.removeprefix("sqlite:///")
+    _populate_0005(path)
+    upgrade(db_url, "0006")
+    labels = _rows(path, "SELECT id, mistake_type FROM answers ORDER BY id")
+    upgrade(db_url)
+    assert not _COUNTERS & _columns(db_url, "item_help_state")
+    assert _columns(db_url, "item_help_state") == {
+        "session_item_id",
+        "start_hints",
+        "help_seq",
+        "in_flight",
+    }
+    kept = "SELECT session_item_id, start_hints, help_seq, in_flight FROM item_help_state"
+    assert _rows(path, kept + " ORDER BY session_item_id") == [
+        (1, 0, 0, None),
+        (2, 0, 0, None),
+    ]
+    assert _rows(path, "SELECT request_id, answer_id FROM help_requests") == [("r1", None)]
+    assert _rows(path, "SELECT id, mistake_type FROM answers ORDER BY id") == labels
+    raw = sqlite3.connect(path)
+    raw.execute("PRAGMA foreign_keys=ON")
+    raw.execute("UPDATE help_requests SET answer_id = 1")
+    raw.commit()
+    try:
+        raw.execute("UPDATE help_requests SET answer_id = 99")  # no such answer
+        raw.commit()
+        raise AssertionError("answer_id must reference answers.id")
+    except sqlite3.IntegrityError:
+        raw.rollback()
+    finally:
+        raw.close()
+    downgrade(db_url, "0006")
+    assert "answer_id" not in _columns(db_url, "help_requests")
+    assert _rows(
+        path,
+        "SELECT session_item_id, hint_level, hint_attempt_pk, hint_type, hint_counts,"
+        " start_hints, help_seq FROM item_help_state ORDER BY session_item_id",
+    ) == [(1, 1, None, None, "{}", 0, 0), (2, 1, None, None, "{}", 0, 0)]
+    assert _rows(path, "SELECT request_id FROM help_requests") == [("r1",)]
+    upgrade(db_url)
+    assert "answer_id" in _columns(db_url, "help_requests")

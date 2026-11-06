@@ -42,7 +42,7 @@ All code was written by AI agents under my direction
 
 - **Practice** on derivatives (basic rules, trig, chain rule): 22 reviewed problems, math
   input with MathLive, answers graded by a SymPy checker that *proves* equivalence or abstains.
-- **Help** when stuck: *Hint* (a ladder that gets more direct each time), *What did I do
+- **Help** when stuck: *Hint* (one per attempt, more direct after each repeated mistake), *What did I do
   wrong?* and *Explain this*. Every response cites the OpenStax passages it used, given it did
   not abstain from responding.
 - **Answer containment:** a leak guard checks supported math in each response against the
@@ -67,8 +67,21 @@ flowchart LR
 ```
 
 The help ladder is set by the server, not the model: before any wrong answer the tutor asks a
-question about the problem's form; after one, it labels the mistake (algebra slip, wrong
-rule, rule misapplied, incomplete) and climbs a separate ladder per mistake type.
+question about the problem's form; after one, a fast model labels the mistake (algebra slip,
+wrong rule, rule misapplied, incomplete), and each labeled repeat of the same type makes the
+next hint more direct. A failed or dropped classification can leave a wrong answer unlabeled
+until a hint classifies it.
+
+The answers-table refactor is prepared for release; deployment status is in the
+[answers-table review](docs/reviews/2026-11-06-answers-table/README.md). Each answer is one database
+row with its owner, attempt number, verdict and mistake type. A fast model labels wrong
+answers in the background. The tutor gives one hint per attempt: one to get started, then
+one for each wrong answer. Extra clicks get a short prompt to try again, so the ladder
+moves only when the student does. A student missing the concept can use *Explain this*,
+which walks through how this kind of problem is done. A student who knows the direction
+but finds the problem hard climbs the ladder by trying. Students get five tries instead
+of three.
+[Design and plan](docs/superpowers/plans/2026-11-05-answers-table/README.md).
 
 ## How RAG works
 
@@ -159,17 +172,10 @@ alongside percentages. The guard also blocked 7 of 23 good responses (target at 
 One prompt fix found by testing the live site was committed after the holdout; its deployment
 is not yet confirmed. The holdout numbers describe the earlier prompt.
 
-## What's next
+These results were measured with three tries and a ladder that climbed per hint given; the
+current code allows five tries and climbs per labeled mistake made.
 
-**In progress: answer history and a mistake-driven hint ladder.** Each answer becomes one
-database row with its owner, attempt number, verdict and mistake type. A fast model labels
-every wrong answer as an algebra slip, wrong rule, rule misapplied or incomplete, and each
-repeat of the same mistake makes the next hint more direct. The tutor gives one hint per
-attempt: one to get started, then one for each wrong answer. Extra clicks get a short prompt
-to try again, so the ladder moves only when the student does. A student who is missing the
-concept uses *Explain this*, which walks through how this kind of problem is done; one who
-knows the direction but finds the problem hard climbs the ladder by trying. Students get five
-tries instead of three. [Design and plan](docs/superpowers/plans/2026-11-05-answers-table/README.md).
+## What's next
 
 1. **Baseline comparison (planned).** On the same fresh cases, compare a plain LLM request,
    a paste-in tutoring prompt, the tutor without retrieval, and the full textbook-grounded

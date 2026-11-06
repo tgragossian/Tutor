@@ -25,10 +25,9 @@ from mathtutor.help.context import (
 )
 from mathtutor.store.db import make_engine, make_sessionmaker, upgrade, write_transaction
 from mathtutor.store.models import (
-    AttemptResult,
+    Answer,
     SessionItem,
     StudySession,
-    Submission,
     User,
 )
 from mathtutor.verify.types import CheckRequest, CheckResult, Verdict, VerifierBusy
@@ -39,7 +38,7 @@ PROBLEMS = {p.id: p for p in BUNDLE.bundle.problems}
 CONFUSIONS = ROOT / "content" / "help" / "confusions.json"
 CORRECT = Verdict(VerdictStatus.CORRECT, VerdictReason.PROVEN, Method.SYMBOLIC)
 WRONG = Verdict(VerdictStatus.INCORRECT, VerdictReason.COUNTEREXAMPLE, Method.REFUTATION)
-INC = AttemptLine("x", VerdictStatus.INCORRECT)
+INC = AttemptLine("x", VerdictStatus.INCORRECT, 1)
 
 
 class ScriptedPool:
@@ -82,14 +81,14 @@ def test_context_excludes_answer() -> None:
             assert "review" not in text
 
 
-def test_attempts_newest_first_capped() -> None:
+def test_attempts_oldest_to_newest_capped() -> None:
     p = PROBLEMS["openstax-c1-3.6-215"]
-    attempts = [AttemptLine(f"a{i}", VerdictStatus.INCORRECT) for i in range(5)]
-    attempts.append(AttemptLine("z" * 500, VerdictStatus.UNABLE_TO_VERIFY))
+    attempts = [AttemptLine(f"a{i}", VerdictStatus.INCORRECT, i + 1) for i in range(5)]
+    attempts.append(AttemptLine("z" * 500, VerdictStatus.UNABLE_TO_VERIFY, 6))
     ctx = assemble_context(p, attempts, 2, None)
-    assert [a.latex[:2] for a in ctx.attempts] == ["zz", "a4", "a3"]
-    assert len(ctx.attempts[0].latex.encode()) <= 400
-    assert ctx.attempts[0].status is VerdictStatus.UNABLE_TO_VERIFY
+    assert [a.latex[:2] for a in ctx.attempts] == ["a3", "a4", "zz"]
+    assert len(ctx.attempts[-1].latex.encode()) <= 400
+    assert ctx.attempts[-1].status is VerdictStatus.UNABLE_TO_VERIFY
     assert (ctx.hint_level, ctx.topic, ctx.section) == (2, p.topic, "3.6")
     assert ctx.problem_id == p.id and ctx.variable == "x"
 
@@ -97,7 +96,7 @@ def test_attempts_newest_first_capped() -> None:
 def test_unable_attempt_is_never_matched() -> None:
     p = PROBLEMS["openstax-c1-3.6-215"]
     pool = ScriptedPool(CORRECT)
-    latest = AttemptLine("18(7x-4)^2", VerdictStatus.UNABLE_TO_VERIFY)
+    latest = AttemptLine("18(7x-4)^2", VerdictStatus.UNABLE_TO_VERIFY, 1)
     assert match_misconception(p, latest, None, pool) is None
     assert pool.requests == []
 
@@ -105,7 +104,7 @@ def test_unable_attempt_is_never_matched() -> None:
 def test_misconception_expression_match() -> None:
     p = PROBLEMS["openstax-c1-3.6-215"]
     pool = ScriptedPool(CORRECT)
-    latest = AttemptLine("18(7x-4)^2", VerdictStatus.INCORRECT)
+    latest = AttemptLine("18(7x-4)^2", VerdictStatus.INCORRECT, 1)
     assert match_misconception(p, latest, None, pool) == "missing du/dx = 7"
     assert len(pool.requests) == 1
     spec = pool.requests[0].answer_spec
@@ -115,14 +114,14 @@ def test_misconception_expression_match() -> None:
 def test_second_misconception_matches_after_first_misses() -> None:
     p = PROBLEMS["openstax-c1-3.6-215"]
     pool = ScriptedPool(WRONG, CORRECT)
-    out = match_misconception(p, AttemptLine("42(7x-4)^2", VerdictStatus.INCORRECT), None, pool)
+    out = match_misconception(p, AttemptLine("42(7x-4)^2", VerdictStatus.INCORRECT, 1), None, pool)
     assert out == "forgot the factor 3 from the power rule"
 
 
 def test_misconception_choice_match() -> None:
     p = PROBLEMS["adapted-c1-3.5-x2cosx"]
     pool = ScriptedPool()
-    latest = AttemptLine("2x\\cos(x)+x^2\\sin(x)", VerdictStatus.INCORRECT)
+    latest = AttemptLine("2x\\cos(x)+x^2\\sin(x)", VerdictStatus.INCORRECT, 1)
     note = match_misconception(p, latest, "b", pool)
     assert note == "sign error: derivative of cos x taken as +sin x"
     assert pool.requests == []
@@ -132,7 +131,7 @@ def test_misconception_choice_match() -> None:
 def test_no_match_no_note() -> None:
     p = PROBLEMS["openstax-c1-3.6-215"]
     pool = ScriptedPool()
-    latest = AttemptLine("5x", VerdictStatus.INCORRECT)
+    latest = AttemptLine("5x", VerdictStatus.INCORRECT, 1)
     assert match_misconception(p, latest, None, pool) is None
     assert assemble_context(p, [latest], 1, None).misconception_note is None
     assert match_misconception(p, None, None, pool) is None
@@ -141,7 +140,7 @@ def test_no_match_no_note() -> None:
 def test_busy_pool_is_no_match() -> None:
     p = PROBLEMS["openstax-c1-3.6-215"]
     pool = ScriptedPool(VerifierBusy)
-    latest = AttemptLine("18(7x-4)^2", VerdictStatus.INCORRECT)
+    latest = AttemptLine("18(7x-4)^2", VerdictStatus.INCORRECT, 1)
     assert match_misconception(p, latest, None, pool) is None
 
 
@@ -149,7 +148,7 @@ def test_deadline_stops_matching() -> None:
     p = PROBLEMS["openstax-c1-3.6-215"]
     ticks = iter([0.0, 5.0, 5.0, 5.0])
     pool = ScriptedPool(CORRECT)
-    latest = AttemptLine("18(7x-4)^2", VerdictStatus.INCORRECT)
+    latest = AttemptLine("18(7x-4)^2", VerdictStatus.INCORRECT, 1)
     out = match_misconception(p, latest, None, pool, clock=lambda: next(ticks))
     assert out is None and pool.requests == []
 
@@ -217,7 +216,7 @@ def test_matching_is_capped_at_three_and_stops_on_match() -> None:
             "misconceptions_mathjson": [["Multiply", n, "x"] for n in range(5)],
         }
     )
-    latest = AttemptLine("5x", VerdictStatus.INCORRECT)
+    latest = AttemptLine("5x", VerdictStatus.INCORRECT, 1)
     pool = ScriptedPool(WRONG, WRONG, WRONG, CORRECT)
     assert match_misconception(many, latest, None, pool) is None
     assert len(pool.requests) == 3
@@ -226,7 +225,7 @@ def test_matching_is_capped_at_three_and_stops_on_match() -> None:
     assert len(pool.requests) == 1
 
 
-def test_build_context_reads_submissions(tmp_path: Path) -> None:
+def _build(tmp_path: Path, rows: list[tuple[str, int | None]]) -> HelpContext:
     url = f"sqlite:///{(tmp_path / 'c.db').as_posix()}"
     upgrade(url)
     engine = make_engine(url)
@@ -249,35 +248,25 @@ def test_build_context_reads_submissions(tmp_path: Path) -> None:
         )
         db.add_all([user, sess, item])
         db.flush()
-        for n, (latex, status) in enumerate(
-            [
-                ("5x", VerdictStatus.INCORRECT),
-                ("18(7x-4)^2", VerdictStatus.INCORRECT),
-                ("9x", VerdictStatus.INCORRECT),  # stored but not applied
-            ]
-        ):
-            sub = Submission(
-                submission_id=f"s{n}",
-                session_item_id=item.id,
-                answer_kind=AnswerKind.EXPRESSION,
-                answer_json=json.dumps({"mathjson": None, "choice_id": None}),
-                answer_latex=latex,
-                created_at=now,
-            )
-            db.add(sub)
-            db.flush()
+        for n, (latex, number) in enumerate(rows):
             db.add(
-                AttemptResult(
-                    submission_pk=sub.id,
-                    status=status,
+                Answer(
+                    submission_id=f"s{n}",
+                    user_id=user.id,
+                    session_item_id=item.id,
+                    attempt_no=number,
+                    answer_kind=AnswerKind.EXPRESSION,
+                    latex=latex,
+                    created_at=now,
+                    status=VerdictStatus.INCORRECT,
                     reason=VerdictReason.COUNTEREXAMPLE,
                     method=Method.REFUTATION,
                     verifier_version="t",
                     worker_ms=0,
                     queue_ms=0,
                     seconds_on_item=1,
-                    counts_as_try=True,
-                    applied=n < 2,
+                    counts_as_try=number is not None,
+                    applied=number is not None,
                 )
             )
         item_id = item.id
@@ -285,7 +274,18 @@ def test_build_context_reads_submissions(tmp_path: Path) -> None:
         item = db.get(SessionItem, item_id)
         assert item is not None
         ctx = build_context(db, item, p, 3, ScriptedPool(CORRECT))
-    assert [a.latex for a in ctx.attempts] == ["18(7x-4)^2", "5x"]
+    engine.dispose()
+    return ctx
+
+
+def test_build_context_reads_answers(tmp_path: Path) -> None:
+    ctx = _build(tmp_path, [("5x", 1), ("18(7x-4)^2", 2), ("9x", None)])  # 9x: not applied
+    assert [a.latex for a in ctx.attempts] == ["5x", "18(7x-4)^2"]
     assert ctx.tries_used == 2 and ctx.hint_level == 3
     assert ctx.misconception_note == "missing du/dx = 7"
-    engine.dispose()
+
+
+def test_attempts_oldest_to_newest_with_numbers(tmp_path: Path) -> None:
+    ctx = _build(tmp_path, [(f"{i}x", i) for i in range(1, 6)])
+    assert [a.attempt_no for a in ctx.attempts] == [3, 4, 5]
+    assert ctx.attempts[-1].latex == "5x"

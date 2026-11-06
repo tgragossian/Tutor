@@ -18,7 +18,7 @@ from mathtutor.application.practice import ItemView, PracticeService, SubmitView
 from mathtutor.content.loader import load_bundle
 from mathtutor.domain import AnswerKind, ItemState
 from mathtutor.store.db import make_engine, make_sessionmaker, upgrade
-from mathtutor.store.models import AttemptResult
+from mathtutor.store.models import Answer
 from mathtutor.verify.pool import VerifierPool
 from mathtutor.verify.types import SubmittedAnswer
 
@@ -86,8 +86,27 @@ def test_racing_different_submission_ids_one_wins(setup) -> None:  # type: ignor
     assert len(wins) == 1 and len(stale) == 1, results
     assert wins[0].item.state is ItemState.ANSWERED
     with sessions() as db:  # type: ignore[operator]
-        applied = db.scalars(select(AttemptResult.applied)).all()
+        applied = db.scalars(select(Answer.applied).where(Answer.status.is_not(None))).all()
     assert sorted(applied) == [False, True]
+
+
+def test_concurrent_answers_get_distinct_attempt_numbers(setup) -> None:  # type: ignore[no-untyped-def]
+    """Spec D3: only the applied answer is numbered; the stale one keeps attempt_no NULL."""
+    svc, auth, pool, sessions = setup
+    pool._check_fn_for_test(checks.slow)
+    user = auth.register("numbers", "password-1").user_id
+    sid = svc.start_session(user, ["derivatives.basic_rules"])
+    v = svc.current_item(user, sid)
+    assert isinstance(v, ItemView)
+
+    def submit() -> SubmitView:
+        return svc.submit_answer(user, sid, uuid.uuid4(), v.session_item_id, v.revision, ANSWER)
+
+    results = _run_threads([submit, submit])
+    assert sorted(type(r).__name__ for r in results) == ["StaleItem", "SubmitView"], results
+    with sessions() as db:  # type: ignore[operator]
+        rows = db.execute(select(Answer.applied, Answer.attempt_no, Answer.user_id)).all()
+    assert sorted(rows) == [(False, None, user), (True, 1, user)]
 
 
 def test_sixteen_concurrent_submits(setup) -> None:  # type: ignore[no-untyped-def]
@@ -111,7 +130,7 @@ def test_sixteen_concurrent_submits(setup) -> None:  # type: ignore[no-untyped-d
     assert kinds <= {"SubmitView", "StaleItem", "Busy"}, results
     assert any(isinstance(r, SubmitView) for r in results)
     with sessions() as db:  # type: ignore[operator]
-        n = db.scalar(select(func.count()).select_from(AttemptResult))
+        n = db.scalar(select(func.count()).where(Answer.status.is_not(None)))
     assert n == sum(isinstance(r, SubmitView) for r in results)
     assert not any(isinstance(r, Busy) and r.status != 503 for r in results)
 
@@ -133,7 +152,7 @@ def test_sixteen_racers_on_one_item(setup) -> None:  # type: ignore[no-untyped-d
     assert set(kinds) <= {"SubmitView", "StaleItem", "Busy"}, results
     assert "Busy" in kinds  # pool size 1, queue 8, 1 s checks: the queue overflows
     with sessions() as db:  # type: ignore[operator]
-        applied = db.scalars(select(AttemptResult.applied)).all()
+        applied = db.scalars(select(Answer.applied).where(Answer.status.is_not(None))).all()
     assert sorted(applied).count(True) == 1
     # Busy releases its reservation; a stale racer stored at most one unapplied result.
     assert len(applied) <= kinds.count("SubmitView") + kinds.count("StaleItem")

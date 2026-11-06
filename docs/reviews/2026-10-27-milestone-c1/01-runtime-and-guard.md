@@ -10,7 +10,8 @@
 - `_load_help` catches its `FileNotFoundError` and disables help. This affects the normal
   Claude configuration with a key and the scripted e2e configuration. `/readyz` remains
   healthy, so readiness alone can conceal a C1 deployment with no help buttons.
-- Reproduction: `test_runtime_image_loads_help` in [Python probes](test_review_probes.py).
+- Historical reproduction: `test_runtime_image_loads_help` in the retired Python probes
+  (recover with `git show archive-2026-11-06:docs/reviews/2026-10-27-milestone-c1/test_review_probes.py`).
   A valid real corpus plus the image's missing configuration path returns `None` and logs
   `help disabled: FileNotFoundError`. This is a filesystem-layout probe, not a Docker build.
 - Fix: copy the help data into the runtime image at the configured path. Verify all other

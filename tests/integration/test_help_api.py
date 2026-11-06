@@ -6,6 +6,7 @@ import json
 import logging
 import re
 import threading
+import time
 import uuid
 from collections.abc import Iterator
 from pathlib import Path
@@ -20,8 +21,14 @@ from support.webapp import INCORRECT, ROOT, SpyPool, login, make_settings, start
 
 from mathtutor.domain import FormatIssueCode
 from mathtutor.help import messages
-from mathtutor.help.generator import GenerationRequest, GenerationResult, ScriptedGenerator
-from mathtutor.store.models import HelpRequestRow, ItemHelpState, Submission, UsageEntry, User
+from mathtutor.help.generator import (
+    CLASSIFY_SCHEMA,
+    HINT_CHOICE_SCHEMA,
+    GenerationRequest,
+    GenerationResult,
+    ScriptedGenerator,
+)
+from mathtutor.store.models import Answer, HelpRequestRow, ItemHelpState, UsageEntry, User
 from mathtutor.verify.types import FormatIssue
 from mathtutor.web.app import create_app
 
@@ -31,22 +38,31 @@ WRONG_LATEX = "7777q"
 
 
 class CitingGenerator(ScriptedGenerator):
-    """Cites the first retrieved passage; ``gate`` (if set) blocks each call until released."""
+    """Cites the first retrieved passage; ``gate`` (if set) blocks each call until released.
+    The background classifier's calls (spec D5) go to ``classified`` and get a label at once,
+    so ``requests``, ``gate`` and ``entered`` see help calls only."""
 
     def __init__(self, text: str = HINT) -> None:
         super().__init__([])
         self.text = text
         self.gate: threading.Event | None = None
         self.entered = threading.Event()
+        self.classified: list[GenerationRequest] = []
 
     def generate(self, req: GenerationRequest) -> GenerationResult:
+        if req.schema == CLASSIFY_SCHEMA:
+            self.classified.append(req)
+            label = json.dumps({"mistake_type": "wrong_rule"})
+            return GenerationResult(label, "end_turn", 300, 5, req.model, "req_c", 2)
         self.requests.append(req)
         self.entered.set()
         if self.gate is not None:
             self.gate.wait(10)
         ids = re.findall(r'<passage id="([^"]+)"', req.user)[:1]
-        body = json.dumps({"text": self.text, "source_ids": ids, "abstain": False})
-        return GenerationResult(body, "end_turn", 2000, 300, req.model, "req_t", 5)
+        reply: dict[str, Any] = {"text": self.text, "source_ids": ids, "abstain": False}
+        if req.schema == HINT_CHOICE_SCHEMA:  # a hint that classifies the wrong answer (D6)
+            reply["mistake_type"] = "algebra"
+        return GenerationResult(json.dumps(reply), "end_turn", 2000, 300, req.model, "req_t", 5)
 
 
 def _app(
@@ -140,6 +156,24 @@ def test_hint_delivered(client: TestClient, gen: CitingGenerator) -> None:
     assert len(gen.requests) == 1
 
 
+def test_repeat_hint_is_try_again(client: TestClient, gen: CitingGenerator) -> None:
+    """Spec D6a: one hint per state; a repeat Hint is a fixed message with no model call."""
+    sid = start(client)
+    item = _item(client, sid)
+    assert client.post("/api/help", json=_help(client, item)).json()["status"] == "delivered"
+    again = client.post("/api/help", json=_help(client, item))
+    assert again.status_code == 200, again.text
+    body = again.json()
+    assert (body["status"], body["help_seq"], body["hint_level"]) == ("try_again", 2, None)
+    assert "already had a hint for getting started" in body["html"] and body["sources"] == []
+    _submit(client, sid, item)
+    item = _item(client, sid)
+    assert client.post("/api/help", json=_help(client, item)).json()["status"] == "delivered"
+    body = client.post("/api/help", json=_help(client, item)).json()
+    assert body["status"] == "try_again" and "already had a hint for this answer" in body["html"]
+    assert len(gen.requests) == 2
+
+
 def test_help_requires_csrf_and_owner(app_pool: tuple[FastAPI, SpyPool]) -> None:
     app = app_pool[0]
     with TestClient(app, base_url="https://testserver") as alice:
@@ -211,8 +245,10 @@ def test_help_limited_is_429(tmp_path: Path, gen: CitingGenerator) -> None:
     with TestClient(app, base_url="https://testserver") as c:
         login(c)
         sid = start(c)
-        assert c.post("/api/help", json=_help(c, _item(c, sid))).status_code == 200
-        r = c.post("/api/help", json=_help(c, _item(c, sid)))
+        item = _item(c, sid)
+        assert c.post("/api/help", json=_help(c, item)).status_code == 200
+        confusion = item["help"]["confusions"][0]["id"]
+        r = c.post("/api/help", json=_help(c, item, "explain", confusion=confusion))
     assert r.status_code == 429
     assert r.json() == {"error": "help_limited", "message": messages.LIMITED}
 
@@ -222,17 +258,47 @@ def test_readyz_ready_without_help(tmp_path: Path) -> None:
     settings = make_settings(tmp_path).model_copy(
         update={"help_generator": "claude", "anthropic_api_key": None, "corpus_path": CORPUS}
     )
-    app = create_app(settings, pool=SpyPool(), guard_pool=SpyPool())
+    pool = SpyPool()
+    pool.default = INCORRECT
+    app = create_app(settings, pool=pool, guard_pool=SpyPool())
     with TestClient(app, base_url="https://testserver") as c:
         assert c.get("/readyz").status_code == 200
         login(c)
-        item = _item(c, start(c))
+        sid = start(c)
+        item = _item(c, sid)
         assert item["help"] is None
         r = c.post("/api/help", json=_help(c, item))
+        # Review focus 3: help off, so a wrong answer is graded as usual and never classified.
+        _, graded = _submit(c, sid, item)
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "unavailable" and messages.UNAVAILABLE in body["html"]
     assert body["sources"] == [] and _rows(app) == []
+    assert graded["outcome"]["status"] == "incorrect" and app.state.classifier is None
+    with app.state.sessions() as db:
+        (answer,) = db.scalars(select(Answer))
+        assert answer.mistake_type is None and db.scalars(select(UsageEntry)).all() == []
+
+
+def test_wrong_answer_is_labeled_in_background(
+    client: TestClient, app_pool: tuple[FastAPI, SpyPool], gen: CitingGenerator
+) -> None:
+    """Spec D5: an applied wrong answer is classified by the worker, not the request."""
+    app = app_pool[0]
+    sid = start(client)
+    _submit(client, sid, _item(client, sid))
+    deadline = time.monotonic() + 5
+    while True:
+        with app.state.sessions() as db:
+            (answer,) = db.scalars(select(Answer))
+            entries = db.scalars(select(UsageEntry)).all()
+        if answer.mistake_type is not None:
+            break
+        assert time.monotonic() < deadline, "the answer was never labeled"
+        time.sleep(0.01)
+    assert answer.mistake_type == "wrong_rule" and len(gen.classified) == 1
+    assert gen.classified[0].model == "claude-haiku-5-5" and gen.requests == []
+    assert [(e.request_id, e.kind) for e in entries] == [(f"classify-{answer.id}", "classify")]
 
 
 @pytest.mark.parametrize(
@@ -260,6 +326,7 @@ def test_help_disabled_starts_no_guard_pool(
         assert c.get("/readyz").status_code == 200
         assert len(made) == 1 and app.state.guard_pool is None
         assert app.state.help.enabled is False
+        assert app.state.classifier is None  # spec D5: no classifier when help is off
 
 
 def test_claude_with_key_enables_help(tmp_path: Path) -> None:
@@ -314,7 +381,7 @@ def test_next_attempt_linked_once(client: TestClient, app_pool: tuple[FastAPI, S
     (row,) = _rows(app)
     assert row.next_submission_id == first
     with app.state.sessions() as db:
-        assert db.scalar(select(Submission).where(Submission.submission_id == first)) is not None
+        assert db.scalar(select(Answer).where(Answer.submission_id == first)) is not None
 
 
 def test_in_flight_cleared_after_help(client: TestClient, app_pool: Any) -> None:

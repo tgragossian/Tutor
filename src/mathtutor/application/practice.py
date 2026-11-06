@@ -6,6 +6,7 @@ Every transaction is short; the verifier pool is only ever called with no transa
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -30,16 +31,16 @@ from mathtutor.application.errors import (
 from mathtutor.application.selection import History, next_item_id
 from mathtutor.content.loader import LoadedContent
 from mathtutor.content.schema import Answer, ChoiceAnswer, Decimals, NumericAnswer, Problem, Source
-from mathtutor.domain import Action, AnswerKind, ItemState, VerdictStatus
+from mathtutor.domain import MAX_TRIES, Action, AnswerKind, ItemState, VerdictStatus
 from mathtutor.jsonio import loads_exact
+from mathtutor.store.answers import latest_applied, next_attempt_no
 from mathtutor.store.db import is_lock_error, write_transaction
+from mathtutor.store.models import Answer as AnswerRow
 from mathtutor.store.models import (
-    AttemptResult,
     HelpRequestRow,
     ItemEvent,
     SessionItem,
     StudySession,
-    Submission,
     User,
 )
 from mathtutor.verify.types import (
@@ -51,7 +52,7 @@ from mathtutor.verify.types import (
     VerifierBusy,
 )
 
-MAX_TRIES = 3
+logger = logging.getLogger(__name__)
 ORPHAN_AFTER = timedelta(seconds=10)  # ruling R5 / R13
 ALL_CORRECT = "all_correct"  # every problem in the topics has been answered correctly
 SESSION_COMPLETE = "session_complete"  # every unsolved problem was shown in this session
@@ -153,15 +154,17 @@ def _transition(state: ItemState, tries: int, status: VerdictStatus) -> tuple[It
     return state, tries  # unable_to_verify: no try consumed
 
 
-def _encode_answer(answer: SubmittedAnswer) -> str:
-    return json.dumps({"mathjson": answer.mathjson, "choice_id": answer.choice_id})
+def _decode_answer(row: AnswerRow) -> SubmittedAnswer:
+    return SubmittedAnswer(row.answer_kind, row.mathjson, row.latex or "", row.choice_id)
 
 
-def _decode_answer(sub: Submission) -> SubmittedAnswer:
-    data = loads_exact(sub.answer_json)
-    return SubmittedAnswer(
-        sub.answer_kind, data["mathjson"], sub.answer_latex or "", data["choice_id"]
-    )
+def _verdict(row: AnswerRow) -> Verdict:
+    assert row.status is not None and row.reason is not None and row.method is not None
+    return Verdict(row.status, row.reason, row.method)
+
+
+class _AlreadyGraded(Exception):
+    """Transaction B found a verdict already stored: a concurrent regrade won."""
 
 
 class PracticeService:
@@ -171,11 +174,17 @@ class PracticeService:
         content: LoadedContent,
         pool: Pool,
         clock: Callable[[], datetime],
+        *,
+        on_wrong: Callable[[int], None] | None = None,
     ) -> None:
+        """``on_wrong`` gets the answer id after the grading transaction commits, only for an
+        applied incorrect verdict (the background classifier's ``submit``, spec D5). It must
+        not block; its exceptions are logged by type and never reach the student."""
         self._sessions = sessions
         self._content = content
         self._pool = pool
         self._clock = clock
+        self._on_wrong = on_wrong
         self._problems: dict[str, Problem] = {p.id: p for p in content.bundle.problems}
         self._snapshots: dict[tuple[str, str], Problem] = {}
         self._topics = {t.topic_id for t in content.bundle.topics}
@@ -255,7 +264,7 @@ class PracticeService:
             return None
         item_ids = select(SessionItem.id).where(SessionItem.session_id == latest.id)
         touched = db.scalar(
-            select(Submission.id).where(Submission.session_item_id.in_(item_ids)).limit(1)
+            select(AnswerRow.id).where(AnswerRow.session_item_id.in_(item_ids)).limit(1)
         ) or db.scalar(select(ItemEvent.id).where(ItemEvent.session_item_id.in_(item_ids)).limit(1))
         return None if touched else latest.id
 
@@ -267,11 +276,10 @@ class PracticeService:
                 .order_by(StudySession.started_at.desc(), StudySession.id.desc())
             ).all()
             rows = db.execute(
-                select(SessionItem.session_id, SessionItem.id, AttemptResult.status)
-                .join(Submission, Submission.session_item_id == SessionItem.id)
-                .join(AttemptResult, AttemptResult.submission_pk == Submission.id)
+                select(SessionItem.session_id, SessionItem.id, AnswerRow.status)
+                .join(AnswerRow, AnswerRow.session_item_id == SessionItem.id)
                 .join(StudySession, StudySession.id == SessionItem.session_id)
-                .where(StudySession.user_id == user_id, AttemptResult.applied.is_(True))
+                .where(StudySession.user_id == user_id, AnswerRow.applied.is_(True))
             ).all()
         answered: dict[int, set[int]] = {}
         correct: dict[int, set[int]] = {}
@@ -376,7 +384,7 @@ class PracticeService:
 
     def _replay(self, user_id: int, session_id: int, key: str) -> SubmitView | _Orphan | None:
         with self._sessions() as db:
-            sub = db.scalar(select(Submission).where(Submission.submission_id == key))
+            sub = db.scalar(select(AnswerRow).where(AnswerRow.submission_id == key))
             if sub is None:
                 return None
             item = sub.session_item
@@ -384,12 +392,10 @@ class PracticeService:
                 raise Forbidden("This is not your submission.")
             if item.session_id != session_id:
                 raise NotFound("Submission not found in this session.")
-            result = sub.result
-            if result is not None:
-                if not result.applied:
+            if sub.status is not None:
+                if not sub.applied:
                     raise StaleItem("This problem changed while it was being checked.")
-                verdict = Verdict(result.status, result.reason, result.method)
-                return SubmitView(verdict, self._view(db, item), replayed=True)
+                return SubmitView(_verdict(sub), self._view(db, item), replayed=True)
             # A recovery's lease restarts the clock: another recovery waits for it in turn.
             if self._clock() - (sub.leased_at or sub.created_at) < ORPHAN_AFTER:
                 raise SubmissionPending("This answer is still being checked.")
@@ -400,21 +406,19 @@ class PracticeService:
         the claim is exclusive among recoveries and the row is never deleted from under one."""
         with self._tx() as db:
             claimed = db.execute(
-                update(Submission)
+                update(AnswerRow)
                 .where(
-                    Submission.id == orphan.submission_pk,
-                    Submission.submission_id == key,
-                    Submission.lease == orphan.lease,
-                    ~select(AttemptResult.id)
-                    .where(AttemptResult.submission_pk == Submission.id)
-                    .exists(),
+                    AnswerRow.id == orphan.submission_pk,
+                    AnswerRow.submission_id == key,
+                    AnswerRow.lease == orphan.lease,
+                    AnswerRow.status.is_(None),
                 )
-                .values(lease=Submission.lease + 1, leased_at=self._clock())
+                .values(lease=AnswerRow.lease + 1, leased_at=self._clock())
                 .execution_options(synchronize_session=False)
             )
             if cast(CursorResult[Any], claimed).rowcount != 1:
                 raise SubmissionPending("This answer is still being checked.")
-            sub = db.get(Submission, orphan.submission_pk)
+            sub = db.get(AnswerRow, orphan.submission_pk)
             assert sub is not None
             db.refresh(sub)
             if sub.reserved_revision is None:
@@ -460,12 +464,14 @@ class PracticeService:
             if item.state is not ItemState.ACTIVE or item.revision != item_revision:
                 raise StaleItem("This problem changed; reload it.")
             now = self._clock()
-            sub = Submission(
+            sub = AnswerRow(
                 submission_id=key,
+                user_id=session.user_id,
                 session_item_id=item.id,
                 answer_kind=answer.kind,
-                answer_json=_encode_answer(answer),
-                answer_latex=answer.latex,
+                mathjson=answer.mathjson,
+                choice_id=answer.choice_id,
+                latex=answer.latex,
                 created_at=now,
                 reserved_revision=item_revision,
                 lease=0,
@@ -507,7 +513,7 @@ class PracticeService:
             with self._tx() as db:
                 # The row must still be this answer: never store a result against a row whose
                 # id was reused after a delete (B-R5).
-                sub = db.get(Submission, res.submission_pk)
+                sub = db.get(AnswerRow, res.submission_pk)
                 if (
                     sub is None
                     or sub.submission_id != res.submission_id
@@ -528,9 +534,12 @@ class PracticeService:
                     .execution_options(synchronize_session=False)
                 )
                 applied = cast(CursorResult[Any], changed).rowcount == 1
-                db.add(
-                    AttemptResult(
-                        submission_pk=res.submission_pk,
+                graded = db.execute(
+                    update(AnswerRow)
+                    .where(AnswerRow.id == sub.id, AnswerRow.status.is_(None))
+                    .values(
+                        # Numbered only when applied, in this transaction (spec D3).
+                        attempt_no=next_attempt_no(db, item.id) if applied else None,
                         status=outcome.status,
                         reason=outcome.reason,
                         method=outcome.method,
@@ -542,11 +551,14 @@ class PracticeService:
                         counts_as_try=applied and outcome.status is VerdictStatus.INCORRECT,
                         applied=applied,
                     )
+                    .execution_options(synchronize_session=False)
                 )
-                db.flush()
+                if cast(CursorResult[Any], graded).rowcount != 1:
+                    raise _AlreadyGraded  # rolls back the presentation update as well
+                db.refresh(sub)
                 db.refresh(item)
                 view = self._view(db, item)
-        except IntegrityError:
+        except (IntegrityError, _AlreadyGraded):
             # A concurrent regrade of the same orphan stored its result first.
             replay = self._replay(user_id, session_id, res.submission_id)
             if isinstance(replay, SubmitView):
@@ -554,6 +566,11 @@ class PracticeService:
             raise StaleItem("This problem changed; reload it.") from None
         if not applied:
             raise StaleItem("This problem changed while it was being checked.")
+        if outcome.status is VerdictStatus.INCORRECT and self._on_wrong is not None:
+            try:
+                self._on_wrong(res.submission_pk)
+            except Exception as exc:  # noqa: BLE001 - labeling never fails a submit
+                logger.warning("on_wrong failed: %s", type(exc).__name__)
         return SubmitView(outcome, view, False, checked.worker_ms, checked.queue_ms)
 
     @staticmethod
@@ -580,13 +597,11 @@ class PracticeService:
         so it is not the follow-up attempt of any help either."""
         with self._tx() as db:
             deleted = db.execute(
-                delete(Submission).where(
-                    Submission.id == res.submission_pk,
-                    Submission.submission_id == res.submission_id,
-                    Submission.lease == res.lease,
-                    ~select(AttemptResult.id)
-                    .where(AttemptResult.submission_pk == Submission.id)
-                    .exists(),
+                delete(AnswerRow).where(
+                    AnswerRow.id == res.submission_pk,
+                    AnswerRow.submission_id == res.submission_id,
+                    AnswerRow.lease == res.lease,
+                    AnswerRow.status.is_(None),
                 )
             )
             if cast(CursorResult[Any], deleted).rowcount == 1:
@@ -644,14 +659,11 @@ class PracticeService:
             .where(StudySession.user_id == user_id)
         ).all()
         results = db.execute(
-            select(Submission.session_item_id, AttemptResult.status)
-            .join(AttemptResult, AttemptResult.submission_pk == Submission.id)
-            .join(SessionItem, SessionItem.id == Submission.session_item_id)
-            .join(StudySession, StudySession.id == SessionItem.session_id)
-            .where(StudySession.user_id == user_id, AttemptResult.applied.is_(True))
-            .order_by(AttemptResult.id)
+            select(AnswerRow.session_item_id, AnswerRow.status)
+            .where(AnswerRow.user_id == user_id, AnswerRow.applied.is_(True))
+            .order_by(AnswerRow.session_item_id, AnswerRow.attempt_no)
         ).all()
-        latest: dict[int, VerdictStatus] = {}
+        latest: dict[int, VerdictStatus | None] = {}  # applied rows always have a status
         for presentation_id, status in results:
             latest[presentation_id] = status
         return [(item_id, latest.get(pk), served_at) for pk, item_id, served_at in items]
@@ -694,13 +706,7 @@ class PracticeService:
     def _view(self, db: Session, item: SessionItem) -> ItemView:
         problem = self._snapshot(item)
         answer = problem.answer
-        last = db.scalar(
-            select(AttemptResult)
-            .join(Submission, Submission.id == AttemptResult.submission_pk)
-            .where(Submission.session_item_id == item.id, AttemptResult.applied.is_(True))
-            .order_by(AttemptResult.id.desc())
-            .limit(1)
-        )
+        last = latest_applied(db, item.id)
         return ItemView(
             session_item_id=item.id,
             revision=item.revision,
@@ -715,6 +721,6 @@ class PracticeService:
             source=problem.source,
             allowed_actions=list(ALLOWED[item.state]),
             tries_left=MAX_TRIES - item.tries_used,
-            last_outcome=None if last is None else Verdict(last.status, last.reason, last.method),
+            last_outcome=None if last is None else _verdict(last),
             revealed_latex=expected_latex(answer) if item.state is ItemState.REVEALED else None,
         )

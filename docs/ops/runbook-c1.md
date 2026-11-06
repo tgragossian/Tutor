@@ -89,3 +89,7 @@ the [runbook](runbook.md). Check `/readyz`, update [host](host.md) with the new 
 6. Gate check, [deploy](runbook.md), set the key, `/readyz`; on the live site one cited hint
    on a wrong derivative and one abstention on an out-of-book question.
 7. Commit `docs: C1 released` after the live check.
+
+## Deploy the answers table
+
+Migrations 0006 and 0007: see the [answers-table runbook](runbook-answers-table.md).

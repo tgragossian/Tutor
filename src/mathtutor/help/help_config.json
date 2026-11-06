@@ -43,6 +43,13 @@
     "query_max_bytes": 1200,
     "question_max_bytes": 500
   },
+  "classifier": {
+    "model": "claude-haiku-5-5",
+    "effort": "low",
+    "max_output_tokens": 200,
+    "timeout_s": 10.0,
+    "queue_max": 32
+  },
   "tariffs": {
     "claude-haiku-5-5": {
       "model_id": "claude-haiku-5-5",

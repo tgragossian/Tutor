@@ -23,7 +23,7 @@ from mathtutor.application.auth import AuthService
 from mathtutor.application.errors import StaleItem
 from mathtutor.application.practice import ItemView, PracticeService
 from mathtutor.content.loader import LoadedContent
-from mathtutor.domain import AnswerKind, FormatIssueCode
+from mathtutor.domain import MAX_TRIES, AnswerKind, FormatIssueCode
 from mathtutor.store.models import SessionItem
 from mathtutor.verify.types import CheckRequest, CheckResult, FormatIssue, SubmittedAnswer
 
@@ -67,8 +67,8 @@ def test_ba1_delayed_advance_and_reveal_cannot_touch_the_next_item(
     world: World,
 ) -> None:
     client, pool, sid, item = world
-    pool.script = [INCORRECT] * 3
-    for _ in range(3):
+    pool.script = [INCORRECT] * MAX_TRIES
+    for _ in range(MAX_TRIES):
         body = {
             "submission_id": str(uuid4()),
             **_action(item),
@@ -253,9 +253,9 @@ def test_ba4_presentation_keeps_its_snapshot(world: World, drop: bool) -> None:
     view = svc.current_item(user_id, sid)
     assert isinstance(view, ItemView)
     assert view.statement_html == item["statement_html"]
-    pool.script = [INCORRECT] * 3
+    pool.script = [INCORRECT] * MAX_TRIES
     answer = SubmittedAnswer(AnswerKind.EXPRESSION, ["Multiply", 2, "x"], "2x", None)
-    for _ in range(3):
+    for _ in range(MAX_TRIES):
         view = svc.submit_answer(
             user_id, sid, uuid4(), view.session_item_id, view.revision, answer
         ).item

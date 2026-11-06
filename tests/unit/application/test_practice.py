@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import uuid
 from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, timedelta
@@ -23,6 +24,7 @@ from mathtutor.application.errors import (
 )
 from mathtutor.application.practice import Done, ItemView, PracticeService, SubmitView
 from mathtutor.domain import (
+    MAX_TRIES,
     Action,
     AnswerKind,
     FormatIssueCode,
@@ -32,7 +34,7 @@ from mathtutor.domain import (
     VerdictStatus,
 )
 from mathtutor.store.db import make_engine, make_sessionmaker, upgrade
-from mathtutor.store.models import AttemptResult, ItemEvent, SessionItem, StudySession, Submission
+from mathtutor.store.models import Answer, ItemEvent, SessionItem, StudySession
 from mathtutor.verify.types import (
     CheckRequest,
     CheckResult,
@@ -121,6 +123,18 @@ class World:
         with self.sessions() as db:
             return int(db.scalar(select(func.count()).select_from(model)) or 0)
 
+    def graded(self) -> int:
+        """Answers with a stored verdict (applied or not)."""
+        with self.sessions() as db:
+            n = db.scalar(select(func.count()).where(Answer.status.is_not(None)))
+            return int(n or 0)
+
+    def graded_row(self) -> Answer:
+        with self.sessions() as db:
+            row = db.scalar(select(Answer).where(Answer.status.is_not(None)))
+            assert row is not None
+            return row
+
 
 def _at(view: ItemView) -> tuple[int, int]:
     """An action's target: the presentation and its revision."""
@@ -139,7 +153,7 @@ def test_start_creates_first_presentation(w: World) -> None:
     v = w.view(sid)
     assert v.item_id == FIRST
     assert v.state is ItemState.ACTIVE
-    assert v.tries_left == 3
+    assert v.tries_left == MAX_TRIES == 5  # spec D7
     assert v.allowed_actions == [Action.SUBMIT, Action.SKIP]
     assert v.precision_hint is None  # only numeric problems get a hint
     assert v.last_outcome is None and v.revealed_latex is None
@@ -155,7 +169,7 @@ def test_unknown_topic_is_invalid(w: World) -> None:
 
 def test_precision_hint_and_choices(w: World) -> None:
     sid = w.svc.start_session(w.alice, ["derivatives.chain_rule"])
-    for _ in range(3):
+    for _ in range(MAX_TRIES):
         w.submit(sid, INCORRECT)
     w.svc.advance(w.alice, sid, *_at(w.view(sid)))
     v = w.view(sid)
@@ -168,16 +182,16 @@ def test_precision_hint_and_choices(w: World) -> None:
     assert choice.choices is not None and [c[0] for c in choice.choices][:2] == ["a", "b"]
 
 
-def test_three_incorrect_exhausts(w: World) -> None:
+def test_five_incorrect_exhausts(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     lefts, states = [], []
-    for _ in range(3):
+    for _ in range(MAX_TRIES):
         r = w.submit(sid, INCORRECT)
         assert r.outcome == INCORRECT and not r.replayed
         lefts.append(r.item.tries_left)
         states.append(r.item.state)
-    assert lefts == [2, 1, 0]
-    assert states == [ItemState.ACTIVE, ItemState.ACTIVE, ItemState.EXHAUSTED]
+    assert lefts == [4, 3, 2, 1, 0]
+    assert states == [ItemState.ACTIVE] * 4 + [ItemState.EXHAUSTED]
     assert w.view(sid).allowed_actions == [Action.REVEAL, Action.ADVANCE]
     assert w.view(sid).last_outcome == INCORRECT
 
@@ -185,7 +199,7 @@ def test_three_incorrect_exhausts(w: World) -> None:
 def test_unable_to_verify_keeps_try_and_allows_skip(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     r = w.submit(sid, UNABLE)
-    assert r.item.tries_left == 3
+    assert r.item.tries_left == MAX_TRIES
     assert r.item.state is ItemState.ACTIVE
     assert Action.SKIP in r.item.allowed_actions
     nxt = w.svc.skip(w.alice, sid, *_at(r.item))
@@ -216,7 +230,7 @@ def test_reveal_only_when_exhausted(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     with pytest.raises(InvalidAction):
         w.svc.reveal(w.alice, sid, *_at(w.view(sid)))
-    for _ in range(3):
+    for _ in range(MAX_TRIES):
         w.submit(sid, INCORRECT)
     v = w.svc.reveal(w.alice, sid, *_at(w.view(sid)))
     assert isinstance(v, ItemView)
@@ -238,7 +252,7 @@ def test_revisit_gets_fresh_presentation(w: World) -> None:
     again = w.view(later)
     assert again.item_id == FIRST
     assert again.session_item_id != first.session_item_id
-    assert again.tries_left == 3 and again.last_outcome is None
+    assert again.tries_left == MAX_TRIES and again.last_outcome is None
 
 
 def test_session_ends_after_last_unsolved_problem(w: World) -> None:
@@ -246,7 +260,7 @@ def test_session_ends_after_last_unsolved_problem(w: World) -> None:
     sid = w.svc.start_session(w.alice, [BASIC])
     w.submit(sid, CORRECT)  # FIRST
     w.svc.advance(w.alice, sid, *_at(w.view(sid)))
-    for _ in range(3):
+    for _ in range(MAX_TRIES):
         w.submit(sid, INCORRECT)  # SECOND, exhausted
     assert w.svc.advance(w.alice, sid, *_at(w.view(sid))) == Done("session_complete")
     assert w.svc.current_item(w.alice, sid) == Done("session_complete")
@@ -259,8 +273,8 @@ def test_duplicate_submission_id_returns_stored_result(w: World) -> None:
     first = w.submit(sid, INCORRECT, sid=key)
     again = w.svc.submit_answer(w.alice, sid, key, v.session_item_id, v.revision, ANSWER)
     assert again.replayed and again.outcome == INCORRECT
-    assert again.item.tries_left == first.item.tries_left == 2
-    assert w.count(AttemptResult) == 1
+    assert again.item.tries_left == first.item.tries_left == MAX_TRIES - 1
+    assert w.graded() == 1
     assert len(w.pool.requests) == 1
 
 
@@ -281,10 +295,8 @@ def test_revision_changed_while_grading_stores_unapplied_result(w: World) -> Non
     key = uuid.uuid4()
     with pytest.raises(StaleItem):
         w.submit(sid, CORRECT, sid=key)
-    with w.sessions() as db:
-        result = db.scalar(select(AttemptResult))
-        assert result is not None
-        assert (result.applied, result.counts_as_try) == (False, False)
+    result = w.graded_row()
+    assert (result.applied, result.counts_as_try, result.attempt_no) == (False, False, None)
     # The replay reports the same conflict.
     with pytest.raises(StaleItem):
         w.svc.submit_answer(w.alice, sid, key, v.session_item_id, v.revision, ANSWER)
@@ -310,7 +322,7 @@ def test_other_users_session_forbidden(w: World) -> None:
     bv = w.view(bob_sid, user=bob)
     with pytest.raises(Forbidden):
         w.svc.submit_answer(bob, bob_sid, key, bv.session_item_id, bv.revision, ANSWER)
-    assert w.count(Submission) == 1
+    assert w.count(Answer) == 1
 
 
 def test_item_from_another_session_is_not_found(w: World) -> None:
@@ -327,7 +339,7 @@ def test_answer_kind_must_match(w: World) -> None:
     choice = SubmittedAnswer(AnswerKind.CHOICE, None, "", "a")
     with pytest.raises(InvalidInput):
         w.submit(sid, CORRECT, answer=choice)
-    assert w.count(Submission) == 0
+    assert w.count(Answer) == 0
 
 
 def test_busy_releases_reservation(w: World) -> None:
@@ -335,7 +347,7 @@ def test_busy_releases_reservation(w: World) -> None:
     before = w.view(sid)
     with pytest.raises(Busy):
         w.submit(sid, VerifierBusy)
-    assert w.count(Submission) == 0
+    assert w.count(Answer) == 0
     after = w.view(sid)
     assert (after.revision, after.tries_left) == (before.revision, before.tries_left)
 
@@ -346,7 +358,7 @@ def test_format_issue_changes_nothing(w: World) -> None:
     issue = FormatIssue(FormatIssueCode.INCOMPLETE, "")
     r = w.submit(sid, issue)
     assert r.outcome == issue
-    assert w.count(Submission) == 0 and w.count(AttemptResult) == 0
+    assert w.count(Answer) == 0 and w.graded() == 0
     after = w.view(sid)
     assert (after.revision, after.tries_left, after.state) == (
         before.revision,
@@ -371,13 +383,12 @@ def test_seconds_on_item_from_served_at(w: World) -> None:
     w.clock.now += timedelta(seconds=42, milliseconds=600)
     w.view(sid)  # refresh: no effect
     w.submit(sid, INCORRECT)
-    with w.sessions() as db:
-        result = db.scalar(select(AttemptResult))
-        assert result is not None
-        assert result.seconds_on_item == 42
-        assert (result.worker_ms, result.queue_ms) == (7, 1)
-        assert result.verifier_version == "0.1.0+test"
-        assert result.counts_as_try and result.applied
+    result = w.graded_row()
+    assert result.seconds_on_item == 42
+    assert (result.worker_ms, result.queue_ms) == (7, 1)
+    assert result.verifier_version == "0.1.0+test"
+    assert result.counts_as_try and result.applied and result.attempt_no == 1
+    assert result.user_id == w.alice
 
 
 def test_pending_reservation_then_replay_regrades_orphaned_reservation(w: World) -> None:
@@ -387,12 +398,13 @@ def test_pending_reservation_then_replay_regrades_orphaned_reservation(w: World)
     # Simulate a crash between transactions A and B: a reservation with no result.
     with w.sessions.begin() as db:
         db.add(
-            Submission(
+            Answer(
                 submission_id=str(key),
+                user_id=w.alice,
                 session_item_id=v.session_item_id,
                 answer_kind=AnswerKind.EXPRESSION,
-                answer_json='{"mathjson": ["Multiply", 2, "x"], "choice_id": null}',
-                answer_latex="2x",
+                mathjson=["Multiply", 2, "x"],
+                latex="2x",
                 created_at=w.clock.now,
                 reserved_revision=v.revision,
             )
@@ -405,7 +417,7 @@ def test_pending_reservation_then_replay_regrades_orphaned_reservation(w: World)
     r = w.svc.submit_answer(w.alice, sid, key, v.session_item_id, v.revision, ANSWER)
     assert r.outcome == CORRECT and r.item.state is ItemState.ANSWERED
     assert w.pool.requests[-1].answer == ANSWER
-    assert w.count(Submission) == 1 and w.count(AttemptResult) == 1
+    assert w.count(Answer) == 1 and w.graded() == 1
 
 
 def test_decimal_answer_round_trips_exactly(w: World) -> None:
@@ -415,12 +427,13 @@ def test_decimal_answer_round_trips_exactly(w: World) -> None:
     exact = SubmittedAnswer(AnswerKind.EXPRESSION, ["Multiply", {"num": "0.1"}, "x"], "0.1x", None)
     with w.sessions.begin() as db:
         db.add(
-            Submission(
+            Answer(
                 submission_id=str(key),
+                user_id=w.alice,
                 session_item_id=v.session_item_id,
                 answer_kind=AnswerKind.EXPRESSION,
-                answer_json='{"mathjson": ["Multiply", 0.1, "x"], "choice_id": null}',
-                answer_latex="0.1x",
+                mathjson=["Multiply", 0.1, "x"],  # stored as the literal 0.1
+                latex="0.1x",
                 created_at=w.clock.now - timedelta(seconds=30),
                 reserved_revision=v.revision,
             )
@@ -511,3 +524,86 @@ def test_clear_history_only_touches_the_user(w: World) -> None:
     w.svc.submit_answer(w.bob, b, uuid.uuid4(), v.session_item_id, v.revision, ANSWER)
     w.svc.clear_history(w.alice)
     assert [s.session_id for s in w.svc.session_summary(w.bob)] == [b]
+
+
+def _attempts(w: World) -> list[tuple[VerdictStatus | None, bool | None, int | None, bool | None]]:
+    with w.sessions() as db:
+        rows = db.execute(
+            select(Answer.status, Answer.applied, Answer.attempt_no, Answer.counts_as_try).order_by(
+                Answer.id
+            )
+        ).all()
+    return [tuple(r) for r in rows]
+
+
+def test_applied_answers_are_numbered_in_order(w: World) -> None:
+    """Spec D3: every applied verdict is numbered, unable_to_verify included (no try used)."""
+    sid = w.svc.start_session(w.alice, [BASIC])
+    w.submit(sid, INCORRECT)
+    w.submit(sid, UNABLE)
+    w.submit(sid, INCORRECT)
+    assert _attempts(w) == [
+        (VerdictStatus.INCORRECT, True, 1, True),
+        (VerdictStatus.UNABLE_TO_VERIFY, True, 2, False),
+        (VerdictStatus.INCORRECT, True, 3, True),
+    ]
+
+
+def test_stale_answer_is_not_numbered(w: World) -> None:
+    sid = w.svc.start_session(w.alice, [BASIC])
+    w.submit(sid, INCORRECT)
+    v = w.view(sid)
+    w.pool.during = lambda: w.svc.skip(w.alice, sid, *_at(v))
+    with pytest.raises(StaleItem):
+        w.submit(sid, CORRECT)
+    assert _attempts(w) == [
+        (VerdictStatus.INCORRECT, True, 1, True),
+        (VerdictStatus.CORRECT, False, None, False),
+    ]
+
+
+def _hooked(w: World, hook: Callable[[int], None]) -> None:
+    w.svc = PracticeService(w.sessions, CONTENT, w.pool, w.clock, on_wrong=hook)
+
+
+def test_on_wrong_called_once_for_applied_incorrect(w: World) -> None:
+    calls: list[int] = []
+    _hooked(w, calls.append)
+    sid = w.svc.start_session(w.alice, [BASIC])
+    v, key = w.view(sid), uuid.uuid4()
+    w.submit(sid, INCORRECT, sid=key)
+    (row,) = _answers(w)
+    assert calls == [row.id]
+    again = w.svc.submit_answer(w.alice, sid, key, v.session_item_id, v.revision, ANSWER)
+    assert again.replayed and calls == [row.id]
+
+
+def test_on_wrong_not_called_for_correct_or_stale(w: World) -> None:
+    calls: list[int] = []
+    _hooked(w, calls.append)
+    sid = w.svc.start_session(w.alice, [BASIC])
+    w.submit(sid, UNABLE)
+    w.submit(sid, FormatIssue(FormatIssueCode.INCOMPLETE, ""))
+    v = w.view(sid)
+    w.pool.during = lambda: w.svc.skip(w.alice, sid, *_at(v))
+    with pytest.raises(StaleItem):
+        w.submit(sid, INCORRECT)  # stored, not applied
+    w.submit(sid, CORRECT)  # the next problem
+    assert calls == []
+
+
+def test_on_wrong_error_does_not_fail_submit(w: World, caplog: pytest.LogCaptureFixture) -> None:
+    def boom(answer_id: int) -> None:
+        raise RuntimeError("secret student text")
+
+    _hooked(w, boom)
+    sid = w.svc.start_session(w.alice, [BASIC])
+    with caplog.at_level(logging.WARNING):
+        out = w.submit(sid, INCORRECT)
+    assert out.outcome == INCORRECT and out.item.tries_left == MAX_TRIES - 1
+    assert "RuntimeError" in caplog.text and "secret student text" not in caplog.text
+
+
+def _answers(w: World) -> list[Answer]:
+    with w.sessions() as db:
+        return list(db.scalars(select(Answer).order_by(Answer.id)))

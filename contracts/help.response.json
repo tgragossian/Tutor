@@ -40,7 +40,8 @@
         "unavailable",
         "limited",
         "stale",
-        "pending"
+        "pending",
+        "try_again"
       ],
       "title": "Status",
       "type": "string"

@@ -1,16 +1,16 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from mathtutor.domain import Action, AnswerKind, ItemState, Method, VerdictReason, VerdictStatus
 from mathtutor.store.models import (
-    AttemptResult,
+    Answer,
     ItemEvent,
     SessionItem,
     StudySession,
-    Submission,
     User,
     WebSession,
 )
@@ -48,38 +48,36 @@ def _item(db: Session) -> SessionItem:
     return item
 
 
-def _submission(item: SessionItem, submission_id: str) -> Submission:
-    return Submission(
+def _answer(item: SessionItem, submission_id: str) -> Answer:
+    return Answer(
         submission_id=submission_id,
+        user_id=item.session.user_id,
         session_item_id=item.id,
         answer_kind=AnswerKind.EXPRESSION,
-        answer_json='["Multiply", 2, "x"]',
-        answer_latex="2x",
+        mathjson=["Multiply", 2, "x"],
+        latex="2x",
         created_at=NOW,
     )
 
 
-def _result(submission: Submission) -> AttemptResult:
-    return AttemptResult(
-        submission_pk=submission.id,
-        status=VerdictStatus.CORRECT,
-        reason=VerdictReason.PROVEN,
-        method=Method.SYMBOLIC,
-        verifier_version="0.1.0+dev",
-        worker_ms=12,
-        queue_ms=0,
-        seconds_on_item=30,
-        counts_as_try=False,
-        applied=True,
-    )
+def _grade(answer: Answer) -> None:
+    answer.attempt_no = 1
+    answer.status = VerdictStatus.CORRECT
+    answer.reason = VerdictReason.PROVEN
+    answer.method = Method.SYMBOLIC
+    answer.verifier_version = "0.1.0+dev"
+    answer.worker_ms = 12
+    answer.queue_ms = 0
+    answer.seconds_on_item = 30
+    answer.counts_as_try = False
+    answer.applied = True
 
 
 def test_round_trip_all_models(db: Session) -> None:
     item = _item(db)
-    sub = _submission(item, "11111111-1111-4111-8111-111111111111")
-    db.add(sub)
-    db.flush()
-    db.add(_result(sub))
+    answer = _answer(item, "11111111-1111-4111-8111-111111111111")
+    _grade(answer)
+    db.add(answer)
     db.add(ItemEvent(session_item_id=item.id, kind=Action.SKIP, created_at=NOW))
     db.add(
         WebSession(
@@ -97,16 +95,17 @@ def test_round_trip_all_models(db: Session) -> None:
     assert loaded.state is ItemState.ACTIVE
     assert loaded.served_at == NOW
     assert loaded.session.topics == ["derivatives.basic_rules"]
-    assert loaded.submissions[0].result is not None
-    assert loaded.submissions[0].result.reason is VerdictReason.PROVEN
-    assert loaded.submissions[0].result.applied is True
+    stored = loaded.answers[0]
+    assert stored.mathjson == ["Multiply", 2, "x"] and stored.choice_id is None
+    assert stored.reason is VerdictReason.PROVEN
+    assert (stored.applied, stored.attempt_no, stored.mistake_type) == (True, 1, None)
 
 
 def test_submission_id_unique(db: Session) -> None:
     item = _item(db)
-    db.add(_submission(item, "dup"))
+    db.add(_answer(item, "dup"))
     db.flush()
-    db.add(_submission(item, "dup"))
+    db.add(_answer(item, "dup"))
     with pytest.raises(IntegrityError):
         db.flush()
 
@@ -117,16 +116,36 @@ def test_username_unique(db: Session) -> None:
         _user(db, "bob")
 
 
-def test_attempt_result_one_per_submission(db: Session) -> None:
+def test_ungraded_answer_has_null_verdict(db: Session) -> None:
     item = _item(db)
-    sub = _submission(item, "s1")
-    db.add(sub)
-    db.flush()
-    db.add(_result(sub))
-    db.flush()
-    db.add(_result(sub))
-    with pytest.raises(IntegrityError):
-        db.flush()
+    db.add(_answer(item, "s1"))
+    db.commit()
+    db.expire_all()
+    loaded = db.get(SessionItem, item.id)
+    assert loaded is not None
+    stored = loaded.answers[0]
+    assert (stored.status, stored.applied, stored.attempt_no, stored.lease) == (None, None, None, 0)
+
+
+def test_mathjson_round_trips_exactly(db: Session) -> None:
+    """A bare integer past int64 and a decimal come back exactly, never as floats (R5)."""
+    item = _item(db)
+    big, decimal = _answer(item, "big"), _answer(item, "decimal")
+    big.mathjson = 10**20 + 1
+    decimal.mathjson = ["Multiply", 0.1, "x"]
+    choice = _answer(item, "choice")
+    choice.mathjson = None
+    db.add_all([big, decimal, choice])
+    db.commit()
+    db.expire_all()
+    rows = {a.submission_id: a.mathjson for a in db.scalars(select(Answer))}
+    assert rows == {
+        "big": 10**20 + 1,
+        "decimal": ["Multiply", {"num": "0.1"}, "x"],
+        "choice": None,
+    }
+    raw = db.execute(text("SELECT typeof(mathjson) FROM answers ORDER BY id")).scalars().all()
+    assert raw == ["text", "text", "null"]
 
 
 def test_session_item_sequence_unique(db: Session) -> None:

@@ -51,9 +51,11 @@ W, C, U = VerdictStatus.INCORRECT, VerdictStatus.CORRECT, VerdictStatus.UNABLE_T
 def test_feedback_queries_the_latest_wrong_attempt(
     submitted: list[tuple[str, VerdictStatus]], latest: str
 ) -> None:
-    """Review C1-R6: built through ``assemble_context`` (oldest first in, newest first out),
+    """Review C1-R6: built through ``assemble_context`` (oldest to newest in and out),
     as production and the evaluation build it."""
-    attempts = [AttemptLine(f"x^{{{tag}}}", status) for tag, status in submitted]
+    attempts = [
+        AttemptLine(f"x^{{{tag}}}", status, n) for n, (tag, status) in enumerate(submitted, 1)
+    ]
     context = assemble_context(PROBLEM, attempts, 1, None)
     feedback = build_query(context, "feedback", None, PARAMS)
     included = [tag for tag, _ in submitted if f"x^{{{tag}}}" in feedback]
@@ -70,3 +72,13 @@ def test_caps_come_from_the_config() -> None:
     small = PARAMS.model_copy(update={"query_max_bytes": 40, "question_max_bytes": 5})
     assert len(build_query(ctx("S" * 100), "hint", None, small).encode("utf-8")) == 40
     assert build_query(ctx("S"), "explain", "w" * 50, small) == "S chain rule wwwww"
+
+
+def test_feedback_query_uses_latest_wrong_attempt() -> None:
+    attempts = [
+        AttemptLine("x", VerdictStatus.INCORRECT, 1),
+        AttemptLine("y", VerdictStatus.INCORRECT, 2),
+        AttemptLine("z", VerdictStatus.CORRECT, 3),
+    ]
+    query = build_query(assemble_context(PROBLEM, attempts, 1, None), "feedback", None, PARAMS)
+    assert "y" in query.split() and "x" not in query.split()
