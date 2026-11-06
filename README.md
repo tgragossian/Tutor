@@ -1,6 +1,7 @@
 # Calculus Tutor
 
-As a student and tutor, I often found myself seeing LLMs fail students in their learning process of mathematics. LLMs often provide too much information about a problem, decreasing learning outcomes of students by not allowing them to understand the problem for themselves. This project aims to find a solution to this problem by combining prompt engineering, hard-coded limitations, student input equivalency checks, RAG on OpenStax's *Calculus Volume 1* textbook (textbook-grounded AI hints), and LoRA fine-tuning on tutoring data using TutorBench's human-made rubrics of tutoring benchmarks.[^ai]
+As a student and tutor, I often found myself seeing LLMs fail students in their learning process of mathematics. LLMs often provide too much information about a problem, decreasing learning outcomes of students by not allowing them to understand the problem for themselves. This project aims to find a solution to this problem by combining prompt engineering, hard-coded limitations, student input equivalency checks, RAG on OpenStax's *Calculus Volume 1* textbook (textbook-grounded AI hints), and LoRA fine-tuning on tutoring data using TutorBench's human-made rubrics of tutoring benchmarks. All code was written by AI agents
+under my direction ([how this was built](#how-this-was-built)).
 
 **Live:** <https://tutor.thomasgragossian.dev> · **Status:** practice loop live since
 2026-10-21; AI help live as a **beta** since 2026-11-05 (Claude Sonnet 5.5).
@@ -133,6 +134,16 @@ describe the earlier prompt.
 
 ## What's next
 
+**In progress: answer history and a mistake-driven hint ladder.** Each answer becomes one
+database row with its owner, attempt number, verdict and mistake type. A fast model labels
+every wrong answer as an algebra slip, wrong rule, rule misapplied or incomplete, and each
+repeat of the same mistake makes the next hint more direct. The tutor gives one hint per
+attempt: one to get started, then one for each wrong answer. Extra clicks get a short prompt
+to try again, so the ladder moves only when the student does. A student who is missing the
+concept uses *Explain this*, which walks through how this kind of problem is done; one who
+knows the direction but finds the problem hard climbs the ladder by trying. Students get five
+tries instead of three. [Design and plan](docs/superpowers/plans/2026-11-05-answers-table/README.md).
+
 1. **Fine-tuned open model:** LoRA on Qwen 9B for tutoring, served on RunPod, compared with the
    Claude baseline on the same harness, a separate untouched test set and TutorBench. Aim to
    reduce serving cost while maintaining or improving help quality.
@@ -146,6 +157,14 @@ describe the earlier prompt.
    help for quizzes and exams. The tutor gives quizzes to find weaknesses and creates high-value
    problem sets. Students can also say how long they have before their exam and how many hours
    they can commit to the learning process.
+
+## How this was built
+
+All of the code was written by AI coding agents: Anthropic's Claude wrote it, and OpenAI's
+Codex reviewed it. My part was everything around the code: the problem and goals, the design
+choices and limits, the 22 reviewed problems, the hand-labeled evaluation sets, the blind
+audits of the AI judge, the usefulness standards and the release decisions, including
+reporting the missed targets above rather than tuning them away.
 
 ## Stack
 
@@ -170,5 +189,3 @@ Engineering detail lives in [`docs/`](docs/README.md): [decisions](docs/decision
 
 Textbook content: *Calculus Volume 1* by Gilbert Strang and Edwin "Jed" Herman, OpenStax,
 CC BY-NC-SA 4.0.
-
-[^ai]: Planning and technical review were assisted by Anthropic Claude and OpenAI Codex.
