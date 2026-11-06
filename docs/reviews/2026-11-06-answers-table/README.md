@@ -42,3 +42,11 @@ Docker image, container smoke and help e2e (no Docker on this PC); no paid calls
 4. Prompt identity: the classifier prompt is hashed into the hint `prompt_id` and its own
    prompt id is not recorded with labels (ledger item in 01).
 5. Anything a deploy on the 1 GB host would trip over (worker thread, queue, `migrate`).
+
+## Live deploy (2026-11-06)
+
+Claude deployed `main` `05053b2` (image built at `e14485e`). App stopped; SQLite backup API
+copy `/srv/backups/mathtutor-pre-answers-live-20261106T232913Z.db` (integrity ok, 0005,
+26 submissions). `migrate` 0005→0007 exit 0; `audit_answers_migration.py` on backup vs live:
+`PASS answers=26 graded=26 items=18 labels=2`; `foreign_key_check` empty; `/readyz` ready,
+22 servable. Thomas's browser acceptance check: pending.

@@ -1,10 +1,7 @@
 # Calculus Tutor handoff
 
-Owner: Thomas Gragossian. Updated: 2026-11-06 after Codex's answers-table review.
-**Claude resumes the host release.** PR #1 merged to `main` at `e14485e`. Host checkout and
-`mathtutor:local` image are at that commit, but the running app is the **old container** and
-production SQLite is still at migration 0005. No live migration was run. After restart,
-public `/readyz` returned ready with 22 servable problems.
+Owner: Thomas Gragossian. Updated: 2026-11-06 after the answers-table live deploy.
+Host runs `main` `05053b2` (image `e14485e`), migration **0007**, help on.
 
 **C1 (Claude-written, textbook-grounded help) is live as a beta with Sonnet 5.5.**
 [C1 status](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/20-status.md) owns release
@@ -13,21 +10,12 @@ records R1–R40. Milestone B is closed; actual hours are not a gate.
 
 ## Resume here
 
-1. **Finish the live answers-table deploy** using [the runbook](docs/ops/runbook-answers-table.md).
-   Review: [brief](docs/reviews/2026-11-06-answers-table/README.md),
-   [findings](docs/reviews/2026-11-06-answers-table/03-findings.md),
-   [decisions](docs/reviews/2026-11-06-answers-table/02-open-decisions.md).
-   CI Python/Node/container passed for `e1350f2`. A live backup copy upgraded 0005→0007:
-   26 answers, 26 results, 18 items, 2 carried labels, clean integrity/foreign keys.
-   A second copy downgraded to 0005 with submissions/results preserved. One real Haiku
-   classifier call on the copy returned `incomplete` and settled its usage.
-   Valid backups: `/srv/backups/mathtutor-pre-answers-20261106T230809Z.db` and
-   `...T231528Z.db`; the `...T231804Z.db` file is **zero bytes, do not use it**.
-   I stopped the old app for a final backup; the read-only SQLite backup failed after WAL
-   files closed, so I restarted the old container. Take a fresh valid backup before live
-   migration (SQLite backup while running, or copy the DB while stopped with no WAL).
-   Then migrate, recreate the app, verify `/readyz`, schema and classifier. Thomas will test
-   the live website himself, especially existing history and the refactored database.
+1. **Answers table is live** (0005→0007, audit PASS 26 answers/18 items/2 labels;
+   [deploy record](docs/reviews/2026-11-06-answers-table/README.md#live-deploy-2026-11-06)).
+   Pre-migration backup: `/srv/backups/mathtutor-pre-answers-live-20261106T232913Z.db`
+   (the `...T231804Z.db` file is zero bytes). Pending: Thomas's browser check in the
+   [runbook](docs/ops/runbook-answers-table.md#thomass-live-acceptance-check); confirm a
+   live wrong answer gets a `mistake_type`. [Findings](docs/reviews/2026-11-06-answers-table/03-findings.md).
 2. **[Baseline ladder plan](docs/superpowers/plans/2026-11-06-baseline-ladder/README.md):**
    (plain request vs paste-in prompt vs tutor without textbook vs full tutor, with cost per
    useful hint). [Codex review](docs/reviews/2026-11-06-baseline-ladder/README.md)

@@ -72,7 +72,7 @@ wrong rule, rule misapplied, incomplete), and each labeled repeat of the same ty
 next hint more direct. A failed or dropped classification can leave a wrong answer unlabeled
 until a hint classifies it.
 
-The answers-table refactor is prepared for release; deployment status is in the
+The answers-table refactor went live on 2026-11-06; the migration audit and browser check are in the
 [answers-table review](docs/reviews/2026-11-06-answers-table/README.md). Each answer is one database
 row with its owner, attempt number, verdict and mistake type. A fast model labels wrong
 answers in the background. The tutor gives one hint per attempt: one to get started, then
