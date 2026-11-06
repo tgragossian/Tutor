@@ -171,3 +171,22 @@ def test_system_prompt_rules() -> None:
     expr = next(p for p in PROBLEMS if isinstance(p.answer, ExpressionAnswer))
     _, user = build_prompt(_ctx(expr), "hint", CHUNKS, None, False)
     assert f"Variable: ${expr.answer.variable}$" in user
+
+
+@pytest.mark.parametrize("help_type", TYPES)
+def test_latest_attempt_is_marked_and_listed_last(help_type: HelpType) -> None:
+    """R40 (Thomas, live): a numbered newest-first list was read as chronological, so help
+    described an earlier attempt. Attempts now run oldest to newest and the latest is named."""
+    problem = next(p for p in PROBLEMS if p.id == "openstax-c1-3.3-107")  # 5x^3 - x + 1
+    attempts = [
+        AttemptLine("15x^2-3", VerdictStatus.INCORRECT),  # submitted first
+        AttemptLine("15x-1", VerdictStatus.INCORRECT),  # submitted second: the latest
+    ]
+    ctx = assemble_context(problem, attempts, 1, None)
+    _, user = build_prompt(ctx, help_type, CHUNKS[:1], _label(help_type), False, cfg=CFG)
+    block = user[user.index("<attempts>") : user.index("</attempts>")]
+    assert "oldest to newest" in block and "Help with the LATEST attempt" in block
+    assert block.index("15x^2-3") < block.index("15x-1")
+    assert "LATEST attempt: <student_text>15x-1</student_text>" in block
+    assert "Earlier attempt 1: <student_text>15x^2-3</student_text>" in block
+    assert "newest first" not in user and "first one listed" not in user

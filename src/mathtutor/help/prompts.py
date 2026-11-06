@@ -42,7 +42,8 @@ LEVEL_RULES = {
     "ask one question about the problem's form or what it asks for (for example: is it a sum, a "
     "product, a quotient, or one function inside another?) so they can choose the method "
     "themselves. Do not name the rule or method, and do not start the work.",
-    1: "a gentle nudge about their latest attempt. Say what they got right, say that "
+    1: "a gentle nudge about their latest attempt. Say what they got right in it (only a part "
+    "that is fully correct in the latest attempt; if none is, skip the praise), say that "
     "something is missing or off without naming it, and ask them to compare their answer with "
     "the original problem.",
     2: "a more direct pointer. Name the specific part of the problem or of their answer to "
@@ -129,13 +130,18 @@ def _context_block(ctx: HelpContext, caps: dict[str, int]) -> str:
         lines.append(f"Variable: ${_data(ctx.variable, 20)}$")
     lines += [f"Statement: {_data(ctx.statement, caps['statement'])}", "</problem>", ""]
     if ctx.attempts:
+        # Oldest to newest, with the latest named outright: a numbered newest-first list was
+        # read as chronological, so help described an earlier attempt (R40, Thomas live test).
+        shown = list(reversed(ctx.attempts))  # ctx.attempts is newest first
         lines.append(
-            f"<attempts> The student's recent attempts, newest first "
-            f"(tries used so far: {ctx.tries_used}):"
+            f"<attempts> The student's recent attempts, oldest to newest "
+            f"(tries used so far: {ctx.tries_used}). Help with the LATEST attempt; "
+            f"earlier attempts are context only:"
         )
-        for i, a in enumerate(ctx.attempts, 1):
+        for i, a in enumerate(shown, 1):
             latex = _data(a.latex, caps["attempt_latex"])
-            lines.append(f"{i}. <student_text>{latex}</student_text> checked: {a.status.value}")
+            tag = "LATEST attempt" if i == len(shown) else f"Earlier attempt {i}"
+            lines.append(f"{tag}: <student_text>{latex}</student_text> checked: {a.status.value}")
         lines.append("</attempts>")
     else:
         lines.append("The student has not submitted an attempt on this problem yet.")

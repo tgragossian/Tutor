@@ -47,6 +47,9 @@ th, td { text-align: left; padding: 0.4rem; border-bottom: 1px solid var(--line)
 math-field { --smart-fence-opacity: 1; display: block; width: 100%; box-sizing: border-box; font-size: 1.3rem;
   border: 1px solid var(--line); border-radius: 6px; padding: 0.4rem; }
 math-field[read-only] { display: inline-block; width: auto; border: none; padding: 0; font-size: inherit; }
+/* The answer box is locked (read-only) while a check runs; it keeps its size and frame. */
+#answer-field[read-only] { display: block; width: 100%; font-size: 1.3rem;
+  border: 1px solid var(--line); padding: 0.4rem; }
 .keys { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.5rem 0; }
 .key { background: #f3f5f9; color: var(--ink); border-color: var(--line); padding: 0.35rem 0.6rem; min-width: 2.5rem; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }

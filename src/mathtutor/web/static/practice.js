@@ -180,9 +180,17 @@ function renderAnswer(current) {
 }
 
 // The answer can't be edited while it is being checked or might still be held by the server.
+// MathLive can leave the `read-only` attribute behind after `readOnly = false`, so the
+// unlocked box kept the inline read-only style (Thomas, live, 2026-11-06): clear it too.
+function setFieldReadOnly(readOnly) {
+  if (!field) return;
+  field.readOnly = readOnly;
+  if (!readOnly) field.removeAttribute?.('read-only');
+}
+
 function lockAnswer(locked) {
   const canSubmit = Boolean(item?.allowed_actions?.includes('submit'));
-  if (field) field.readOnly = locked || !canSubmit;
+  setFieldReadOnly(locked || !canSubmit);
   if (item?.answer_kind === 'choice') {
     for (const radio of document.querySelectorAll('input[name="choice"]')) radio.disabled = locked;
   }
@@ -422,7 +430,7 @@ function render(current, revealedLatex) {
   $('revealed').hidden = !revealedLatex;
   if (revealedLatex) $('revealed-field').value = revealedLatex;
   const canSubmit = next.allowed_actions.includes('submit');
-  if (field) field.readOnly = !canSubmit;
+  setFieldReadOnly(!canSubmit);
   $('keys').hidden = !field || !canSubmit;
   $('tries').textContent = `Tries left: ${next.tries_left}`;
   $('tries').hidden = !canSubmit;

@@ -12,7 +12,7 @@ release. Holdout cases are never edited in response; new cases go to dev or a fr
    On 5x³ − x + 1, attempt 1 `15x^2+1` then attempt 2 `15x-1`: the hint praised "the power rule
    on the first term" (the term that was wrong: exponent) and asked about −x (right this time,
    wrong in attempt 1). "What did I do wrong?" on the same attempts was correct.
-   Fixes: label the prompt's attempts "Latest attempt (help with this one)" and "Earlier
+   **Prompt part fixed by R40;** still to do: dev cases for this pattern. Fixes: label the prompt's attempts "Latest attempt (help with this one)" and "Earlier
    attempts (context only)"; level 1 praises only a part that is fully correct in the latest
    attempt. New dev case: two attempts where the right and wrong terms swap.
 2. **Feedback can point at the wrong term** (dev-02-r1): praised a copied −x, sent the student
