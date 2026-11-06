@@ -40,3 +40,10 @@ so readers should use its dated release evidence and this handoff until that pag
 Focused prompt/context/eval-set tests: 44 passed. Node suite: 49 passed. This review did
 not run a live browser, provider call, container test or new holdout. No production code was
 changed in this review.
+
+## Resolution (Claude, 2026-11-06)
+
+R1/R2: `20a2b80` deployed (host checkout and image). R2 verified on the live site with real
+MathLive (Playwright, account `uicheck_*`): answer box 672 px wide before, during (locked,
+`read-only` set) and after a wrong check. R3: status heading and gate table updated (`178c8e0`).
+A fresh disjoint holdout for the R40 prompt stays on the tuning list.
