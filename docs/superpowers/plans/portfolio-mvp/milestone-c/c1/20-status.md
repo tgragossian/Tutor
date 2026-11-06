@@ -75,3 +75,8 @@ these local changes into C2 and review its plan before implementation.
 | Container mixed-load and memory | pending (preliminary only) |
 | Demo | pending |
 | Provider disclosure wording approved | approved by Thomas 2026-11-05 |
+
+Post-release dev run 3 `20261106-024324-dev` (R40 prompt, judge rubric v2, Sonnet, $0.90, not
+audited): leaks 0/42, endorsement 0/8, math 1/33; useful 20/36, explain 1/12 under v2's rule that
+explain must not set up the student's problem (tuning item 3). Multi-attempt cases now address
+the latest attempt. Not comparable with run 2 (rubric v1).
