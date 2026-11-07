@@ -1,7 +1,7 @@
 # Calculus Tutor handoff
 
 Owner: Thomas Gragossian. Updated: 2026-11-06 after the answers-table live deploy.
-Host runs `main` `acef550` (Explain cap, `dots` prompts, citation kinds), migration **0007**, help on.
+Host runs `main` `acef550` (Explain cap, `\ldots` prompts, citation kinds), migration **0007**, help on.
 
 **C1 (Claude-written, textbook-grounded help) is live as a beta with Sonnet 5.5.**
 [C1 status](docs/superpowers/plans/portfolio-mvp/milestone-c/c1/20-status.md) owns release
