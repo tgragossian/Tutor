@@ -14,7 +14,7 @@ from mathtutor.help.generator import GenerationResult, GeneratorError, ScriptedG
 from mathtutor.help.leak_guard import LeakGuard
 from mathtutor.help.pipeline import HelpPipeline, HelpStatus
 from mathtutor.retrieval.bm25 import Bm25Index
-from mathtutor.retrieval.corpus import Chunk, Corpus
+from mathtutor.retrieval.corpus import Chunk, ChunkRole, Corpus
 
 PROBLEM = CONTENT.bundle.problems[0]
 
@@ -140,3 +140,24 @@ def test_pipeline_delivers_when_guard_finishes_in_time() -> None:
     ctx = assemble_context(PROBLEM, [], 1, None)
     result = pipe.run(ctx, "hint", None, PROBLEM.answer, clock() + CFG.deadline_s)
     assert result.status is HelpStatus.DELIVERED
+
+
+def test_source_labels_name_the_passage_kind_and_example_number() -> None:
+    from support.helpkit import chunk
+
+    from mathtutor.help.pipeline import source_refs
+
+    refs = source_refs(
+        [
+            chunk("c1-3.3-ex5", "Example 3.21: Applying Basic Derivative Rules\nFind", "3.3",
+                  ChunkRole.EXAMPLE),
+            chunk("c1-3.3-txt3", "The Basic Rules\nThe functions", "3.3", ChunkRole.EXPLANATION),
+            chunk("c1-3.3-txt8", "The Sum Rules\nWe find", "3.3", ChunkRole.EXPLANATION),
+        ]
+    )  # fmt: skip
+    assert [r.label for r in refs] == [
+        "Calculus Volume 1, §3.3, Example 3.21",
+        "Calculus Volume 1, §3.3, explanation",
+        "Calculus Volume 1, §3.3, explanation (2)",
+    ]
+    assert all("Applying" not in r.label and "Sum" not in r.label for r in refs)  # no titles

@@ -95,10 +95,30 @@ class PipelineResult:
     mistake_type: str | None = None  # the model's mistake type on a classifying hint (R35)
 
 
+_EXAMPLE_NO = re.compile(r"Example (\d+\.\d+)\b")
+
+
 def source_ref(chunk: Chunk) -> SourceRef:
-    # Section number only: a title such as "The Chain Rule" would name the method that a
-    # level-0 hint withholds (R37, review S2-5). The link still opens the exact passage.
-    return SourceRef(f"{BOOK}, §{chunk.section}", chunk.url, LICENCE)
+    # Section number and passage kind only: a title such as "The Chain Rule" would name the
+    # method that a level-0 hint withholds (R37, review S2-5). Examples carry their book
+    # number ("Example 3.21") so a hint's "the example" can be matched to its link.
+    label = f"{BOOK}, §{chunk.section}"
+    number = _EXAMPLE_NO.match(chunk.text) if chunk.role is ChunkRole.EXAMPLE else None
+    label += f", Example {number.group(1)}" if number else f", {chunk.role.value}"
+    return SourceRef(label, chunk.url, LICENCE)
+
+
+def source_refs(chunks: list[Chunk]) -> list[SourceRef]:
+    """One ref per chunk; a repeated label (two explanations in one section) gets " (2)"."""
+    seen: dict[str, int] = {}
+    refs = []
+    for chunk in chunks:
+        ref = source_ref(chunk)
+        seen[ref.label] = seen.get(ref.label, 0) + 1
+        if seen[ref.label] > 1:
+            ref = replace(ref, label=f"{ref.label} ({seen[ref.label]})")
+        refs.append(ref)
+    return refs
 
 
 def answer_latex(answer: Answer) -> str:
@@ -246,7 +266,7 @@ class HelpPipeline:
         ) -> PipelineResult:
             by_id = {c.chunk_id: c for c in chunks}
             if status is HelpStatus.DELIVERED:
-                refs = [source_ref(by_id[i]) for i in cited or []]
+                refs = source_refs([by_id[i] for i in cited or []])
             elif status is HelpStatus.FALLBACK and chunks:
                 refs = [source_ref(chunks[0])]
             else:

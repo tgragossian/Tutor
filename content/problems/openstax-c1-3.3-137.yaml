@@ -7,7 +7,7 @@ source:
   exercise: 137
   url: https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules
   license: CC BY-NC-SA 4.0
-statement: 'Find an equation of the tangent line to the graph of $f(x) = 2x^3 + 4x^2 - 5x - 3$ at $x = -1$. Enter the right-hand side of $y = \dots$.'
+statement: 'Find an equation of the tangent line to the graph of $f(x) = 2x^3 + 4x^2 - 5x - 3$ at $x = -1$. Enter the right-hand side of $y = \ldots$.'
 answer:
   kind: expression
   latex: '-7x-3'

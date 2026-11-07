@@ -7,7 +7,7 @@ source:
   exercise: 185
   url: https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions
   license: CC BY-NC-SA 4.0
-statement: 'Find an equation of the tangent line to $f(x) = -\sin x$ at $x = 0$. Enter the right-hand side of $y = \dots$.'
+statement: 'Find an equation of the tangent line to $f(x) = -\sin x$ at $x = 0$. Enter the right-hand side of $y = \ldots$.'
 answer:
   kind: expression
   latex: '-x'

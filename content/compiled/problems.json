@@ -676,8 +676,8 @@
         "section": "3.3",
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-3-differentiation-rules"
       },
-      "statement": "Find an equation of the tangent line to the graph of $f(x) = 2x^3 + 4x^2 - 5x - 3$ at $x = -1$. Enter the right-hand side of $y = \\dots$.",
-      "statement_html": "Find an equation of the tangent line to the graph of <math-field read-only>f(x) = 2x^3 + 4x^2 - 5x - 3</math-field> at <math-field read-only>x = -1</math-field>. Enter the right-hand side of <math-field read-only>y = \\dots</math-field>.",
+      "statement": "Find an equation of the tangent line to the graph of $f(x) = 2x^3 + 4x^2 - 5x - 3$ at $x = -1$. Enter the right-hand side of $y = \\ldots$.",
+      "statement_html": "Find an equation of the tangent line to the graph of <math-field read-only>f(x) = 2x^3 + 4x^2 - 5x - 3</math-field> at <math-field read-only>x = -1</math-field>. Enter the right-hand side of <math-field read-only>y = \\ldots</math-field>.",
       "topic": "derivatives.basic_rules"
     },
     {
@@ -866,8 +866,8 @@
         "section": "3.5",
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions"
       },
-      "statement": "Find an equation of the tangent line to $f(x) = -\\sin x$ at $x = 0$. Enter the right-hand side of $y = \\dots$.",
-      "statement_html": "Find an equation of the tangent line to <math-field read-only>f(x) = -\\sin x</math-field> at <math-field read-only>x = 0</math-field>. Enter the right-hand side of <math-field read-only>y = \\dots</math-field>.",
+      "statement": "Find an equation of the tangent line to $f(x) = -\\sin x$ at $x = 0$. Enter the right-hand side of $y = \\ldots$.",
+      "statement_html": "Find an equation of the tangent line to <math-field read-only>f(x) = -\\sin x</math-field> at <math-field read-only>x = 0</math-field>. Enter the right-hand side of <math-field read-only>y = \\ldots</math-field>.",
       "topic": "derivatives.trig"
     },
     {
@@ -944,8 +944,8 @@
         "section": "3.5",
         "url": "https://openstax.org/books/calculus-volume-1/pages/3-5-derivatives-of-trigonometric-functions"
       },
-      "statement": "Find an equation of the tangent line to $f(x) = 1 + \\cos x$ at $x = \\frac{3\\pi}{2}$. Enter the right-hand side of $y = \\dots$.",
-      "statement_html": "Find an equation of the tangent line to <math-field read-only>f(x) = 1 + \\cos x</math-field> at <math-field read-only>x = \\frac{3\\pi}{2}</math-field>. Enter the right-hand side of <math-field read-only>y = \\dots</math-field>.",
+      "statement": "Find an equation of the tangent line to $f(x) = 1 + \\cos x$ at $x = \\frac{3\\pi}{2}$. Enter the right-hand side of $y = \\ldots$.",
+      "statement_html": "Find an equation of the tangent line to <math-field read-only>f(x) = 1 + \\cos x</math-field> at <math-field read-only>x = \\frac{3\\pi}{2}</math-field>. Enter the right-hand side of <math-field read-only>y = \\ldots</math-field>.",
       "topic": "derivatives.trig"
     },
     {

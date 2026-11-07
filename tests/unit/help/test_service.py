@@ -65,7 +65,7 @@ def test_delivered_hint_with_citation(kit: Kit) -> None:
     assert out.html is not None
     assert "<strong>chain rule</strong>" in out.html
     assert "<math-field read-only>u^3</math-field>" in out.html
-    assert out.sources == [SourceRef("Calculus Volume 1, §3.6", URL, LICENSE)]
+    assert out.sources == [SourceRef("Calculus Volume 1, §3.6, rule", URL, LICENSE)]
     row = kit.row(rid)
     assert row.status == "delivered" and row.cited_ids == ["c1-3.6-rule1"]
     assert row.calls == 1 and row.hint_level == 1 and row.help_seq == 1
@@ -169,7 +169,7 @@ def test_unknown_citation_repairs_then_fallback(kit: Kit) -> None:
     out = kit.help(rid=rid)
     assert out.status is HelpStatus.FALLBACK
     assert out.html == render_help_html(messages.NUDGE.format(section="Section 3.6"))
-    assert out.sources == [SourceRef("Calculus Volume 1, §3.6", URL, LICENSE)]
+    assert out.sources == [SourceRef("Calculus Volume 1, §3.6, example", URL, LICENSE)]
     first, second = kit.generator.requests
     assert "<repair>" not in first.user and "<repair>" in second.user
     assert out.hint_level == 1
