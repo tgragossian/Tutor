@@ -35,7 +35,7 @@ All code was written by AI agents under my direction
 
 <p align="center">
   <img src="readmeImges/help-explain.png" width="560"
-       alt="After a wrong answer, Explain this answers a power-rule question with a worked textbook example and three OpenStax citations, without giving the answer">
+       alt="After a wrong answer, Explain this answers a power-rule question with worked textbook examples and four labeled OpenStax citations, without giving the answer">
 </p>
 
 ## What it does
